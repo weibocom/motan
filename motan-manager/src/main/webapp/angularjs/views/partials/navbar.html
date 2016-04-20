@@ -1,0 +1,110 @@
+﻿<div class="navbar-inner">
+    <div class="navbar-container">
+        <!-- Navbar Barnd -->
+        <div class="navbar-header pull-left">
+            <a href="#" class="navbar-brand">
+                <small>
+                    <img src="assets/img/logo.png" ng-if="!settings.rtl" alt=""/>
+                </small>
+            </a>
+        </div>
+        <!-- /Navbar Barnd -->
+        <!-- Sidebar Collapse -->
+        <div class="sidebar-collapse"></div>
+        <!-- /Sidebar Collapse -->
+        <!-- Account Area and Settings --->
+        <div class="navbar-header pull-right" ng-controller="LoginCtrl as loginCtrl">
+            <div class="navbar-account">
+                <ul class="account-area">
+                    <li>
+                        <a class="login-area dropdown-toggle" data-toggle="dropdown">
+                            <div class="avatar" title="View your public profile">
+                                <!--<img src="assets/img/avatars/adam-jansen.jpg">-->
+                            </div>
+                            <section>
+                                <h2>
+                                    <span class="profile" style="min-width: 60px;">
+                                        <span style="text-align: center">{{user.name}}</span>
+                                    </span>
+                                </h2>
+                            </section>
+                        </a>
+                        <!--Login Area Dropdown-->
+                        <ul class="pull-right dropdown-menu dropdown-arrow dropdown-login-area">
+                            <li class="username"><a>{{user.name}}</a></li>
+                            <li class="email"><a>微博平台研发</a></li>
+                            <!--Avatar Area-->
+                            <!--Avatar Area-->
+                            <li class="edit">
+                                <a href="profile.html" class="pull-left">Profile</a>
+                                <a href="#" class="pull-right">Setting</a>
+                            </li>
+                            <!--Theme Selector Area-->
+                            <li class="theme-area">
+                                <ul class="colorpicker">
+                                    <li><a class="colorpick-btn" href="" style="background-color:#5DB2FF;" skin-changer
+                                           rel="assets/css/skins/blue.min.css"></a></li>
+                                    <li><a class="colorpick-btn" href="" style="background-color:#2dc3e8;" skin-changer
+                                           rel="assets/css/skins/azure.min.css"></a></li>
+                                    <li><a class="colorpick-btn" href="" style="background-color:#03B3B2;" skin-changer
+                                           rel="assets/css/skins/teal.min.css"></a></li>
+                                    <li><a class="colorpick-btn" href="" style="background-color:#53a93f;" skin-changer
+                                           rel="assets/css/skins/green.min.css"></a></li>
+                                    <li><a class="colorpick-btn" href="" style="background-color:#FF8F32;" skin-changer
+                                           rel="assets/css/skins/orange.min.css"></a></li>
+                                    <li><a class="colorpick-btn" href="" style="background-color:#cc324b;" skin-changer
+                                           rel="assets/css/skins/pink.min.css"></a></li>
+                                    <li><a class="colorpick-btn" href="" style="background-color:#AC193D;" skin-changer
+                                           rel="assets/css/skins/darkred.min.css"></a></li>
+                                    <li><a class="colorpick-btn" href="" style="background-color:#8C0095;" skin-changer
+                                           rel="assets/css/skins/purple.min.css"></a></li>
+                                    <li><a class="colorpick-btn" href="" style="background-color:#0072C6;" skin-changer
+                                           rel="assets/css/skins/darkblue.min.css"></a></li>
+                                    <li><a class="colorpick-btn" href="" style="background-color:#585858;" skin-changer
+                                           rel="assets/css/skins/gray.min.css"></a></li>
+                                    <li><a class="colorpick-btn" href="" style="background-color:#474544;" skin-changer
+                                           rel="assets/css/skins/black.min.css"></a></li>
+                                    <li><a class="colorpick-btn" href="" style="background-color:#001940;" skin-changer
+                                           rel="assets/css/skins/deepblue.min.css"></a></li>
+                                </ul>
+                            </li>
+                            <!--/Theme Selector Area-->
+                            <li class="dropdown-footer">
+                                <a href="javascript:void(0);" ng-click="loginCtrl.logout()">
+                                    Sign out
+                                </a>
+                            </li>
+                        </ul>
+                        <!--/Login Area Dropdown-->
+                    </li>
+                    <!-- /Account Area -->
+                    <!--Note: notice that setting div must start right after account area list.
+                    no space must be between these elements-->
+                    <!-- Settings -->
+                </ul>
+                <div class="setting">
+                </div>
+                <div class="setting-container">
+                    <label>
+                        <input type="checkbox" id="checkbox_fixednavbar" ng-model="settings.fixed.navbar">
+                        <span class="text">Fixed Navbar</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="checkbox_fixedsidebar" ng-model="settings.fixed.sidebar">
+                        <span class="text">Fixed SideBar</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="checkbox_fixedbreadcrumbs" ng-model="settings.fixed.breadcrumbs">
+                        <span class="text">Fixed BreadCrumbs</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="checkbox_fixedheader" ng-model="settings.fixed.header">
+                        <span class="text">Fixed Header</span>
+                    </label>
+                </div>
+                <!-- Settings -->
+            </div>
+        </div>
+        <!-- /Account Area and Settings -->
+    </div>
+</div>

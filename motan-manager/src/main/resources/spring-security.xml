@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~  Copyright 2009-2016 Weibo, Inc.
+  ~
+  ~    Licensed under the Apache License, Version 2.0 (the "License");
+  ~    you may not use this file except in compliance with the License.
+  ~    You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~    Unless required by applicable law or agreed to in writing, software
+  ~    distributed under the License is distributed on an "AS IS" BASIS,
+  ~    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~    See the License for the specific language governing permissions and
+  ~    limitations under the License.
+  -->
+
+<beans:beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns="http://www.springframework.org/schema/security"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+             http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <!--<beans:bean id="userDetailsService" class="org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl">
+        <beans:property name="dataSource" ref="dataSource"/>
+    </beans:bean>-->
+
+    <http use-expressions="true"
+          auto-config="false"
+          create-session="stateless"
+          entry-point-ref="unauthorizedEntryPoint"
+          authentication-manager-ref="authenticationManager">
+        <custom-filter ref="authenticationTokenProcessingFilter" position="FORM_LOGIN_FILTER"/>
+        <intercept-url pattern="/api/user/**" access="permitAll"/>
+        <intercept-url method="GET" pattern="/api/**" access="hasRole('ROLE_USER')"/>
+        <intercept-url method="POST" pattern="/api/**" access="hasRole('ROLE_ADMIN')"/>
+        <intercept-url method="PUT" pattern="/api/**" access="hasRole('ROLE_ADMIN')"/>
+        <intercept-url method="DELETE" pattern="/api/**" access="hasRole('ROLE_ADMIN')"/>
+
+        <!--<form-login login-page="/#/login" username-parameter="username" password-parameter="password"
+                    authentication-failure-url="/access_denied"/>-->
+        <csrf disabled="true"/>
+    </http>
+
+    <!--<authentication-manager id="authenticationManager">
+        <authentication-provider user-service-ref="userDetailsService"/>
+    </authentication-manager>-->
+
+    <authentication-manager id="authenticationManager">
+        <authentication-provider>
+            <user-service>
+                <user name="guest" password="guest" authorities="ROLE_USER"/>
+                <user name="admin" password="admin" authorities="ROLE_ADMIN,ROLE_USER"/>
+            </user-service>
+        </authentication-provider>
+    </authentication-manager>
+</beans:beans>

@@ -1,0 +1,36 @@
+﻿<!-- Page Sidebar Header-->
+<div class="sidebar-header-wrapper">
+    <!--<input type="text" class="searchinput"/>-->
+    <!--<i class="searchicon fa fa-search"></i>-->
+
+    <!--<div class="searchhelper">***</div>-->
+</div>
+<!-- /Page Sidebar Header -->
+<!-- Sidebar Menu -->
+<ul class="nav sidebar-menu">
+    <li ui-sref-active="active">
+        <a ui-sref="app.queryRPC">
+            <i class="menu-icon glyphicon glyphicon-search"></i>
+            <span class="menu-text"> RPC服务查询 </span>
+        </a>
+    </li>
+    <li ui-sref-active="active" ng-show="hasRole('ROLE_ADMIN')">
+        <a ui-sref="app.trafficSwitch">
+            <i class="menu-icon glyphicon glyphicon-tasks"></i>
+            <span class="menu-text">流量切换</span>
+        </a>
+    </li>
+    <li ui-sref-active="active">
+        <a ui-sref="app.queryOrders">
+            <i class="menu-icon fa fa-table"></i>
+            <span class="menu-text">指令查询</span>
+        </a>
+    </li>
+    <li ui-sref-active="active">
+        <a ui-sref="app.operationRecord">
+            <i class="menu-icon fa fa-th-list"></i>
+            <span class="menu-text">操作记录查询</span>
+        </a>
+    </li>
+</ul>
+<!-- /Sidebar Menu -->

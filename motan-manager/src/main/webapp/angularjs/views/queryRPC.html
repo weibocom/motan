@@ -1,0 +1,58 @@
+﻿<div class="row">
+    <div class="col-xs-12 col-md-12">
+        <div class="widget">
+            <div class="widget-header ">
+                <span class="widget-caption">RPC服务查询</span>
+
+                <div class="widget-buttons">
+                    <a href="" widget-maximize></a>
+                    <a href="" widget-collapse></a>
+                    <a href="" widget-dispose></a>
+                </div>
+            </div>
+            <div class="widget-body" ng-controller="QueryRPCCtrl as queryCtrl">
+                <div class="form-group">
+                    <div class="col-sm-6">
+                        <ui-select ng-model="queryCtrl.selectedGroup" theme="bootstrap" ng-disabled="disabled">
+                            <ui-select-match placeholder="请选择RPC服务">{{$select.selected}}</ui-select-match>
+                            <ui-select-choices
+                                    repeat="group in groups | orderBy: orderByValue | filter: $select.search">
+                                <div ng-bind-html="group | highlight: $select.search"></div>
+                            </ui-select-choices>
+                        </ui-select>
+                    </div>
+                    <a href class="btn btn-default" ng-click="queryCtrl.queryRPC(queryCtrl.selectedGroup)">查询</a>
+                </div>
+                <hr class="wide">
+                <div ui-grid="queryCtrl.queryRPCOptions" ui-grid-expandable></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/ng-template" id="rpcDetail.html">
+    <table class="table table-bordered" ng-controller="QueryRPCCtrl as queryCtrl">
+        <tbody>
+        <tr>
+            <td>Server</td>
+            <td>
+                <ul style="padding-left: 0; margin-bottom: 0;">
+                    <li style="list-style-type:none;" ng-repeat="node in row.entity.server">
+                        <a href="{{node.info}}">{{node.host}}</a>
+                    </li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>Client</td>
+            <td>
+                <ul style="padding-left: 0; margin-bottom: 0;">
+                    <li style="list-style-type:none;" ng-repeat="node in row.entity.client">
+                        <a href="{{node.info}}">{{node.host}}</a>
+                    </li>
+                </ul>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</script>

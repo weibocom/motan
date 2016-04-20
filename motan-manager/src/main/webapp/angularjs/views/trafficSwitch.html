@@ -1,0 +1,245 @@
+<div class="row">
+    <div class="col-lg-12 col-sm-12 col-xs-12" ng-controller="TrafficSwitchCtrl as tsCtrl">
+        <div ng-controller="WizardCtrl as wizardCtrl">
+            <div wizard="stepCurrent" change="wizardCtrl.validate(event)" finish="wizardCtrl.verify(event)">
+                <div class="wizard wizard-wired">
+                    <ul class="steps">
+                        <li style="width: 25%">
+                            <span class="step step-info">1</span>
+                            <span class="title">Step 1: 来源流量</span>
+                            <span class="chevron"></span>
+                        </li>
+                        <li style="width: 25%">
+                            <span class="step">2</span>
+                            <span class="title">Step 2: 流量去向</span>
+                            <span class="chevron"></span>
+                        </li>
+                        <li style="width: 25%">
+                            <span class="step">3</span>
+                            <span class="title">Step 3: 路由规则</span>
+                            <span class="chevron"></span>
+                        </li>
+                        <li style="width: 25%">
+                            <span class="step">4</span>
+                            <span class="title">Step 4: 指令预览</span>
+                            <span class="chevron"></span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="step-content" id="WiredWizardsteps">
+                    <div class="step-pane">
+                        <div class="col-lg-6 col-sm-6 col-xs-12">
+                            <div class="well with-header">
+                                <div class="header bordered-themeprimary" style="font-size: 15px;">
+                                    请选择来源流量
+                                </div>
+                                <div>
+                                    <h6>RPC分组</h6>
+                                    <ui-select ng-model="$root.selectedGroup"
+                                               ng-change="tsCtrl.getServicesByGroup($root.selectedGroup)"
+                                               theme="bootstrap" ng-disabled="false">
+                                        <ui-select-match placeholder="请选择RPC分组">{{$select.selected.name}}
+                                        </ui-select-match>
+                                        <ui-select-choices
+                                                repeat="group in $root.groups | orderBy: 'name' | filter: $select.search">
+                                            <div ng-bind-html="group.name | highlight: $select.search"></div>
+                                        </ui-select-choices>
+                                    </ui-select>
+                                    <hr class="wide"/>
+                                    <h6>服务</h6>
+                                    <ui-select tagging tagging-label="[ 末尾支持通配符* ]" ng-model="$root.selectedService"
+                                               theme="bootstrap" ng-disabled="false">
+                                        <ui-select-match placeholder="请选择要切换流量的服务名称，输入*表示全部服务">{{$select.selected}}
+                                        </ui-select-match>
+                                        <ui-select-choices
+                                                repeat="service in $root.services | orderBy: orderByValue | filter: $select.search">
+                                            <div ng-bind-html="service | highlight: $select.search"></div>
+                                        </ui-select-choices>
+                                    </ui-select>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="clear: both"></div>
+                    </div>
+                    <div class="step-pane">
+                        <div class="col-lg-6 col-sm-6 col-xs-12">
+                            <div class="well with-header">
+                                <div class="header bordered-themeprimary" style="font-size: 15px;">
+                                    请选择{{$root.selectedGroup.name}}组的目标流量
+                                </div>
+                                <div>
+                                    <h6>RPC分组</h6>
+                                    <ui-select multiple ng-model="$root.targetGroups" theme="select2"
+                                               ng-disabled="disabled">
+                                        <ui-select-match placeholder="请选择RPC分组">{{$item.name}}</ui-select-match>
+                                        <ui-select-choices
+                                                repeat="group in $root.groups | orderBy: 'name' | filter: $select.search">
+                                            <div ng-bind-html="group.name | highlight: $select.search"></div>
+                                        </ui-select-choices>
+                                    </ui-select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-sm-6 col-xs-12">
+                            <div class="well with-header">
+                                <div class="header bordered-themeprimary" style="font-size: 15px;">
+                                    流量权重分配
+                                </div>
+                                <div class="form-horizontal">
+                                    <div class="form-group" ng-repeat="group in $root.targetGroups">
+                                        <div class="col-md-4 col-xs-12">
+                                            <!--<div class="spinbox spinbox-horizontal spinbox-right" ui-jq="spinbox">-->
+                                            <div>
+                                                <input type="number" maxlength="3" ng-model="group.weight" min="0" max="100"
+                                                       class="form-control" required>
+
+                                                <!--<input type="text" ng-model="group.weight" class="spinbox-input form-control" maxlength="2">
+                                                <div class="spinbox-buttons	btn-group">
+                                                    <button type="button" class="btn spinbox-down blueberry">
+                                                        <i class="fa fa-minus"></i>
+                                                    </button>
+                                                    <button type="button" class="btn spinbox-up purple">
+                                                        <i class="fa fa-plus"></i>
+                                                    </button>
+                                                </div>-->
+                                            </div>
+                                        </div>
+                                        <label class="col-md-8 col-xs-12" style="padding-top: 7px;">{{group.name}}:{{group.weight}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="clear: both"></div>
+                    </div>
+                    <div class="step-pane">
+                        <div class="col-lg-6 col-sm-6 col-xs-12">
+                            <div class="well with-header">
+                                <div class="header bordered-themeprimary" style="font-size: 15px;">
+                                    路由规则设置
+                                </div>
+                                <div class="form-horizontal form-bordered">
+                                    <div class="form-group">
+                                        <div class="col-sm-4">
+                                            <input type="text" ng-model="tsCtrl.routeFrom" class="form-control"
+                                                   placeholder="RPC Client"/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">to</label>
+
+                                        <div class="col-sm-4">
+                                            <input type="text" ng-model="tsCtrl.routeTo" class="form-control"
+                                                   placeholder="RPC Server"/>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <button type="button" class="btn btn-default" ng-click="tsCtrl.addRoute()">
+                                                添加
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">路由规则结果</label>
+
+                                        <div class="col-sm-8">
+                                            <tags-input ng-model="$root.routes"
+                                                        placeholder="可在此输入路由规则"></tags-input>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">预览IP设置</label>
+
+                                        <div class="col-sm-8">
+                                            <input type="text" ng-model="$root.previewIP" class="form-control"
+                                                   placeholder="请输入预览IP，可不填"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="clear: both"></div>
+                    </div>
+                    <div class="step-pane" ng-controller="PreviewCtrl as previewCtrl">
+                        <div class="well with-header">
+                            <div class="header">
+                                <span>指令预览</span>
+                            </div>
+                            <div class="dataTables_filter">
+                                <label>
+                                    Search :
+                                    <input type="search" class="input-sm"
+                                           ng-model='previewCtrl.filterValue' ng-change='previewCtrl.filter()'/>
+                                </label>
+                            </div>
+                            <div ui-grid="previewCtrl.previewOptions" ui-grid-expandable ui-grid-auto-resize></div>
+                        </div>
+                        <div style="clear: both"></div>
+                    </div>
+                </div>
+                <div class="actions actions-footer" style="z-index: initial;">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary btn-sm btn-prev">
+                            <i class="fa fa-angle-left"></i>Prev
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm btn-next" data-last="Finish">
+                            {{currentStepIndex==steps.length-1?'Finish':'Next'}}<i class="fa fa-angle-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <toaster-container></toaster-container>
+        </div>
+    </div>
+</div>
+
+<script type="text/ng-template" id="previewDetail.html">
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>Group</th>
+            <th>Host</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="url in row.entity.urls">
+            <td>{{url.group}}</td>
+            <td>{{url.serverPortStr}}</td>
+        </tr>
+        </tbody>
+    </table>
+</script>
+
+<script type="text/ng-template" id="verifyModal.html">
+    <div class="modal-header">
+        <h3 class="modal-title">是否确认生效以下指令？</h3>
+    </div>
+    <div class="modal-body">
+        {{$root.clientCommand}}
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+        <button class="btn btn-primary" type="button" ng-click="ok()">OK</button>
+    </div>
+</script>
+
+<script type="text/ng-template" id="successModal.html">
+    <div class="modal-header">
+        <h3 class="modal-title">指令设置成功！</h3>
+    </div>
+    <div class="modal-body">
+        操作已生效，刷新页面后查询
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-warning" type="button" ng-click="cancel()">返回</button>
+        <button class="btn btn-primary" type="button" ng-click="ok()">查询指令</button>
+    </div>
+</script>
+
+<script type="text/ng-template" id="failedModal.html">
+    <div class="modal-header">
+        <h3 class="modal-title">指令设置失败！</h3>
+    </div>
+    <div class="modal-body">
+        指令设置失败，请咨询管理员
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-warning" type="button" ng-click="cancel()">返回</button>
+    </div>
+</script>

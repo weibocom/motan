@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~  Copyright 2009-2016 Weibo, Inc.
+  ~
+  ~    Licensed under the Apache License, Version 2.0 (the "License");
+  ~    you may not use this file except in compliance with the License.
+  ~    You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~    Unless required by applicable law or agreed to in writing, software
+  ~    distributed under the License is distributed on an "AS IS" BASIS,
+  ~    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~    See the License for the specific language governing permissions and
+  ~    limitations under the License.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:lang="http://www.springframework.org/schema/lang" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:motan="http://api.weibo.com/schema/motan" xmlns:weibo="http://api.weibo.com/schema/weibo"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+       http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.5.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd 
+       http://api.weibo.com/schema/weibo http://api.weibo.com/schema/weibo.xsd
+       http://api.weibo.com/schema/motan http://api.weibo.com/schema/motan.xsd ">
+
+	<bean id="test" class="com.weibo.api.motan.config.springsupport.TestImpl"></bean>
+	<!-- protocols -->
+	<!-- 包含所有参数 -->
+	<motan:protocol id="motan" name="motan" default="true"
+		serialization="hessian2" codec="motan" iothreads="3" requestTimeout="200"
+		minClientConnection="1" maxClientConnection="1" minWorkerThread="22"
+		maxWorkerThread="200" maxContentLength="10485760" maxServerConnection="100000"
+		poolLifo="true" lazyInit="false" endpointFactory="mockEndpoint" cluster="default"
+		loadbalance="random" haStrategy="failover" workerQueueSize="0"
+		acceptConnections="0" proxy="jdk" filter="" retries="0" async="false" switcherService="localSwitcherService"/>
+		
+	<motan:protocol name="injvm" default="true" />
+	
+	<!-- registries -->
+	<motan:registry id="mockRegistry" name="mockRegistry" regProtocol="mockRegistry" address="10.210.226.126" port="8080"
+		requestTimeout="1000" registrySessionTimeout="300000"
+		registryRetryPeriod="30000" check="true" register="true" subscribe="true" excise="static" />
+	<motan:registry name="myLocal" regProtocol="local"
+		default="true" />
+
+	<!-- basic config -->
+	<motan:basicService id="serviceBasicConfig"
+		registry="myLocal" proxy="jdk" filter="active" actives="0" async="false"
+		mock="false" check="true" shareChannel="true" throwException="true"
+		requestTimeout="2000" register="true" subscribe="true" accessLog="true"
+		export="injvm" />
+
+	<motan:basicReferer id="clientBasicConfig" protocol="injvm"
+		registry="myLocal" version="1.0" proxy="jdk" filter="active" retries="0"
+		actives="0" async="false" mock="false" check="true" shareChannel="true"
+		throwException="true" requestTimeout="2000" register="true" subscribe="true"
+		accessLog="true" />
+
+	<!-- services -->
+	<motan:service interface="com.weibo.api.motan.config.springsupport.ITest"
+		ref="test" id="serviceTest" export="injvm:0,motan:7888" registry="myLocal,mockRegistry"
+		application="test1" module="test1"/>
+	<!-- referer with method configs -->
+	<motan:service id="serviceTestWithMethodConfig"
+				   interface="com.weibo.api.motan.config.springsupport.ITest" ref="test" export="motan:18080"
+				   basicService="serviceBasicConfig">
+		<motan:method name="hello" argumentTypes="void" requestTimeout="21" />
+		<motan:method name="hello" argumentTypes="java.lang.String" requestTimeout="22" />
+		<motan:method name="helloException" requestTimeout="23" retries="3" />
+	</motan:service>
+	<motan:service interface="com.weibo.api.motan.config.springsupport.ITest"
+		class="com.weibo.api.motan.config.springsupport.TestImpl"
+		id="serviceTestInjvm" export="injvm:10" application="test2" module="test2"/>
+	
+	<!-- referers -->
+	<motan:referer id="clientTest" registry="mockRegistry"
+		interface="com.weibo.api.motan.config.springsupport.ITest" protocol="injvm"
+		application="test1" module="test1" />
+	<!-- referer with method configs -->
+	<motan:referer id="clientMethodTest"
+		interface="com.weibo.api.motan.config.springsupport.ITest"
+		basicReferer="clientBasicConfig" application="test2" module="test2" >
+	    <motan:method name="hello" argumentTypes="void" requestTimeout="200" />
+        <motan:method name="hello" argumentTypes="java.lang.String" requestTimeout="200" />
+        <motan:method name="helloException" requestTimeout="23" retries="3" />
+    </motan:referer>
+    <!-- directurl -->
+    <motan:referer id="clientDirectTest" registry="mockRegistry" directUrl="127.0.0.1:7888"
+		interface="com.weibo.api.motan.config.springsupport.ITest" protocol="motan"
+		application="test1" module="test1" />
+</beans>

@@ -1,0 +1,27 @@
+﻿<div class="login-container animated fadeInDown" ng-controller="LoginCtrl as loginCtrl">
+    <div class="loginbox bg-white">
+        <div class="loginbox-title">SIGN IN</div>
+        <div class="loginbox-or">
+            <div class="or-line"></div>
+            <!--<div class="or">OR</div>-->
+        </div>
+        <div class="loginbox-textbox">
+            <input ng-model="loginCtrl.username" type="text" class="form-control" placeholder="Username"/>
+        </div>
+        <div class="loginbox-textbox">
+            <input ng-model="loginCtrl.password" type="password" class="form-control" placeholder="Password"/>
+        </div>
+        <div class="loginbox-submit">
+            <button class="btn btn-primary btn-block" ng-click="loginCtrl.login()">Login</button>
+        </div>
+        <div class="loginbox-textbox">
+            <label>
+                <input type="checkbox" ng-model="$root.rememberMe">
+                <span class="text">Remember me</span>
+            </label>
+        </div>
+    </div>
+    <div class="logobox">
+    </div>
+</div>
+<toaster-container></toaster-container>
