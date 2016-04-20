@@ -1,4 +1,7 @@
 # Motan
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/weibocom/motan/blob/master/LICENSE)
+[![Maven Central](https://img.shields.io/maven-central/v/com.weibo/motan.svg?label=Maven Central)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.weibo%22%20AND%20motan)
+[![Build Status](https://img.shields.io/travis/weibocom/motan/master.svg?label=Build)](https://travis-ci.org/weibocom/motan)
 
 # Overview
 Motan is a remote procedure call(RPC) framework for rapid development of high performance distributed services.
@@ -30,7 +33,8 @@ The quick start gives very basic example of running client and server on the sam
         <artifactId>motan-transport-netty</artifactId>
         <version>0.0.1</version>
     </dependency>
-    <! -- only needed for spring-based features -->
+
+    <!-- dependencies blow were only needed for spring-based features -->
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-springsupport</artifactId>
@@ -151,3 +155,5 @@ Motan is released under the [Apache License 2.0](http://www.apache.org/licenses/
 [gradle]:http://gradle.org
 [consul]:http://www.consul.io
 [zookeeper]:http://zookeeper.apache.org
+
+
