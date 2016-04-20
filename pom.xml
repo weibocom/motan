@@ -38,7 +38,8 @@
         <spring.version>4.2.4.RELEASE</spring.version>
     </properties>
 
-    <name>motan</name>
+    <name>Motan</name>
+    <description>A remote procedure call(RPC) framework for rapid development of high performance distributed services.</description>
     <url>https://github.com/weibocom/motan</url>
 
     <dependencies>
@@ -214,4 +215,17 @@
             </distributionManagement>
         </profile>
     </profiles>
+
+    <developers>
+        <developer>
+            <name>Ray</name>
+            <email>zzll0603@126.com</email>
+            <organization>Weibo</organization>
+        </developer>
+        <developer>
+            <name>Axb</name>
+            <email>uaxb@hotmail.com</email>
+            <organization>Weibo</organization>
+        </developer>
+    </developers>
 </project>
