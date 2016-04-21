@@ -145,7 +145,8 @@ The quick start gives very basic example of running client and server on the sam
 
 # Documents
 
-Coming soon...
+* English (Preparing)
+* [中文文档](https://github.com/weibocom/motan/wiki/zh_overview)
 
 # License
 
