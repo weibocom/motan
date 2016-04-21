@@ -59,7 +59,7 @@ public class ConfigurableWeightLoadBalanceTest {
                 float total = size * (j + 1);
                 float ratio = counter.get(key).get() * 10 / total;
                 int weight = groupWeight[Integer.parseInt(key.substring("group".length()))];
-                Assert.assertTrue(Math.abs(weight - ratio) < 1); // 权重误差不超过阈值。
+                Assert.assertTrue(Math.abs(weight - ratio) < 2); // 权重误差不超过阈值。
 
             }
         }
