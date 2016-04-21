@@ -1,0 +1,427 @@
+
+- [用户指南](#用户指南)
+    - [基本介绍](#基本介绍)
+        - [架构概述](#架构概述)
+        - [模块概述](#模块概述)
+        - [配置概述](#配置概述)
+    - [使用Motan](#使用motan)
+        - [工程依赖](#工程依赖)
+        - [处理调用异常](#处理调用异常)
+    - [配置说明](#配置说明)
+        - [协议与连接](#协议与连接)
+        - [注册中心与服务发现](#注册中心与服务发现)
+        - [服务提供方](#服务提供方)
+        - [服务调用方](#服务调用方)
+        - [配置清单](#配置清单)
+    - [运维及监控](#运维及监控)
+        - [优雅的停止服务](#优雅的停止服务)
+        - [管理后台](#管理后台)
+        - [日志说明](#日志说明)
+
+
+# 基本介绍
+Motan是一套基于java开发的RPC框架，除了常规的点对点调用外，motan还提供服务治理功能，包括服务节点的自动发现、摘除、高可用和负载均衡等。Motan具有良好的扩展性，主要模块都提供了多种不同的实现，例如支持多种注册中心，支持多种rpc协议等。
+
+## 架构概述
+
+Motan中分为服务提供方(RPC Server)，服务调用方(RPC Client)和服务注册中心(Registry)三个角色。
+
+* Server提供服务，向Registry注册自身服务，并向注册中心定期发送心跳汇报状态；
+* Client使用服务，需要向注册中心订阅RPC服务，Client根据Registry返回的服务列表，与具体的Sever建立连接，并进行RPC调用。
+* 当Server发生变更时，Registry会同步变更，Client感知后会对本地的服务列表作相应调整。
+
+三者的交互关系如下图：
+
+![](media/14612349319195.jpg)
+
+## 模块概述
+
+Motan框架中主要有register、transport、serialize、protocol几个功能模块，各个功能模块都支持通过SPI进行扩展，各模块的交互如下图所示：
+
+
+![](media/14612352579675.jpg)
+
+#### register
+用来和注册中心进行交互，包括注册服务、订阅服务、服务变更通知、服务心跳发送等功能；Server端会在系统初始化时通过register模块注册服务，Client端在系统初始化时会通过register模块订阅到具体提供服务的Server列表，当Server 列表发生变更时也由register模块通知Client。
+
+#### protocol
+用来进行RPC服务的描述和RPC服务的配置管理，这一层还可以添加不同功能的filter用来完成统计、并发限制等功能。
+
+#### serialize
+将RPC请求中的参数、结果等对象进行序列化与反序列化，即进行对象与字节流的互相转换；默认使用对java更友好的hessian2进行序列化。
+
+#### transport
+用来进行远程通信，默认使用Netty nio的TCP长链接方式。
+
+#### cluster
+Client端使用的模块，cluster是一组可用的Server在逻辑上的封装，包含若干可以提供RPC服务的Server，实际请求时会根据不同的高可用与负载均衡策略选择一个可用的Server发起远程调用。
+	
+在进行RPC请求时，Client通过代理机制调用cluster模块，cluster根据配置的HA和LoadBalance选出一个可用的Server，通过serialize模块把RPC请求转换为字节流，然后通过transport模块发送到Server端。
+
+## 配置概述
+Motan框架中将功能模块抽象为四个可配置的元素，分别为：
+
+- service：服务提供方提供的服务。使用方将核心业务抽取出来,作为独立的服务。通过暴露服务并将服务注册至注册中心,从而使调用方调用。
+
+- referer：服务消费方对服务的引用，即服务调用方。其中包含了调用该服务的集群策略、容错机制、负载均衡策略、底层通信协议等信息。
+
+- registry：注册中心。服务提供方将服务信息（包含ip、端口、服务策略等信息）注册到注册中心，服务消费方通过注册中心发现服务。当服务发生变更，注册中心负责通知各个消费方。
+
+- protocol：服务通信协议。服务提供方与消费方进行远程调用的协议，默认为motan协议，使用hessian2进行序列化，netty作为Endpoint以及使用motan自定义的协议编码方式。
+
+Motan推荐使用spring配置rpc服务，目前Motan扩展了6个自定义Spring xml标签：
+
+* motan:protocol
+* motan:registry
+* motan:basicService
+* motan:service
+* motan:basicReferer
+* motan:referer
+
+每种标签的详细含义请参考后文[配置说明](#config)部分。全部参数清单请参考[配置清单](zh_configuration)。
+
+# 使用Motan
+Motan主要使用Spring进行配置，业务代码无需修改。关于在项目中使用Motan框架的具体步骤，请参考：[快速入门](quickstart)。
+
+在使用Motan框架时，除了配置之外还需要注意工程依赖及Motan框架本身的异常处理。
+
+## 工程依赖
+
+Motan框架采用模块化设计，使用时可以按需依赖。目前的模块有：
+
+* motan-core	
+  Motan核心框架
+* motan-transport-netty  
+  基于Netty协议的长连接传输协议
+* motan-registry-consul	  
+  Consul服务发现组件
+* motan-registry-zookeeper  
+  Zookeeper服务发现组件
+* motan-springsupport  
+  Spring标签解析相关功能
+
+## 处理调用异常
+
+* 业务代码异常  
+当调用的远程服务出现异常时，Motan会把Server业务中的异常对象抛出到Client代码中，与本地调用逻辑一致。
+
+    > 注意:如果业务代码中抛出的异常类型为Error而非Exception（如OutOfMemoryError），Motan框架不会直接抛出Error，而是抛出包装了Error的MotanServiceException异常。
+
+* MotanServiceException  
+使用Motan框架将一个本地调用改为RPC调用后，如果出现网络问题或服务端集群异常等情况，Motan会在Client调用远程服务时抛出MotanServiceException异常，业务方需要自行决定后续处理逻辑。
+
+* MotanFrameworkException  
+	框架异常，比如系统启动、关闭、服务暴露、服务注册等非请求情况下出现问题，Motan会抛出此类异常。
+
+# 配置说明
+
+## 协议与连接（motan:protocol)
+
+### 介绍
+
+Protocol用来配置Motan服务的协议。不同的服务适用不同的协议进行传输，可以自行扩展协议。
+
+### motan协议
+
+```xml
+<motan:protocol name="motan" />
+```
+
+Motan默认的rpc协议为motan协议，使用tcp长连接模式，基于netty通信。
+
+
+#### 负载均衡
+
+Motan 在集群负载均衡时，提供了多种方案，缺省为 ActiveWeight，并支持自定义扩展。
+负载均衡策略在Client端生效，因此需在Client端添加配置
+
+目前支持的负载均衡策略有：
+
+- ActiveWeight(缺省)
+
+    ```
+    <motan:protocol ... loadbalance="activeWeight"/>
+    ```
+	低并发度优先： referer 的某时刻的 call 数越小优先级越高  
+	由于 Referer List 可能很多，比如上百台，如果每次都要从这上百个 Referer 或者最低并发的几个，性能有些损耗，因此 random.nextInt(list.size()) 获取一个起始的 index，然后获取最多不超过 MAX_REFERER_COUNT 的状态是 isAvailable 的 referer 进行判断 activeCount.
+
+- Random
+
+    ```
+    <motan:protocol ... loadbalance="random"/>
+    ```
+	随机，按权重设置随机概率。  
+	在一个截面上碰撞的概率高，但调用量越大分布越均匀，而且按概率使用权重后也比较均匀，有利于动态调整提供者权重。
+
+- RoundRobin
+
+    ```
+    <motan:protocol ... loadbalance="roundrobin"/>
+    ```
+
+    轮循，按公约后的权重设置轮循比率
+
+- LocalFirst
+
+    ```
+    <motan:protocol ... loadbalance="localFirst"/>
+    ```
+	 本地服务优先获取策略，对referers根据ip顺序查找本地服务，多存在多个本地服务，获取Active最小的本地服务进行服务。  
+    当不存在本地服务，但是存在远程RPC服务，则根据ActivWeight获取远程RPC服务  
+    当两者都存在，所有本地服务都应优先于远程服务，本地RPC服务与远程RPC服务内部则根据ActiveWeight进行
+	
+- Consistent
+ 
+    ```
+    <motan:protocol ... loadbalance="consistent"/>
+    ```
+    一致性 Hash，相同参数的请求总是发到同一提供者
+
+- ConfigurableWeight
+
+    ```
+    <motan:protocol ... loadbalance="configurableWeight"/>
+    ```
+    权重可配置的负载均衡策略
+
+#### 容错策略
+
+Motan 在集群调用失败时，提供了两种容错方案，并支持自定义扩展。
+高可用集群容错策略在Client端生效，因此需在Client端添加配置
+目前支持的集群容错策略有：
+
+- Failover 失效切换（缺省）
+
+    ```
+    <motan:protocol ... haStrategy="failover"/>
+    ```
+    失败自动切换，当出现失败，重试其它服务器。
+
+- Failfast 快速失败
+
+    ```
+    <motan:protocol ... haStrategy="failfast"/>
+    ```
+    快速失败，只发起一次调用，失败立即报错。
+
+#### 连接控制
+
+* 限制服务端连接池工作线程数
+
+    ```
+    <motan:protocol id="demoMotan" name="motan" maxWorkerThread="800" minWorkerThread="20"/>
+    ```
+
+* 限制客户端对每个服务建立的连接数
+
+    ```
+    <motan:protocol name="motan" maxClientConnection="10" minClientConnection="2"/>
+    ```
+	
+
+### 本地调用
+
+	<motan:protocol name="injvm" />
+
+Injvm 协议是一个伪协议，它不开启端口，不发起远程调用，只在 JVM 内直接关联，但执行 Motan 的 Filter 链。
+
+## 注册中心与服务发现(motan:registry)
+### 介绍
+
+注册中心配置。用于配置注册中心的注册协议、地址端口、超时时间等。motan:registry包含以下常用属性：
+
+* name：标识配置名称
+* regProtocol：标识注册中心协议
+* address：标识注册中心地址
+
+Motan支持使用多种Registry模块，使用不同注册中心需要依赖对应jar包。
+
+### 使用Consul作为注册中心
+
+```xml
+<motan:registry regProtocol="consul" name="my_consul" address="consul_port:port"/>
+```   
+	
+### 使用Zookeeper作为注册中心
+
+ zookeeper为单节点  
+    
+    ```xml
+    <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="zookeeper_ip1:port"/>
+    ```
+    
+    zookeeper多节点集群  
+
+    ```xml
+    <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="zookeeper_ip1:port1,zookeeper_ip2:port2,zookeeper_ip3:port"/>
+    ```
+    
+### 不使用注册中心
+
+在开发及测试环境下，经常需要绕过注册中心，只测试指定服务提供者，这时候可能需要
+点对点直连，点对点直联方式，将以服务接口为单位，忽略注册中心的提供者列表，需要在配置**motan:referer**时定义directUrl属性：
+
+```xml
+<motan:referer id="xxxService" interface="com.motan.xxx.XxxService" directUrl="server_ip:server_port" />
+```
+
+## 服务提供方(motan:service)
+### 介绍
+定义提供给外部调用的接口，motan:service包含以下常用属性：
+
+* interface：标识服务的接口类名
+* ref：标识服务的实现类，引用具体的spring业务实现对象
+* export：标识服务的暴露方式，格式为“protocolId:port”（使用的协议及对外提供的端口号），其中protocolId：应与motan:protocol中的name一致
+* group：标识服务的分组
+* module：标识模块信息	
+* basicService：标识使用的基本配置，引用motan:basicService对象
+
+Motan在注册中心的服务是以group的形式保存的，一般推荐一个分组以机房＋业务线进行命名，如yf-user-rpc。一个分组中包含若干的Service，一个Service即是java中的一个接口类名，每个Service下有一组能够提供对应服务的Server。
+
+
+### 使用basicService简化配置
+
+```xml
+<motan:basicService .../>
+```
+
+rpc服务的通用配置，用于配置所有服务接口的公共配置，减少配置冗余。basicService包含以下常用属性：
+
+* id：标识配置项
+* export：标识服务的暴露方式，格式为“protocolId:port”（使用的协议及对外提供的端口号），其中protocolId：应与motan:protocol中的name对应
+* group：标识服务的分组
+* module：标识模块信息
+* registry：标识service使用的注册中心，与motan:registry中的name对应
+
+motan:service可以通过以下方式引用基本配置。
+
+```
+<!-- 通用配置，多个rpc服务使用相同的基础配置. group和module定义具体的服务池。export格式为“protocol id:提供服务的端口” -->
+<motan:basicService id="serviceBasicConfig" export="demoMotan:8002" group="motan-demo-rpc" module="motan-demo-rpc" registry="registry"/>
+<!-- 通用配置，多个rpc服务使用相同的基础配置. group和module定义具体的服务池。export格式为“protocol id:提供服务的端口” -->
+<motan:service interface="com.weibo.motan.demo.service.MotanDemoService"
+                   ref="demoServiceImpl" basicService="serviceBasicConfig"/>
+    
+```
+
+motan:service中的basicService属性用来标识引用哪个motan:basicService对象，对于basicService中已定义的内容，service不必重复配置。
+
+
+
+## 服务调用方(motan:referer)
+### 介绍
+
+调用方对象，motan:referer包含以下常用属性：
+
+* id：标识配置项
+* group：标识服务的分组
+* module：标识模块信息
+* registry：标识service使用的注册中心，与motan:registry中的name对应
+* basicReferer：标识使用的基本配置，引用motan:basicReferer对象
+
+Client端订阅Service后，会从Registry中得到能够提供对应Service的一组Server，Client把这一组Server看作一个提供服务的cluster。当cluster中的Server发生变更时，Client端的register模块会通知Client进行更新。
+
+![](media/14612385789967.jpg)
+
+
+### 使用basicReferer简化配置
+调用方基础配置。用于配置所有服务代理的公共属性。
+
+* id：标识配置项
+* group：标识服务的分组
+* module：标识模块信息
+* registry：标识service使用的注册中心，与motan:registry中的name对应
+
+motan:referer可以通过以下方式引用基本配置。
+
+```
+<!-- 通用referer基础配置 -->
+<motan:basicReferer id="clientBasicConfig" group="motan-demo-rpc" module="motan-demo-rpc"  registry="registry"/>
+
+<!-- 具体referer配置。使用方通过beanid使用服务接口类 -->
+<motan:referer id="demoReferer" interface="com.weibo.motan.demo.service.MotanDemoService"  basicReferer="clientBasicConfig"/>
+```
+motan:referer中的basicService属性用来标识引用哪个motan:basicReferer对象，对于basicReferer中已定义的内容，service不必重复配置。
+
+## 配置清单
+详细内容请参考[配置清单](zh_configuration.md)
+
+# 运维及监控
+## 优雅的停止服务
+Motan支持在Consul集群环境下优雅的关闭节点，当需要关闭或重启节点时，可以先将待上线节点从集群中摘除，避免直接关闭影响正常请求。
+
+待关闭节点需要调用以下代码，建议通过servlet或业务的管理模块进行该调用。
+
+```java
+    MotanSwitcherUtil.setSwitcher(ConsulConstants.NAMING_PROCESS_HEARTBEAT_SWITCHER, false)
+    ```
+
+> 注意：Zookeeper模块此功能正在开发。
+
+## 管理后台
+管理后台主要包括RPC服务查询、流量切换、Motan指令设置等功能，需使用ZooKeeper作为注册中心
+
+管理后台独立于Motan其他部分，可单独部署
+### 管理后台安装
+1. 配置：
+    
+    修改配置文件config.properties，配置ZooKeeper的registry地址，默认不使用数据库
+    
+    默认的登录用户及权限如下：
+        管理员：用户名admin 密码admin
+        访客：用户名guest 密码guest
+    
+    若需使用历史操作查询功能，则需配置数据库：
+        数据库表结构位于motan-manager.sql，可直接导入
+        数据库配置地址位于config.properties
+        在WEB-INF/web.xml的contextConfigLocation中添加classpath*:spring-mybaits.xml
+
+2. 启动
+    
+    在motan-open/motan-manager/下执行mvn install
+    将motan-open/motan-manager/target/motan-manager.war部署到任意web容器中（如：tomcat的webapps目录下），运行web容器即可
+### 管理后台使用
+Coming Soon...
+
+## 日志说明
+Motan会打印两种类型的日志，帮助运维人员监控系统状态。
+
+### 请求类日志
+
+通过motan:service或motan:referer的accessLog属性来配置，基本格式如下：
+
+	"accesslog" - date - side - local_application_module - localip - interface - method_name - parameter_name - to_ip - remote_application_module - result - request_id - process_time_mills (分隔符为"|"）
+
+### 统计类日志
+
+所有请求的统计：
+
+	[motan-totalAccessStatistic] total_count: 32565 slow_count: 26 biz_excp: 0 other_excp: 2 avg_time: 1.93ms biz_time: 0.94ms avg_tps: 1085
+	total_count: 30s 内总请求数
+	slow_count：30s 内慢请求数（超过 50ms 算 slow）
+	biz_excp: 30s 内业务处理异常的总数
+	other_excp: 30s 其他异常的总数
+	avg_time: 所有接口的平均响应时间(网络传输+序列化+service 端处理)
+	biz_time: 所有接口的 service 端的业务处理时间(不包含序列化和网络传输）
+	avg_tps：平均 tps
+	注：上面是基于 client 端为维度的统计，service 端也有，其中 avg_time 便是业务处理时间，biz_time 为 0。
+
+单方法的统计：
+
+	[motan-accessStatistic] item: injvm://cn.sina.api.data.service.GroupService.getGroupMemberCounters(long,long) total_count: 0 slow_count: 0 biz_excp: 0 other_excp: 0 avg_time: 0.00ms biz_time: 0.00ms avg_tps: 0 max_tps: 0 min_tps: 0
+	total_count: 30s 该接口的请求数，
+	slow_count: 30s 内该接口的慢请求数 （超过 50ms 的算 slow） ，
+	biz_excp: 30s 内该接口业务处理异常的总数，
+	other_excp: 30s 该接口其他异常的总数，
+	avg_time: 平均响应时间(网络传输+序列化+service 端处理)，
+	biz_time: service 端的业务处理时间(不包含序列化和网络传输） ，
+	avg_tps：平均 tps，
+	max_tps: 最大的 TPS，
+	min_tps: 最小的 TPS
+
+内存统计：
+
+	[motan-memoryStatistic] 1954.67MB of 7987.25 MB (24.5%) used
+	
+
+
