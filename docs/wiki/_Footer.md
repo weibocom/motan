@@ -1,0 +1,1 @@
+Copyright 2009-2016 Weibo, Inc.

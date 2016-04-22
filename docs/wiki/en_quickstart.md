@@ -1,8 +1,8 @@
 - [Quickstart](#)
-  - [Using Motan in single machine environment](#Using Motan in single machine environment)
-  - [Using Motan in cluster environment](#Using Motan in cluster environment)
-    - [Using Consul as the registry](#Using Consul as the registry)
-    - [Using ZooKeeper as the registry](#Using ZooKeeper as the registry)
+  - [Using Motan in single machine environment](#using-motan-in-single-machine-environment)
+  - [Using Motan in cluster environment](#using-motan-in-cluster-environment)
+    - [Using Consul as the registry](#using-consul-as-registry)
+    - [Using ZooKeeper as the registry](#using-zookeeper-as-registry)
 
 The quick start gives very basic example of running server and client on the same machine. For more details about using and developing Motan, please jump to [Documents](en_userguide).
 
@@ -139,7 +139,7 @@ The quick start gives very basic example of running server and client on the sam
 In cluster environment, the external service discovery components such as Consul or ZooKeeper is needed to support the use of motan.
 
 
-### <a id="consul"></a>Using Consul as the registry
+### <a id="consul"></a>Using Consul as registry
 
 #### <a id="consul-start"></a>Install and Start Consul
 
@@ -200,7 +200,7 @@ UI backend [http://localhost:8500/ui](http://localhost:8500/ui)
 
 6. Start client, call service.
 
-### <a id="zookeeper"></a>Using ZooKeeper as the registry
+### <a id="zookeeper"></a>Using ZooKeeper as registry
 
 #### <a id="zookeeper-start"></a>Install and Start ZooKeeper([Official Document](https://zookeeper.apache.org/doc/trunk/zookeeperStarted.html))
 

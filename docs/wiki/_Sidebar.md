@@ -1,9 +1,9 @@
 ### Documents
-* Overview(Preparing)
-* Quick Start(Preparing)
+* [Overview](Home)
+* [Quick Start](en_quickstart)
 * User Guide(Preparing)
 * Develop Guide(Preparing)
-* FAQ(Preparing)
+* [FAQ](en_faq)
 
 ### 中文文档
 * [概述](zh_overview)
