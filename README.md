@@ -80,7 +80,6 @@ The quick start gives very basic example of running client and server on the sam
         public static void main(String[] args) throws InterruptedException {
             ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:motan_server.xml");
             System.out.println("server start...");
-            Thread.sleep(Long.MAX_VALUE);
         }
     }
     ```
