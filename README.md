@@ -160,8 +160,8 @@ The quick start gives very basic example of running client and server on the sam
 * olivererwang([@olivererwang](https://github.com/olivererwang))
 * jackael([@jackael9856](https://github.com/jackael9856))
 * Ray([@rayzhang0603](https://github.com/rayzhang0603))
-* axb([@qdaxb](https://github.com/qdaxb))
 * r2dx([@half-dead](https://github.com/half-dead))
+* Axb([@qdaxb](https://github.com/qdaxb))
 
 # License
 
