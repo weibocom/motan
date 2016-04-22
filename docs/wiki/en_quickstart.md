@@ -7,7 +7,7 @@
 The quick start gives very basic example of running server and client on the same machine. For more details about using and developing Motan, please jump to [Documents](en_userguide).
 
 > The minimum requirements to run the quick start are:
->  * JDK 1.6 or above
+>  * JDK 1.6 or above.
 >  * A java-based project management software like [Maven][maven] or [Gradle][gradle].
 
 ## <a id="peer-to-peer"></a>Using Motan in single machine environment
@@ -229,13 +229,13 @@ Install and start ZooKeeper:
 
 2. Add the definition of ZooKeeper registry in the configuration of server and client.
 
-    single node zookeeper:  
+    single node ZooKeeper:  
     
     ```xml
     <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="127.0.0.1:2181"/>
     ```
     
-    multi-nodes zookeeper:
+    multi-nodes ZooKeeper:
 
     ```xml
     <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"/>
