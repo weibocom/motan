@@ -18,11 +18,13 @@ Motan is a remote procedure call(RPC) framework for rapid development of high pe
     * [Using Motan in single machine environment](https://github.com/weibocom/motan/wiki/en_quickstart#using-motan-in-single-machine-environment)
     * [Using Motan in cluster environment](https://github.com/weibocom/motan/wiki/en_quickstart#using-motan-in-cluster-environment)
 * User Guide(Preparing)
-    * 基本介绍(Preparing)
-    * 使用Motan(Preparing)
-    * 配置说明(Preparing)
-    * 运维及监控(Preparing)
+    * Overview(Preparing)
+    * Use Motan(Preparing)
+    * Configuration(Preparing)
+    * Managing and Monitoring(Preparing)
 * Develop Guide(Preparing)
 * [FAQ](https://github.com/weibocom/motan/wiki/en_faq)
 
 
+[consul]:http://www.consul.io
+[zookeeper]:http://zookeeper.apache.org
