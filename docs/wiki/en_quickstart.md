@@ -1,16 +1,16 @@
 - [Quickstart](#)
-  - [Simple call sample](#Simple call sample)
-  - [Cluster call sample](#Cluster call sample)
+  - [Using Motan in single machine environment](#Using Motan in single machine environment)
+  - [Using Motan in cluster environment](#Using Motan in cluster environment)
     - [Using Consul as the registry](#Using Consul as the registry)
     - [Using ZooKeeper as the registry](#Using ZooKeeper as the registry)
 
-The quick start gives very basic example of running server and client on the same machine. For the detail information about using and developing Motan, please jump to [Documents](en_userguide).
+The quick start gives very basic example of running server and client on the same machine. For more details about using and developing Motan, please jump to [Documents](en_userguide).
 
 > The minimum requirements to run the quick start are:
 >  * JDK 1.6 or above
 >  * A java-based project management software like [Maven][maven] or [Gradle][gradle].
 
-## <a id="peer-to-peer"></a>Simple call sample
+## <a id="peer-to-peer"></a>Using Motan in single machine environment
 
 1. Add dependency to pom.
 
@@ -134,16 +134,16 @@ The quick start gives very basic example of running server and client on the sam
 	Executing main function in Client will invoke the remote service and print response.
     
     
-## <a id="cluster"></a>Cluster call sample
+## <a id="cluster"></a>Using Motan in cluster environment
 
-In a cluster environment, the use of motan depends on the external service discovery components such as Consul or ZooKeeper supported.
+In cluster environment, the external service discovery components such as Consul or ZooKeeper is needed to support the use of motan.
 
 
 ### <a id="consul"></a>Using Consul as the registry
 
-#### <a id="consul-start"></a>Consul Installation and Start
+#### <a id="consul-start"></a>Install and Start Consul
 
-##### Installation（[Official Document](https://www.consul.io/intro/getting-started/install.html)）
+##### Install（[Official Document](https://www.consul.io/intro/getting-started/install.html)）
     
     # Taking Linux as an example
     wget https://releases.hashicorp.com/consul/0.6.4/consul_0.6.4_linux_amd64.zip
@@ -180,13 +180,13 @@ UI backend [http://localhost:8500/ui](http://localhost:8500/ui)
     server:
 
     ```xml
-        <motan:service interface="quickstart.FooService" ref="serviceImpl" registry="my_consul" export="8002" />
+    <motan:service interface="quickstart.FooService" ref="serviceImpl" registry="my_consul" export="8002" />
     ```
 	
     client:
 
     ```xml
-        <motan:referer id="remoteService" interface="quickstart.FooService" registry="my_consul"/>
+    <motan:referer id="remoteService" interface="quickstart.FooService" registry="my_consul"/>
     ```
 
 
@@ -202,9 +202,9 @@ UI backend [http://localhost:8500/ui](http://localhost:8500/ui)
 
 ### <a id="zookeeper"></a>Using ZooKeeper as the registry
 
-#### <a id="zookeeper-start"></a>ZooKeeper Installation and Start([Official Document](https://zookeeper.apache.org/doc/trunk/zookeeperStarted.html))
+#### <a id="zookeeper-start"></a>Install and Start ZooKeeper([Official Document](https://zookeeper.apache.org/doc/trunk/zookeeperStarted.html))
 
-The installation and start of ZooKeeper as a single node
+Install and start ZooKeeper as single node:
 
     wget http://mirrors.cnnic.cn/apache/zookeeper/zookeeper-3.4.8/zookeeper-3.4.8.tar.gz
     tar zxvf zookeeper-3.4.8.tar.gz
@@ -235,7 +235,7 @@ The installation and start of ZooKeeper as a single node
     <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="127.0.0.1:2181"/>
     ```
     
-    zookeeper as multi-nodes cluster:
+    zookeeper as cluster:
 
     ```xml
     <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"/>
