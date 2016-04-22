@@ -61,13 +61,13 @@ Client端使用的模块，cluster是一组可用的Server在逻辑上的封装�
 ## 配置概述
 Motan框架中将功能模块抽象为四个可配置的元素，分别为：
 
-- service：服务提供方提供的服务。使用方将核心业务抽取出来,作为独立的服务。通过暴露服务并将服务注册至注册中心,从而使调用方调用。
-
-- referer：服务消费方对服务的引用，即服务调用方。其中包含了调用该服务的集群策略、容错机制、负载均衡策略、底层通信协议等信息。
+- protocol：服务通信协议。服务提供方与消费方进行远程调用的协议，默认为motan协议，使用hessian2进行序列化，netty作为Endpoint以及使用motan自定义的协议编码方式。
 
 - registry：注册中心。服务提供方将服务信息（包含ip、端口、服务策略等信息）注册到注册中心，服务消费方通过注册中心发现服务。当服务发生变更，注册中心负责通知各个消费方。
 
-- protocol：服务通信协议。服务提供方与消费方进行远程调用的协议，默认为motan协议，使用hessian2进行序列化，netty作为Endpoint以及使用motan自定义的协议编码方式。
+- service：服务提供方提供的服务。使用方将核心业务抽取出来,作为独立的服务。通过暴露服务并将服务注册至注册中心,从而使调用方调用。
+
+- referer：服务消费方对服务的引用，即服务调用方。
 
 Motan推荐使用spring配置rpc服务，目前Motan扩展了6个自定义Spring xml标签：
 
@@ -274,6 +274,7 @@ Motan支持使用多种Registry模块，使用不同注册中心需要依赖对�
 * export：标识服务的暴露方式，格式为“protocolId:port”（使用的协议及对外提供的端口号），其中protocolId：应与motan:protocol中的name一致
 * group：标识服务的分组
 * module：标识模块信息	
+* protocol：标识service使用的协议，与motan:protocol中的name对应，默认为motan协议
 * basicService：标识使用的基本配置，引用motan:basicService对象
 
 Motan在注册中心的服务是以group的形式保存的，一般推荐一个分组以机房＋业务线进行命名，如yf-user-rpc。一个分组中包含若干的Service，一个Service即是java中的一个接口类名，每个Service下有一组能够提供对应服务的Server。
@@ -291,17 +292,17 @@ rpc服务的通用配置，用于配置所有服务接口的公共配置，减�
 * export：标识服务的暴露方式，格式为“protocolId:port”（使用的协议及对外提供的端口号），其中protocolId：应与motan:protocol中的name对应
 * group：标识服务的分组
 * module：标识模块信息
+* protocol：标识service使用的协议，与motan:protocol中的name对应，默认为motan协议
 * registry：标识service使用的注册中心，与motan:registry中的name对应
 
 motan:service可以通过以下方式引用基本配置。
 
 ```
 <!-- 通用配置，多个rpc服务使用相同的基础配置. group和module定义具体的服务池。export格式为“protocol id:提供服务的端口” -->
-<motan:basicService id="serviceBasicConfig" export="demoMotan:8002" group="motan-demo-rpc" module="motan-demo-rpc" registry="registry"/>
+<motan:basicService id="serviceBasicConfig" export="demoMotan:8002" group="motan-demo-rpc" module="motan-demo-rpc" registry="registry" protocol="motan"/>
 <!-- 通用配置，多个rpc服务使用相同的基础配置. group和module定义具体的服务池。export格式为“protocol id:提供服务的端口” -->
 <motan:service interface="com.weibo.motan.demo.service.MotanDemoService"
                    ref="demoServiceImpl" basicService="serviceBasicConfig"/>
-    
 ```
 
 motan:service中的basicService属性用来标识引用哪个motan:basicService对象，对于basicService中已定义的内容，service不必重复配置。
@@ -316,7 +317,8 @@ motan:service中的basicService属性用来标识引用哪个motan:basicService�
 * id：标识配置项
 * group：标识服务的分组
 * module：标识模块信息
-* registry：标识service使用的注册中心，与motan:registry中的name对应
+* protocol：标识referer使用的协议，与motan:protocol中的name对应，默认为motan协议
+* registry：标识referer使用的注册中心，与motan:registry中的name对应
 * basicReferer：标识使用的基本配置，引用motan:basicReferer对象
 
 Client端订阅Service后，会从Registry中得到能够提供对应Service的一组Server，Client把这一组Server看作一个提供服务的cluster。当cluster中的Server发生变更时，Client端的register模块会通知Client进行更新。
@@ -330,13 +332,14 @@ Client端订阅Service后，会从Registry中得到能够提供对应Service的�
 * id：标识配置项
 * group：标识服务的分组
 * module：标识模块信息
-* registry：标识service使用的注册中心，与motan:registry中的name对应
+* protocol：标识referer使用的协议，与motan:protocol中的name对应，默认为motan协议
+* registry：标识referer使用的注册中心，与motan:registry中的name对应
 
 motan:referer可以通过以下方式引用基本配置。
 
 ```
 <!-- 通用referer基础配置 -->
-<motan:basicReferer id="clientBasicConfig" group="motan-demo-rpc" module="motan-demo-rpc"  registry="registry"/>
+<motan:basicReferer id="clientBasicConfig" group="motan-demo-rpc" module="motan-demo-rpc"  registry="registry" protocol="motan"/>
 
 <!-- 具体referer配置。使用方通过beanid使用服务接口类 -->
 <motan:referer id="demoReferer" interface="com.weibo.motan.demo.service.MotanDemoService"  basicReferer="clientBasicConfig"/>
@@ -353,8 +356,8 @@ Motan支持在Consul集群环境下优雅的关闭节点，当需要关闭或重
 待关闭节点需要调用以下代码，建议通过servlet或业务的管理模块进行该调用。
 
 ```java
-    MotanSwitcherUtil.setSwitcher(ConsulConstants.NAMING_PROCESS_HEARTBEAT_SWITCHER, false)
-    ```
+MotanSwitcherUtil.setSwitcher(ConsulConstants.NAMING_PROCESS_HEARTBEAT_SWITCHER, false)
+```
 
 > 注意：Zookeeper模块此功能正在开发。
 
@@ -380,6 +383,7 @@ Motan支持在Consul集群环境下优雅的关闭节点，当需要关闭或重
     
     在motan-open/motan-manager/下执行mvn install
     将motan-open/motan-manager/target/motan-manager.war部署到任意web容器中（如：tomcat的webapps目录下），运行web容器即可
+    
 ### 管理后台使用
 Coming Soon...
 
