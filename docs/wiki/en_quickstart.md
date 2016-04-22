@@ -204,7 +204,7 @@ UI backend [http://localhost:8500/ui](http://localhost:8500/ui)
 
 #### <a id="zookeeper-start"></a>Install and Start ZooKeeper([Official Document](https://zookeeper.apache.org/doc/trunk/zookeeperStarted.html))
 
-Install and start ZooKeeper as single node:
+Install and start ZooKeeper:
 
     wget http://mirrors.cnnic.cn/apache/zookeeper/zookeeper-3.4.8/zookeeper-3.4.8.tar.gz
     tar zxvf zookeeper-3.4.8.tar.gz
@@ -229,13 +229,13 @@ Install and start ZooKeeper as single node:
 
 2. Add the definition of ZooKeeper registry in the configuration of server and client.
 
-    zookeeper as single node:  
+    single node zookeeper:  
     
     ```xml
     <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="127.0.0.1:2181"/>
     ```
     
-    zookeeper as cluster:
+    multi-nodes zookeeper:
 
     ```xml
     <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"/>
