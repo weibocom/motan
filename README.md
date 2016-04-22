@@ -158,9 +158,9 @@ The quick start gives very basic example of running client and server on the sam
 * liuzheng3
 * tangyang([@tangyang](https://github.com/tangyang))
 * olivererwang([@olivererwang](https://github.com/olivererwang))
-* jackael([@jackael9856](https://github.com/jackael))
+* jackael([@jackael9856](https://github.com/jackael9856))
 * Ray([@rayzhang0603](https://github.com/rayzhang0603))
-* Axb([@qdaxb](https://github.com/qdaxb))
+* axb([@qdaxb](https://github.com/qdaxb))
 * r2dx([@half-dead](https://github.com/half-dead))
 
 # License
