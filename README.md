@@ -163,6 +163,7 @@ The quick start gives very basic example of running client and server on the sam
 * r2dx([@half-dead](https://github.com/half-dead))
 * axb([@qdaxb](https://github.com/qdaxb))
 * wenqisun([@wenqisun](https://github.com/wenqisun))
+* fingki([@fingki](https://github.com/fingki))
 
 # License
 
