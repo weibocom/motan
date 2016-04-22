@@ -147,6 +147,22 @@ The quick start gives very basic example of running client and server on the sam
 * English (Preparing)
 * [中文文档](https://github.com/weibocom/motan/wiki/zh_overview)
 
+# Contributors
+
+* maijunsheng([@maijunsheng](https://github.com/maijunsheng))
+* fishermen([@hustfisher](https://github.com/hustfisher))
+* TangFulin([@tangfl](https://github.com/tangfl))
+* bodlyzheng([@bodlyzheng](https://github.com/bodlyzheng))
+* wangyu1
+* zenglingshu([@zenglingshu](https://github.com/zenglingshu))
+* liuzheng3
+* tangyang([@tangyang](https://github.com/tangyang))
+* olivererwang([@olivererwang](https://github.com/olivererwang))
+* jackael([@jackael9856](https://github.com/jackael))
+* Ray([@rayzhang0603](https://github.com/rayzhang0603))
+* Axb([@qdaxb](https://github.com/qdaxb))
+* r2dx([@half-dead](https://github.com/half-dead))
+
 # License
 
 Motan is released under the [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).
