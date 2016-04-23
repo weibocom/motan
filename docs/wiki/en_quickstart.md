@@ -7,7 +7,7 @@
 The quick start gives very basic example of running server and client on the same machine. For more details about using and developing Motan, please jump to [Documents](en_userguide).
 
 > The minimum requirements to run the quick start are:
->  * JDK 1.6 or above.
+>  * JDK 1.7 or above.
 >  * A java-based project management software like [Maven][maven] or [Gradle][gradle].
 
 ## <a id="peer-to-peer"></a>Using Motan in single machine environment

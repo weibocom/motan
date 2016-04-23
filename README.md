@@ -17,7 +17,7 @@ Motan is a remote procedure call(RPC) framework for rapid development of high pe
 The quick start gives very basic example of running client and server on the same machine. For the detailed information about using and developing Motan, please jump to [Documents](#documents).
 
 > The minimum requirements to run the quick start are: 
->  * JDK 1.6 or above
+>  * JDK 1.7 or above
 >  * A java-based project management software like [Maven][maven] or [Gradle][gradle]
 
 1. Add dependency to pom
