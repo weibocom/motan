@@ -37,7 +37,6 @@
 | dispatcher          | String  |                       | 信息线程模型派发方式                                                  |
 | server              | String  |                       | 服务器端实现                                                          |
 | client              | String  |                       | 客户端端实现                                                          |
-| codec               | String  | motan                 | 协议编码                                                              |
 | default             | boolean |                       | 是否缺省的配置                                                        |
 | switcherService     | String  | localSwitcherService  |                                                                       |
 | heartbeatFactory    | String  | motan                 |                                                                       |

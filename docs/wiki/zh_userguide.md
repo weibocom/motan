@@ -348,7 +348,7 @@ motan:referer可以通过以下方式引用基本配置。
 motan:referer中的basicService属性用来标识引用哪个motan:basicReferer对象，对于basicReferer中已定义的内容，service不必重复配置。
 
 ## 配置清单
-详细内容请参考[配置清单](zh_configuration.md)
+详细内容请参考[配置清单](zh_configuration)
 
 # 运维及监控
 ## 优雅的停止服务
