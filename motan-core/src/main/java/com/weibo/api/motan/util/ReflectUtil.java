@@ -41,7 +41,7 @@ public class ReflectUtil {
     public static final String EMPTY_PARAM = "void";
     private static final Class<?>[] EMPTY_CLASS_ARRAY = new Class<?>[0];
 
-    private static final Map<String, Class<?>> name2ClassCache = new HashMap<String, Class<?>>();
+    private static final ConcurrentMap<String, Class<?>> name2ClassCache = new ConcurrentHashMap<String, Class<?>>();
     private static final ConcurrentMap<Class<?>, String> class2NameCache = new ConcurrentHashMap<Class<?>, String>();
 
     private static final String[] PRIMITIVE_NAMES = new String[] {"boolean", "byte", "char", "double", "float", "int", "long", "short",
@@ -129,10 +129,8 @@ public class ReflectUtil {
 
         clz = forNameWithoutCache(className);
 
-        if (clz != null) {
-            // 应该没有内存消耗过多的可能，除非有些代码很恶心，创建特别多的类
-            name2ClassCache.put(className, clz);
-        }
+        // 应该没有内存消耗过多的可能，除非有些代码很恶心，创建特别多的类
+        name2ClassCache.putIfAbsent(className, clz);
 
         return clz;
     }
@@ -308,4 +306,5 @@ public class ReflectUtil {
             return null;
         }
     }
+
 }
