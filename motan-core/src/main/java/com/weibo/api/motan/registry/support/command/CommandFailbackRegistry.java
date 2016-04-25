@@ -38,7 +38,7 @@ public abstract class CommandFailbackRegistry extends FailbackRegistry {
     }
 
     @Override
-    protected void concreteSubscribe(URL url, final NotifyListener listener) {
+    protected void doSubscribe(URL url, final NotifyListener listener) {
         LoggerUtil.info("CommandFailbackRegistry subscribe. url: " + url.toSimpleString());
         URL urlCopy = url.createCopy();
         CommandServiceManager manager = getCommandServiceManager(urlCopy);
@@ -47,14 +47,14 @@ public abstract class CommandFailbackRegistry extends FailbackRegistry {
         subscribeService(urlCopy, manager);
         subscribeCommand(urlCopy, manager);
 
-        List<URL> urls = concreteDiscover(urlCopy);
+        List<URL> urls = doDiscover(urlCopy);
         if (urls != null && urls.size() > 0) {
             this.notify(urlCopy, listener, urls);
         }
     }
 
     @Override
-    protected void concreteUnsubscribe(URL url, NotifyListener listener) {
+    protected void doUnsubscribe(URL url, NotifyListener listener) {
         LoggerUtil.info("CommandFailbackRegistry unsubscribe. url: " + url.toSimpleString());
         URL urlCopy = url.createCopy();
         CommandServiceManager manager = commandManagerMap.get(urlCopy);
@@ -66,7 +66,7 @@ public abstract class CommandFailbackRegistry extends FailbackRegistry {
     }
 
     @Override
-    protected List<URL> concreteDiscover(URL url) {
+    protected List<URL> doDiscover(URL url) {
         LoggerUtil.info("CommandFailbackRegistry discover. url: " + url.toSimpleString());
         List<URL> finalResult;
 

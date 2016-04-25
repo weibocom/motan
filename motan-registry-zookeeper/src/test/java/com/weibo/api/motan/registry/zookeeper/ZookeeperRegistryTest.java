@@ -76,7 +76,7 @@ public class ZookeeperRegistryTest {
     }
 
     @Test
-    public void testConcreteRegister() {
+    public void testDoRegister() {
         URL url = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8001, "com.weibo.motan.demo.service.MotanDemoService");
 
         registry.register(url);
@@ -85,15 +85,15 @@ public class ZookeeperRegistryTest {
     }
 
     @Test
-    public void testConcreteUnregister() {
+    public void testDoUnregister() {
         URL url = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8001, "com.weibo.motan.demo.service.MotanDemoService");
-        registry.concreteUnregister(url);
+        registry.doUnregister(url);
         Set<URL> registeredUrls = registry.getRegisteredUrls();
         assertFalse(registeredUrls.contains(url));
     }
 
     @Test
-    public void testConcreteSubscribe() {
+    public void testDoSubscribe() {
         URL url = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 0, "com.weibo.motan.demo.service.MotanDemoService");
         NotifyListener notifyListener = new NotifyListener() {
             @Override
@@ -101,13 +101,13 @@ public class ZookeeperRegistryTest {
 
             }
         };
-        registry.concreteSubscribe(url, notifyListener);
+        registry.doSubscribe(url, notifyListener);
         ConcurrentHashMap<URL, ConcurrentHashMap<NotifyListener, IZkChildListener>> urlListeners = registry.getUrlListeners();
         assertTrue(urlListeners.containsKey(url));
     }
 
     @Test
-    public void testConcreteUnsubscribe() {
+    public void testDoUnsubscribe() {
         URL url = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 0, "com.weibo.motan.demo.service.MotanDemoService");
         NotifyListener notifyListener = new NotifyListener() {
             @Override
@@ -115,15 +115,15 @@ public class ZookeeperRegistryTest {
 
             }
         };
-        registry.concreteUnsubscribe(url, notifyListener);
+        registry.doUnsubscribe(url, notifyListener);
         ConcurrentHashMap<URL, ConcurrentHashMap<NotifyListener, IZkChildListener>> urlListeners = registry.getUrlListeners();
         assertFalse(urlListeners.containsKey(url));
     }
 
     @Test
-    public void testConcreteDiscover() {
+    public void testDoDiscover() {
         URL url = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 0, "com.weibo.motan.demo.service.MotanDemoService");
-        registry.concreteDiscover(url);
+        registry.doDiscover(url);
     }
 
 

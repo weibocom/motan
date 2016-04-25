@@ -17,6 +17,7 @@
 package com.weibo.api.motan.config.springsupport;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.weibo.api.motan.core.extension.SpiMeta;
@@ -38,6 +39,21 @@ public class MockRegistryFactory extends AbstractRegistryFactory {
 
             @Override
             public void unregister(URL url) {}
+
+            @Override
+            public void available(URL url) {
+
+            }
+
+            @Override
+            public void unavailable(URL url) {
+
+            }
+
+            @Override
+            public Collection<URL> getRegisteredServiceUrls() {
+                return null;
+            }
 
             @Override
             public void subscribe(URL url, NotifyListener listener) {}

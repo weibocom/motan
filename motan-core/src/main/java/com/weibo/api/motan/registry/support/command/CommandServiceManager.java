@@ -97,7 +97,7 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
     public void notifyCommand(URL serviceUrl, String commandString) {
         LoggerUtil.info("CommandServiceManager notify command. service:" + serviceUrl.toSimpleString() + ", command:" + commandString);
 
-        if (!MotanSwitcherUtil.switcherIsOpen(MOTAN_COMMAND_SWITCHER) || commandString == null) {
+        if (!MotanSwitcherUtil.isOpen(MOTAN_COMMAND_SWITCHER) || commandString == null) {
             LoggerUtil.info("command reset empty since swither is close.");
             commandString = "";
         }

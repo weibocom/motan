@@ -70,12 +70,12 @@ public abstract class FailbackRegistry extends AbstractRegistry {
     }
 
     @Override
-    public void doRegister(URL url) {
+    public void register(URL url) {
         failedRegistered.remove(url);
         failedUnregistered.remove(url);
 
         try {
-            concreteRegister(url);
+            super.register(url);
         } catch (Exception e) {
             if (isCheckingUrls(getUrl(), url)) {
                 throw new MotanFrameworkException(String.format("[%s] false to registery %s to %s", registryClassName, url, getUrl()), e);
@@ -85,12 +85,12 @@ public abstract class FailbackRegistry extends AbstractRegistry {
     }
 
     @Override
-    public void doUnregister(URL url) {
+    public void unregister(URL url) {
         failedRegistered.remove(url);
         failedUnregistered.remove(url);
 
         try {
-            concreteUnregister(url);
+            super.unregister(url);
         } catch (Exception e) {
             if (isCheckingUrls(getUrl(), url)) {
                 throw new MotanFrameworkException(String.format("[%s] false to unregistery %s to %s", registryClassName, url, getUrl()), e);
@@ -100,11 +100,11 @@ public abstract class FailbackRegistry extends AbstractRegistry {
     }
 
     @Override
-    public void doSubscribe(URL url, NotifyListener listener) {
+    public void subscribe(URL url, NotifyListener listener) {
         removeForFailedSubAndUnsub(url, listener);
 
         try {
-            concreteSubscribe(url, listener);
+            super.subscribe(url, listener);
         } catch (Exception e) {
             List<URL> cachedUrls = getCachedUrls(url);
             if (cachedUrls != null && cachedUrls.size() > 0) {
@@ -118,11 +118,11 @@ public abstract class FailbackRegistry extends AbstractRegistry {
     }
 
     @Override
-    public void doUnsubscribe(URL url, NotifyListener listener) {
+    public void unsubscribe(URL url, NotifyListener listener) {
         removeForFailedSubAndUnsub(url, listener);
 
         try {
-            concreteUnsubscribe(url, listener);
+            super.unsubscribe(url, listener);
         } catch (Exception e) {
             if (isCheckingUrls(getUrl(), url)) {
                 throw new MotanFrameworkException(String.format("[%s] false to unsubscribe %s from %s", registryClassName, url, getUrl()),
@@ -134,9 +134,9 @@ public abstract class FailbackRegistry extends AbstractRegistry {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected List<URL> doDiscover(URL url) {
+    public List<URL> discover(URL url) {
         try {
-            return concreteDiscover(url);
+            return super.discover(url);
         } catch (Exception e) {
             // 如果discover失败，返回一个empty list吧，毕竟是个下行动作，
             LoggerUtil.warn(String.format("Failed to discover url:%s in registry (%s)", url, getUrl()), e);
@@ -179,7 +179,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
             LoggerUtil.info("[{}] Retry register {}", registryClassName, failed);
             try {
                 for (URL url : failed) {
-                    concreteRegister(url);
+                    super.register(url);
                     failedRegistered.remove(url);
                 }
             } catch (Exception e) {
@@ -193,7 +193,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
             LoggerUtil.info("[{}] Retry unregister {}", registryClassName, failed);
             try {
                 for (URL url : failed) {
-                    concreteUnregister(url);
+                    super.unregister(url);
                     failedUnregistered.remove(url);
                 }
             } catch (Exception e) {
@@ -216,7 +216,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
                         URL url = entry.getKey();
                         Set<NotifyListener> listeners = entry.getValue();
                         for (NotifyListener listener : listeners) {
-                            concreteSubscribe(url, listener);
+                            super.subscribe(url, listener);
                             listeners.remove(listener);
                         }
                     }
@@ -240,7 +240,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
                         URL url = entry.getKey();
                         Set<NotifyListener> listeners = entry.getValue();
                         for (NotifyListener listener : listeners) {
-                            concreteUnsubscribe(url, listener);
+                            super.unsubscribe(url, listener);
                             listeners.remove(listener);
                         }
                     }
@@ -253,13 +253,4 @@ public abstract class FailbackRegistry extends AbstractRegistry {
 
     }
 
-    protected abstract void concreteRegister(URL url);
-
-    protected abstract void concreteUnregister(URL url);
-
-    protected abstract void concreteSubscribe(URL url, NotifyListener listener);
-
-    protected abstract void concreteUnsubscribe(URL url, NotifyListener listener);
-
-    protected abstract List<URL> concreteDiscover(URL url);
 }

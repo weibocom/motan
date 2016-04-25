@@ -25,7 +25,7 @@ import com.weibo.api.motan.rpc.Caller;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.switcher.LocalSwitcherService;
+import com.weibo.api.motan.util.MotanSwitcherUtil;
 import com.weibo.api.motan.util.NetUtils;
 import org.jmock.Expectations;
 
@@ -82,7 +82,7 @@ public class SwitcherFilterTest extends BaseTestCase {
     }
 
     public void testPutSwitcher() {
-        LocalSwitcherService.putSwitcher("mock_class_name", true);
+        MotanSwitcherUtil.setSwitcherValue("mock_class_name", true);
 
         mockery.checking(new Expectations() {
             {
@@ -108,7 +108,7 @@ public class SwitcherFilterTest extends BaseTestCase {
     }
 
     public void testOnSwitcher() {
-        LocalSwitcherService.onSwitcher("mock_class_name");
+        MotanSwitcherUtil.setSwitcherValue("mock_class_name",true);
 
         mockery.checking(new Expectations() {
             {
@@ -135,7 +135,7 @@ public class SwitcherFilterTest extends BaseTestCase {
         assertNotNull(resultOnSwitcher);
         assertTrue(resultOnSwitcher.getException().getMessage().contains("Request false for switcher is on"));
 
-        LocalSwitcherService.offSwitcher("mock_class_name");
+        MotanSwitcherUtil.setSwitcherValue("mock_class_name",false);
 
         Response resultOffSwitcher = filter.filter(caller, request);
 

@@ -69,7 +69,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
     }
 
     @Override
-    protected void concreteRegister(URL url) {
+    protected void doRegister(URL url) {
         String info = url.toFullStr();
         String serverTypePath = toServerTypePath(url);
         if (!zkClient.exists(serverTypePath)) {
@@ -87,14 +87,14 @@ public class ZookeeperRegistry extends FailbackRegistry {
     }
 
     @Override
-    protected void concreteUnregister(URL url) {
+    protected void doUnregister(URL url) {
         zkClient.delete(toServerNodePath(url));
         registeredUrls.remove(url);
         LoggerUtil.info(String.format("[ZookeeperRegistry] unregister: path=%s", toServerNodePath(url)));
     }
 
     @Override
-    protected void concreteSubscribe(final URL url, final NotifyListener notifyListener) {
+    protected void doSubscribe(final URL url, final NotifyListener notifyListener) {
         ConcurrentHashMap<NotifyListener, IZkChildListener> childChangeListeners = urlListeners.get(url);
         if (childChangeListeners == null) {
             urlListeners.putIfAbsent(url, new ConcurrentHashMap<NotifyListener, IZkChildListener>());
@@ -132,7 +132,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
     }
 
     @Override
-    protected void concreteUnsubscribe(URL url, NotifyListener notifyListener) {
+    protected void doUnsubscribe(URL url, NotifyListener notifyListener) {
         Map<NotifyListener, IZkChildListener> childChangeListeners = urlListeners.get(url);
         if (childChangeListeners != null) {
             IZkChildListener zkChildListener = childChangeListeners.get(notifyListener);
@@ -144,8 +144,20 @@ public class ZookeeperRegistry extends FailbackRegistry {
     }
 
     @Override
-    protected List<URL> concreteDiscover(URL url) {
+    protected List<URL> doDiscover(URL url) {
         return nodeChildsToUrls(toServerTypePath(url));
+    }
+
+    @Override
+    protected void doAvailable(URL url) {
+        //TODO implement for zk
+
+    }
+
+    @Override
+    protected void doUnavailable(URL url) {
+        //TODO implement for zk
+
     }
 
     private List<URL> nodeChildsToUrls(String parentPath, List<String> currentChilds) {

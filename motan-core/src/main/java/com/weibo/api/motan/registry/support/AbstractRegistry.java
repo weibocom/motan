@@ -16,18 +16,18 @@
 
 package com.weibo.api.motan.registry.support;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.registry.NotifyListener;
 import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.switcher.SwitcherListener;
+import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MotanSwitcherUtil;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <pre>
@@ -47,10 +47,26 @@ public abstract class AbstractRegistry implements Registry {
             new ConcurrentHashMap<URL, Map<String, List<URL>>>();
 
     private URL registryUrl;
+    private Set<URL> registeredServiceUrls = new ConcurrentHashSet<URL>();
     protected String registryClassName = this.getClass().getSimpleName();
 
     public AbstractRegistry(URL url) {
         this.registryUrl = url.createCopy();
+        // register a heartbeat switcher to perceive service state change and change available state
+        MotanSwitcherUtil.registerSwitcherListener(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, new SwitcherListener() {
+
+            @Override
+            public void onValueChanged(String key, Boolean value) {
+                if (key != null && value != null) {
+                    if (value) {
+                        available(null);
+                    } else {
+                        unavailable(null);
+                    }
+                }
+
+            }
+        });
     }
 
     @Override
@@ -61,6 +77,7 @@ public abstract class AbstractRegistry implements Registry {
         }
         LoggerUtil.info("[{}] Url ({}) will register to Registry [{}]", registryClassName, url, registryUrl.getIdentity());
         doRegister(removeUnnecessaryParmas(url.createCopy()));
+        registeredServiceUrls.add(url);
     }
 
     @Override
@@ -71,6 +88,7 @@ public abstract class AbstractRegistry implements Registry {
         }
         LoggerUtil.info("[{}] Url ({}) will unregister to Registry [{}]", registryClassName, url, registryUrl.getIdentity());
         doUnregister(removeUnnecessaryParmas(url.createCopy()));
+        registeredServiceUrls.remove(url);
     }
 
     @Override
@@ -126,6 +144,34 @@ public abstract class AbstractRegistry implements Registry {
     @Override
     public URL getUrl() {
         return registryUrl;
+    }
+
+    @Override
+    public Collection<URL> getRegisteredServiceUrls() {
+        return registeredServiceUrls;
+    }
+
+    @Override
+    public void available(URL url) {
+        LoggerUtil.info("[{}] Url ({}) will set to available to Registry [{}]", registryClassName, url, registryUrl.getIdentity());
+        if(url != null) {
+            doAvailable(removeUnnecessaryParmas(url.createCopy()));
+        } else {
+            doAvailable(null);
+        }
+    }
+
+
+
+    @Override
+    public void unavailable(URL url) {
+        LoggerUtil.info("[{}] Url ({}) will set to unavailable to Registry [{}]", registryClassName, url, registryUrl.getIdentity());
+        if(url == null) {
+            doUnavailable(removeUnnecessaryParmas(url.createCopy()));
+        } else {
+            doUnregister(null);
+        }
+
     }
 
     protected List<URL> getCachedUrls(URL url) {
@@ -193,5 +239,10 @@ public abstract class AbstractRegistry implements Registry {
     protected abstract void doUnsubscribe(URL url, NotifyListener listener);
 
     protected abstract List<URL> doDiscover(URL url);
+
+    protected abstract void doAvailable(URL url);
+
+    protected abstract void doUnavailable(URL url);
+
 
 }
