@@ -12,7 +12,7 @@
 
 ## <a id="peer-to-peer"></a>简单调用示例
 
-1. 在pom中增加依赖
+1. 在pom中添加依赖
 
    ```xml
     <dependency>
@@ -39,7 +39,7 @@
     </dependency>
    ```
 
-2. 为调用方和服务方创建接口。
+2. 为调用方和服务方创建公共接口。
 
     `src/main/java/quickstart/FooService.java`  
 
@@ -51,31 +51,22 @@
     }
     ```
 
-3. 实现服务方逻辑。
-
-
-    `src/main/java/quickstart/FooServiceImpl.java`
+3. 编写业务接口逻辑、创建并启动RPC Server。
     
+    `src/main/java/quickstart/FooServiceImpl.java`  
+
     ```java
     package quickstart;
-    
-    import org.springframework.context.ApplicationContext;
-    import org.springframework.context.support.ClassPathXmlApplicationContext;
-    
+
     public class FooServiceImpl implements FooService {
     
         public String hello(String name) {
             System.out.println(name + " invoked rpc service");
             return "hello " + name;
         }
-    
-        public static void main(String[] args) throws InterruptedException {
-            ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:motan_server.xml");
-            System.out.println("server start...");
-        }
     }
     ```
-    
+
     `src/main/resources/motan_server.xml`
     
     ```xml
@@ -92,10 +83,27 @@
         <motan:service interface="quickstart.FooService" ref="serviceImpl" export="8002" />
     </beans>
     ```
-    
-    执行FooServiceImpl类中的main函数将会启动motan服务，并监听8002端口.
 
-4. 实现服务调用方。
+       `src/main/java/quickstart/Server.java`
+    
+    ```java
+    package quickstart;
+    
+    import org.springframework.context.ApplicationContext;
+    import org.springframework.context.support.ClassPathXmlApplicationContext;
+    
+    public class Server {
+    
+        public static void main(String[] args) throws InterruptedException {
+            ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:motan_server.xml");
+            System.out.println("server start...");
+        }
+    }
+    ```
+  
+    执行Server类中的main函数将会启动motan服务，并监听8002端口.
+
+4. 创建并执行RPC Client。
 
     `src/main/resources/motan_client.xml`
 

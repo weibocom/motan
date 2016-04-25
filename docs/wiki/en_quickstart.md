@@ -12,7 +12,8 @@ The quick start gives very basic example of running server and client on the sam
 
 ## <a id="peer-to-peer"></a>Using Motan in single machine environment
 
-1. Add dependency to pom.
+
+1. Add dependencies to pom.
 
    ```xml
     <dependency>
@@ -26,7 +27,7 @@ The quick start gives very basic example of running server and client on the sam
         <version>0.0.1</version>
     </dependency>
     
-    <!-- only needed for spring-based features -->
+    <!-- dependencies blow were only needed for spring-based features -->
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-springsupport</artifactId>
@@ -51,31 +52,22 @@ The quick start gives very basic example of running server and client on the sam
     }
     ```
 
-3. Implement the service provider.
-
-
-    `src/main/java/quickstart/FooServiceImpl.java`
+3. Write an implementation, create and start RPC Server.
+    
+    `src/main/java/quickstart/FooServiceImpl.java`  
     
     ```java
     package quickstart;
-    
-    import org.springframework.context.ApplicationContext;
-    import org.springframework.context.support.ClassPathXmlApplicationContext;
-    
+
     public class FooServiceImpl implements FooService {
-    
-        public String hello(String name) {
+
+    	public String hello(String name) {
             System.out.println(name + " invoked rpc service");
             return "hello " + name;
-        }
-    
-        public static void main(String[] args) throws InterruptedException {
-            ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:motan_server.xml");
-            System.out.println("server start...");
-        }
+    	}
     }
     ```
-    
+
     `src/main/resources/motan_server.xml`
     
     ```xml
@@ -93,9 +85,26 @@ The quick start gives very basic example of running server and client on the sam
     </beans>
     ```
     
-	Executing main function in FooServiceImpl will start a motan server listening on port 8002.
+    `src/main/java/quickstart/Server.java`
+    
+    ```java
+    package quickstart;
+    
+    import org.springframework.context.ApplicationContext;
+    import org.springframework.context.support.ClassPathXmlApplicationContext;
+    
+    public class Server {
+    
+        public static void main(String[] args) throws InterruptedException {
+            ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:motan_server.xml");
+            System.out.println("server start...");
+        }
+    }
+    ```
+    
+    Execute main function in Server will start a motan server listening on port 8002.
 
-4. Implement the service consumer.
+4. Create and start RPC Client.
 
     `src/main/resources/motan_client.xml`
 
@@ -131,8 +140,7 @@ The quick start gives very basic example of running server and client on the sam
     }
     ```
     
-	Executing main function in Client will invoke the remote service and print response.
-    
+    Execute main function in Client will invoke the remote service and print response.
     
 ## <a id="cluster"></a>Using Motan in cluster environment
 
