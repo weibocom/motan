@@ -22,7 +22,6 @@ import java.util.Collection;
 
 
 /**
- * 
  * Register service to Restery center.
  *
  * @author fishermen
@@ -33,14 +32,14 @@ public interface RegistryService {
 
     /**
      * register service to registry
-     * 
+     *
      * @param url
      */
     void register(URL url);
 
     /**
      * unregister service to registry
-     * 
+     *
      * @param url
      */
     void unregister(URL url);

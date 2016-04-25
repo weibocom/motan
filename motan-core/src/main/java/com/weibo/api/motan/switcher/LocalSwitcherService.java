@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-14
- * 
+ *
  */
 @SpiMeta(name = "localSwitcherService")
 public class LocalSwitcherService implements SwitcherService {
@@ -94,8 +94,8 @@ public class LocalSwitcherService implements SwitcherService {
         synchronized (listenerMap) {
             if (listenerMap.get(switcherName) == null) {
                 List listeners = Collections.synchronizedList(new ArrayList());
-                listeners.add(listener);
                 listenerMap.put(switcherName, listeners);
+                listeners.add(listener);
             } else {
                 List listeners = listenerMap.get(switcherName);
                 if (!listeners.contains(listener)) {

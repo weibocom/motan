@@ -28,11 +28,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class ZookeeperRegistryTest {
     public static JUnit4Mockery mockery = null;
@@ -80,7 +81,7 @@ public class ZookeeperRegistryTest {
         URL url = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8001, "com.weibo.motan.demo.service.MotanDemoService");
 
         registry.register(url);
-        Set<URL> registeredUrls = registry.getRegisteredUrls();
+        Collection<URL> registeredUrls = registry.getRegisteredServiceUrls();
         assertTrue(registeredUrls.contains(url));
     }
 
@@ -88,7 +89,7 @@ public class ZookeeperRegistryTest {
     public void testDoUnregister() {
         URL url = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8001, "com.weibo.motan.demo.service.MotanDemoService");
         registry.doUnregister(url);
-        Set<URL> registeredUrls = registry.getRegisteredUrls();
+        Collection<URL> registeredUrls = registry.getRegisteredServiceUrls();
         assertFalse(registeredUrls.contains(url));
     }
 

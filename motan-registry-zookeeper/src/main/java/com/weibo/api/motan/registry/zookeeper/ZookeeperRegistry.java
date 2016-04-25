@@ -20,7 +20,6 @@ import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.registry.NotifyListener;
 import com.weibo.api.motan.registry.support.FailbackRegistry;
 import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
 import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.ZkClient;
@@ -29,7 +28,6 @@ import org.I0Itec.zkclient.exception.ZkException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ZookeeperRegistry extends FailbackRegistry {
@@ -37,8 +35,6 @@ public class ZookeeperRegistry extends FailbackRegistry {
     private ZkClient zkClient;
 
     private ConcurrentHashMap<URL, ConcurrentHashMap<NotifyListener, IZkChildListener>> urlListeners = new ConcurrentHashMap<URL, ConcurrentHashMap<NotifyListener, IZkChildListener>>();
-
-    private Set<URL> registeredUrls = new ConcurrentHashSet<URL>();
 
     public ZookeeperRegistry(URL url) {
         super(url);
@@ -59,11 +55,6 @@ public class ZookeeperRegistry extends FailbackRegistry {
         zkClient = client;
     }
 
-
-    public Set<URL> getRegisteredUrls() {
-        return registeredUrls;
-    }
-
     public ConcurrentHashMap<URL, ConcurrentHashMap<NotifyListener, IZkChildListener>> getUrlListeners() {
         return urlListeners;
     }
@@ -71,26 +62,41 @@ public class ZookeeperRegistry extends FailbackRegistry {
     @Override
     protected void doRegister(URL url) {
         String info = url.toFullStr();
-        String serverTypePath = toServerTypePath(url);
+        String serverTypePath = toUnavaliableServerTypePath(url);
         if (!zkClient.exists(serverTypePath)) {
             zkClient.createPersistent(serverTypePath, true);
         }
-        String serverNodePath = toServerNodePath(url);
-        if (zkClient.exists(serverNodePath)) {
-            LoggerUtil.info(String.format("[ZookeeperRegistry] register: node exists, will be delete, path=%s", serverNodePath));
-            zkClient.delete(serverNodePath);
-        }
-        zkClient.createEphemeral(serverNodePath, info);
+        String avaliabeServerNodePath = toAvaliableServerNodePath(url);
+        if (zkClient.exists(avaliabeServerNodePath)) {
+            // 防止旧节点未正常注销
+            LoggerUtil.info(String.format("[ZookeeperRegistry] register: node exists, will be delete, path=%s", avaliabeServerNodePath));
+            zkClient.delete(avaliabeServerNodePath);
 
-        registeredUrls.add(url);
-        LoggerUtil.info(String.format("[ZookeeperRegistry] register: path=%s, info=%s", serverNodePath, info));
+        }
+        String unavaliabeServerNodePath = toUnavaliableServerNodePath(url);
+        if (zkClient.exists(unavaliabeServerNodePath)) {
+            // 防止旧节点未正常注销
+            LoggerUtil.info(String.format("[ZookeeperRegistry] register: node exists, will be delete, path=%s", unavaliabeServerNodePath));
+            zkClient.delete(unavaliabeServerNodePath);
+        }
+
+        zkClient.createEphemeral(unavaliabeServerNodePath, info);
+
+        LoggerUtil.info(String.format("[ZookeeperRegistry] register: path=%s, info=%s", unavaliabeServerNodePath, info));
     }
 
     @Override
     protected void doUnregister(URL url) {
-        zkClient.delete(toServerNodePath(url));
-        registeredUrls.remove(url);
-        LoggerUtil.info(String.format("[ZookeeperRegistry] unregister: path=%s", toServerNodePath(url)));
+        String avaliableNodePath = toAvaliableServerNodePath(url);
+        if (zkClient.exists(avaliableNodePath)) {
+            zkClient.delete(avaliableNodePath);
+            LoggerUtil.info(String.format("[ZookeeperRegistry] unregister: path=%s", avaliableNodePath));
+        }
+        String unavaliableNodePath = toUnavaliableServerNodePath(url);
+        if (zkClient.exists(unavaliableNodePath)) {
+            zkClient.delete(unavaliableNodePath);
+            LoggerUtil.info(String.format("[ZookeeperRegistry] unregister: path=%s", unavaliableNodePath));
+        }
     }
 
     @Override
@@ -120,15 +126,17 @@ public class ZookeeperRegistry extends FailbackRegistry {
         }
         String clientNodePath = toClientNodePath(url);
         if (zkClient.exists(clientNodePath)) {
+            // 防止旧节点未正常注销
             LoggerUtil.info(String.format("[ZookeeperRegistry] register: node exists, will be delete, path=%s", clientNodePath));
             zkClient.delete(clientNodePath);
         }
 
         zkClient.createEphemeral(clientNodePath, info);
 
-        List<String> currentChilds = zkClient.subscribeChildChanges(toServerTypePath(url), zkChildListener);
-        LoggerUtil.info(String.format("[ZookeeperRegistry] subscribe: path=%s, info=%s", toServerNodePath(url), info));
-        notify(url, notifyListener, nodeChildsToUrls(toServerTypePath(url), currentChilds));
+        // 获取当前可用server
+        List<String> currentChilds = zkClient.subscribeChildChanges(toAvaliableServerTypePath(url), zkChildListener);
+        LoggerUtil.info(String.format("[ZookeeperRegistry] subscribe: path=%s, info=%s", toAvaliableServerNodePath(url), info));
+        notify(url, notifyListener, nodeChildsToUrls(toAvaliableServerTypePath(url), currentChilds));
     }
 
     @Override
@@ -145,19 +153,63 @@ public class ZookeeperRegistry extends FailbackRegistry {
 
     @Override
     protected List<URL> doDiscover(URL url) {
-        return nodeChildsToUrls(toServerTypePath(url));
+        return nodeChildsToUrls(toAvaliableServerTypePath(url));
     }
 
     @Override
     protected void doAvailable(URL url) {
-        //TODO implement for zk
+        if (url == null) {
+            for (URL u : getRegisteredServiceUrls()) {
+                String info = u.toFullStr();
 
+                String unavaliabeServerNodePath = toUnavaliableServerNodePath(u);
+                if (zkClient.exists(unavaliabeServerNodePath)) {
+                    zkClient.delete(unavaliabeServerNodePath);
+                } else {
+                    LoggerUtil.warn(String.format("[ZookeeperRegistry] set available: no unavaliabe node exist, path=%s", unavaliabeServerNodePath));
+                }
+
+                String avaliableServerNodePath = toAvaliableServerNodePath(u);
+                if (zkClient.exists(avaliableServerNodePath)) {
+                    // 防止旧节点未正常注销
+                    LoggerUtil.info(String.format("[ZookeeperRegistry] register: node exists, will be delete, path=%s", avaliableServerNodePath));
+                    zkClient.delete(avaliableServerNodePath);
+                }
+                zkClient.createEphemeral(avaliableServerNodePath, info);
+
+                LoggerUtil.info(String.format("[ZookeeperRegistry] set avaliable: path=%s", avaliableServerNodePath));
+            }
+        } else {
+            throw new UnsupportedOperationException("consul registry not support available by urls yet");
+        }
     }
 
     @Override
     protected void doUnavailable(URL url) {
-        //TODO implement for zk
+        if (url == null) {
+            for (URL u : getRegisteredServiceUrls()) {
+                String info = u.toFullStr();
 
+                String avaliableServerNodePath = toAvaliableServerNodePath(u);
+                if (zkClient.exists(avaliableServerNodePath)) {
+                    zkClient.delete(avaliableServerNodePath);
+                } else {
+                    LoggerUtil.warn(String.format("[ZookeeperRegistry] set unavailable: no avaliabe node exist, path=%s", avaliableServerNodePath));
+                }
+
+                String unavaliableServerNodePath = toUnavaliableServerNodePath(u);
+                if (zkClient.exists(unavaliableServerNodePath)) {
+                    // 防止旧节点未正常注销
+                    LoggerUtil.info(String.format("[ZookeeperRegistry] register: node exists, will be delete, path=%s", unavaliableServerNodePath));
+                    zkClient.delete(unavaliableServerNodePath);
+                }
+                zkClient.createEphemeral(unavaliableServerNodePath, info);
+
+                LoggerUtil.info(String.format("[ZookeeperRegistry] set unavaliable: path=%s", unavaliableServerNodePath));
+            }
+        } else {
+            throw new UnsupportedOperationException("consul registry not support available by urls yet");
+        }
     }
 
     private List<URL> nodeChildsToUrls(String parentPath, List<String> currentChilds) {
@@ -192,23 +244,27 @@ public class ZookeeperRegistry extends FailbackRegistry {
         return toServicePath(url) + MotanConstants.PATH_SEPARATOR + nodeType;
     }
 
-    private String toNodePath(URL url, String nodeType) {
-        return toNodeTypePath(url, nodeType) + MotanConstants.PATH_SEPARATOR + url.getServerPortStr();
+    private String toUnavaliableServerNodePath(URL url) {
+        return toNodeTypePath(url, "unavalibleServer") + MotanConstants.PATH_SEPARATOR + url.getServerPortStr();
     }
 
-    private String toServerNodePath(URL url) {
-        return toNodePath(url, "server");
+    private String toAvaliableServerNodePath(URL url) {
+        return toNodeTypePath(url, "server") + MotanConstants.PATH_SEPARATOR + url.getServerPortStr();
     }
 
     private String toClientNodePath(URL url) {
-        return toNodePath(url, "client");
+        return toNodeTypePath(url, "client") + MotanConstants.PATH_SEPARATOR + url.getServerPortStr();
     }
 
-    public String toServerTypePath(URL url) {
+    private String toUnavaliableServerTypePath(URL url) {
+        return toNodeTypePath(url, "unavalibleServer");
+    }
+
+    private String toAvaliableServerTypePath(URL url) {
         return toNodeTypePath(url, "server");
     }
 
-    public String toClientTypePath(URL url) {
+    private String toClientTypePath(URL url) {
         return toNodeTypePath(url, "client");
     }
 }
