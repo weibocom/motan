@@ -51,12 +51,12 @@ public class CompressRpcCodecTest extends DefaultRpcCodecTest {
     @Before
     public void setUp() throws Exception {
         rpcCodec = new CompressRpcCodec();
-        MotanSwitcherUtil.setSwitcher(CompressRpcCodec.CODEC_VERSION_SWITCHER, false);
+        MotanSwitcherUtil.setSwitcherValue(CompressRpcCodec.CODEC_VERSION_SWITCHER, false);
         boolean isopen =
                 MotanSwitcherUtil.switcherIsOpenWithDefault(CompressRpcCodec.GROUP_CODEC_VERSION_SWITCHER + URLParamType.group.getValue(),
                         false);
         if (isopen) {
-            MotanSwitcherUtil.setSwitcher(CompressRpcCodec.GROUP_CODEC_VERSION_SWITCHER + URLParamType.group.getValue(), false);
+            MotanSwitcherUtil.setSwitcherValue(CompressRpcCodec.GROUP_CODEC_VERSION_SWITCHER + URLParamType.group.getValue(), false);
         }
 
     }
@@ -71,12 +71,12 @@ public class CompressRpcCodecTest extends DefaultRpcCodecTest {
         byte[] bytes = rpcCodec.encode(channel, request);
         assertTrue(isCompressVersion(bytes));
         // 整体开关测试
-        MotanSwitcherUtil.setSwitcher(CompressRpcCodec.CODEC_VERSION_SWITCHER, true);
+        MotanSwitcherUtil.setSwitcherValue(CompressRpcCodec.CODEC_VERSION_SWITCHER, true);
         bytes = rpcCodec.encode(channel, request);
         assertTrue(isV1Version(bytes));
         // 分组开关测试
-        MotanSwitcherUtil.setSwitcher(CompressRpcCodec.CODEC_VERSION_SWITCHER, false);
-        MotanSwitcherUtil.setSwitcher(CompressRpcCodec.GROUP_CODEC_VERSION_SWITCHER + URLParamType.group.getValue(), true);
+        MotanSwitcherUtil.setSwitcherValue(CompressRpcCodec.CODEC_VERSION_SWITCHER, false);
+        MotanSwitcherUtil.setSwitcherValue(CompressRpcCodec.GROUP_CODEC_VERSION_SWITCHER + URLParamType.group.getValue(), true);
         bytes = rpcCodec.encode(channel, request);
         assertTrue(isV1Version(bytes));
 

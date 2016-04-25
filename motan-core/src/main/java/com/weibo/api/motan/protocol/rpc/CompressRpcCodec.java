@@ -108,7 +108,7 @@ public class CompressRpcCodec extends AbstractCodec {
     // v1降级开关打开、心跳请求、client端使用v1版本时，需要使用v1编码
     private boolean needEncodeV1(Object message) {
 
-        if (MotanSwitcherUtil.switcherIsOpen(CODEC_VERSION_SWITCHER)) {
+        if (MotanSwitcherUtil.isOpen(CODEC_VERSION_SWITCHER)) {
             return true;
         }
         if (message instanceof Request) {
@@ -142,7 +142,7 @@ public class CompressRpcCodec extends AbstractCodec {
      */
     @Override
     public Object decode(Channel channel, String remoteIp, byte[] data) throws IOException {
-        if (MotanSwitcherUtil.switcherIsOpen(CODEC_VERSION_SWITCHER)) {
+        if (MotanSwitcherUtil.isOpen(CODEC_VERSION_SWITCHER)) {
             // 降级开关打开时，使用v1版本codec
             return v1Codec.decode(channel, remoteIp, data);
         } else {

@@ -78,8 +78,8 @@ public class ConsulHeartbeatManagerTest {
     }
 
     public void setHeartbeatSwitcher(boolean value) {
-        MotanSwitcherUtil.setSwitcher(ConsulConstants.NAMING_PROCESS_HEARTBEAT_SWITCHER, value);
-        
+        heartbeatManager.setHeartbeatOpen(value);
+
     }
 
 }

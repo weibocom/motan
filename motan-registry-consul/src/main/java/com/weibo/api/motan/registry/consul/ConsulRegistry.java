@@ -1,5 +1,13 @@
 package com.weibo.api.motan.registry.consul;
 
+import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.registry.NotifyListener;
+import com.weibo.api.motan.registry.consul.client.MotanConsulClient;
+import com.weibo.api.motan.registry.support.FailbackRegistry;
+import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.util.LoggerUtil;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,22 +18,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.common.URLParamType;
-import com.weibo.api.motan.registry.NotifyListener;
-import com.weibo.api.motan.registry.consul.client.ConsulEcwidClient;
-import com.weibo.api.motan.registry.consul.client.MotanConsulClient;
-import com.weibo.api.motan.registry.support.FailbackRegistry;
-import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.util.LoggerUtil;
-
 public class ConsulRegistry extends FailbackRegistry {
 	private MotanConsulClient client;
 	private ConsulHeartbeatManager heartbeatManager;
 	private int lookupInterval;
-	private static ConcurrentHashMap<URL, MotanConsulClient> registeredUrls = new ConcurrentHashMap<URL, MotanConsulClient>();
 
 	/**
 	 * consul service的本地缓存。 key为group（consul中的service），value为接口名与对应的url list
@@ -61,23 +57,23 @@ public class ConsulRegistry extends FailbackRegistry {
 	
 
 	@Override
-	protected void concreteRegister(URL url) {
+	protected void doRegister(URL url) {
 		ConsulService service = buildService(url);
 		client.registerService(service);
 		heartbeatManager.addHeartbeatServcieId(service.getId());
-		registeredUrls.putIfAbsent(url, client);
+		getRegisteredServiceUrls().add(url);
 	}
 
 	@Override
-	protected void concreteUnregister(URL url) {
+	protected void doUnregister(URL url) {
 		ConsulService service = buildService(url);
 		client.deregisterService(service.getId());
 		heartbeatManager.removeHeartbeatServiceId(service.getId());
-		registeredUrls.remove(url);
+		getRegisteredServiceUrls().remove(url);
 	}
 
 	@Override
-	protected void concreteSubscribe(URL url, NotifyListener listener) {
+	protected void doSubscribe(URL url, NotifyListener listener) {
 		addSubscribeListeners(url, listener);
 		startListenerThreadIfNewService(url);
 		List<URL> urls = discover(url); // 订阅后先查询一次对应的服务，供refer初始化使用。
@@ -126,7 +122,7 @@ public class ConsulRegistry extends FailbackRegistry {
 	}
 
 	@Override
-	protected void concreteUnsubscribe(URL url, NotifyListener listener) {
+	protected void doUnsubscribe(URL url, NotifyListener listener) {
 
 		HashMap<URL, NotifyListener> clusterListeners = subscribeListeners
 				.get(getUrlClusterInfo(url));
@@ -138,7 +134,7 @@ public class ConsulRegistry extends FailbackRegistry {
 	}
 
 	@Override
-	protected List<URL> concreteDiscover(URL url) {
+	protected List<URL> doDiscover(URL url) {
 		String cluster = getUrlClusterInfo(url);
 		String group = url.getGroup();
 		List<URL> clusterUrl = new ArrayList<URL>();
@@ -161,9 +157,27 @@ public class ConsulRegistry extends FailbackRegistry {
 		return clusterUrl;
 	}
 
-	@Override
+    @Override
+    protected void doAvailable(URL url) {
+        if (url == null) {
+            heartbeatManager.setHeartbeatOpen(true);
+        } else {
+            throw new UnsupportedOperationException("consul registry not support available by urls yet");
+        }
+    }
+
+    @Override
+    protected void doUnavailable(URL url) {
+        if (url == null) {
+            heartbeatManager.setHeartbeatOpen(false);
+        } else {
+            throw new UnsupportedOperationException("consul registry not support unavailable by urls yet");
+        }
+    }
+
+    @Override
 	public List<URL> discover(URL url) {
-		return concreteDiscover(url);
+		return doDiscover(url);
 	}
 
 	@Override
@@ -313,7 +327,7 @@ public class ConsulRegistry extends FailbackRegistry {
 	/**
 	 * 根据service生成motan使用的
 	 * 
-	 * @param healthService
+	 * @param service
 	 * @return
 	 */
 	private URL buildUrl(ConsulService service) {
@@ -401,11 +415,11 @@ public class ConsulRegistry extends FailbackRegistry {
 	}
 	
 	//重新对jvm中注册过的consul service进行注册。因本地agent异常导致已注册server丢失的情况使用。
-	public static void reRegister(){
-	    for(Entry<URL, MotanConsulClient> entry : registeredUrls.entrySet()){
-	        ConsulService service = buildService(entry.getKey());
-	        entry.getValue().registerService(service);
-	    }
+	public void reRegister(){
+		for(URL url:getRegisteredServiceUrls()) {
+			ConsulService service = buildService(url);
+			client.registerService(service);
+		}
 	}
 
 }

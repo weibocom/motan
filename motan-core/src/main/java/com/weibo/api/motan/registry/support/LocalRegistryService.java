@@ -105,6 +105,16 @@ public class LocalRegistryService extends AbstractRegistry {
     }
 
     @Override
+    protected void doAvailable(URL url) {
+        //do nothing
+    }
+
+    @Override
+    protected void doUnavailable(URL url) {
+        //do nothing
+    }
+
+    @Override
     public void doRegister(URL url) {
         String registryKey = getRegistryKey(url);
         synchronized (registeredServices) {

@@ -16,7 +16,7 @@
 
 package com.weibo.motan.demo.server;
 
-import com.weibo.api.motan.registry.consul.ConsulConstants;
+import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -24,11 +24,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class DemoRpcServer {
 
     public static void main(String[] args) throws InterruptedException {
-        ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
-                new String[]{"classpath*:motan_demo_server.xml"});
-        MotanSwitcherUtil.setSwitcher(ConsulConstants.NAMING_PROCESS_HEARTBEAT_SWITCHER, true);
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext(new String[] {"classpath*:motan_demo_server.xml"});
+        MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
         System.out.println("server start...");
-        Thread.sleep(Long.MAX_VALUE);
+
     }
 
 }

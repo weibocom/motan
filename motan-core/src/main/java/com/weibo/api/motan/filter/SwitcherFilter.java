@@ -35,8 +35,8 @@ public class SwitcherFilter implements Filter {
     @Override
     public Response filter(Caller<?> caller, Request request) {
         // 检查接口或方法降级开关状态
-        if (MotanSwitcherUtil.switcherIsOpen(request.getInterfaceName())
-                || MotanSwitcherUtil.switcherIsOpen(MotanFrameworkUtil.getFullMethodString(request))) {
+        if (MotanSwitcherUtil.isOpen(request.getInterfaceName())
+                || MotanSwitcherUtil.isOpen(MotanFrameworkUtil.getFullMethodString(request))) {
             // 返回的reponse需要设置exception，这样invocationhandler会在throwException为false时，构建默认值返回
             return mockDefaultResponse(request);
         }

@@ -30,6 +30,7 @@ public class ConsulHeartbeatManager {
 	private ScheduledExecutorService heartbeatExecutor;
 	// 上一次心跳开关的状态
 	private boolean lastHeartBeatSwitcherStatus = false;
+	private volatile boolean currentHeartBeatSwitcherStatus = false;
 	// 开关检查次数。
 	private int switcherCheckTimes = 0;
 
@@ -134,8 +135,11 @@ public class ConsulHeartbeatManager {
 
 	// 检查心跳开关是否打开
 	private boolean isHeartbeatOpen() {
-		return MotanSwitcherUtil
-				.switcherIsOpen(ConsulConstants.NAMING_PROCESS_HEARTBEAT_SWITCHER);
+		return currentHeartBeatSwitcherStatus;
+	}
+
+	public void setHeartbeatOpen(boolean open) {
+		currentHeartBeatSwitcherStatus = open;
 	}
 
 	class HeartbeatJob implements Runnable {
@@ -169,5 +173,6 @@ public class ConsulHeartbeatManager {
 	public void setClient(MotanConsulClient client) {
 		this.client = client;
 	}
+
 
 }

@@ -16,10 +16,10 @@
 
 package com.weibo.api.motan.switcher;
 
-import java.util.List;
-
 import com.weibo.api.motan.core.extension.Scope;
 import com.weibo.api.motan.core.extension.Spi;
+
+import java.util.List;
 
 /**
  * 
@@ -59,7 +59,7 @@ public interface SwitcherService {
      * @param switcherName
      * @return true ：设置来开关，并且开关值为true false：未设置开关或开关为false
      */
-    boolean switcherIsOpen(String switcherName);
+    boolean isOpen(String switcherName);
 
     /**
      * 检查开关是否开启，如果开关不存在则将开关置默认值，并返回。
@@ -68,7 +68,7 @@ public interface SwitcherService {
      * @param defaultValue
      * @return 开关存在时返回开关值，开关不存在时设置开关为默认值，并返回默认值。
      */
-    boolean switcherIsOpen(String switcherName, boolean defaultValue);
+    boolean isOpen(String switcherName, boolean defaultValue);
 
     /**
      * 设置开关状态。
@@ -76,7 +76,22 @@ public interface SwitcherService {
      * @param switcherName
      * @param value
      */
-    void setSwitcher(String switcherName, boolean value);
+    void setValue(String switcherName, boolean value);
 
+    /**
+     * register a listener for switcher value change, register a listener twice will only fire once
+     * 
+     * @param switcherName
+     * @param listener
+     */
+    void registerListener(String switcherName, SwitcherListener listener);
+
+    /**
+     * unregister a listener
+     * 
+     * @param switcherName
+     * @param listener the listener to be unregistered, null for all listeners for this switcherName
+     */
+    void unRegisterListener(String switcherName, SwitcherListener listener);
 
 }

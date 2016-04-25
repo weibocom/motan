@@ -42,38 +42,38 @@ public class ConsulRegistryTest {
     }
 
     @Test
-    public void testConcreteDiscover() {
+    public void testdoDiscover() {
         URL referUrl = MockUtils.getMockUrl(0);
-        List<URL> serviceUrls = consulRegistry.concreteDiscover(referUrl);
+        List<URL> serviceUrls = consulRegistry.doDiscover(referUrl);
         assertEquals(serviceUrls.size(), client.getMockServiceNum());
     }
 
     @Test
-    public void testConcreteRegisterAndUnregister() {
+    public void testdoRegisterAndUnregister() {
         // register
         URL serviceUrl1 = MockUtils.getMockUrl(123);
-        consulRegistry.concreteRegister(serviceUrl1);
+        consulRegistry.doRegister(serviceUrl1);
         String serviceid1 = ConsulUtils.convertConsulSerivceId(serviceUrl1);
         assertTrue(client.isServiceRegister(serviceid1));
 
         URL serviceUrl2 = MockUtils.getMockUrl(456);
         String serviceid2 = ConsulUtils.convertConsulSerivceId(serviceUrl2);
-        consulRegistry.concreteRegister(serviceUrl2);
+        consulRegistry.doRegister(serviceUrl2);
         assertTrue(client.isServiceRegister(serviceid2));
 
         // unregister
-        consulRegistry.concreteUnregister(serviceUrl1);
+        consulRegistry.doUnregister(serviceUrl1);
         assertFalse(client.isServiceRegister(serviceid1));
         assertTrue(client.isServiceRegister(serviceid2));
 
-        consulRegistry.concreteUnregister(serviceUrl2);
+        consulRegistry.doUnregister(serviceUrl2);
         assertFalse(client.isServiceRegister(serviceid2));
     }
 
 
 
     @Test
-    public void testConcreteSubscribeAndUnsubscribe() throws InterruptedException {
+    public void testdoSubscribeAndUnsubscribe() throws InterruptedException {
 
         URL referUrl = MockUtils.getMockUrl(0);
         NotifyListener listener = new NotifyListener() {
@@ -85,7 +85,7 @@ public class ConsulRegistryTest {
             }
         };
 
-        consulRegistry.concreteSubscribe(referUrl, listener);
+        consulRegistry.doSubscribe(referUrl, listener);
         Thread.sleep(200);
 
         long lastIndex = client.getMockIndex();
@@ -103,20 +103,20 @@ public class ConsulRegistryTest {
     @Test
     public void testReRegister() {
         URL serviceUrl1 = MockUtils.getMockUrl(123);
-        consulRegistry.concreteRegister(serviceUrl1);
+        consulRegistry.doRegister(serviceUrl1);
         String serviceid1 = ConsulUtils.convertConsulSerivceId(serviceUrl1);
         assertTrue(client.isServiceRegister(serviceid1));
 
         URL serviceUrl2 = MockUtils.getMockUrl(456);
         String serviceid2 = ConsulUtils.convertConsulSerivceId(serviceUrl2);
-        consulRegistry.concreteRegister(serviceUrl2);
+        consulRegistry.doRegister(serviceUrl2);
         assertTrue(client.isServiceRegister(serviceid2));
 
         client.removeService(serviceid1);
         client.removeService(serviceid2);
         assertFalse(client.isServiceRegister(serviceid1));
         assertFalse(client.isServiceRegister(serviceid2));
-        ConsulRegistry.reRegister();
+        consulRegistry.reRegister();
 
         assertTrue(client.isServiceRegister(serviceid1));
         assertTrue(client.isServiceRegister(serviceid2));
