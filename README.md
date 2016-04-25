@@ -161,7 +161,7 @@ The quick start gives very basic example of running client and server on the sam
 * fishermen([@hustfisher](https://github.com/hustfisher))
 * TangFulin([@tangfl](https://github.com/tangfl))
 * bodlyzheng([@bodlyzheng](https://github.com/bodlyzheng))
-* wangyu1
+* jacawang([@jacawang](jacawang))
 * zenglingshu([@zenglingshu](https://github.com/zenglingshu))
 * Sugar Zouliu([@lamusicoscos](https://github.com/lamusicoscos))
 * tangyang([@tangyang](https://github.com/tangyang))
