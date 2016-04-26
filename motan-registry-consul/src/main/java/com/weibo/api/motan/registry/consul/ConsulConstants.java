@@ -55,6 +55,7 @@ public class ConsulConstants {
 	/**
 	 * consul心跳检测开关。
 	 */
+	@Deprecated
 	public static final String CONSUL_PROCESS_HEARTBEAT_SWITCHER = "feature.consul.heartbeat";
 
 	/**

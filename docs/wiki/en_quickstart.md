@@ -200,7 +200,7 @@ UI backend [http://localhost:8500/ui](http://localhost:8500/ui)
 4. After the server starts, you SHOULD call hearbeat switcher explicitly in order to start heartbeat for Consul.
 
     ```java
-    MotanSwitcherUtil.setSwitcher(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true)
+    MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true)
     ```
 
 5. Go to [UI backend](http://localhost:8500/ui). Verify whether the service is normal.
@@ -265,7 +265,7 @@ Install and start ZooKeeper:
 4. After the server starts, you SHOULD call hearbeat switcher explicitly in order to start heartbeat for Zookeeper.
 
     ```java
-    MotanSwitcherUtil.setSwitcher(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true)
+    MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true)
     ```
 
 5. Start client, call service.

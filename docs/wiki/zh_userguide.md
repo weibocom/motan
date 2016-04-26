@@ -352,15 +352,13 @@ motan:referer中的basicService属性用来标识引用哪个motan:basicReferer�
 
 # 运维及监控
 ## 优雅的停止服务
-Motan支持在Consul集群环境下优雅的关闭节点，当需要关闭或重启节点时，可以先将待上线节点从集群中摘除，避免直接关闭影响正常请求。
+Motan支持在Consul、ZooKeeper集群环境下优雅的关闭节点，当需要关闭或重启节点时，可以先将待上线节点从集群中摘除，避免直接关闭影响正常请求。
 
 待关闭节点需要调用以下代码，建议通过servlet或业务的管理模块进行该调用。
 
 ```java
-MotanSwitcherUtil.setSwitcher(ConsulConstants.NAMING_PROCESS_HEARTBEAT_SWITCHER, false)
+MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true)
 ```
-
-> 注意：Zookeeper模块此功能正在开发。
 
 ## 管理后台
 管理后台主要包括RPC服务查询、流量切换、Motan指令设置等功能，需使用ZooKeeper作为注册中心

@@ -34,12 +34,6 @@ public class ConsulHeartbeatManager {
 	// 开关检查次数。
 	private int switcherCheckTimes = 0;
 
-	static {
-		// 心跳开关默认为关闭状态。rpc服务启动正常后，通过设置开关状态为开启，打开心跳，对外提供rpc服务
-	    MotanSwitcherUtil.initSwitcher(
-				ConsulConstants.CONSUL_PROCESS_HEARTBEAT_SWITCHER, false);
-	}
-
 	public ConsulHeartbeatManager(MotanConsulClient client) {
 		this.client = client;
 		heartbeatExecutor = Executors.newSingleThreadScheduledExecutor();

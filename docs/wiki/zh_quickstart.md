@@ -199,7 +199,7 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
 4. server程序启动后，需要显式调用心跳开关，注册到consul。
 
     ```java
-    MotanSwitcherUtil.setSwitcher(ConsulConstants.NAMING_PROCESS_HEARTBEAT_SWITCHER, true)
+    MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true)
     ```
 
 5. 进入[ui后台](http://localhost:8500/ui)查看服务是否正常提供调用
@@ -261,7 +261,13 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
     <motan:service interface="quickstart.FooService" ref="serviceImpl" registry="my_zookeeper" export="8002" />
     ```
 
-4. 启动client，调用服务
+4. server程序启动后，需要显式调用心跳开关，注册到zookeeper。
+
+    ```java
+    MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true)
+    ```
+
+5. 启动client，调用服务
 
 
 [maven]:https://maven.apache.org
