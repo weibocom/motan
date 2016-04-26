@@ -26,7 +26,6 @@
     <packaging>war</packaging>
     <name>motan-manager</name>
     <properties>
-        <spring-framework.version>4.2.4.RELEASE</spring-framework.version>
         <spring-security.version>4.0.3.RELEASE</spring-security.version>
     </properties>
     <dependencies>
