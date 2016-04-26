@@ -20,19 +20,27 @@ import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.registry.support.AbstractRegistryFactory;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.util.LoggerUtil;
+import org.I0Itec.zkclient.ZkClient;
+import org.I0Itec.zkclient.exception.ZkException;
 
 /**
- * 
  * registry factory.
  *
  * @author fishermen
  * @version V1.0 created at: 2013-5-28
  */
-@SpiMeta(name="zookeeper")
-public class ZookeeperRegistryFactory extends AbstractRegistryFactory{
+@SpiMeta(name = "zookeeper")
+public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
 
-	@Override
-	protected Registry createRegistry(URL url) {
-		return new ZookeeperRegistry(url);
-	}
+    @Override
+    protected Registry createRegistry(URL url) {
+        ZkClient client = null;
+        try {
+            client = new ZkClient(url.getParameter("address"));
+        } catch (ZkException e) {
+            LoggerUtil.error("[ZookeeperRegistry] fail to connect zookeeper, cause: " + e.getMessage());
+        }
+        return new ZookeeperRegistry(url, client);
+    }
 }

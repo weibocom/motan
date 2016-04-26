@@ -18,6 +18,7 @@ package com.weibo.api.motan.registry.zookeeper;
 
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.registry.NotifyListener;
+import com.weibo.api.motan.registry.support.AbstractRegistry;
 import com.weibo.api.motan.rpc.URL;
 import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.ZkClient;
@@ -27,16 +28,14 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class ZookeeperRegistryTest {
-    public static JUnit4Mockery mockery = null;
+    private static JUnit4Mockery mockery = null;
     private ZookeeperRegistry registry;
 
     @Before
@@ -57,7 +56,7 @@ public class ZookeeperRegistryTest {
         mockery.checking(new Expectations() {
             {
                 allowing(any(ZkClient.class)).method("exists");
-                will(returnValue(true));
+                will(returnValue(false));
                 allowing(any(ZkClient.class)).method("delete");
                 will(returnValue(true));
                 allowing(any(ZkClient.class)).method("createPersistent");
@@ -127,5 +126,37 @@ public class ZookeeperRegistryTest {
         registry.doDiscover(url);
     }
 
+    @Test
+    public void testDoAvailable() throws Exception {
+        final Set<URL> urls = new HashSet<URL>();
+        URL url1 = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8001, "com.weibo.motan.demo.service.MotanDemoService");
+        URL url2 = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8002, "com.weibo.motan.demo.service.MotanDemoService");
+        URL url3 = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8003, "com.weibo.motan.demo.service.MotanDemoService");
+        urls.add(url1);
+        urls.add(url2);
+        urls.add(url3);
 
+        for (URL u : urls) {
+            registry.register(u);
+        }
+        registry.available(url1);
+        registry.available(null);
+    }
+
+    @Test
+    public void testDoUnavailable() throws Exception {
+        final Set<URL> urls = new HashSet<URL>();
+        URL url1 = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8001, "com.weibo.motan.demo.service.MotanDemoService");
+        URL url2 = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8002, "com.weibo.motan.demo.service.MotanDemoService");
+        URL url3 = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8003, "com.weibo.motan.demo.service.MotanDemoService");
+        urls.add(url1);
+        urls.add(url2);
+        urls.add(url3);
+
+        for (URL u : urls) {
+            registry.register(u);
+        }
+        registry.unavailable(url1);
+        registry.unavailable(null);
+    }
 }
