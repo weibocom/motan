@@ -26,65 +26,65 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class MotanBenchmarkClient extends AbstractBenchmarkClient {
-    static Properties properties = new Properties();
-    private static boolean isMultiClient; //并发的Runable线程，是否使用相同的client进行调用。
-                    // true：并发线程只使用一个client（bean实例）调用服务。
-                    // false: 每个并发线程使用不同的Client调用服务
-    private static BenchmarkService benchmarkService;
+	static Properties properties = new Properties();
+	private static boolean isMultiClient; //并发的Runable线程，是否使用相同的client进行调用。
+	// true：并发线程只使用一个client（bean实例）调用服务。
+	// false: 每个并发线程使用不同的Client调用服务
+	private static BenchmarkService benchmarkService;
 
 
-    public static void main(String[] args) {
-    	loadProperties();
-        int concurrents = Integer.parseInt(properties.getProperty("concurrents"));
-        int runtime = Integer.parseInt(properties.getProperty("runtime"));
-        String classname = properties.getProperty("classname");
-        String params = properties.getProperty("params");
-        isMultiClient = Boolean.parseBoolean(properties.getProperty("isMultiClient"));
-        if (args.length == 5) {
-            concurrents = Integer.parseInt(args[0]);
-            runtime = Integer.parseInt(args[1]);
-            classname = args[2];
-            params = args[3];
-            isMultiClient = Boolean.parseBoolean(args[4]);
-        }
+	public static void main(String[] args) {
+		loadProperties();
+		int concurrents = Integer.parseInt(properties.getProperty("concurrents"));
+		int runtime = Integer.parseInt(properties.getProperty("runtime"));
+		String classname = properties.getProperty("classname");
+		String params = properties.getProperty("params");
+		isMultiClient = Boolean.parseBoolean(properties.getProperty("isMultiClient"));
+		if (args.length == 5) {
+			concurrents = Integer.parseInt(args[0]);
+			runtime = Integer.parseInt(args[1]);
+			classname = args[2];
+			params = args[3];
+			isMultiClient = Boolean.parseBoolean(args[4]);
+		}
 
-        ApplicationContext applicationContext = new ClassPathXmlApplicationContext(new String[]{"classpath*:motan-benchmark-client.xml"});
-        benchmarkService = (BenchmarkService) applicationContext.getBean("motanBenchmarkReferer");
+		ApplicationContext applicationContext = new ClassPathXmlApplicationContext(new String[]{"classpath*:motan-benchmark-client.xml"});
+		benchmarkService = (BenchmarkService) applicationContext.getBean("motanBenchmarkReferer");
 
-        new MotanBenchmarkClient().start(concurrents, runtime, classname, params);
-    }
-    
-    private static void loadProperties(){
-    	try {
-    		properties.load(ClassLoader.getSystemResourceAsStream("benchmark.properties"));
-    		} catch (IOException e) {
-    			e.printStackTrace();
-    			}
-    	}
+		new MotanBenchmarkClient().start(concurrents, runtime, classname, params);
+	}
 
-    @Override
-    public ClientRunnable getClientRunnable(String classname, String params, CyclicBarrier barrier, CountDownLatch latch, long startTime, long endTime) {
-        BenchmarkService service;
-        if (isMultiClient) {
-            ApplicationContext applicationContext = new ClassPathXmlApplicationContext(new String[]{"classpath*:motan-benchmark-client.xml"});
-            service = (BenchmarkService) applicationContext.getBean("motanBenchmarkReferer");
-        } else {
-            service = benchmarkService;
-        }
+	private static void loadProperties() {
+		try {
+			properties.load(ClassLoader.getSystemResourceAsStream("benchmark.properties"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
-        Class[] parameterTypes = new Class[]{BenchmarkService.class, String.class, CyclicBarrier.class,
-                CountDownLatch.class, long.class, long.class};
-        Object[] parameters = new Object[]{service, params, barrier, latch, startTime, endTime};
+	@Override
+	public ClientRunnable getClientRunnable(String classname, String params, CyclicBarrier barrier, CountDownLatch latch, long startTime, long endTime) {
+		BenchmarkService service;
+		if (isMultiClient) {
+			ApplicationContext applicationContext = new ClassPathXmlApplicationContext(new String[]{"classpath*:motan-benchmark-client.xml"});
+			service = (BenchmarkService) applicationContext.getBean("motanBenchmarkReferer");
+		} else {
+			service = benchmarkService;
+		}
 
-        ClientRunnable clientRunnable = null;
-        try {
-            clientRunnable = (ClientRunnable) Class.forName(classname).getConstructor(parameterTypes).newInstance(parameters);
-        } catch (InstantiationException | NoSuchMethodException | ClassNotFoundException | IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.getTargetException();
-        }
+		Class[] parameterTypes = new Class[]{BenchmarkService.class, String.class, CyclicBarrier.class,
+				CountDownLatch.class, long.class, long.class};
+		Object[] parameters = new Object[]{service, params, barrier, latch, startTime, endTime};
 
-        return clientRunnable;
-    }
+		ClientRunnable clientRunnable = null;
+		try {
+			clientRunnable = (ClientRunnable) Class.forName(classname).getConstructor(parameterTypes).newInstance(parameters);
+		} catch (InstantiationException | NoSuchMethodException | ClassNotFoundException | IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.getTargetException();
+		}
+
+		return clientRunnable;
+	}
 }
