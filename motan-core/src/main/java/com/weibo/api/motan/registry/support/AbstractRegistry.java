@@ -166,7 +166,7 @@ public abstract class AbstractRegistry implements Registry {
     @Override
     public void unavailable(URL url) {
         LoggerUtil.info("[{}] Url ({}) will set to unavailable to Registry [{}]", registryClassName, url, registryUrl.getIdentity());
-        if(url == null) {
+        if(url != null) {
             doUnavailable(removeUnnecessaryParmas(url.createCopy()));
         } else {
             doUnregister(null);
