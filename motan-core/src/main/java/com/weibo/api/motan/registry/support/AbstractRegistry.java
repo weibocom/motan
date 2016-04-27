@@ -64,7 +64,6 @@ public abstract class AbstractRegistry implements Registry {
                         unavailable(null);
                     }
                 }
-
             }
         });
     }
@@ -154,24 +153,21 @@ public abstract class AbstractRegistry implements Registry {
     @Override
     public void available(URL url) {
         LoggerUtil.info("[{}] Url ({}) will set to available to Registry [{}]", registryClassName, url, registryUrl.getIdentity());
-        if(url != null) {
+        if (url != null) {
             doAvailable(removeUnnecessaryParmas(url.createCopy()));
         } else {
             doAvailable(null);
         }
     }
 
-
-
     @Override
     public void unavailable(URL url) {
         LoggerUtil.info("[{}] Url ({}) will set to unavailable to Registry [{}]", registryClassName, url, registryUrl.getIdentity());
-        if(url == null) {
+        if (url != null) {
             doUnavailable(removeUnnecessaryParmas(url.createCopy()));
         } else {
-            doUnregister(null);
+            doUnavailable(null);
         }
-
     }
 
     protected List<URL> getCachedUrls(URL url) {
@@ -221,7 +217,7 @@ public abstract class AbstractRegistry implements Registry {
 
     /**
      * 移除不必提交到注册中心的参数。这些参数不需要被client端感知。
-     * 
+     *
      * @param url
      */
     private URL removeUnnecessaryParmas(URL url) {
@@ -243,6 +239,5 @@ public abstract class AbstractRegistry implements Registry {
     protected abstract void doAvailable(URL url);
 
     protected abstract void doUnavailable(URL url);
-
 
 }

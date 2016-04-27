@@ -53,9 +53,10 @@ public class ConsulConstants {
 	public static int DEFAULT_LOOKUP_INTERVAL = 30000;
 
 	/**
-	 * 心跳开关。与configservice一致。
+	 * consul心跳检测开关。
 	 */
-	public static final String NAMING_PROCESS_HEARTBEAT_SWITCHER = "feature.configserver.heartbeat";
+	@Deprecated
+	public static final String CONSUL_PROCESS_HEARTBEAT_SWITCHER = "feature.consul.heartbeat";
 
 	/**
 	 * consul block 查询时 block的最长时间,单位，分钟
