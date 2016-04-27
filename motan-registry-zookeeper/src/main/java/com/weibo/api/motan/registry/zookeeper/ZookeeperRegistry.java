@@ -194,7 +194,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
         return toServicePath(url) + MotanConstants.PATH_SEPARATOR + type;
     }
 
-    protected String toNodePath(URL url, ZkNodeType nodeType) {
+    private String toNodePath(URL url, ZkNodeType nodeType) {
         return toNodeTypePath(url, nodeType) + MotanConstants.PATH_SEPARATOR + url.getServerPortStr();
     }
 
