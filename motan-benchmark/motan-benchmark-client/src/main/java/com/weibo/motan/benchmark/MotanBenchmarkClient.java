@@ -33,6 +33,7 @@ public class MotanBenchmarkClient extends AbstractBenchmarkClient {
 
 
     public static void main(String[] args) {
+		loadProperties();
         int concurrents = Integer.parseInt(properties.getProperty("concurrents"));
         int runtime = Integer.parseInt(properties.getProperty("runtime"));
         String classname = properties.getProperty("classname");
@@ -51,6 +52,14 @@ public class MotanBenchmarkClient extends AbstractBenchmarkClient {
 
         new MotanBenchmarkClient().start(concurrents, runtime, classname, params);
     }
+	
+	private static void loadProperties() {
+		try {
+			properties.load(ClassLoader.getSystemResourceAsStream("benchmark.properties"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
     @Override
     public ClientRunnable getClientRunnable(String classname, String params, CyclicBarrier barrier, CountDownLatch latch, long startTime, long endTime) {
