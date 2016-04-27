@@ -188,8 +188,10 @@ public class ZookeeperRegistry extends FailbackRegistry {
             type = "server";
         } else if (nodeType == ZkNodeType.UNAVAILABLE_SERVER) {
             type = "unavailbleServer";
-        } else {
+        } else if (nodeType == ZkNodeType.CLIENT) {
             type = "client";
+        } else {
+            throw new MotanFrameworkException(String.format("Failed to get nodeTypePath, url: %s type: %s", url, nodeType.toString()));
         }
         return toServicePath(url) + MotanConstants.PATH_SEPARATOR + type;
     }
