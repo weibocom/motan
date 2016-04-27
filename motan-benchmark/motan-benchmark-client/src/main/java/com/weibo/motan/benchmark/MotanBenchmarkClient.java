@@ -16,6 +16,7 @@
 
 package com.weibo.motan.benchmark;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
@@ -33,7 +34,7 @@ public class MotanBenchmarkClient extends AbstractBenchmarkClient {
 
 
     public static void main(String[] args) {
-		loadProperties();
+    	loadProperties();
         int concurrents = Integer.parseInt(properties.getProperty("concurrents"));
         int runtime = Integer.parseInt(properties.getProperty("runtime"));
         String classname = properties.getProperty("classname");
@@ -52,7 +53,7 @@ public class MotanBenchmarkClient extends AbstractBenchmarkClient {
 
         new MotanBenchmarkClient().start(concurrents, runtime, classname, params);
     }
-	
+
 	private static void loadProperties() {
 		try {
 			properties.load(ClassLoader.getSystemResourceAsStream("benchmark.properties"));
