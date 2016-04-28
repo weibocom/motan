@@ -16,6 +16,7 @@
 
 package com.weibo.api.motan.registry.zookeeper;
 
+import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.registry.support.AbstractRegistryFactory;
@@ -34,13 +35,17 @@ import org.I0Itec.zkclient.exception.ZkException;
 public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
 
     @Override
-    protected Registry createRegistry(URL url) {
-        ZkClient client = null;
+    protected Registry createRegistry(URL registryUrl) {
         try {
-            client = new ZkClient(url.getParameter("address"));
+            int timeout = registryUrl.getIntParameter(URLParamType.requestTimeout.getName(), URLParamType.requestTimeout.getIntValue());
+            int sessionTimeout =
+                    registryUrl.getIntParameter(URLParamType.registrySessionTimeout.getName(),
+                            URLParamType.registrySessionTimeout.getIntValue());
+            ZkClient zkClient = new ZkClient(registryUrl.getParameter("address"), sessionTimeout, timeout);
+            return new ZookeeperRegistry(registryUrl, zkClient);
         } catch (ZkException e) {
             LoggerUtil.error("[ZookeeperRegistry] fail to connect zookeeper, cause: " + e.getMessage());
+            throw e;
         }
-        return new ZookeeperRegistry(url, client);
     }
 }
