@@ -34,5 +34,6 @@ public class ManagerConstants {
         }
     }
 
-    public final static String ZOOKEEPER_URL = properties.getProperty("zookeeper_url");
+    public final static String REGISTRY = properties.getProperty("registry");
+    public final static String REGISTRY_URL = properties.getProperty("registry_url");
 }

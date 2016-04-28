@@ -20,42 +20,21 @@ import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.utils.ManagerConstants;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkException;
-import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@Component
-public class ZookeeperClient {
+public enum SingletonZKClient {
+    INSTANCE;
 
     private ZkClient zkClient;
 
-    private ZookeeperClient() {
+    SingletonZKClient() {
         try {
-            zkClient = new ZkClient(ManagerConstants.ZOOKEEPER_URL, 10000);
+            zkClient = new ZkClient(ManagerConstants.REGISTRY_URL, 10000);
         } catch (ZkException e) {
-            LoggerUtil.error("[ZookeeperRegistry] fail to init zookeeper, cause: " + e.getMessage());
+            LoggerUtil.error("Fail to init zookeeper, cause: " + e.getMessage());
         }
-    }
-
-    public static ZookeeperClient getInstance() {
-        return ZookeeperClientHolder.INSTANCE;
     }
 
     public ZkClient getZkClient() {
         return zkClient;
-    }
-
-    public List<String> getChildren(String path) {
-        List<String> children = new ArrayList<String>();
-        if (zkClient.exists(path)) {
-            children = zkClient.getChildren(path);
-        }
-        return children;
-    }
-
-
-    private static class ZookeeperClientHolder {
-        private static final ZookeeperClient INSTANCE = new ZookeeperClient();
     }
 }
