@@ -18,19 +18,19 @@
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-core</artifactId>
-        <version>0.0.1</version>
+        <version>0.1.0</version>
     </dependency>
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-transport-netty</artifactId>
-        <version>0.0.1</version>
+        <version>0.1.0</version>
     </dependency>
     
     <!-- only needed for spring-based features -->
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-springsupport</artifactId>
-        <version>0.0.1</version>
+        <version>0.1.0</version>
     </dependency>
     <dependency>
         <groupId>org.springframework</groupId>
@@ -172,7 +172,7 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-registry-consul</artifactId>
-        <version>0.0.1</version>
+        <version>0.1.0</version>
     </dependency>
     ```
 
@@ -229,7 +229,7 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-registry-zookeeper</artifactId>
-        <version>0.0.1</version>
+        <version>0.1.0</version>
     </dependency>
     ```
 
