@@ -169,6 +169,7 @@ The quick start gives very basic example of running client and server on the sam
 * jackael([@jackael9856](https://github.com/jackael9856))
 * Ray([@rayzhang0603](https://github.com/rayzhang0603))
 * r2dx([@half-dead](https://github.com/half-dead))
+* Jake Zhang([sunnights](https://github.com/sunnights))
 * axb([@qdaxb](https://github.com/qdaxb))
 * wenqisun([@wenqisun](https://github.com/wenqisun))
 * fingki([@fingki](https://github.com/fingki))
