@@ -17,6 +17,7 @@
 package com.weibo.api.motan.util;
 
 import com.weibo.api.motan.switcher.LocalSwitcherService;
+import com.weibo.api.motan.switcher.SwitcherListener;
 import com.weibo.api.motan.switcher.SwitcherService;
 
 
@@ -40,8 +41,8 @@ public class MotanSwitcherUtil {
      * @param switcherName
      * @return true ：设置了开关，并且开关值为true false：未设置开关或开关为false
      */
-    public static boolean switcherIsOpen(String switcherName) {
-        return switcherService.switcherIsOpen(switcherName);
+    public static boolean isOpen(String switcherName) {
+        return switcherService.isOpen(switcherName);
     }
 
     /**
@@ -52,7 +53,7 @@ public class MotanSwitcherUtil {
      * @return 开关存在时返回开关值，开关不存在时设置开关为默认值，并返回默认值。
      */
     public static boolean switcherIsOpenWithDefault(String switcherName, boolean defaultValue) {
-        return switcherService.switcherIsOpen(switcherName, defaultValue);
+        return switcherService.isOpen(switcherName, defaultValue);
     }
 
     /**
@@ -62,8 +63,8 @@ public class MotanSwitcherUtil {
      * @param value
      * @return
      */
-    public static void setSwitcher(String switcherName, boolean value) {
-        switcherService.setSwitcher(switcherName, value);
+    public static void setSwitcherValue(String switcherName, boolean value) {
+        switcherService.setValue(switcherName, value);
     }
 
     public static SwitcherService getSwitcherService() {
@@ -72,6 +73,10 @@ public class MotanSwitcherUtil {
 
     public static void setSwitcherService(SwitcherService switcherService) {
         MotanSwitcherUtil.switcherService = switcherService;
+    }
+
+    public static void registerSwitcherListener(String switcherName, SwitcherListener listener) {
+        switcherService.registerListener(switcherName, listener);
     }
 
 }

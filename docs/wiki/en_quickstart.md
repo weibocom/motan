@@ -19,19 +19,19 @@ The quick start gives very basic example of running server and client on the sam
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-core</artifactId>
-        <version>0.0.1</version>
+        <version>0.1.0</version>
     </dependency>
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-transport-netty</artifactId>
-        <version>0.0.1</version>
+        <version>0.1.0</version>
     </dependency>
     
     <!-- dependencies blow were only needed for spring-based features -->
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-springsupport</artifactId>
-        <version>0.0.1</version>
+        <version>0.1.0</version>
     </dependency>
     <dependency>
         <groupId>org.springframework</groupId>
@@ -173,7 +173,7 @@ UI backend [http://localhost:8500/ui](http://localhost:8500/ui)
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-registry-consul</artifactId>
-        <version>0.0.1</version>
+        <version>0.1.0</version>
     </dependency>
     ```
 
@@ -197,11 +197,10 @@ UI backend [http://localhost:8500/ui](http://localhost:8500/ui)
     <motan:referer id="remoteService" interface="quickstart.FooService" registry="my_consul"/>
     ```
 
-
-4. After the server starts, you need to call the hearbeat switch explicitly in order to register in Consul.
+4. After the server starts, you SHOULD call hearbeat switcher explicitly in order to start heartbeat for Consul.
 
     ```java
-    MotanSwitcherUtil.setSwitcher(ConsulConstants.NAMING_PROCESS_HEARTBEAT_SWITCHER, true)
+    MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true)
     ```
 
 5. Go to [UI backend](http://localhost:8500/ui). Verify whether the service is normal.
@@ -231,7 +230,7 @@ Install and start ZooKeeper:
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-registry-zookeeper</artifactId>
-        <version>0.0.1</version>
+        <version>0.1.0</version>
     </dependency>
     ```
 
@@ -263,7 +262,13 @@ Install and start ZooKeeper:
     <motan:referer id="remoteService" interface="quickstart.FooService" registry="my_zookeeper"/>
     ```
 
-4. Start client, call service.
+4. After the server starts, you SHOULD call hearbeat switcher explicitly in order to start heartbeat for Zookeeper.
+
+    ```java
+    MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true)
+    ```
+
+5. Start client, call service.
 
 
 [maven]:https://maven.apache.org

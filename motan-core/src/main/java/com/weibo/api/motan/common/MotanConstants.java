@@ -109,6 +109,9 @@ public class MotanConstants {
 
     public static final String ZOOKEEPER_REGISTRY_NAMESPACE = "/motan";
     public static final String ZOOKEEPER_REGISTRY_COMMAND = "/command";
+
+    public static final String REGISTRY_HEARTBEAT_SWITCHER = "feature.configserver.heartbeat";
+
     /**
      * 默认的consistent的hash的数量
      */

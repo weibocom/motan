@@ -15,7 +15,7 @@ import com.weibo.api.motan.util.MotanSwitcherUtil;
 /**
  * consul 心跳管理类。 rpc服务把需要设置passing状态的serviceid注册到此类，
  * 此类会定时对注册的serviceid设置passing状态（实际是对servcieid对应对checkid设置passing状态），
- * 从而完成servivce的心跳。 心跳开关名为feature.configserver.heartbeat,
+ * 从而完成servivce的心跳。
  * 开关开启后会进行心跳，开关关闭则停止心跳。
  * 
  * @author zhanglei
@@ -30,14 +30,9 @@ public class ConsulHeartbeatManager {
 	private ScheduledExecutorService heartbeatExecutor;
 	// 上一次心跳开关的状态
 	private boolean lastHeartBeatSwitcherStatus = false;
+	private volatile boolean currentHeartBeatSwitcherStatus = false;
 	// 开关检查次数。
 	private int switcherCheckTimes = 0;
-
-	static {
-		// 心跳开关默认为关闭状态。rpc服务启动正常后，通过设置开关状态为开启，打开心跳，对外提供rpc服务
-	    MotanSwitcherUtil.initSwitcher(
-				ConsulConstants.NAMING_PROCESS_HEARTBEAT_SWITCHER, false);
-	}
 
 	public ConsulHeartbeatManager(MotanConsulClient client) {
 		this.client = client;
@@ -134,8 +129,11 @@ public class ConsulHeartbeatManager {
 
 	// 检查心跳开关是否打开
 	private boolean isHeartbeatOpen() {
-		return MotanSwitcherUtil
-				.switcherIsOpen(ConsulConstants.NAMING_PROCESS_HEARTBEAT_SWITCHER);
+		return currentHeartBeatSwitcherStatus;
+	}
+
+	public void setHeartbeatOpen(boolean open) {
+		currentHeartBeatSwitcherStatus = open;
 	}
 
 	class HeartbeatJob implements Runnable {
@@ -169,5 +167,6 @@ public class ConsulHeartbeatManager {
 	public void setClient(MotanConsulClient client) {
 		this.client = client;
 	}
+
 
 }

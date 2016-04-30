@@ -20,7 +20,7 @@
 	<parent>
 		<artifactId>motan</artifactId>
 		<groupId>com.weibo</groupId>
-		<version>0.0.2-SNAPSHOT</version>
+		<version>0.1.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>motan-registry-zookeeper</artifactId>
 	<name>motan-registry-zookeeper</name>

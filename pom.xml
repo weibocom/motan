@@ -13,7 +13,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>motan</artifactId>
     <groupId>com.weibo</groupId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.1.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <scm>
         <connection>scm:git:https://github.com/weibocom/motan.git</connection>
@@ -35,12 +35,42 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.source.jdk>1.6</java.source.jdk>
-        <spring.version>4.2.4.RELEASE</spring.version>
+        <spring-framework.version>4.2.4.RELEASE</spring-framework.version>
     </properties>
 
     <name>Motan</name>
     <description>A remote procedure call(RPC) framework for rapid development of high performance distributed services.</description>
     <url>https://github.com/weibocom/motan</url>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>commons-pool</groupId>
+                <artifactId>commons-pool</artifactId>
+                <version>1.6</version>
+            </dependency>
+            <dependency>
+                <groupId>com.caucho</groupId>
+                <artifactId>hessian</artifactId>
+                <version>4.0.38</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>1.1.30</version>
+            </dependency>
+            <dependency>
+                <groupId>com.codahale.metrics</groupId>
+                <artifactId>metrics-core</artifactId>
+                <version>3.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>18.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>

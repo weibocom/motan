@@ -17,51 +17,26 @@
 package com.weibo.api.motan.registry.zookeeper;
 
 import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.registry.NotifyListener;
 import com.weibo.api.motan.registry.support.FailbackRegistry;
 import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
 import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.ZkClient;
-import org.I0Itec.zkclient.exception.ZkException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ZookeeperRegistry extends FailbackRegistry {
-
     private ZkClient zkClient;
-
     private ConcurrentHashMap<URL, ConcurrentHashMap<NotifyListener, IZkChildListener>> urlListeners = new ConcurrentHashMap<URL, ConcurrentHashMap<NotifyListener, IZkChildListener>>();
 
-    private Set<URL> registeredUrls = new ConcurrentHashSet<URL>();
-
-    public ZookeeperRegistry(URL url) {
-        super(url);
-
-        try {
-            zkClient = new ZkClient(url.getParameter("address"));
-        } catch (ZkException e) {
-            LoggerUtil.error("[ZookeeperRegistry] fail to connect zookeeper, cause: " + e.getMessage());
-        }
-    }
-
-
-    /**
-     * Unit Test中使用
-     */
     public ZookeeperRegistry(URL url, ZkClient client) {
         super(url);
-        zkClient = client;
-    }
-
-
-    public Set<URL> getRegisteredUrls() {
-        return registeredUrls;
+        this.zkClient = client;
     }
 
     public ConcurrentHashMap<URL, ConcurrentHashMap<NotifyListener, IZkChildListener>> getUrlListeners() {
@@ -69,83 +44,119 @@ public class ZookeeperRegistry extends FailbackRegistry {
     }
 
     @Override
-    protected void concreteRegister(URL url) {
-        String info = url.toFullStr();
-        String serverTypePath = toServerTypePath(url);
-        if (!zkClient.exists(serverTypePath)) {
-            zkClient.createPersistent(serverTypePath, true);
+    protected void doRegister(URL url) {
+        try {
+            // 防止旧节点未正常注销
+            removeNode(url, ZkNodeType.AVAILABLE_SERVER);
+            removeNode(url, ZkNodeType.UNAVAILABLE_SERVER);
+            createNode(url, ZkNodeType.UNAVAILABLE_SERVER);
+        } catch (Throwable e) {
+            throw new MotanFrameworkException(String.format("Failed to register %s to zookeeper(%s), cause: %s", url, getUrl(), e.getMessage()));
         }
-        String serverNodePath = toServerNodePath(url);
-        if (zkClient.exists(serverNodePath)) {
-            LoggerUtil.info(String.format("[ZookeeperRegistry] register: node exists, will be delete, path=%s", serverNodePath));
-            zkClient.delete(serverNodePath);
-        }
-        zkClient.createEphemeral(serverNodePath, info);
-
-        registeredUrls.add(url);
-        LoggerUtil.info(String.format("[ZookeeperRegistry] register: path=%s, info=%s", serverNodePath, info));
     }
 
     @Override
-    protected void concreteUnregister(URL url) {
-        zkClient.delete(toServerNodePath(url));
-        registeredUrls.remove(url);
-        LoggerUtil.info(String.format("[ZookeeperRegistry] unregister: path=%s", toServerNodePath(url)));
+    protected void doUnregister(URL url) {
+        try {
+            removeNode(url, ZkNodeType.AVAILABLE_SERVER);
+            removeNode(url, ZkNodeType.UNAVAILABLE_SERVER);
+        } catch (Throwable e) {
+            throw new MotanFrameworkException(String.format("Failed to unregister %s to zookeeper(%s), cause: %s", url, getUrl(), e.getMessage()));
+        }
     }
 
     @Override
-    protected void concreteSubscribe(final URL url, final NotifyListener notifyListener) {
-        ConcurrentHashMap<NotifyListener, IZkChildListener> childChangeListeners = urlListeners.get(url);
-        if (childChangeListeners == null) {
-            urlListeners.putIfAbsent(url, new ConcurrentHashMap<NotifyListener, IZkChildListener>());
-            childChangeListeners = urlListeners.get(url);
-        }
-        IZkChildListener zkChildListener = childChangeListeners.get(notifyListener);
-        if (zkChildListener == null) {
-            childChangeListeners.putIfAbsent(notifyListener, new IZkChildListener() {
-                @Override
-                public void handleChildChange(String parentPath, List<String> currentChilds) throws Exception {
-                    ZookeeperRegistry.this.notify(url, notifyListener, nodeChildsToUrls(parentPath, currentChilds));
-                    LoggerUtil.info(String.format("[ZookeeperRegistry] service list change: path=%s, currentChilds=%s", parentPath, currentChilds.toString()));
-                }
-            });
-            zkChildListener = childChangeListeners.get(notifyListener);
-        }
-
-        // 写入Client结点
-        String info = url.toFullStr();
-        String clientTypePath = toClientTypePath(url);
-        if (!zkClient.exists(clientTypePath)) {
-            zkClient.createPersistent(clientTypePath, true);
-        }
-        String clientNodePath = toClientNodePath(url);
-        if (zkClient.exists(clientNodePath)) {
-            LoggerUtil.info(String.format("[ZookeeperRegistry] register: node exists, will be delete, path=%s", clientNodePath));
-            zkClient.delete(clientNodePath);
-        }
-
-        zkClient.createEphemeral(clientNodePath, info);
-
-        List<String> currentChilds = zkClient.subscribeChildChanges(toServerTypePath(url), zkChildListener);
-        LoggerUtil.info(String.format("[ZookeeperRegistry] subscribe: path=%s, info=%s", toServerNodePath(url), info));
-        notify(url, notifyListener, nodeChildsToUrls(toServerTypePath(url), currentChilds));
-    }
-
-    @Override
-    protected void concreteUnsubscribe(URL url, NotifyListener notifyListener) {
-        Map<NotifyListener, IZkChildListener> childChangeListeners = urlListeners.get(url);
-        if (childChangeListeners != null) {
-            IZkChildListener zkChildListener = childChangeListeners.get(notifyListener);
-            if (zkChildListener != null) {
-                zkClient.unsubscribeChildChanges(toClientTypePath(url), zkChildListener);
-                childChangeListeners.remove(notifyListener);
+    protected void doSubscribe(final URL url, final NotifyListener notifyListener) {
+        try {
+            ConcurrentHashMap<NotifyListener, IZkChildListener> childChangeListeners = urlListeners.get(url);
+            if (childChangeListeners == null) {
+                urlListeners.putIfAbsent(url, new ConcurrentHashMap<NotifyListener, IZkChildListener>());
+                childChangeListeners = urlListeners.get(url);
             }
+            IZkChildListener zkChildListener = childChangeListeners.get(notifyListener);
+            if (zkChildListener == null) {
+                childChangeListeners.putIfAbsent(notifyListener, new IZkChildListener() {
+                    @Override
+                    public void handleChildChange(String parentPath, List<String> currentChilds) {
+                        ZookeeperRegistry.this.notify(url, notifyListener, nodeChildsToUrls(parentPath, currentChilds));
+                        LoggerUtil.info(String.format("[ZookeeperRegistry] service list change: path=%s, currentChilds=%s", parentPath, currentChilds.toString()));
+                    }
+                });
+                zkChildListener = childChangeListeners.get(notifyListener);
+            }
+
+            // 防止旧节点未正常注销
+            removeNode(url, ZkNodeType.CLIENT);
+            createNode(url, ZkNodeType.CLIENT);
+
+            // 订阅server节点，并获取当前可用server
+            String serverTypePath = toNodeTypePath(url, ZkNodeType.AVAILABLE_SERVER);
+            List<String> currentChilds = zkClient.subscribeChildChanges(serverTypePath, zkChildListener);
+            LoggerUtil.info(String.format("[ZookeeperRegistry] subscribe: path=%s, info=%s", toNodePath(url, ZkNodeType.AVAILABLE_SERVER), url.toFullStr()));
+            notify(url, notifyListener, nodeChildsToUrls(serverTypePath, currentChilds));
+        } catch (Throwable e) {
+            throw new MotanFrameworkException(String.format("Failed to subscribe %s to zookeeper(%s), cause: %s", url, getUrl(), e.getMessage()));
         }
     }
 
     @Override
-    protected List<URL> concreteDiscover(URL url) {
-        return nodeChildsToUrls(toServerTypePath(url));
+    protected void doUnsubscribe(URL url, NotifyListener notifyListener) {
+        try {
+            Map<NotifyListener, IZkChildListener> childChangeListeners = urlListeners.get(url);
+            if (childChangeListeners != null) {
+                IZkChildListener zkChildListener = childChangeListeners.get(notifyListener);
+                if (zkChildListener != null) {
+                    zkClient.unsubscribeChildChanges(toNodeTypePath(url, ZkNodeType.CLIENT), zkChildListener);
+                    childChangeListeners.remove(notifyListener);
+                }
+            }
+        } catch (Throwable e) {
+            throw new MotanFrameworkException(String.format("Failed to unsubscribe %s to zookeeper(%s), cause: %s", url, getUrl(), e.getMessage()));
+        }
+    }
+
+    @Override
+    protected List<URL> doDiscover(URL url) {
+        try {
+            String parentPath = toNodeTypePath(url, ZkNodeType.AVAILABLE_SERVER);
+            List<String> currentChilds = new ArrayList<String>();
+            if (zkClient.exists(parentPath)) {
+                currentChilds = zkClient.getChildren(parentPath);
+            }
+            return nodeChildsToUrls(parentPath, currentChilds);
+        } catch (Throwable e) {
+            throw new MotanFrameworkException(String.format("Failed to discover %s from zookeeper(%s), cause: %s", url, getUrl(), e.getMessage()));
+        }
+    }
+
+    @Override
+    protected void doAvailable(URL url) {
+        if (url == null) {
+            for (URL u : getRegisteredServiceUrls()) {
+                removeNode(u, ZkNodeType.AVAILABLE_SERVER);
+                removeNode(u, ZkNodeType.UNAVAILABLE_SERVER);
+                createNode(u, ZkNodeType.AVAILABLE_SERVER);
+            }
+        } else {
+            removeNode(url, ZkNodeType.AVAILABLE_SERVER);
+            removeNode(url, ZkNodeType.UNAVAILABLE_SERVER);
+            createNode(url, ZkNodeType.AVAILABLE_SERVER);
+        }
+    }
+
+    @Override
+    protected void doUnavailable(URL url) {
+        if (url == null) {
+            for (URL u : getRegisteredServiceUrls()) {
+                removeNode(u, ZkNodeType.AVAILABLE_SERVER);
+                removeNode(u, ZkNodeType.UNAVAILABLE_SERVER);
+                createNode(u, ZkNodeType.UNAVAILABLE_SERVER);
+            }
+        } else {
+            removeNode(url, ZkNodeType.AVAILABLE_SERVER);
+            removeNode(url, ZkNodeType.UNAVAILABLE_SERVER);
+            createNode(url, ZkNodeType.UNAVAILABLE_SERVER);
+        }
     }
 
     private List<URL> nodeChildsToUrls(String parentPath, List<String> currentChilds) {
@@ -163,11 +174,6 @@ public class ZookeeperRegistry extends FailbackRegistry {
         return urls;
     }
 
-    private List<URL> nodeChildsToUrls(String parentPath) {
-        List<String> currentChilds = zkClient.getChildren(parentPath);
-        return nodeChildsToUrls(parentPath, currentChilds);
-    }
-
     private String toGroupPath(URL url) {
         return MotanConstants.ZOOKEEPER_REGISTRY_NAMESPACE + MotanConstants.PATH_SEPARATOR + url.getGroup();
     }
@@ -176,27 +182,36 @@ public class ZookeeperRegistry extends FailbackRegistry {
         return toGroupPath(url) + MotanConstants.PATH_SEPARATOR + url.getPath();
     }
 
-    private String toNodeTypePath(URL url, String nodeType) {
-        return toServicePath(url) + MotanConstants.PATH_SEPARATOR + nodeType;
+    private String toNodeTypePath(URL url, ZkNodeType nodeType) {
+        String type;
+        if (nodeType == ZkNodeType.AVAILABLE_SERVER) {
+            type = "server";
+        } else if (nodeType == ZkNodeType.UNAVAILABLE_SERVER) {
+            type = "unavailbleServer";
+        } else if (nodeType == ZkNodeType.CLIENT) {
+            type = "client";
+        } else {
+            throw new MotanFrameworkException(String.format("Failed to get nodeTypePath, url: %s type: %s", url, nodeType.toString()));
+        }
+        return toServicePath(url) + MotanConstants.PATH_SEPARATOR + type;
     }
 
-    private String toNodePath(URL url, String nodeType) {
+    private String toNodePath(URL url, ZkNodeType nodeType) {
         return toNodeTypePath(url, nodeType) + MotanConstants.PATH_SEPARATOR + url.getServerPortStr();
     }
 
-    private String toServerNodePath(URL url) {
-        return toNodePath(url, "server");
+    private void createNode(URL url, ZkNodeType nodeType) {
+        String nodeTypePath = toNodeTypePath(url, nodeType);
+        if (!zkClient.exists(nodeTypePath)) {
+            zkClient.createPersistent(nodeTypePath, true);
+        }
+        zkClient.createEphemeral(toNodePath(url, nodeType), url.toFullStr());
     }
 
-    private String toClientNodePath(URL url) {
-        return toNodePath(url, "client");
-    }
-
-    public String toServerTypePath(URL url) {
-        return toNodeTypePath(url, "server");
-    }
-
-    public String toClientTypePath(URL url) {
-        return toNodeTypePath(url, "client");
+    private void removeNode(URL url, ZkNodeType nodeType) {
+        String nodePath = toNodePath(url, nodeType);
+        if (zkClient.exists(nodePath)) {
+            zkClient.delete(nodePath);
+        }
     }
 }

@@ -22,7 +22,7 @@
     <parent>
         <groupId>com.weibo</groupId>
         <artifactId>motan</artifactId>
-        <version>0.0.2-SNAPSHOT</version>
+        <version>0.1.1-SNAPSHOT</version>
     </parent>
     <artifactId>motan-demo</artifactId>
     <name>motan-demo</name>
@@ -58,7 +58,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>4.2.4.RELEASE</version>
+            <version>${spring-framework.version}</version>
         </dependency>
 
 

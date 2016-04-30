@@ -19,14 +19,13 @@
     <parent>
         <artifactId>motan</artifactId>
         <groupId>com.weibo</groupId>
-        <version>0.0.2-SNAPSHOT</version>
+        <version>0.1.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>motan-manager</artifactId>
     <packaging>war</packaging>
     <name>motan-manager</name>
     <properties>
-        <spring-framework.version>4.2.4.RELEASE</spring-framework.version>
         <spring-security.version>4.0.3.RELEASE</spring-security.version>
     </properties>
     <dependencies>

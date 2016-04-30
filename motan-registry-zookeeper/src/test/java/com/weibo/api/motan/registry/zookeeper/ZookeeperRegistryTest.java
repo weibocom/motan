@@ -28,20 +28,23 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class ZookeeperRegistryTest {
-    public static JUnit4Mockery mockery = null;
+    private static JUnit4Mockery mockery = null;
     private ZookeeperRegistry registry;
+    private URL url;
+    private URL clientUrl;
 
     @Before
     public void setUp() throws Exception {
         // zookeeper://127.0.0.1:2181/com.weibo.api.motan.registry.RegistryService?group=yf_rpc
-        URL url = new URL("zookeeper", "127.0.0.1", 2181, "com.weibo.api.motan.registry.RegistryService");
+        URL zkUrl = new URL("zookeeper", "127.0.0.1", 2181, "com.weibo.api.motan.registry.RegistryService");
         mockery = new JUnit4Mockery() {
             {
                 setImposteriser(ClassImposteriser.INSTANCE);
@@ -49,14 +52,17 @@ public class ZookeeperRegistryTest {
         };
 
         ZkClient mockZkClient = mockery.mock(ZkClient.class);
-        registry = new ZookeeperRegistry(url, mockZkClient);
+        registry = new ZookeeperRegistry(zkUrl, mockZkClient);
+
+        url = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8001, "com.weibo.motan.demo.service.MotanDemoService");
+        clientUrl = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 0, "com.weibo.motan.demo.service.MotanDemoService");
 
         final List<String> currentChilds = new ArrayList<String>();
 
         mockery.checking(new Expectations() {
             {
                 allowing(any(ZkClient.class)).method("exists");
-                will(returnValue(true));
+                will(returnValue(false));
                 allowing(any(ZkClient.class)).method("delete");
                 will(returnValue(true));
                 allowing(any(ZkClient.class)).method("createPersistent");
@@ -68,7 +74,7 @@ public class ZookeeperRegistryTest {
                 allowing(any(ZkClient.class)).method("unsubscribeChildChanges");
                 will(returnValue(null));
                 allowing(any(ZkClient.class)).method("readData");
-                will(returnValue("motan://127.0.0.1:8001/com.weibo.motan.demo.service.MotanDemoService?export=demoMotan:8002&protocol=motan&module=motan-demo-rpc&application=myMotanDemo&refreshTimestamp=1459216241466&maxContentLength=1048576&id=com.weibo.api.motan.config.springsupport.ServiceConfigBean&maxServerConnection=80000&maxWorkerThread=800&accessLog=true&requestTimeout=200&isDefault=true&minWorkerThread=20&group=motan-demo-rpc&nodeType=service&shareChannel=true&"));
+                will(returnValue("motan://127.0.0.1:8001/com.weibo.motan.demo.service.MotanDemoService?export=demoMotan:8002&protocol=motan&module=motan-demo-rpc&application=myMotanDemo&group=motan-demo-rpc&nodeType=service"));
                 allowing(any(ZkClient.class)).method("getChildren");
                 will(returnValue(currentChilds));
             }
@@ -76,55 +82,51 @@ public class ZookeeperRegistryTest {
     }
 
     @Test
-    public void testConcreteRegister() {
-        URL url = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8001, "com.weibo.motan.demo.service.MotanDemoService");
-
+    public void testDoRegister() {
         registry.register(url);
-        Set<URL> registeredUrls = registry.getRegisteredUrls();
+        Collection<URL> registeredUrls = registry.getRegisteredServiceUrls();
         assertTrue(registeredUrls.contains(url));
     }
 
     @Test
-    public void testConcreteUnregister() {
-        URL url = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8001, "com.weibo.motan.demo.service.MotanDemoService");
-        registry.concreteUnregister(url);
-        Set<URL> registeredUrls = registry.getRegisteredUrls();
+    public void testDoUnregister() {
+        registry.register(url);
+        registry.unregister(url);
+        Collection<URL> registeredUrls = registry.getRegisteredServiceUrls();
         assertFalse(registeredUrls.contains(url));
     }
 
     @Test
-    public void testConcreteSubscribe() {
-        URL url = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 0, "com.weibo.motan.demo.service.MotanDemoService");
+    public void testDoSubscribe() {
         NotifyListener notifyListener = new NotifyListener() {
             @Override
             public void notify(URL registryUrl, List<URL> urls) {
-
             }
         };
-        registry.concreteSubscribe(url, notifyListener);
+        registry.doSubscribe(clientUrl, notifyListener);
         ConcurrentHashMap<URL, ConcurrentHashMap<NotifyListener, IZkChildListener>> urlListeners = registry.getUrlListeners();
-        assertTrue(urlListeners.containsKey(url));
+        assertTrue(urlListeners.containsKey(clientUrl));
+        assertFalse(urlListeners.get(clientUrl).isEmpty());
     }
 
     @Test
-    public void testConcreteUnsubscribe() {
-        URL url = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 0, "com.weibo.motan.demo.service.MotanDemoService");
+    public void testDoUnsubscribe() {
         NotifyListener notifyListener = new NotifyListener() {
             @Override
             public void notify(URL registryUrl, List<URL> urls) {
-
             }
         };
-        registry.concreteUnsubscribe(url, notifyListener);
+        registry.doSubscribe(clientUrl, notifyListener);
+        registry.doUnsubscribe(clientUrl, notifyListener);
         ConcurrentHashMap<URL, ConcurrentHashMap<NotifyListener, IZkChildListener>> urlListeners = registry.getUrlListeners();
-        assertFalse(urlListeners.containsKey(url));
+        assertTrue(urlListeners.get(clientUrl).isEmpty());
     }
 
     @Test
-    public void testConcreteDiscover() {
-        URL url = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 0, "com.weibo.motan.demo.service.MotanDemoService");
-        registry.concreteDiscover(url);
+    public void testDoDiscover() {
+        registry.doRegister(url);
+        registry.doAvailable(url);
+        List<URL> urls = registry.doDiscover(clientUrl);
+        urls.contains(url);
     }
-
-
 }

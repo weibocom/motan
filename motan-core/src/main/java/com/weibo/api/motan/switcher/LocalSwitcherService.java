@@ -16,24 +16,27 @@
 
 package com.weibo.api.motan.switcher;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanFrameworkException;
-import com.weibo.api.motan.util.LoggerUtil;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-14
- * 
+ *
  */
 @SpiMeta(name = "localSwitcherService")
 public class LocalSwitcherService implements SwitcherService {
 
     private static ConcurrentMap<String, Switcher> switchers = new ConcurrentHashMap<String, Switcher>();
+
+    private Map<String, List<SwitcherListener>> listenerMap = new ConcurrentHashMap();
 
     @Override
     public Switcher getSwitcher(String name) {
@@ -45,15 +48,7 @@ public class LocalSwitcherService implements SwitcherService {
         return new ArrayList<Switcher>(switchers.values());
     }
 
-    public static Switcher getSwitcherStatic(String name) {
-        return switchers.get(name);
-    }
-
-    public static List<Switcher> getAllSwitchersStatic() {
-        return new ArrayList<Switcher>(switchers.values());
-    }
-
-    public static void putSwitcher(Switcher switcher) {
+    private void putSwitcher(Switcher switcher) {
         if (switcher == null) {
             throw new MotanFrameworkException("LocalSwitcherService addSwitcher Error: switcher is null");
         }
@@ -61,49 +56,19 @@ public class LocalSwitcherService implements SwitcherService {
         switchers.put(switcher.getName(), switcher);
     }
 
-    public static void putSwitcher(String name, boolean on) {
-        if (switchers.get(name) != null) {
-            LoggerUtil.warn("LocalSwitcherService addSwitcher Error: switcher exists");
-            return;
-        }
-        Switcher switcher = new Switcher(name, on);
-
-        switchers.putIfAbsent(name, switcher);
-    }
-
-    public static void onSwitcher(String name) {
-        Switcher switcher = switchers.get(name);
-        if (switcher == null) {
-            switcher = new Switcher(name, true);
-            putSwitcher(switcher);
-        }
-
-        switcher.onSwitcher();
-    }
-
-    public static void offSwitcher(String name) {
-        Switcher switcher = switchers.get(name);
-        if (switcher == null) {
-            switcher = new Switcher(name, false);
-            putSwitcher(switcher);
-        }
-
-        switcher.offSwitcher();
-    }
-
     @Override
     public void initSwitcher(String switcherName, boolean initialValue) {
-        putSwitcher(switcherName, initialValue);
+        setValue(switcherName, initialValue);
     }
 
     @Override
-    public boolean switcherIsOpen(String switcherName) {
+    public boolean isOpen(String switcherName) {
         Switcher switcher = switchers.get(switcherName);
         return switcher != null && switcher.isOn();
     }
 
     @Override
-    public boolean switcherIsOpen(String switcherName, boolean defaultValue) {
+    public boolean isOpen(String switcherName, boolean defaultValue) {
         Switcher switcher = switchers.get(switcherName);
         if (switcher == null) {
             switchers.putIfAbsent(switcherName, new Switcher(switcherName, defaultValue));
@@ -113,8 +78,43 @@ public class LocalSwitcherService implements SwitcherService {
     }
 
     @Override
-    public void setSwitcher(String switcherName, boolean value) {
+    public void setValue(String switcherName, boolean value) {
         putSwitcher(new Switcher(switcherName, value));
+
+        List<SwitcherListener> listeners = listenerMap.get(switcherName);
+        if(listeners != null) {
+            for (SwitcherListener listener : listeners) {
+                listener.onValueChanged(switcherName, value);
+            }
+        }
+    }
+
+    @Override
+    public void registerListener(String switcherName, SwitcherListener listener) {
+        synchronized (listenerMap) {
+            if (listenerMap.get(switcherName) == null) {
+                List listeners = Collections.synchronizedList(new ArrayList());
+                listenerMap.put(switcherName, listeners);
+                listeners.add(listener);
+            } else {
+                List listeners = listenerMap.get(switcherName);
+                if (!listeners.contains(listener)) {
+                    listeners.add(listener);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void unRegisterListener(String switcherName, SwitcherListener listener) {
+        synchronized (listenerMap) {
+            if (listener == null) {
+                listenerMap.remove(switcherName);
+            } else {
+                List<SwitcherListener> listeners = listenerMap.get(switcherName);
+                listeners.remove(listener);
+            }
+        }
     }
 
 }

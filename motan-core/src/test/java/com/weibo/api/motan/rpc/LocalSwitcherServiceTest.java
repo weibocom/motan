@@ -37,16 +37,17 @@ public class LocalSwitcherServiceTest extends TestCase {
 
         String protocolSwitcher = MotanConstants.PROTOCOL_SWITCHER_PREFIX + "motan";
 
-        LocalSwitcherService.putSwitcher(new Switcher(protocolSwitcher, false));
+        LocalSwitcherService localSwitcherService = new LocalSwitcherService();
+        localSwitcherService.setValue(protocolSwitcher, false);
 
-        Switcher switcher = LocalSwitcherService.getSwitcherStatic(protocolSwitcher);
+        Switcher switcher = localSwitcherService.getSwitcher(protocolSwitcher);
 
         Assert.assertNotNull(switcher);
         Assert.assertFalse(switcher.isOn());
 
-        LocalSwitcherService.putSwitcher(new Switcher(protocolSwitcher, true));
+        localSwitcherService.setValue(protocolSwitcher, true);
 
-        switcher = LocalSwitcherService.getSwitcherStatic(protocolSwitcher);
+        switcher = localSwitcherService.getSwitcher(protocolSwitcher);
         Assert.assertNotNull(switcher);
         Assert.assertTrue(switcher.isOn());
 

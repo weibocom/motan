@@ -60,7 +60,7 @@ public abstract class AbstractRegistryFactory implements RegistryFactory {
             registries.put(registryUri, registry);
             return registry;
         } catch (Exception e) {
-            throw new MotanFrameworkException("Create registry false for url:" + url, MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
+            throw new MotanFrameworkException("Create registry false for url:" + url, e, MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
         } finally {
             lock.unlock();
         }

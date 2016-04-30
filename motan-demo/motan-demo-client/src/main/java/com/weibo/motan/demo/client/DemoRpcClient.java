@@ -16,29 +16,23 @@
 
 package com.weibo.motan.demo.client;
 
+import com.weibo.motan.demo.service.MotanDemoService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import com.weibo.motan.demo.service.MotanDemoService;
-
 public class DemoRpcClient {
 
-	public static void main(String[] args) throws InterruptedException {
-	    
-		ApplicationContext ctx = new ClassPathXmlApplicationContext(
-				new String[] { "classpath:motan_demo_client.xml" });
+    public static void main(String[] args) throws InterruptedException {
 
-		MotanDemoService service = (MotanDemoService) ctx
-				.getBean("motanDemoReferer");
-		for(int i = 0; i < Integer.MAX_VALUE; i++){
-		    System.out.println(service.hello("motan" + i));
-		    Thread.sleep(500);
-		}
-		System.out.println("motan demo is finish.");
-		System.exit(0);
-		
-	}
+        ApplicationContext ctx = new ClassPathXmlApplicationContext(new String[]{"classpath:motan_demo_client.xml"});
+
+        MotanDemoService service = (MotanDemoService) ctx.getBean("motanDemoReferer");
+        for (int i = 0; i < Integer.MAX_VALUE; i++) {
+            System.out.println(service.hello("motan" + i));
+            Thread.sleep(500);
+        }
+        System.out.println("motan demo is finish.");
+        System.exit(0);
+    }
 
 }
-
-
