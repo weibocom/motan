@@ -82,7 +82,7 @@ Motan推荐使用spring配置rpc服务，目前Motan扩展了6个自定义Spring
 每种标签的详细含义请参考后文[配置说明](#config)部分。全部参数清单请参考[配置清单](zh_configuration)。
 
 # 使用Motan
-Motan主要使用Spring进行配置，业务代码无需修改。关于在项目中使用Motan框架的具体步骤，请参考：[快速入门](quickstart)。
+Motan主要使用Spring进行配置，业务代码无需修改。关于在项目中使用Motan框架的具体步骤，请参考：[快速入门](zh_quickstart)。
 
 在使用Motan框架时，除了配置之外还需要注意工程依赖及Motan框架本身的异常处理。
 
