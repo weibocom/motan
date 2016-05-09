@@ -128,7 +128,7 @@ Protocol用来配置Motan服务的协议。不同的服务适用不同的协议�
 <motan:protocol name="motan" />
 ```
 
-Motan默认的rpc协议为motan协议，使用tcp长连接模式，基于netty通信。
+Motan默认的rpc协议为Motan协议，使用tcp长连接模式，基于netty通信。
 
 
 #### 负载均衡
@@ -318,7 +318,7 @@ motan:service中的basicService属性用来标识引用哪个motan:basicService�
 * id：标识配置项
 * group：标识服务的分组
 * module：标识模块信息
-* protocol：标识referer使用的协议，与motan:protocol中的name对应，默认为motan协议
+* protocol：标识referer使用的协议，与motan:protocol中的name对应，默认为Motan协议
 * registry：标识referer使用的注册中心，与motan:registry中的name对应
 * basicReferer：标识使用的基本配置，引用motan:basicReferer对象
 

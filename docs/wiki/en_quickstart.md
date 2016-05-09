@@ -80,7 +80,7 @@ The quick start gives very basic example of running server and client on the sam
 
         <!-- service implemention bean -->
         <bean id="serviceImpl" class="quickstart.FooServiceImpl" />
-        <!-- exporting service by motan -->
+        <!-- exporting service by Motan -->
         <motan:service interface="quickstart.FooService" ref="serviceImpl" export="8002" />
     </beans>
     ```
@@ -102,7 +102,7 @@ The quick start gives very basic example of running server and client on the sam
     }
     ```
     
-    Execute main function in Server will start a motan server listening on port 8002.
+    Execute main function in Server will start a Motan server listening on port 8002.
 
 4. Create and start RPC Client.
 
@@ -144,7 +144,7 @@ The quick start gives very basic example of running server and client on the sam
     
 ## <a id="cluster"></a>Using Motan in cluster environment
 
-In cluster environment, the external service discovery components such as Consul or ZooKeeper is needed to support the use of motan.
+In cluster environment, the external service discovery components such as Consul or ZooKeeper is needed to support the use of Motan.
 
 
 ### <a id="consul"></a>Using Consul as registry

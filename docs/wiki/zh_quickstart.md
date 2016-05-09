@@ -79,7 +79,7 @@
 
         <!-- service implemention bean -->
         <bean id="serviceImpl" class="quickstart.FooServiceImpl" />
-        <!-- exporting service by motan -->
+        <!-- exporting service by Motan -->
         <motan:service interface="quickstart.FooService" ref="serviceImpl" export="8002" />
     </beans>
     ```
@@ -101,7 +101,7 @@
     }
     ```
   
-    执行Server类中的main函数将会启动motan服务，并监听8002端口.
+    执行Server类中的main函数将会启动Motan服务，并监听8002端口.
 
 4. 创建并执行RPC Client。
 
@@ -144,7 +144,7 @@
     
 ## <a id="cluster"></a>集群调用示例
 
-在集群环境下使用motan需要依赖外部服务发现组件，目前支持consul或zookeeper。
+在集群环境下使用Motan需要依赖外部服务发现组件，目前支持consul或zookeeper。
 
 ### <a id="consul"></a>使用Consul作为注册中心
 
@@ -164,7 +164,7 @@
     
 ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
 
-#### <a id="motan-consul"></a>motan-Consul配置
+#### <a id="motan-consul"></a>Motan-Consul配置
 
 1. 在server和client中添加motan-registry-consul依赖
 
@@ -182,7 +182,7 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
     <motan:registry regProtocol="consul" name="my_consul" address="127.0.0.1:8500"/>
     ```   
 
-3. 在motan client及server配置改为通过registry服务发现。
+3. 在Motan client及server配置改为通过registry服务发现。
 
     client 
 
@@ -221,7 +221,7 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
     cd ../
     sh bin/zkServer.sh start
 
-#### <a id="motan-zookeeper"></a>motan-ZooKeeper配置
+#### <a id="motan-zookeeper"></a>Motan-ZooKeeper配置
 
 1. 在server和client中添加motan-registry-zookeeper依赖
 
@@ -247,7 +247,7 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
     <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"/>
     ```
     
-3. 在motan client及server配置改为通过registry服务发现。
+3. 在Motan client及server配置改为通过registry服务发现。
 
     client
 
