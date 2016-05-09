@@ -21,11 +21,13 @@ import com.weibo.api.motan.registry.support.command.RpcCommand.ClientCommand;
 import com.weibo.model.OperationRecord;
 import com.weibo.service.CommandService;
 import com.weibo.service.ServiceFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
@@ -34,7 +36,14 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/api/commands")
 public class CommandController {
-    private CommandService commandService = ServiceFactory.INSTANCE.createCommandService();
+    @Autowired
+    private ServiceFactory serviceFactory;
+    private CommandService commandService;
+
+    @PostConstruct
+    private void init() {
+        commandService = serviceFactory.getCommandService();
+    }
 
     /**
      * 获取所有指令

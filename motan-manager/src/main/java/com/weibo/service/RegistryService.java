@@ -19,7 +19,6 @@ package com.weibo.service;
 import com.alibaba.fastjson.JSONObject;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Zhang Yu on 2015/11/2 0002.
