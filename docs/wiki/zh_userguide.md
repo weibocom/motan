@@ -62,7 +62,7 @@ Client端使用的模块，cluster是一组可用的Server在逻辑上的封装�
 ## 配置概述
 Motan框架中将功能模块抽象为四个可配置的元素，分别为：
 
-- protocol：服务通信协议。服务提供方与消费方进行远程调用的协议，默认为motan协议，使用hessian2进行序列化，netty作为Endpoint以及使用motan自定义的协议编码方式。
+- protocol：服务通信协议。服务提供方与消费方进行远程调用的协议，默认为Motan协议，使用hessian2进行序列化，netty作为Endpoint以及使用Motan自定义的协议编码方式。
 
 - registry：注册中心。服务提供方将服务信息（包含ip、端口、服务策略等信息）注册到注册中心，服务消费方通过注册中心发现服务。当服务发生变更，注册中心负责通知各个消费方。
 
@@ -275,7 +275,7 @@ Motan支持使用多种Registry模块，使用不同注册中心需要依赖对�
 * export：标识服务的暴露方式，格式为“protocolId:port”（使用的协议及对外提供的端口号），其中protocolId：应与motan:protocol中的name一致
 * group：标识服务的分组
 * module：标识模块信息	
-* protocol：标识service使用的协议，与motan:protocol中的name对应，默认为motan协议
+* protocol：标识service使用的协议，与motan:protocol中的name对应，默认为Motan协议
 * basicService：标识使用的基本配置，引用motan:basicService对象
 
 Motan在注册中心的服务是以group的形式保存的，一般推荐一个分组以机房＋业务线进行命名，如yf-user-rpc。一个分组中包含若干的Service，一个Service即是java中的一个接口类名，每个Service下有一组能够提供对应服务的Server。
@@ -293,7 +293,7 @@ rpc服务的通用配置，用于配置所有服务接口的公共配置，减�
 * export：标识服务的暴露方式，格式为“protocolId:port”（使用的协议及对外提供的端口号），其中protocolId：应与motan:protocol中的name对应
 * group：标识服务的分组
 * module：标识模块信息
-* protocol：标识service使用的协议，与motan:protocol中的name对应，默认为motan协议
+* protocol：标识service使用的协议，与motan:protocol中的name对应，默认为Motan协议
 * registry：标识service使用的注册中心，与motan:registry中的name对应
 
 motan:service可以通过以下方式引用基本配置。
@@ -333,7 +333,7 @@ Client端订阅Service后，会从Registry中得到能够提供对应Service的�
 * id：标识配置项
 * group：标识服务的分组
 * module：标识模块信息
-* protocol：标识referer使用的协议，与motan:protocol中的name对应，默认为motan协议
+* protocol：标识referer使用的协议，与motan:protocol中的name对应，默认为Motan协议
 * registry：标识referer使用的注册中心，与motan:registry中的name对应
 
 motan:referer可以通过以下方式引用基本配置。
