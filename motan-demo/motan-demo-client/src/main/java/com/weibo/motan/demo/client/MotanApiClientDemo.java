@@ -44,6 +44,7 @@ public class MotanApiClientDemo {
         protocol.setId("motan");
         protocol.setName("motan");
         motanDemoServiceReferer.setProtocol(protocol);
+        motanDemoServiceReferer.setDirectUrl("localhost:8002");
 
         // 使用服务
         MotanDemoService service = motanDemoServiceReferer.getRef();

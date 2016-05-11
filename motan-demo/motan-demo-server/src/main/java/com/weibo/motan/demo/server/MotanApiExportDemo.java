@@ -16,9 +16,11 @@
 
 package com.weibo.motan.demo.server;
 
+import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.config.ServiceConfig;
+import com.weibo.api.motan.util.MotanSwitcherUtil;
 import com.weibo.motan.demo.service.MotanDemoService;
 
 public class MotanApiExportDemo {
@@ -48,9 +50,10 @@ public class MotanApiExportDemo {
 
         motanDemoService.setExport("motan:8002");
         motanDemoService.export();
-        
-        
-        Thread.sleep(Long.MAX_VALUE);
+
+        MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
+
+        System.out.println("server start...");
     }
 
 }
