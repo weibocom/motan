@@ -1,4 +1,4 @@
-### demo 运行说明(Deprecated, 请在IDE中调试, 参加issue #41 #45)
+### demo 运行说明(Deprecated, 请在IDE中调试, 参见issue #41 #45)
 ###1、在motan-demo项目下执行 
 	mvn clean package
 
