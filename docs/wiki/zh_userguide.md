@@ -272,10 +272,9 @@ Motan支持使用多种Registry模块，使用不同注册中心需要依赖对�
 
 * interface：标识服务的接口类名
 * ref：标识服务的实现类，引用具体的spring业务实现对象
-* export：标识服务的暴露方式，格式为“protocolId:port”（使用的协议及对外提供的端口号），其中protocolId：应与motan:protocol中的name一致
+* export：标识服务的暴露方式，格式为“protocolId:port”（使用的协议及对外提供的端口号），其中protocolId：应与motan:protocol中的id一致
 * group：标识服务的分组
 * module：标识模块信息	
-* protocol：标识service使用的协议，与motan:protocol中的name对应，默认为Motan协议
 * basicService：标识使用的基本配置，引用motan:basicService对象
 
 Motan在注册中心的服务是以group的形式保存的，一般推荐一个分组以机房＋业务线进行命名，如yf-user-rpc。一个分组中包含若干的Service，一个Service即是java中的一个接口类名，每个Service下有一组能够提供对应服务的Server。
@@ -290,20 +289,18 @@ Motan在注册中心的服务是以group的形式保存的，一般推荐一个�
 rpc服务的通用配置，用于配置所有服务接口的公共配置，减少配置冗余。basicService包含以下常用属性：
 
 * id：标识配置项
-* export：标识服务的暴露方式，格式为“protocolId:port”（使用的协议及对外提供的端口号），其中protocolId：应与motan:protocol中的name对应
+* export：标识服务的暴露方式，格式为“protocolId:port”（使用的协议及对外提供的端口号），其中protocolId：应与motan:protocol中的id一致
 * group：标识服务的分组
 * module：标识模块信息
-* protocol：标识service使用的协议，与motan:protocol中的name对应，默认为Motan协议
 * registry：标识service使用的注册中心，与motan:registry中的name对应
 
 motan:service可以通过以下方式引用基本配置。
 
 ```
 <!-- 通用配置，多个rpc服务使用相同的基础配置. group和module定义具体的服务池。export格式为“protocol id:提供服务的端口” -->
-<motan:basicService id="serviceBasicConfig" export="demoMotan:8002" group="motan-demo-rpc" module="motan-demo-rpc" registry="registry" protocol="motan"/>
+<motan:basicService id="serviceBasicConfig" export="demoMotan:8002" group="motan-demo-rpc" module="motan-demo-rpc" registry="registry"/>
 <!-- 通用配置，多个rpc服务使用相同的基础配置. group和module定义具体的服务池。export格式为“protocol id:提供服务的端口” -->
-<motan:service interface="com.weibo.motan.demo.service.MotanDemoService"
-                   ref="demoServiceImpl" basicService="serviceBasicConfig"/>
+<motan:service interface="com.weibo.motan.demo.service.MotanDemoService" ref="demoServiceImpl" basicService="serviceBasicConfig"/>
 ```
 
 motan:service中的basicService属性用来标识引用哪个motan:basicService对象，对于basicService中已定义的内容，service不必重复配置。

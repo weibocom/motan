@@ -20,12 +20,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.weibo.api.motan.registry.support.command.RpcCommand.ClientCommand;
 import com.weibo.model.OperationRecord;
 import com.weibo.service.CommandService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -34,8 +34,9 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/api/commands")
 public class CommandController {
-    @Autowired
-    CommandService commandService;
+
+    @Resource(name = "${registry.type}" + "CommandService")
+    private CommandService commandService;
 
     /**
      * 获取所有指令

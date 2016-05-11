@@ -187,7 +187,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
         if (nodeType == ZkNodeType.AVAILABLE_SERVER) {
             type = "server";
         } else if (nodeType == ZkNodeType.UNAVAILABLE_SERVER) {
-            type = "unavailbleServer";
+            type = "unavailableServer";
         } else if (nodeType == ZkNodeType.CLIENT) {
             type = "client";
         } else {
