@@ -20,11 +20,17 @@ import com.weibo.motan.demo.service.MotanDemoService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+/**
+ * spring调用远程服务
+ * 如果使用配置中心，请加载motan_demo_client.xml
+ * 如果不使用配置中心，请加载motan_demo_client_direct.xml
+ *
+ */
 public class DemoRpcClient {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ApplicationContext ctx = new ClassPathXmlApplicationContext(new String[]{"classpath:motan_demo_client.xml"});
+        ApplicationContext ctx = new ClassPathXmlApplicationContext(new String[]{"classpath:motan_demo_client_direct.xml"});
 
         MotanDemoService service = (MotanDemoService) ctx.getBean("motanDemoReferer");
         for (int i = 0; i < Integer.MAX_VALUE; i++) {
