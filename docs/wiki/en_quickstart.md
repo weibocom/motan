@@ -197,7 +197,7 @@ UI backend [http://localhost:8500/ui](http://localhost:8500/ui)
     <motan:referer id="remoteService" interface="quickstart.FooService" registry="my_consul"/>
     ```
 
-4. After the server starts, you SHOULD call hearbeat switcher explicitly in order to start heartbeat for Consul.
+4. After the server starts, you SHOULD call heartbeat switcher explicitly in order to start heartbeat for Consul.
 
     ```java
     MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true)
@@ -262,7 +262,7 @@ Install and start ZooKeeper:
     <motan:referer id="remoteService" interface="quickstart.FooService" registry="my_zookeeper"/>
     ```
 
-4. After the server starts, you SHOULD call hearbeat switcher explicitly in order to start heartbeat for Zookeeper.
+4. After the server starts, you SHOULD call heartbeat switcher explicitly in order to start heartbeat for Zookeeper.
 
     ```java
     MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true)
