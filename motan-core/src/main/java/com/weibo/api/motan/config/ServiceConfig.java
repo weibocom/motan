@@ -160,7 +160,6 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             hostAddress = getLocalHostAddress(registryURLs);
         }
 
-        //map的用途
         Map<String, String> map = new HashMap<String, String>();
 
         map.put(URLParamType.nodeType.getName(), MotanConstants.NODE_TYPE_SERVICE);

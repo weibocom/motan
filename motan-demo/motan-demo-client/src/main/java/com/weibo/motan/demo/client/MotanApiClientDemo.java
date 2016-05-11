@@ -20,6 +20,9 @@ import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.motan.demo.service.MotanDemoService;
 
+/**
+ * main方法调用
+ */
 public class MotanApiClientDemo {
 
     public static void main(String[] args) {

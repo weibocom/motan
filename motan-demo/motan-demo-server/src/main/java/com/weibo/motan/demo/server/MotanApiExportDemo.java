@@ -23,6 +23,9 @@ import com.weibo.api.motan.config.ServiceConfig;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
 import com.weibo.motan.demo.service.MotanDemoService;
 
+/**
+ *  main方法注册服务
+ */
 public class MotanApiExportDemo {
 
     public static void main(String[] args) throws InterruptedException {
@@ -41,7 +44,6 @@ public class MotanApiExportDemo {
         registry.setRegProtocol("local");
         registry.setCheck("false"); //不检查是否注册成功
         motanDemoService.setRegistry(registry);
-
 
         // 配置RPC协议
         ProtocolConfig protocol = new ProtocolConfig();
