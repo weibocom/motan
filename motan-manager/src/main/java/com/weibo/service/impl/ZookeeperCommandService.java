@@ -25,20 +25,37 @@ import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.dao.OperationRecordMapper;
 import com.weibo.model.OperationRecord;
 import com.weibo.service.CommandService;
+import com.weibo.utils.ZkClientWrapper;
 import org.I0Itec.zkclient.ZkClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ZkCommandService implements CommandService {
-    private ZkClient zkClient;
+@Service
+@Lazy
+public class ZookeeperCommandService implements CommandService {
 
     @Autowired(required = false)
     private OperationRecordMapper recordMapper;
 
-    public ZkCommandService(ZkClient zkClient) {
+    @Autowired
+    private ZkClientWrapper clientWrapper;
+    private ZkClient zkClient;
+
+    public ZookeeperCommandService() {
+    }
+
+    public ZookeeperCommandService(ZkClient zkClient) {
         this.zkClient = zkClient;
+    }
+
+    @PostConstruct
+    void init() {
+        zkClient = clientWrapper.getZkClient();
     }
 
     /**

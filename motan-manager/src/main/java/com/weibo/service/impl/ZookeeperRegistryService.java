@@ -19,16 +19,34 @@ package com.weibo.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.service.RegistryService;
+import com.weibo.utils.ZkClientWrapper;
 import org.I0Itec.zkclient.ZkClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ZkRegistryService implements RegistryService {
+@Service
+@Lazy
+public class ZookeeperRegistryService implements RegistryService {
+
+    @Autowired
+    private ZkClientWrapper clientWrapper;
     private ZkClient zkClient;
 
-    public ZkRegistryService(ZkClient zkClient) {
+    public ZookeeperRegistryService() {
+    }
+
+    public ZookeeperRegistryService(ZkClient zkClient) {
         this.zkClient = zkClient;
+    }
+
+    @PostConstruct
+    void init() {
+        zkClient = clientWrapper.getZkClient();
     }
 
     @Override

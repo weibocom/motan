@@ -6,18 +6,27 @@ import com.ecwid.consul.v1.QueryParams;
 import com.ecwid.consul.v1.catalog.model.CatalogService;
 import com.ecwid.consul.v1.health.model.Check;
 import com.weibo.service.RegistryService;
+import com.weibo.utils.ConsulClientWrapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 
 import static com.weibo.api.motan.registry.consul.ConsulConstants.CONSUL_SERVICE_MOTAN_PRE;
 
-
+@Service
+@Lazy
 public class ConsulRegistryService implements RegistryService {
+    @Autowired
+    private ConsulClientWrapper clientWrapper;
     private ConsulClient consulClient;
     private String dc = "dc1";
 
-    public ConsulRegistryService(ConsulClient consulClient) {
-        this.consulClient = consulClient;
+    @PostConstruct
+    public void init() {
+        consulClient = clientWrapper.getConsulClient();
     }
 
     @Override

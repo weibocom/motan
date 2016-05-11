@@ -18,8 +18,9 @@ import java.util.Properties;
 import static org.junit.Assert.assertTrue;
 
 public class ZkRegistryServiceTest {
-    private ZkClient zkClient;
     private RegistryService registryService;
+    private EmbeddedZookeeper embeddedZookeeper;
+    private ZkClient zkClient;
     private String group = "default_rpc";
     private String service1 = "com.weibo.motan.demoService";
     private String service2 = "com.weibo.motan.demoService2";
@@ -38,10 +39,10 @@ public class ZkRegistryServiceTest {
         URL url2 = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8002, service1);
         URL url3 = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8003, service2);
 
-        EmbeddedZookeeper embeddedZookeeper = new EmbeddedZookeeper();
+        embeddedZookeeper = new EmbeddedZookeeper();
         embeddedZookeeper.start();
 
-        zkClient = new ZkClient("127.0.0.1:" + port);
+        zkClient = new ZkClient("127.0.0.1:" + port, 5000);
         ZookeeperRegistry registry = new ZookeeperRegistry(zkUrl, zkClient);
 
         registry.register(url1);
@@ -49,12 +50,13 @@ public class ZkRegistryServiceTest {
         registry.register(url3);
         registry.subscribe(clientUrl, null);
 
-        registryService = new ZkRegistryService(zkClient);
+        registryService = new ZookeeperRegistryService(zkClient);
     }
 
     @After
     public void tearDown() throws Exception {
         zkClient.deleteRecursive(MotanConstants.ZOOKEEPER_REGISTRY_NAMESPACE);
+        embeddedZookeeper = null;
     }
 
     @Test

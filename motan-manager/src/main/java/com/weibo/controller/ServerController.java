@@ -18,8 +18,6 @@ package com.weibo.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.weibo.service.RegistryService;
-import com.weibo.service.ServiceFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -28,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -37,14 +35,9 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/api")
 public class ServerController {
-    @Autowired
-    private ServiceFactory serviceFactory;
-    private RegistryService registryService;
 
-    @PostConstruct
-    private void init() {
-        registryService = serviceFactory.getRegistryService();
-    }
+    @Resource(name = "${registry.type}" + "RegistryService")
+    private RegistryService registryService;
 
     /**
      * 获取所有group分组名称

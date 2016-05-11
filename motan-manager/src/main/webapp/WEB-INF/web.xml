@@ -24,10 +24,8 @@
     <!-- Spring Beans -->
     <context-param>
         <param-name>contextConfigLocation</param-name>
-
         <!-- No database configured -->
         <param-value>classpath*:spring.xml,classpath*:spring-security.xml</param-value>
-        
     </context-param>
 
     <!-- security -->

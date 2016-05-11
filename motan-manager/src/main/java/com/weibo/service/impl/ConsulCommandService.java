@@ -5,14 +5,24 @@ import com.ecwid.consul.v1.ConsulClient;
 import com.weibo.api.motan.registry.support.command.RpcCommand;
 import com.weibo.model.OperationRecord;
 import com.weibo.service.CommandService;
+import com.weibo.utils.ConsulClientWrapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 
+@Service
+@Lazy
 public class ConsulCommandService implements CommandService {
+    @Autowired
+    private ConsulClientWrapper clientWrapper;
     private ConsulClient consulClient;
 
-    public ConsulCommandService(ConsulClient consulClient) {
-        this.consulClient = consulClient;
+    @PostConstruct
+    void init() {
+        consulClient = clientWrapper.getConsulClient();
     }
 
     @Override
