@@ -24,6 +24,8 @@
 
     <context:property-placeholder location="classpath*:config.properties"/>
 
-    <context:component-scan base-package="com.weibo.dao,com.weibo.filter,com.weibo.service"/>
+    <context:component-scan base-package="com.weibo.dao,com.weibo.filter,com.weibo.service,com.weibo.utils"/>
+
     <aop:aspectj-autoproxy proxy-target-class="true"/>
+
 </beans>

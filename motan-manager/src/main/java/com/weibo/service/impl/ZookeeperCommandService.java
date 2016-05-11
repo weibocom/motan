@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.weibo.service;
+package com.weibo.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.weibo.api.motan.common.MotanConstants;
@@ -22,35 +22,40 @@ import com.weibo.api.motan.registry.support.command.RpcCommand;
 import com.weibo.api.motan.registry.support.command.RpcCommand.ClientCommand;
 import com.weibo.api.motan.registry.support.command.RpcCommandUtil;
 import com.weibo.api.motan.util.LoggerUtil;
-
 import com.weibo.dao.OperationRecordMapper;
-import com.weibo.dao.ZookeeperClient;
 import com.weibo.model.OperationRecord;
+import com.weibo.service.CommandService;
+import com.weibo.utils.ZkClientWrapper;
 import org.I0Itec.zkclient.ZkClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service("commandService")
-public class CommandServiceImpl implements CommandService {
-    private ZkClient zkClient;
+@Service
+@Lazy
+public class ZookeeperCommandService implements CommandService {
 
-    private ZookeeperClient zookeeperClient;
     @Autowired(required = false)
     private OperationRecordMapper recordMapper;
 
-    public CommandServiceImpl() {
-        zookeeperClient = ZookeeperClient.getInstance();
-        zkClient = zookeeperClient.getZkClient();
+    @Autowired
+    private ZkClientWrapper clientWrapper;
+    private ZkClient zkClient;
+
+    public ZookeeperCommandService() {
     }
 
-    /**
-     * Unit Test中使用
-     */
-    public CommandServiceImpl(ZkClient zkClient) {
+    public ZookeeperCommandService(ZkClient zkClient) {
         this.zkClient = zkClient;
+    }
+
+    @PostConstruct
+    void init() {
+        zkClient = clientWrapper.getZkClient();
     }
 
     /**
@@ -61,7 +66,7 @@ public class CommandServiceImpl implements CommandService {
     @Override
     public List<JSONObject> getAllCommands() {
         List<JSONObject> commands = new ArrayList<JSONObject>();
-        List<String> groups = zookeeperClient.getChildren(MotanConstants.ZOOKEEPER_REGISTRY_NAMESPACE);
+        List<String> groups = getChildren(MotanConstants.ZOOKEEPER_REGISTRY_NAMESPACE);
         for (String group : groups) {
             JSONObject node = new JSONObject();
             String command = getCommands(group);
@@ -270,4 +275,11 @@ public class CommandServiceImpl implements CommandService {
         return MotanConstants.ZOOKEEPER_REGISTRY_NAMESPACE + MotanConstants.PATH_SEPARATOR + groupName + MotanConstants.ZOOKEEPER_REGISTRY_COMMAND;
     }
 
+    private List<String> getChildren(String path) {
+        List<String> children = new ArrayList<String>();
+        if (zkClient.exists(path)) {
+            children = zkClient.getChildren(path);
+        }
+        return children;
+    }
 }
