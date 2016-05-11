@@ -24,7 +24,7 @@ public class DemoRpcClient {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ApplicationContext ctx = new ClassPathXmlApplicationContext(new String[]{"classpath:motan_demo_client.xml"});
+        ApplicationContext ctx = new ClassPathXmlApplicationContext(new String[]{"classpath:motan_demo_client_direct.xml"});
 
         MotanDemoService service = (MotanDemoService) ctx.getBean("motanDemoReferer");
         for (int i = 0; i < Integer.MAX_VALUE; i++) {

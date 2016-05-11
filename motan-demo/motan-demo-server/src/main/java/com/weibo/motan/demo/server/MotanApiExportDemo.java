@@ -40,6 +40,7 @@ public class MotanApiExportDemo {
         registry.setCheck("false"); //不检查是否注册成功
         motanDemoService.setRegistry(registry);
 
+
         // 配置RPC协议
         ProtocolConfig protocol = new ProtocolConfig();
         protocol.setId("motan");
