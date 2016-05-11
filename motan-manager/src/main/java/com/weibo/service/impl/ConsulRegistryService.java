@@ -22,57 +22,64 @@ public class ConsulRegistryService implements RegistryService {
     @Autowired
     private ConsulClientWrapper clientWrapper;
     private ConsulClient consulClient;
-    private String dc = "dc1";
+
+    public ConsulRegistryService() {
+    }
+
+    /**
+     * Unit Test中使用
+     * @param consulClient
+     */
+    public ConsulRegistryService(ConsulClient consulClient) {
+        this.consulClient = consulClient;
+    }
 
     @PostConstruct
     public void init() {
         consulClient = clientWrapper.getConsulClient();
     }
 
+    public List<String> getDatacenters() {
+        return consulClient.getCatalogDatacenters().getValue();
+    }
+
     @Override
     public List<String> getGroups() {
         List<String> groups = new ArrayList<String>();
-        QueryParams queryParams = new QueryParams(dc);
-        Map<String, List<String>> serviceMap = consulClient.getCatalogServices(queryParams).getValue();
-        serviceMap.remove("consul");
-        for (String service : serviceMap.keySet()) {
-            groups.add(formatGroupName(service));
+        for (String dc : getDatacenters()) {
+            QueryParams queryParams = new QueryParams(dc);
+            Map<String, List<String>> serviceMap = consulClient.getCatalogServices(queryParams).getValue();
+            serviceMap.remove("consul");
+            for (String service : serviceMap.keySet()) {
+                groups.add(formatGroupName(dc, service));
+            }
         }
         return groups;
     }
 
-    private String formatGroupName(String str) {
-        return str.substring(CONSUL_SERVICE_MOTAN_PRE.length());
-    }
-
     @Override
-    public List<String> getServicesByGroup(String group) {
+    public List<String> getServicesByGroup(String dcGroup) {
         Set<String> services = new HashSet<String>();
-        List<CatalogService> serviceList = getCatalogServicesByGroup(group);
+        List<CatalogService> serviceList = getCatalogServicesByGroup(dcGroup);
         for (CatalogService service : serviceList) {
-            services.add(formatServiceName(service));
+            services.add(formatServiceName(getDcName(dcGroup), service));
         }
         return new ArrayList<String>(services);
     }
 
-    private List<CatalogService> getCatalogServicesByGroup(String group) {
-        QueryParams queryParams = new QueryParams(dc);
-        return consulClient.getCatalogService(CONSUL_SERVICE_MOTAN_PRE + group, queryParams).getValue();
-    }
-
-    private String formatServiceName(CatalogService catalogService) {
-        return catalogService.getServiceId().split("-")[1];
+    private List<CatalogService> getCatalogServicesByGroup(String dcGroup) {
+        QueryParams queryParams = new QueryParams(getDcName(dcGroup));
+        return consulClient.getCatalogService(CONSUL_SERVICE_MOTAN_PRE + getGroupName(dcGroup), queryParams).getValue();
     }
 
     @Override
-    public List<JSONObject> getNodes(String group, String service, String nodeType) {
+    public List<JSONObject> getNodes(String dcGroup, String dcService, String nodeType) {
         List<JSONObject> results = new ArrayList<JSONObject>();
-
-        List<Check> checks = consulClient.getHealthChecksForService(CONSUL_SERVICE_MOTAN_PRE + group, new QueryParams(dc)).getValue();
+        List<Check> checks = consulClient.getHealthChecksForService(CONSUL_SERVICE_MOTAN_PRE + getGroupName(dcGroup), new QueryParams(getDcName(dcGroup))).getValue();
         for (Check check : checks) {
             String serviceId = check.getServiceId();
             String[] strings = serviceId.split("-");
-            if (service.equals(strings[1])) {
+            if (strings[1].equals(getServiceName(dcService))) {
                 Check.CheckStatus status = check.getStatus();
                 JSONObject node = new JSONObject();
                 if (nodeType.equals(status.toString())) {
@@ -86,19 +93,39 @@ public class ConsulRegistryService implements RegistryService {
     }
 
     @Override
-    public List<JSONObject> getAllNodes(String group) {
+    public List<JSONObject> getAllNodes(String dcGroup) {
         List<JSONObject> results = new ArrayList<JSONObject>();
-        List<String> serviceNameSet = getServicesByGroup(group);
-        for (String serviceName : serviceNameSet) {
+        List<String> serviceNameSet = getServicesByGroup(dcGroup);
+        for (String dcServiceName : serviceNameSet) {
             JSONObject service = new JSONObject();
-            service.put("service", serviceName);
-            List<JSONObject> availableServer = getNodes(group, serviceName, "PASSING");
+            service.put("service", dcServiceName);
+            List<JSONObject> availableServer = getNodes(dcGroup, dcServiceName, "PASSING");
             service.put("server", availableServer);
-            List<JSONObject> unavailableServer = getNodes(group, serviceName, "CRITICAL");
+            List<JSONObject> unavailableServer = getNodes(dcGroup, dcServiceName, "CRITICAL");
             service.put("unavailableServer", unavailableServer);
             service.put("client", null);
             results.add(service);
         }
         return results;
+    }
+
+    private String formatGroupName(String dc, String groupName) {
+        return dc + "_" + groupName.substring(CONSUL_SERVICE_MOTAN_PRE.length());
+    }
+
+    private String formatServiceName(String dc, CatalogService catalogService) {
+        return dc + "_" + catalogService.getServiceId().split("-")[1];
+    }
+
+    private String getDcName(String dcString) {
+        return dcString.substring(0, dcString.indexOf("_"));
+    }
+
+    private String getGroupName(String dcGroup) {
+        return dcGroup.substring(dcGroup.indexOf("_") + 1);
+    }
+
+    private String getServiceName(String dcService) {
+        return dcService.substring(dcService.indexOf("_") + 1);
     }
 }
