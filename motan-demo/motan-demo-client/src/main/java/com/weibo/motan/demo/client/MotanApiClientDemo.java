@@ -18,9 +18,11 @@ package com.weibo.motan.demo.client;
 
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RefererConfig;
-import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.motan.demo.service.MotanDemoService;
 
+/**
+ * main方法调用
+ */
 public class MotanApiClientDemo {
 
     public static void main(String[] args) {
@@ -35,9 +37,11 @@ public class MotanApiClientDemo {
         motanDemoServiceReferer.setRequestTimeout(300);
 
         // 配置注册中心
-        RegistryConfig registry = new RegistryConfig();
-        registry.setRegProtocol("local");
-        motanDemoServiceReferer.setRegistry(registry);
+//        RegistryConfig registry = new RegistryConfig();
+//        registry.setRegProtocol("local");
+//        motanDemoServiceReferer.setRegistry(registry);
+        // 如果不使用注册中心
+        motanDemoServiceReferer.setDirectUrl("localhost:8002");
 
         // 配置RPC协议
         ProtocolConfig protocol = new ProtocolConfig();

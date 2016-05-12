@@ -21,6 +21,9 @@ import com.weibo.api.motan.util.MotanSwitcherUtil;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+/**
+ * spring容器注册服务
+ */
 public class DemoRpcServer {
 
     public static void main(String[] args) throws InterruptedException {
