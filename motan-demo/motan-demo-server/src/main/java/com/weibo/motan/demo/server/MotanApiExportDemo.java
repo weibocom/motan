@@ -27,20 +27,33 @@ public class MotanApiExportDemo {
 
     public static void main(String[] args) throws InterruptedException {
         ServiceConfig<MotanDemoService> motanDemoService = new ServiceConfig<MotanDemoService>();
-        
-        //设置接口及实现类
-        motanDemoService.setInterface(MotanDemoService.class);  
+
+        // 设置接口及实现类
+        motanDemoService.setInterface(MotanDemoService.class);
         motanDemoService.setRef(new MotanDemoServiceImpl());
 
         // 配置服务的group以及版本号
         motanDemoService.setGroup("motan-demo-rpc");
         motanDemoService.setVersion("1.0");
 
-        // 配置注册中心
-        RegistryConfig registry = new RegistryConfig();
-        registry.setRegProtocol("local");
-        registry.setCheck("false"); //不检查是否注册成功
-        motanDemoService.setRegistry(registry);
+        // 配置注册中心直连调用
+        // RegistryConfig directRegistry = new RegistryConfig();
+        // directRegistry.setRegProtocol("local");
+        // directRegistry.setCheck("false"); //不检查是否注册成功
+        // motanDemoService.setRegistry(directRegistry);
+
+        // 配置ZooKeeper注册中心
+        RegistryConfig zookeeperRegistry = new RegistryConfig();
+        zookeeperRegistry.setRegProtocol("zookeeper");
+        zookeeperRegistry.setAddress("127.0.0.1:2181");
+        motanDemoService.setRegistry(zookeeperRegistry);
+
+        // 配置支持指令的ZooKeeper注册中心
+        // RegistryConfig commandZKRegistry = new RegistryConfig();
+        // commandZKRegistry.setRegProtocol("commandZookeeper");
+        // commandZKRegistry.setAddress("127.0.0.1:2181");
+        // motanDemoService.setRegistry(commandZKRegistry);
+
 
         // 配置RPC协议
         ProtocolConfig protocol = new ProtocolConfig();

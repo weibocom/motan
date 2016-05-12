@@ -28,6 +28,7 @@
     <!--<motan:registry regProtocol="local" name="registry" />-->
     <!--<motan:registry regProtocol="consul" name="registry" address="127.0.0.1:8500"/>-->
     <motan:registry regProtocol="zookeeper" name="registry" address="127.0.0.1:2181"/>
+    <!--<motan:registry regProtocol="commandZookeeper" name="registry" address="127.0.0.1:2181"/>-->
 
     <!-- 协议配置。为防止多个业务配置冲突，推荐使用id表示具体协议。-->
     <motan:protocol id="demoMotan" default="true" name="motan"

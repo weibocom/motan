@@ -27,6 +27,7 @@
         <module>motan-springsupport</module>
         <module>motan-transport-netty</module>
         <module>motan-demo</module>
+        <module>motan-registry-command-zookeeper</module>
         <module>motan-registry-consul</module>
         <module>motan-registry-zookeeper</module>
         <module>motan-benchmark</module>

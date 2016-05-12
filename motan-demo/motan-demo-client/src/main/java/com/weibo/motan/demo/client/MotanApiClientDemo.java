@@ -34,24 +34,34 @@ public class MotanApiClientDemo {
         motanDemoServiceReferer.setVersion("1.0");
         motanDemoServiceReferer.setRequestTimeout(300);
 
-        // 配置注册中心
-        RegistryConfig registry = new RegistryConfig();
-        registry.setRegProtocol("local");
-        motanDemoServiceReferer.setRegistry(registry);
+        // 配置注册中心直连调用
+        // RegistryConfig directRegistry = new RegistryConfig();
+        // directRegistry.setRegProtocol("local");
+        // motanDemoServiceReferer.setRegistry(directRegistry);
+
+        // 配置ZooKeeper注册中心
+        RegistryConfig zookeeperRegistry = new RegistryConfig();
+        zookeeperRegistry.setRegProtocol("zookeeper");
+        zookeeperRegistry.setAddress("127.0.0.1:2181");
+        motanDemoServiceReferer.setRegistry(zookeeperRegistry);
+
+        // 配置支持指令的ZooKeeper注册中心
+        // RegistryConfig commandZKRegistry = new RegistryConfig();
+        // commandZKRegistry.setRegProtocol("commandZookeeper");
+        // commandZKRegistry.setAddress("127.0.0.1:2181");
+        // motanDemoServiceReferer.setRegistry(commandZKRegistry);
 
         // 配置RPC协议
         ProtocolConfig protocol = new ProtocolConfig();
         protocol.setId("motan");
         protocol.setName("motan");
         motanDemoServiceReferer.setProtocol(protocol);
-        motanDemoServiceReferer.setDirectUrl("localhost:8002");
+        // motanDemoServiceReferer.setDirectUrl("localhost:8002");  // 注册中心直连调用需添加此配置
 
         // 使用服务
         MotanDemoService service = motanDemoServiceReferer.getRef();
         System.out.println(service.hello("motan"));
 
         System.exit(0);
-
     }
-
 }
