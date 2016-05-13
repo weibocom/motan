@@ -38,6 +38,7 @@ public class MotanErrorMsgConstant {
     public static final int FRAMEWORK_EXPORT_ERROR_CODE = 20005;
     public static final int FRAMEWORK_SERVER_ERROR_CODE = 20006;
     public static final int FRAMEWORK_REFER_ERROR_CODE = 20007;
+    public static final int FRAMEWORK_REGISTER_ERROR_CODE = 20008;
     // biz exception
     public static final int BIZ_DEFAULT_ERROR_CODE = 30001;
     /**
@@ -62,7 +63,7 @@ public class MotanErrorMsgConstant {
             new MotanErrorMsg(503, FRAMEWORK_ENCODE_ERROR_CODE, "framework encode error");
     public static final MotanErrorMsg FRAMEWORK_DECODE_ERROR =
             new MotanErrorMsg(503, FRAMEWORK_DECODE_ERROR_CODE, "framework decode error");
-    public static final MotanErrorMsg FRAMEWORK_INIT_ERROR = new MotanErrorMsg(503, FRAMEWORK_INIT_ERROR_CODE, "framework init error");
+    public static final MotanErrorMsg FRAMEWORK_INIT_ERROR = new MotanErrorMsg(500, FRAMEWORK_INIT_ERROR_CODE, "framework init error");
     public static final MotanErrorMsg FRAMEWORK_EXPORT_ERROR =
             new MotanErrorMsg(503, FRAMEWORK_EXPORT_ERROR_CODE, "framework export error");
     public static final MotanErrorMsg FRAMEWORK_REFER_ERROR = new MotanErrorMsg(503, FRAMEWORK_REFER_ERROR_CODE, "framework refer error");

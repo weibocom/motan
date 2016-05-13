@@ -22,6 +22,9 @@ import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.core.extension.SpiMeta;
+import com.weibo.api.motan.exception.MotanErrorMsg;
+import com.weibo.api.motan.exception.MotanErrorMsgConstant;
+import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.protocol.support.ProtocolFilterDecorator;
 import com.weibo.api.motan.proxy.ProxyFactory;
 import com.weibo.api.motan.proxy.RefererInvocationHandler;
@@ -96,9 +99,15 @@ public class SimpleConfigHandler implements ConfigHandler {
     }
 
     private void register(List<URL> registryUrls, URL serviceUrl) {
+
         for (URL url : registryUrls) {
             // 根据check参数的设置，register失败可能会抛异常，上层应该知晓
             RegistryFactory registryFactory = ExtensionLoader.getExtensionLoader(RegistryFactory.class).getExtension(url.getProtocol());
+            if (registryFactory == null) {
+                throw new MotanFrameworkException(new MotanErrorMsg(500, MotanErrorMsgConstant.FRAMEWORK_REGISTER_ERROR_CODE,
+                        "register error! Could not find extension for registry protocol:" + url.getProtocol()
+                                + ", make sure registry module for " + url.getProtocol() + " is in classpath!"));
+            }
             Registry registry = registryFactory.getRegistry(url);
             registry.register(serviceUrl);
         }
