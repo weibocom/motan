@@ -392,6 +392,10 @@ Motan会打印两种类型的日志，帮助运维人员监控系统状态。
 
 	"accesslog" - date - side - local_application_module - localip - interface - method_name - parameter_name - to_ip - remote_application_module - result - request_id - process_time_mills (分隔符为"|"）
 
+### 异常类日志
+
+请参考 [错误码及异常日志说明](zh_errorcode)。
+
 ### 统计类日志
 
 所有请求的统计：
@@ -422,6 +426,7 @@ Motan会打印两种类型的日志，帮助运维人员监控系统状态。
 内存统计：
 
 	[motan-memoryStatistic] 1954.67MB of 7987.25 MB (24.5%) used
+		
 	
 # 性能测试
 
