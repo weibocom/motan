@@ -37,7 +37,7 @@ public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
     @Override
     protected Registry createRegistry(URL registryUrl) {
         try {
-            int timeout = registryUrl.getIntParameter(URLParamType.requestTimeout.getName(), URLParamType.requestTimeout.getIntValue());
+            int timeout = registryUrl.getIntParameter(URLParamType.connectTimeout.getName(), URLParamType.connectTimeout.getIntValue());
             int sessionTimeout =
                     registryUrl.getIntParameter(URLParamType.registrySessionTimeout.getName(),
                             URLParamType.registrySessionTimeout.getIntValue());
