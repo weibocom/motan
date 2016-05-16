@@ -409,7 +409,7 @@ MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, t
 
     来源流量的`RPC分组`列表中选择需要切换流量的Service所在的分组，如`motan-demo-rpc`
 
-    `服务`列表中`*`表示所有服务，也可输入服务名称，语法见[服务名语法]()，点击`Next`
+    `服务`列表中`*`表示所有服务，也可输入服务名称，语法见[服务名语法](#服务名语法)，点击`Next`
 
     ![](media/manager-trafficswitch1.png)
 
@@ -425,13 +425,34 @@ MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, t
 
     `RPC Client`中输入来源流量的ip，`RPC Server`中输入目标流量的ip，点击`添加`后将在`路由规则结果`中显示
 
-    也可在`路由规则结果`中手动输入路由规则，路由规则见[路由规则语法]()，点击`Next`
+    也可在`路由规则结果`中手动输入路由规则，路由规则见[路由规则语法](#路由规则语法)，点击`Next`
 
     ![](media/manager-trafficswitch3.png)
 
 - Step4：指令预览
 
     功能暂未启用，点击`Finish`完成流量切换操作
+
+##### 服务名语法
+
+- 类名支持`[a-zA-Z0-9_$.*]`
+- 运算符支持 `()` `!` `&` `|`，优先级由高到低
+- 复杂示例如下
+
+    ```
+    (com.weibo.User* & !com.weibo.UserMapping) | com.weibo.Status*
+    # 匹配com.weibo下以User开头的不包括UserMapping的所有服务，或以Status开头的所有服务
+    ```
+
+##### 路由规则语法
+
+- 必须包含`to`关键字，to左右两边分别为rpc client和rpc server的ip表达式，示例如下
+  
+    ```
+    * to 10.75.1.*
+    10.75.2.* to 10.73.1.*
+    * to !10.75.1.1
+    ```
     
 #### 指令管理
 
