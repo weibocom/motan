@@ -362,9 +362,9 @@ MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, t
 
 管理后台独立于Motan其他部分，可单独部署
 ### 管理后台安装
-1. 配置：
+1. 配置
     
-    修改配置文件config.properties，配置ZooKeeper的registry地址，默认不使用数据库
+    修改配置文件config.properties，配置注册中心类型（zookeeper, consul）及注册中心地址，默认不使用数据库
     
     默认的登录用户及权限如下：
         管理员：用户名admin 密码admin
@@ -381,7 +381,98 @@ MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, t
     将motan-open/motan-manager/target/motan-manager.war部署到任意web容器中（如：tomcat的webapps目录下），运行web容器即可
     
 ### 管理后台使用
-Coming Soon...
+#### RPC服务查询
+    
+查询指定group的所有service状态，包括正常提供服务的Server和正在调用的Client
+
+注：Consul注册中心暂不支持Client查询
+
+步骤：
+    
+- 在导航栏选择`RPC服务查询`，进入RPC服务查询页面
+
+- 下拉列表中选择要查询的服务所在的分组，如`motan-demo-rpc`，点击`查询`按钮
+
+![](media/manager-queryRPCService.png)
+    
+#### 流量切换（需要管理员权限）
+
+对指定服务根据分组或ip地址进行动态流量调整
+
+步骤：
+
+以下示例演示将来自`motan-demo-rpc`分组中`所有服务`的流量切换到`motan-demo-rpc2`分组中
+
+- 在导航栏选择`流量切换`，进入流量切换页面
+
+- Step1：
+
+    来源流量的`RPC分组`列表中选择需要切换流量的Service所在的分组，如`motan-demo-rpc`
+
+    `服务`列表中`*`表示所有服务，也可输入服务名称，语法见[服务名语法](#服务名语法)，点击`Next`
+
+    ![](media/manager-trafficswitch1.png)
+
+- Step2: 
+
+    目标流量的`RPC分组`列表中选择目标流量分组，如`motan-demo-rpc2`，
+
+    流量权重分配中根据需要按比例分配（可选范围是[0,100]），这里输入`0`和`1`，表示将来自`motan-demo-rpc`的流量全部转入`motan-demo-rpc2`，点击`Next`
+
+    ![](media/manager-trafficswitch2.png)
+
+- Step3：（可选）若需根据具体IP调整流量，可在此配置
+
+    `RPC Client`中输入来源流量的ip，`RPC Server`中输入目标流量的ip，点击`添加`后将在`路由规则结果`中显示
+
+    也可在`路由规则结果`中手动输入路由规则，路由规则见[路由规则语法](#路由规则语法)，点击`Next`
+
+    ![](media/manager-trafficswitch3.png)
+
+- Step4：指令预览
+
+    功能暂未启用，点击`Finish`完成流量切换操作
+
+##### 服务名语法
+
+- 类名支持`[a-zA-Z0-9_$.*]`
+- 运算符支持 `()` `!` `&` `|`，优先级由高到低
+- 复杂示例如下
+
+    ```
+    (com.weibo.User* & !com.weibo.UserMapping) | com.weibo.Status*
+    # 匹配com.weibo下以User开头的不包括UserMapping的所有服务，或以Status开头的所有服务
+    ```
+
+##### 路由规则语法
+
+- 必须包含`to`关键字，to左右两边分别为rpc client和rpc server的ip表达式，示例如下
+  
+    ```
+    * to 10.75.1.*
+    10.75.2.* to 10.73.1.*
+    * to !10.75.1.1
+    ```
+    
+#### 指令管理
+
+对注册中心下的所有指令信息进行增删改查操作
+
+步骤：
+    
+- 在导航栏选择`指令查询`，进入指令查询页面
+
+- 指令`修改`和`删除`操作需要管理员权限
+    
+    ![](media/manager-queryCommand.png)
+
+#### 操作记录查询（需要管理员权限）
+    
+查询指令增删改查记录
+
+步骤：
+    
+- 在导航栏选择`操作记录查询`，进入操作记录查询
 
 ## 日志说明
 Motan会打印两种类型的日志，帮助运维人员监控系统状态。
@@ -529,7 +620,3 @@ Motan源码中提供了性能测试框架，便于使用者进行性能评估，
 | 50     | 20KString | 5614    | 8.904        |
 | 50     | 30KString | 3782    | 13.214       |
 | 50     | 50KString | 2285    | 21.869       |
-
-
-
-
