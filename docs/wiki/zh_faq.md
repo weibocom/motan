@@ -12,5 +12,5 @@ Motan的请求在传输层面都是异步调用的，不需要额外配置。
 #### Motan支持php调用吗？
 目前Motan还不支持php调用，我们正在进行这方面工作，已经在小范围测试。
 
-
-
+#### 我在使用Motan的过程中发现日志里有错误，如何解决？
+请参考 [错误码及异常日志说明](zh_errorcode)，或者[提交Issue](https://github.com/weibocom/motan/issues)与我们交流。
