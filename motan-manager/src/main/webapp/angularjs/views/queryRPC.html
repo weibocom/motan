@@ -44,6 +44,16 @@
             </td>
         </tr>
         <tr>
+            <td>UnavailableServer</td>
+            <td>
+                <ul style="padding-left: 0; margin-bottom: 0;">
+                    <li style="list-style-type:none;" ng-repeat="node in row.entity.unavailableServer">
+                        <a href="{{node.info}}">{{node.host}}</a>
+                    </li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
             <td>Client</td>
             <td>
                 <ul style="padding-left: 0; margin-bottom: 0;">
