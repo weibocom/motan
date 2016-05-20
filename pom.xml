@@ -30,6 +30,7 @@
         <module>motan-registry-consul</module>
         <module>motan-registry-zookeeper</module>
         <module>motan-benchmark</module>
+        <module>motan-transport-netty4</module>
     </modules>
 
     <properties>
