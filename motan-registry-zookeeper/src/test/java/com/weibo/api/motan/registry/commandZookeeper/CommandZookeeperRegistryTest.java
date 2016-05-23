@@ -1,4 +1,4 @@
-package zookeeper;
+package com.weibo.api.motan.registry.commandZookeeper;
 
 import org.junit.Test;
 

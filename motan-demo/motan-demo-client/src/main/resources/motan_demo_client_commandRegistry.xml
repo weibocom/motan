@@ -27,7 +27,7 @@
     <motan:protocol default="true" name="motan" haStrategy="failfast" loadbalance="configurableWeight"/>
 
     <!-- 通用referer基础配置 -->
-    <motan:basicReferer id="clientBasicConfig" group="yf-demo-rpc" registry="registry"
+    <motan:basicReferer id="clientBasicConfig" group="aaa" registry="registry"
                         protocol="motan" throwException="false"/>
 
     <!-- 具体referer配置。使用方通过beanid使用服务接口类 -->

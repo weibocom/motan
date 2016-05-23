@@ -14,10 +14,11 @@
  *    limitations under the License.
  */
 
-package com.weibo.api.motan.registry.zookeeper;
+package com.weibo.api.motan.registry.commandZookeeper;
 
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.registry.ZkNodeType;
 import com.weibo.api.motan.registry.support.command.CommandFailbackRegistry;
 import com.weibo.api.motan.registry.support.command.CommandListener;
 import com.weibo.api.motan.registry.support.command.ServiceListener;
