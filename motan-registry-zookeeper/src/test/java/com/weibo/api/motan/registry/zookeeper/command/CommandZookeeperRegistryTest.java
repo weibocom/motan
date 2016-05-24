@@ -1,8 +1,6 @@
-package com.weibo.api.motan.registry.commandZookeeper;
+package com.weibo.api.motan.registry.zookeeper.command;
 
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class CommandZookeeperRegistryTest {
     @Test

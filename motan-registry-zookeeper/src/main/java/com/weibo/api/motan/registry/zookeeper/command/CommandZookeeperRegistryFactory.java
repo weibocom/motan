@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.weibo.api.motan.registry.commandZookeeper;
+package com.weibo.api.motan.registry.zookeeper.command;
 
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.SpiMeta;

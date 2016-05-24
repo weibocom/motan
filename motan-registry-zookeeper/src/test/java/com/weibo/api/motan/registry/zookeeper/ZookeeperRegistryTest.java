@@ -18,6 +18,7 @@ package com.weibo.api.motan.registry.zookeeper;
 
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.registry.NotifyListener;
+import com.weibo.api.motan.registry.zookeeper.ZookeeperRegistry;
 import com.weibo.api.motan.rpc.URL;
 import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.ZkClient;
