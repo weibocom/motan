@@ -12,6 +12,11 @@ public class ConsulConstants {
 	public static final String CONSUL_TAG_MOTAN_PROTOCOL = "protocol_";
 
 	/**
+	 * motan rpc 在consul中存储command的目录
+	 */
+	public static final String CONSUL_MOTAN_COMMAND = "motan/command/";
+
+	/**
 	 * 默认consul agent的ip
 	 */
 	public static String DEFAULT_HOST = "localhost";

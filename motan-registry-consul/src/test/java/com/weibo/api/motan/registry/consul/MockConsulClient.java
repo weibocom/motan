@@ -47,7 +47,7 @@ public class MockConsulClient extends MotanConsulClient {
     }
 
     @Override
-    public void deregisterService(String serviceid) {
+    public void unregisterService(String serviceid) {
         registerServices.remove(serviceid);
         System.out.println("mock deregister service success! serviceid :" + serviceid);
     }
@@ -65,6 +65,11 @@ public class MockConsulClient extends MotanConsulClient {
         }
         res.setValue(list);
         return res;
+    }
+
+    @Override
+    public String lookupCommand(String group) {
+        return null;
     }
 
     public long getCheckPassTimes(String serviceid) {
