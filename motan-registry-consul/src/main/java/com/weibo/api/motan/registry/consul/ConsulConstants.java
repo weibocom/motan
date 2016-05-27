@@ -9,7 +9,7 @@ public class ConsulConstants {
 	/**
 	 * motan协议在consul tag中的前缀
 	 */
-	public static final String CONSUL_TAG_MOTAN_PROTOCOL = "protocol_";
+	public static final String CONSUL_TAG_MOTAN_PROTOCOL = "protocol";
 
 	/**
 	 * motan rpc 在consul中存储command的目录
