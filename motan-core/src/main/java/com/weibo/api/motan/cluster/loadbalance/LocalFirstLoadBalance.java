@@ -101,7 +101,7 @@ public class LocalFirstLoadBalance<T> extends AbstractLoadBalance<T> {
 
         List<Referer<T>> localReferers = searchLocalReferer(referers, NetUtils.getLocalAddress().getHostAddress());
 
-        if (localReferers.isEmpty()) {
+        if (!localReferers.isEmpty()) {
             Collections.sort(localReferers, new LowActivePriorityComparator<T>());
             refersHolder.addAll(localReferers);
         }
@@ -131,8 +131,8 @@ public class LocalFirstLoadBalance<T> extends AbstractLoadBalance<T> {
 
     private List<Referer<T>> searchLocalReferer(List<Referer<T>> referers, String localhost) {
         List<Referer<T>> localReferers = new ArrayList<Referer<T>>();
+        long local = ipToLong(localhost);
         for (Referer<T> referer : referers) {
-            long local = ipToLong(localhost);
             long tmp = ipToLong(referer.getUrl().getHost());
             if (local != 0 && local == tmp) {
                 if (referer.isAvailable()) {
