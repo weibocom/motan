@@ -83,7 +83,8 @@ public class ProtocolFilterDecorator implements Protocol {
             lastRef = new Referer<T>() {
                 @Override
                 public Response call(Request request) {
-                    if (!f.getClass().getAnnotation(Activation.class).retry() && request.getRetries() != 0) {
+                    Activation activation = f.getClass().getAnnotation(Activation.class);
+                    if (activation != null && !activation.retry() && request.getRetries() != 0) {
                         return lf.call(request);
                     }
                     return f.filter(lf, request);
