@@ -125,27 +125,6 @@ public class ConsulUtils {
 		return serviceId.substring(serviceId.indexOf("-") + 1);
 	}
 
-	/**
-	 * 使用consul的tag来保持protocol信息。 根据motan的protocol生成consul的tag。
-	 *
-	 * @param protocol
-	 * @return
-	 */
-	public static String convertProtocolToTag(String protocol) {
-		return ConsulConstants.CONSUL_TAG_MOTAN_PROTOCOL + protocol;
-	}
-
-	/**
-	 * 从consul的tag获取motan的protocol
-	 *
-	 * @param tag
-	 * @return
-	 */
-	public static String getProtocolFromTag(String tag) {
-		return tag.substring(ConsulConstants.CONSUL_TAG_MOTAN_PROTOCOL.length());
-	}
-
-
 	public static String convertServiceId(String host, int port, String path){
 		return host + ":" + port+ "-" + path;
 	}
