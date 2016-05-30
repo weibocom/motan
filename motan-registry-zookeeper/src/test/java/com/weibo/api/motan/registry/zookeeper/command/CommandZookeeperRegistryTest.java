@@ -63,13 +63,17 @@ public class CommandZookeeperRegistryTest {
             }
         };
         registry.subscribeService(clientUrl, serviceListener);
-        Assert.assertTrue(registry.serviceListeners.get(clientUrl).containsKey(serviceListener));
+        Assert.assertTrue(containsServiceListener(clientUrl, serviceListener));
         registry.doRegister(serviceUrl);
         registry.doAvailable(serviceUrl);
         Thread.sleep(2000);
 
         registry.unsubscribeService(clientUrl, serviceListener);
-        Assert.assertFalse(registry.serviceListeners.get(clientUrl).containsKey(serviceListener));
+        Assert.assertFalse(containsServiceListener(clientUrl, serviceListener));
+    }
+
+    private boolean containsServiceListener(URL clientUrl, ServiceListener serviceListener) {
+        return registry.getServiceListeners().get(clientUrl).containsKey(serviceListener);
     }
 
     @Test
@@ -84,7 +88,7 @@ public class CommandZookeeperRegistryTest {
             }
         };
         registry.subscribeCommand(clientUrl, commandListener);
-        Assert.assertTrue(registry.commandListeners.get(clientUrl).containsKey(commandListener));
+        Assert.assertTrue(containsCommandListener(clientUrl, commandListener));
 
         String commandPath = ZkUtils.toCommandPath(clientUrl);
         if (!zkClient.exists(commandPath)) {
@@ -96,17 +100,21 @@ public class CommandZookeeperRegistryTest {
         zkClient.delete(commandPath);
 
         registry.unsubscribeCommand(clientUrl, commandListener);
-        Assert.assertFalse(registry.commandListeners.get(clientUrl).containsKey(commandListener));
+        Assert.assertFalse(containsCommandListener(clientUrl, commandListener));
+    }
+
+    private boolean containsCommandListener(URL clientUrl, CommandListener commandListener) {
+        return registry.getCommandListeners().get(clientUrl).containsKey(commandListener);
     }
 
     @Test
     public void discoverService() throws Exception {
         registry.doRegister(serviceUrl);
-        List<URL> results = registry.discoverService(serviceUrl);
+        List<URL> results = registry.discoverService(clientUrl);
         Assert.assertTrue(results.isEmpty());
 
         registry.doAvailable(serviceUrl);
-        results = registry.discoverService(serviceUrl);
+        results = registry.discoverService(clientUrl);
         Assert.assertTrue(results.contains(serviceUrl));
     }
 

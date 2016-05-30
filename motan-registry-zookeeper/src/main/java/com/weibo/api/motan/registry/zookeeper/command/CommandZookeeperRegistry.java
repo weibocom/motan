@@ -36,12 +36,20 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class CommandZookeeperRegistry extends CommandFailbackRegistry {
     private ZkClient zkClient;
-    protected ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>> serviceListeners = new ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>>();
-    protected ConcurrentHashMap<URL, ConcurrentHashMap<CommandListener, IZkDataListener>> commandListeners = new ConcurrentHashMap<URL, ConcurrentHashMap<CommandListener, IZkDataListener>>();
+    private ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>> serviceListeners = new ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>>();
+    private ConcurrentHashMap<URL, ConcurrentHashMap<CommandListener, IZkDataListener>> commandListeners = new ConcurrentHashMap<URL, ConcurrentHashMap<CommandListener, IZkDataListener>>();
 
     public CommandZookeeperRegistry(URL url, ZkClient client) {
         super(url);
         this.zkClient = client;
+    }
+
+    public ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>> getServiceListeners() {
+        return serviceListeners;
+    }
+
+    public ConcurrentHashMap<URL, ConcurrentHashMap<CommandListener, IZkDataListener>> getCommandListeners() {
+        return commandListeners;
     }
 
     @Override
