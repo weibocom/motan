@@ -4,7 +4,7 @@ import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.URL;
 
-public class ZKUtils {
+public class ZkUtils {
 
     public static String toGroupPath(URL url) {
         return MotanConstants.ZOOKEEPER_REGISTRY_NAMESPACE + MotanConstants.PATH_SEPARATOR + url.getGroup();
