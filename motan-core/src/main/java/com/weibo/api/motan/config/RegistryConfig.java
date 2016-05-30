@@ -46,6 +46,9 @@ public class RegistryConfig extends AbstractConfig {
     // 注册中心请求超时时间(毫秒)
     private Integer requestTimeout;
 
+    // 注册中心连接超时时间(毫秒)
+    private Integer connectTimeout;
+
     // 注册中心会话超时时间(毫秒)
     private Integer registrySessionTimeout;
 
@@ -166,6 +169,14 @@ public class RegistryConfig extends AbstractConfig {
 
     public Boolean isDefault() {
         return isDefault;
+    }
+
+    public Integer getConnectTimeout() {
+        return connectTimeout;
+    }
+
+    public void setConnectTimeout(Integer connectTimeout) {
+        this.connectTimeout = connectTimeout;
     }
 
     /**

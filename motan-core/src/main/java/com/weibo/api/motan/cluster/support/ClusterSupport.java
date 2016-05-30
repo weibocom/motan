@@ -305,7 +305,7 @@ public class ClusterSupport<T> implements NotifyListener {
         String[] durlArr = MotanConstants.COMMA_SPLIT_PATTERN.split(directUrlStr);
         List<URL> directUrls = new ArrayList<URL>();
         for (String dus : durlArr) {
-            URL du = URL.valueOf(dus);
+            URL du = URL.valueOf(StringTools.urlDecode(dus));
             if (du != null) {
                 directUrls.add(du);
             }

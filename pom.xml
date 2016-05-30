@@ -13,7 +13,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>motan</artifactId>
     <groupId>com.weibo</groupId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.1.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <scm>
         <connection>scm:git:https://github.com/weibocom/motan.git</connection>
@@ -30,6 +30,7 @@
         <module>motan-registry-consul</module>
         <module>motan-registry-zookeeper</module>
         <module>motan-benchmark</module>
+        <module>motan-extension</module>
     </modules>
 
     <properties>

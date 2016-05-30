@@ -19,7 +19,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:motan="http://api.weibo.com/schema/motan"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
        http://api.weibo.com/schema/motan http://api.weibo.com/schema/motan.xsd">
-	<import resource="classpath*:spring/configloader.xml"/>
+
 	<!-- 注册中心配置 -->
 	<motan:registry regProtocol="local" name="motanDemo" />
 

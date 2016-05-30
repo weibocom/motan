@@ -1,5 +1,25 @@
 # Change Log
 
+## [0.1.1](https://github.com/weibocom/motan/tree/0.1.1) (2016-05-14)
+[Full Changelog](https://github.com/weibocom/motan/compare/0.1.0...0.1.1)
+
+**Implemented enhancements:**
+
+- manager moudle support consul [\#27](https://github.com/weibocom/motan/issues/27) ([sunnights](https://github.com/sunnights))
+- Friendly error message for spi [\#58](https://github.com/weibocom/motan/pull/58) ([qdaxb](https://github.com/qdaxb))
+
+**Fixed bugs:**
+
+- fix bug of zookeeper connect timeout [\#60](https://github.com/weibocom/motan/pull/60) ([qdaxb](https://github.com/qdaxb))
+- fix bug of localfirst loadbalance [\#46](https://github.com/weibocom/motan/pull/46) ([qdaxb](https://github.com/qdaxb))
+- add loadProperties\(\) [\#30](https://github.com/weibocom/motan/pull/30) ([half-dead](https://github.com/half-dead))
+
+**Merged pull requests:**
+
+- Fixed typos [\#44](https://github.com/weibocom/motan/pull/44) ([radarhere](https://github.com/radarhere))
+- Refactor manager registryservice, support query consul service [\#33](https://github.com/weibocom/motan/pull/33) ([sunnights](https://github.com/sunnights))
+ 
+
 ## [0.1.0](https://github.com/weibocom/motan/tree/0.1.0) (2016-04-29)
 [Full Changelog](https://github.com/weibocom/motan/compare/0.0.1...0.1.0)
 

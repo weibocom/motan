@@ -53,6 +53,7 @@
 | regProtocol            | String  |         | 注册协议                     |
 | address                | String  |         | 注册中心地址                 |
 | port                   | int     | 0       | 注册中心缺省端口             |
+| connectTimeout         | int     | 1000    | 注册中心连接超时时间(毫秒)   |
 | requestTimeout         | int     | 200     | 注册中心请求超时时间(毫秒)   |
 | registrySessionTimeout | int     | 60s     | 注册中心会话超时时间(毫秒)   |
 | registryRetryPeriod    | int     | 30s     | 失败后重试的时间间隔         |

@@ -65,6 +65,11 @@
                     <xsd:documentation><![CDATA[ 注册中心缺省端口. ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
+            <xsd:attribute name="connectTimeout" type="xsd:integer" use="optional">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[ 注册中心连接超时时间(毫秒). ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
             <xsd:attribute name="requestTimeout" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ 注册中心请求超时时间(毫秒). ]]></xsd:documentation>

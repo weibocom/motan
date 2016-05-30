@@ -26,19 +26,19 @@ The quick start gives very basic example of running client and server on the sam
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-core</artifactId>
-        <version>0.1.0</version>
+        <version>0.1.1</version>
     </dependency>
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-transport-netty</artifactId>
-        <version>0.1.0</version>
+        <version>0.1.1</version>
     </dependency>
     
     <!-- dependencies blow were only needed for spring-based features -->
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-springsupport</artifactId>
-        <version>0.1.0</version>
+        <version>0.1.1</version>
     </dependency>
     <dependency>
         <groupId>org.springframework</groupId>
@@ -174,6 +174,7 @@ The quick start gives very basic example of running client and server on the sam
 * wenqisun([@wenqisun](https://github.com/wenqisun))
 * fingki([@fingki](https://github.com/fingki))
 * 午夜([@sumory](https://github.com/sumory))
+* guanly([@guanly](https://github.com/guanly))
 
 # License
 
