@@ -19,7 +19,12 @@ package com.weibo.api.motan.serialize;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.pool.KryoCallback;
+import com.esotericsoftware.kryo.pool.KryoFactory;
+import com.esotericsoftware.kryo.pool.KryoPool;
 import com.weibo.api.motan.codec.Serialization;
+import com.weibo.api.motan.core.extension.Scope;
+import com.weibo.api.motan.core.extension.Spi;
 import com.weibo.api.motan.core.extension.SpiMeta;
 
 import java.io.IOException;
@@ -31,24 +36,43 @@ import java.io.IOException;
  * @author liaojia1
  */
 @SpiMeta(name = "kryo")
+@Spi(scope = Scope.SINGLETON)
 public class KryoSerialization implements Serialization {
 
-    private final Kryo kryo;
+    private final KryoPool kryoPool;
 
     public KryoSerialization() {
-        this.kryo = new Kryo();
-        kryo.setReferences(false);
+        this.kryoPool = new KryoPool.Builder(new KryoFactory() {
+            @Override
+            public Kryo create() {
+                Kryo kryo = new Kryo();
+                kryo.setReferences(false);
+                kryo.setCopyReferences(false);
+                return kryo;
+            }
+        }).softReferences().build();
     }
 
     @Override
-    public byte[] serialize(Object data) throws IOException {
-        Output output = new Output(16 * 1024, Integer.MAX_VALUE);
-        kryo.writeObject(output, data);
-        return output.toBytes();
+    public byte[] serialize(final Object data) throws IOException {
+        return kryoPool.run(new KryoCallback<byte[]>() {
+            @Override
+            public byte[] execute(Kryo kryo) {
+                Output output = new Output(8 * 1024, Integer.MAX_VALUE);
+                kryo.writeObject(output, data);
+                return output.toBytes();
+            }
+        });
+
     }
 
     @Override
-    public <T> T deserialize(byte[] data, Class<T> clz) throws IOException {
-        return kryo.readObject(new Input(data), clz);
+    public <T> T deserialize(final byte[] data, final Class<T> clz) throws IOException {
+        return kryoPool.run(new KryoCallback<T>() {
+            @Override
+            public T execute(Kryo kryo) {
+                return kryo.readObject(new Input(data), clz);
+            }
+        });
     }
 }
