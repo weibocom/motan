@@ -52,7 +52,9 @@ public class ConsulRegistry extends FailbackRegistry {
         LoggerUtil.info("ConsulRegistry init finish.");
 	}
 
-
+    public ConcurrentHashMap<String, HashMap<URL, NotifyListener>> getSubscribeListeners() {
+        return subscribeListeners;
+    }
 
 	@Override
 	protected void doRegister(URL url) {

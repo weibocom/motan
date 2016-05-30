@@ -126,7 +126,7 @@ public class ConsulUtils {
 	}
 
 	public static String convertServiceId(String host, int port, String path){
-		return host + ":" + port+ "-" + path;
+		return host + ":" + port + "-" + path;
 	}
 
 }

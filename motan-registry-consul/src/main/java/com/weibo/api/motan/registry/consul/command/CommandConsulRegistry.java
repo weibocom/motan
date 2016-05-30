@@ -36,7 +36,6 @@ public class CommandConsulRegistry extends CommandFailbackRegistry {
     private ConcurrentHashMap<String, ConcurrentHashMap<URL, ServiceListener>> serviceListeners = new ConcurrentHashMap<String, ConcurrentHashMap<URL, ServiceListener>>();
     // 指令的回调listener,当订阅的指令发生变更时通过listener进行回调
     private ConcurrentHashMap<String, ConcurrentHashMap<URL, CommandListener>> commandListeners = new ConcurrentHashMap<String, ConcurrentHashMap<URL, CommandListener>>();
-
     private ThreadPoolExecutor notifyExecutor;
 
     public CommandConsulRegistry(URL url, MotanConsulClient client) {
@@ -50,6 +49,14 @@ public class CommandConsulRegistry extends CommandFailbackRegistry {
         ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(20000);
         notifyExecutor = new ThreadPoolExecutor(10, 30, 30 * 1000, TimeUnit.MILLISECONDS, workQueue);
         LoggerUtil.info("CommandConsulRegistry init finish.");
+    }
+
+    public ConcurrentHashMap<String, ConcurrentHashMap<URL, ServiceListener>> getServiceListeners() {
+        return serviceListeners;
+    }
+
+    public ConcurrentHashMap<String, ConcurrentHashMap<URL, CommandListener>> getCommandListeners() {
+        return commandListeners;
     }
 
     @Override
@@ -194,11 +201,8 @@ public class CommandConsulRegistry extends CommandFailbackRegistry {
     @Override
     protected String discoverCommand(URL url) {
         String group = url.getGroup();
-        String command = commandCache.get(group);
-        if (command == null) {
-            command = lookupCommandUpdate(group);
-            updateCommandCache(group, command, false);
-        }
+        String command = lookupCommandUpdate(group);
+        updateCommandCache(group, command, false);
         return command;
     }
 

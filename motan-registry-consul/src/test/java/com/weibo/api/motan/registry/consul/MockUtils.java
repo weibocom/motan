@@ -42,6 +42,7 @@ public class MockUtils {
     public static URL getMockUrl(int port) {
         Map<String, String> params = new HashMap<String, String>();
         params.put(URLParamType.group.getName(), group);
+        params.put(URLParamType.protocol.getName(), protocol);
         URL url = new URL(protocol, address, port, path, params);
         return url;
     }
