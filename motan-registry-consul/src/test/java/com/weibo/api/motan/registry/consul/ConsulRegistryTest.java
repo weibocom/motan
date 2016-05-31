@@ -1,7 +1,8 @@
 package com.weibo.api.motan.registry.consul;
 
 import com.weibo.api.motan.common.URLParamType;
-import com.weibo.api.motan.registry.NotifyListener;
+import com.weibo.api.motan.registry.support.command.CommandListener;
+import com.weibo.api.motan.registry.support.command.ServiceListener;
 import com.weibo.api.motan.rpc.URL;
 import junit.framework.Assert;
 import org.junit.After;
@@ -10,21 +11,13 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-/**
- * @author zhanglei28
- * @Description ConsulRegistryTest
- * @date 2016年3月22日
- */
 public class ConsulRegistryTest {
     private MockConsulClient client;
     private ConsulRegistry registry;
     private URL registerUrl;
     private URL serviceUrl, clientUrl;
     private String serviceid;
-    private long interval = 1000; // 设置查询间隔
+    private long interval = 1000;
     private long sleepTime;
 
     @Before
@@ -47,19 +40,7 @@ public class ConsulRegistryTest {
     }
 
     @Test
-    public void doDiscover() throws InterruptedException {
-        registry.doRegister(serviceUrl);
-        List<URL> urls = registry.doDiscover(clientUrl);
-        Assert.assertTrue(urls.isEmpty());
-
-        registry.doAvailable(null);
-        Thread.sleep(sleepTime);
-        urls = registry.doDiscover(clientUrl);
-        Assert.assertTrue(urls.contains(serviceUrl));
-    }
-
-    @Test
-    public void doRegisterAndAvailable() throws InterruptedException {
+    public void doRegisterAndAvailable() throws Exception {
         // register
         registry.doRegister(serviceUrl);
         Assert.assertTrue(client.isRegistered(serviceid));
@@ -81,52 +62,80 @@ public class ConsulRegistryTest {
     }
 
     @Test
-    public void doSubscribeAndUnsubscribe() throws InterruptedException {
-        NotifyListener notifyListener = new NotifyListener() {
+    public void subAndUnsubService() throws Exception {
+        ServiceListener serviceListener = new ServiceListener() {
             @Override
-            public void notify(URL registryUrl, List<URL> urls) {
+            public void notifyService(URL refUrl, URL registryUrl, List<URL> urls) {
                 if (!urls.isEmpty()) {
                     Assert.assertTrue(urls.contains(serviceUrl));
                 }
             }
         };
-
-        registry.doSubscribe(clientUrl, notifyListener);
-        Assert.assertTrue(containsNotifyListener(clientUrl, notifyListener));
-
+        registry.subscribeService(clientUrl, serviceListener);
+        Assert.assertTrue(containsServiceListener(serviceUrl, clientUrl, serviceListener));
         registry.doRegister(serviceUrl);
         registry.doAvailable(null);
         Thread.sleep(sleepTime);
 
-        registry.doUnsubscribe(clientUrl, notifyListener);
-        Assert.assertFalse(containsNotifyListener(clientUrl, notifyListener));
-    }
-
-    private boolean containsNotifyListener(URL clientUrl, NotifyListener notifyListener) {
-        String service = ConsulUtils.getUrlClusterInfo(clientUrl);
-        return registry.getSubscribeListeners().get(service).get(clientUrl) == notifyListener;
+        registry.unsubscribeService(clientUrl, serviceListener);
+        Assert.assertFalse(containsServiceListener(serviceUrl, clientUrl, serviceListener));
     }
 
     @Test
-    public void reRegister() {
-        URL serviceUrl1 = MockUtils.getMockUrl(123);
-        registry.doRegister(serviceUrl1);
-        String serviceid1 = ConsulUtils.convertConsulSerivceId(serviceUrl1);
-        assertTrue(client.isRegistered(serviceid1));
+    public void subAndUnsubCommand() throws Exception {
+        final String command = "{\"index\":0,\"mergeGroups\":[\"aaa:1\",\"bbb:1\"],\"pattern\":\"*\",\"routeRules\":[]}\n";
+        CommandListener commandListener = new CommandListener() {
+            @Override
+            public void notifyCommand(URL refUrl, String commandString) {
+                if (commandString != null) {
+                    Assert.assertTrue(commandString.equals(command));
+                }
+            }
+        };
+        registry.subscribeCommand(clientUrl, commandListener);
+        Assert.assertTrue(containsCommandListener(serviceUrl, clientUrl, commandListener));
 
-        URL serviceUrl2 = MockUtils.getMockUrl(456);
-        String serviceid2 = ConsulUtils.convertConsulSerivceId(serviceUrl2);
-        registry.doRegister(serviceUrl2);
-        assertTrue(client.isRegistered(serviceid2));
+        client.setKVValue(clientUrl.getGroup(), command);
+        Thread.sleep(2000);
 
-        client.removeService(serviceid1);
-        client.removeService(serviceid2);
-        assertFalse(client.isRegistered(serviceid1));
-        assertFalse(client.isRegistered(serviceid2));
-        registry.reRegister();
+        client.removeKVValue(clientUrl.getGroup());
 
-        assertTrue(client.isRegistered(serviceid1));
-        assertTrue(client.isRegistered(serviceid2));
+        registry.unsubscribeCommand(clientUrl, commandListener);
+        Assert.assertFalse(containsCommandListener(serviceUrl, clientUrl, commandListener));
+    }
+
+    @Test
+    public void discoverService() throws Exception {
+        registry.doRegister(serviceUrl);
+        List<URL> urls = registry.discoverService(serviceUrl);
+        Assert.assertFalse(urls.contains(serviceUrl));
+
+        registry.doAvailable(null);
+        Thread.sleep(sleepTime);
+        urls = registry.discoverService(serviceUrl);
+        Assert.assertTrue(urls.contains(serviceUrl));
+    }
+
+    @Test
+    public void discoverCommand() throws Exception {
+        String result = registry.discoverCommand(clientUrl);
+        Assert.assertTrue(result.equals(""));
+
+        String command = "{\"index\":0,\"mergeGroups\":[\"aaa:1\",\"bbb:1\"],\"pattern\":\"*\",\"routeRules\":[]}\n";
+        client.setKVValue(clientUrl.getGroup(), command);
+
+        result = registry.discoverCommand(clientUrl);
+        Assert.assertTrue(result.equals(command));
+    }
+
+    private Boolean containsServiceListener(URL serviceUrl, URL clientUrl, ServiceListener serviceListener) {
+        String service = ConsulUtils.getUrlClusterInfo(serviceUrl);
+        return registry.getServiceListeners().get(service).get(clientUrl) == serviceListener;
+    }
+
+    private Boolean containsCommandListener(URL serviceUrl, URL clientUrl, CommandListener commandListener) {
+        String group = serviceUrl.getGroup();
+        return registry.getCommandListeners().get(group).get(clientUrl) == commandListener;
     }
 
 }

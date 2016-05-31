@@ -94,26 +94,37 @@ public class ConsulCommandService extends AbstractCommandService {
         command.setClientCommandList(newCommandList);
 
         Response<Boolean> response = consulClient.setKVValue(
-                ConsulConstants.CONSUL_MOTAN_COMMAND + convertGroupName(group),
+                ConsulConstants.CONSUL_MOTAN_COMMAND + removeDatacenterPrefix(group),
                 RpcCommandUtil.commandToString(command));
         return response.getValue();
     }
 
     /**
      * 去除group的datacenter前缀
+     *
      * @param group
      * @return
      */
-    private String convertGroupName(String group) {
-        return group.substring(group.indexOf(":") + 1);
+    private String removeDatacenterPrefix(String group) {
+        int index = group.indexOf(":");
+        if (index > 0) {
+            return group.substring(group.indexOf(":") + 1);
+        } else {
+            return group;
+        }
     }
 
     /**
      * 去除group的motan标识前缀
+     *
      * @param group
      * @return
      */
     private String removeGroupNamePrefix(String group) {
-        return convertGroupName(group).substring(ConsulConstants.CONSUL_SERVICE_MOTAN_PRE.length());
+        if (group.contains(ConsulConstants.CONSUL_SERVICE_MOTAN_PRE)) {
+            return removeDatacenterPrefix(group).substring(ConsulConstants.CONSUL_SERVICE_MOTAN_PRE.length());
+        } else {
+            return group;
+        }
     }
 }

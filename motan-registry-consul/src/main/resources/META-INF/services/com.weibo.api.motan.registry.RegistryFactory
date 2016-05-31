@@ -15,4 +15,3 @@
 #
 
 com.weibo.api.motan.registry.consul.ConsulRegistryFactory
-com.weibo.api.motan.registry.consul.command.CommandConsulRegistryFactory
