@@ -45,12 +45,6 @@ public class MotanApiClientDemo {
         zookeeperRegistry.setAddress("127.0.0.1:2181");
         motanDemoServiceReferer.setRegistry(zookeeperRegistry);
 
-        // 配置支持指令的ZooKeeper注册中心
-        // RegistryConfig commandZKRegistry = new RegistryConfig();
-        // commandZKRegistry.setRegProtocol("commandZookeeper");
-        // commandZKRegistry.setAddress("127.0.0.1:2181");
-        // motanDemoServiceReferer.setRegistry(commandZKRegistry);
-
         // 配置RPC协议
         ProtocolConfig protocol = new ProtocolConfig();
         protocol.setId("motan");

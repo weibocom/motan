@@ -15,4 +15,3 @@
 #
 
 com.weibo.api.motan.registry.zookeeper.ZookeeperRegistryFactory
-com.weibo.api.motan.registry.zookeeper.command.CommandZookeeperRegistryFactory
