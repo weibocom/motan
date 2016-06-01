@@ -11,37 +11,25 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.weibo.api.motan.protocol.yar;
+package com.weibo.api.motan.transport.netty4.http;
 
-import com.weibo.api.motan.rpc.AbstractReferer;
+import com.weibo.api.motan.core.extension.SpiMeta;
+import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.transport.HeartbeatFactory;
+import com.weibo.api.motan.transport.MessageHandler;
 
-public class YarReferer<T> extends AbstractReferer<T> {
+@SpiMeta(name = "noHeartbeat")
+public class NoHeartbeatFactory implements HeartbeatFactory {
 
-    public YarReferer(Class<T> clz, URL url) {
-        super(clz, url);
-        // TODO Auto-generated constructor stub
+    @Override
+    public Request createRequest() {
+        throw new MotanFrameworkException("cann't create request in NoHeartbeatFactory");
     }
 
     @Override
-    public void destroy() {
-        // TODO Auto-generated method stub
-        
+    public MessageHandler wrapMessageHandler(MessageHandler handler) {
+        return handler;
     }
 
-    @Override
-    protected Response doCall(Request request) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    protected boolean doInit() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-   
 }
