@@ -25,12 +25,6 @@ import com.weibo.api.motan.util.LoggerUtil;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkException;
 
-/**
- * registry factory.
- *
- * @author fishermen
- * @version V1.0 created at: 2013-5-28
- */
 @SpiMeta(name = "zookeeper")
 public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
 

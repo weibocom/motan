@@ -29,7 +29,7 @@ public class DemoRpcClient {
         MotanDemoService service = (MotanDemoService) ctx.getBean("motanDemoReferer");
         for (int i = 0; i < Integer.MAX_VALUE; i++) {
             System.out.println(service.hello("motan" + i));
-            Thread.sleep(500);
+            Thread.sleep(1000);
         }
         System.out.println("motan demo is finish.");
         System.exit(0);

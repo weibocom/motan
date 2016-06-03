@@ -1,6 +1,6 @@
 package com.weibo.api.motan.registry.zookeeper;
 
-enum ZkNodeType {
+public enum ZkNodeType {
     AVAILABLE_SERVER,
     UNAVAILABLE_SERVER,
     CLIENT
