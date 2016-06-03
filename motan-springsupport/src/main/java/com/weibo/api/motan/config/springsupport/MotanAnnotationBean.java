@@ -5,9 +5,8 @@ import com.weibo.api.motan.config.BasicRefererInterfaceConfig;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.springsupport.annotation.ApiReference;
 import com.weibo.api.motan.config.springsupport.annotation.ApiService;
-import com.weibo.api.motan.rpc.RpcStats;
 import com.weibo.api.motan.util.ConcurrentHashSet;
-import com.weibo.api.motan.util.StatsUtil;
+import com.weibo.api.motan.util.LoggerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
@@ -33,12 +32,12 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Pattern;
 
 /**
+ * Annotation bean for motan
+ *
+ * <p>
  * Created by fld on 16/5/13.
  */
 public class MotanAnnotationBean implements DisposableBean, BeanFactoryPostProcessor, BeanPostProcessor, ApplicationContextAware {
-    private static final Logger logger = LoggerFactory.getLogger(MotanAnnotationBean.class);
-
-
     public static final Pattern COMMA_SPLIT_PATTERN = Pattern.compile("\\s*[,]+\\s*");
 
     private String annotationPackage;
@@ -58,17 +57,10 @@ public class MotanAnnotationBean implements DisposableBean, BeanFactoryPostProce
     private final ConcurrentMap<String, RefererConfigBean> referenceConfigs = new ConcurrentHashMap<String, RefererConfigBean>();
 
 
-    public String getPackageName() {
-        return annotationPackage;
-    }
-
-    public void setPackageName(String annotationPackage) {
-        this.annotationPackage = annotationPackage;
-        this.annotationPackages = (annotationPackage == null || annotationPackage.length() == 0) ? null
-                : COMMA_SPLIT_PATTERN.split(annotationPackage);
-    }
-
-
+    /**
+     * @param beanFactory
+     * @throws BeansException
+     */
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)
             throws BeansException {
@@ -78,12 +70,16 @@ public class MotanAnnotationBean implements DisposableBean, BeanFactoryPostProce
         if (beanFactory instanceof BeanDefinitionRegistry) {
             try {
                 // init scanner
-                Class<?> scannerClass = ClassUtils.forName("org.springframework.context.annotation.ClassPathBeanDefinitionScanner", MotanAnnotationBean.class.getClassLoader());
-                Object scanner = scannerClass.getConstructor(new Class<?>[]{BeanDefinitionRegistry.class, boolean.class}).newInstance(new Object[]{(BeanDefinitionRegistry) beanFactory, true});
+                Class<?> scannerClass = ClassUtils.forName("org.springframework.context.annotation.ClassPathBeanDefinitionScanner",
+                        MotanAnnotationBean.class.getClassLoader());
+                Object scanner = scannerClass.getConstructor(new Class<?>[]{BeanDefinitionRegistry.class, boolean.class})
+                        .newInstance(new Object[]{(BeanDefinitionRegistry) beanFactory, true});
                 // add filter
-                Class<?> filterClass = ClassUtils.forName("org.springframework.core.type.filter.AnnotationTypeFilter", MotanAnnotationBean.class.getClassLoader());
+                Class<?> filterClass = ClassUtils.forName("org.springframework.core.type.filter.AnnotationTypeFilter",
+                        MotanAnnotationBean.class.getClassLoader());
                 Object filter = filterClass.getConstructor(Class.class).newInstance(ApiService.class);
-                Method addIncludeFilter = scannerClass.getMethod("addIncludeFilter", ClassUtils.forName("org.springframework.core.type.filter.TypeFilter", MotanAnnotationBean.class.getClassLoader()));
+                Method addIncludeFilter = scannerClass.getMethod("addIncludeFilter",
+                        ClassUtils.forName("org.springframework.core.type.filter.TypeFilter", MotanAnnotationBean.class.getClassLoader()));
                 addIncludeFilter.invoke(scanner, filter);
                 // scan packages
                 Method scan = scannerClass.getMethod("scan", new Class<?>[]{String[].class});
@@ -94,9 +90,16 @@ public class MotanAnnotationBean implements DisposableBean, BeanFactoryPostProce
         }
     }
 
+    /**
+     * init reference field
+     *
+     * @param bean
+     * @param beanName
+     * @return
+     * @throws BeansException
+     */
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        System.out.println("before: "+beanName);
         if (!isMatchPackage(bean)) {
             return bean;
         }
@@ -120,7 +123,8 @@ public class MotanAnnotationBean implements DisposableBean, BeanFactoryPostProce
                         }
                     }
                 } catch (Exception e) {
-                    throw new BeanInitializationException("Failed to init remote service reference at method " + name + " in class " + bean.getClass().getName(), e);
+                    throw new BeanInitializationException("Failed to init remote service reference at method " + name
+                            + " in class " + bean.getClass().getName(), e);
                 }
             }
         }
@@ -140,15 +144,23 @@ public class MotanAnnotationBean implements DisposableBean, BeanFactoryPostProce
                     }
                 }
             } catch (Exception e) {
-                throw new BeanInitializationException("Failed to init remote service reference at filed " + field.getName() + " in class " + bean.getClass().getName(), e);
+                throw new BeanInitializationException("Failed to init remote service reference at filed " + field.getName()
+                        + " in class " + bean.getClass().getName(), e);
             }
         }
         return bean;
     }
 
+    /**
+     * init service config and export servcice
+     *
+     * @param bean
+     * @param beanName
+     * @return
+     * @throws BeansException
+     */
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        System.out.println("after: "+beanName);
         if (!isMatchPackage(bean)) {
             return bean;
         }
@@ -165,7 +177,8 @@ public class MotanAnnotationBean implements DisposableBean, BeanFactoryPostProce
                     Class<Object> clz = (Class<Object>) clazz.getInterfaces()[0];
                     serviceConfig.setInterface(clz);
                 } else {
-                    throw new IllegalStateException("Failed to export remote service class " + clazz.getName() + ", cause: The @Service undefined interfaceClass or interfaceName, and the service class unimplemented any interfaces.");
+                    throw new IllegalStateException("Failed to export remote service class " + clazz.getName()
+                            + ", cause: The @Service undefined interfaceClass or interfaceName, and the service class unimplemented any interfaces.");
                 }
             }
             if (applicationContext != null) {
@@ -196,23 +209,36 @@ public class MotanAnnotationBean implements DisposableBean, BeanFactoryPostProce
         return bean;
     }
 
+    /**
+     * release service/reference
+     *
+     * @throws Exception
+     */
     public void destroy() throws Exception {
         for (ServiceConfigBean<?> serviceConfig : serviceConfigs) {
             try {
                 serviceConfig.unexport();
             } catch (Throwable e) {
-                logger.error(e.getMessage(), e);
+                LoggerUtil.error(e.getMessage(), e);
             }
         }
         for (RefererConfigBean<?> referenceConfig : referenceConfigs.values()) {
             try {
                 referenceConfig.destroy();
             } catch (Throwable e) {
-                logger.error(e.getMessage(), e);
+                LoggerUtil.error(e.getMessage(), e);
             }
         }
     }
 
+    /**
+     * refer proxy
+     *
+     * @param reference
+     * @param referenceClass
+     * @param <T>
+     * @return
+     */
     private <T> Object refer(ApiReference reference, Class<?> referenceClass) {
         String interfaceName;
         if (!"".equals(reference.interfaceName())) {
@@ -222,7 +248,8 @@ public class MotanAnnotationBean implements DisposableBean, BeanFactoryPostProce
         } else if (referenceClass.isInterface()) {
             interfaceName = referenceClass.getName();
         } else {
-            throw new IllegalStateException("The @Reference undefined interfaceClass or interfaceName, and the property type " + referenceClass.getName() + " is not a interface.");
+            throw new IllegalStateException("The @Reference undefined interfaceClass or interfaceName, and the property type "
+                    + referenceClass.getName() + " is not a interface.");
         }
         String key = reference.group() + "/" + interfaceName + ":" + reference.version();
         RefererConfigBean<T> referenceConfig = referenceConfigs.get(key);
@@ -232,7 +259,7 @@ public class MotanAnnotationBean implements DisposableBean, BeanFactoryPostProce
             if (void.class.equals(reference.interfaceClass())
                     && "".equals(reference.interfaceName())
                     && referenceClass.isInterface()) {
-                referenceConfig.setInterface((Class<T>)referenceClass);
+                referenceConfig.setInterface((Class<T>) referenceClass);
             }
 
             if (applicationContext != null) {
@@ -252,12 +279,12 @@ public class MotanAnnotationBean implements DisposableBean, BeanFactoryPostProce
                         if (pc != null) {
                             referenceConfig.setProtocol(pc);
                         }
-                    }else {
+                    } else {
                         String[] values = reference.protocol().split("\\s*[,]+\\s*");
                         List<ProtocolConfig> protocolConfigs = new ArrayList<ProtocolConfig>();
                         for (int i = 0; i < values.length; i++) {
-                            String v = values[i];
-                            ProtocolConfig pc = applicationContext.getBean(v, ProtocolConfig.class);
+                            String val = values[i];
+                            ProtocolConfig pc = applicationContext.getBean(val, ProtocolConfig.class);
                             if (pc != null) {
                                 protocolConfigs.add(pc);
                             }
@@ -274,18 +301,18 @@ public class MotanAnnotationBean implements DisposableBean, BeanFactoryPostProce
                     referenceConfig.setDirectUrl(reference.directUrl());
                 }
 
-                if(reference.basicReferer() != null && reference.basicReferer().length() > 0) {
+                if (reference.basicReferer() != null && reference.basicReferer().length() > 0) {
                     BasicRefererInterfaceConfig biConfig = applicationContext.getBean(reference.basicReferer(), BasicRefererInterfaceConfig.class);
-                    if(biConfig != null) {
+                    if (biConfig != null) {
                         referenceConfig.setBasicReferer(biConfig);
                     }
                 }
 
-                if(reference.throwException()) {
+                if (reference.throwException()) {
                     referenceConfig.setThrowException(true);
                 }
 
-                if(reference.shareChannel()) {
+                if (reference.shareChannel()) {
                     referenceConfig.setShareChannel(true);
                 }
 
@@ -329,6 +356,16 @@ public class MotanAnnotationBean implements DisposableBean, BeanFactoryPostProce
 
     private boolean isProxyBean(Object bean) {
         return AopUtils.isAopProxy(bean);
+    }
+
+    public String getPackageName() {
+        return annotationPackage;
+    }
+
+    public void setPackageName(String annotationPackage) {
+        this.annotationPackage = annotationPackage;
+        this.annotationPackages = (annotationPackage == null || annotationPackage.length() == 0) ? null
+                : COMMA_SPLIT_PATTERN.split(annotationPackage);
     }
 
 }
