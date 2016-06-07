@@ -39,6 +39,7 @@ import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.AbstractServer;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.transport.TransportException;
+import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.StatisticCallback;
 
 /**
@@ -112,8 +113,7 @@ public class Netty4HttpServer extends AbstractServer implements StatisticCallbac
             f = b.bind(url.getPort()).sync();
             channel = f.channel();
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LoggerUtil.error("init http server fail.", e);
             return false;
         }
 

@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.weibo.api.motan.exception.MotanBizException;
 import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.protocol.yar.annotation.YarConfig;
 import com.weibo.api.motan.rpc.DefaultRequest;
 import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
@@ -29,9 +30,15 @@ import com.weibo.yar.YarRequest;
 import com.weibo.yar.YarResponse;
 
 public class YarProtocolUtil {
-    public static String getYarPath(URL url) {
-        // TODO 支持path定制，例如"/health" 包名中的点替换
-
+    // 如果接口类有
+    public static String getYarPath(Class<?> interfaceClazz, URL url) {
+        if (interfaceClazz != null) {
+            YarConfig config = interfaceClazz.getAnnotation(YarConfig.class);
+            if (config != null && StringUtils.isNotBlank(config.path())) {
+                return config.path();
+            }
+        }
+        // 默认使用/group/urlpath
         return "/" + url.getGroup() + "/" + url.getPath();
     }
 
@@ -43,13 +50,11 @@ public class YarProtocolUtil {
      * @return
      */
     public static Request convert(YarRequest yarRequest, Class<?> interfaceClass) {
-        // TODO 根据接口兼容
         DefaultRequest request = new DefaultRequest();
         request.setInterfaceName(interfaceClass.getName());
         request.setMethodName(yarRequest.getMethodName());
         request.setRequestId(yarRequest.getId());
         addArguments(request, interfaceClass, yarRequest.getMethodName(), yarRequest.getParameters());
-
         return request;
     }
 
@@ -65,8 +70,6 @@ public class YarProtocolUtil {
     public static Response convert(YarResponse yarResponse) {
         DefaultResponse response = new DefaultResponse();
         response.setRequestId(yarResponse.getId());
-        // TODO 如果不能明确返回对象，就统一使用jsonobject
-        // response.setValue(yarResponse.getValue(???));
         response.setValue(yarResponse.getRet());
         if (StringUtils.isNotBlank(yarResponse.getError())) {
             response.setException(new MotanBizException(yarResponse.getError()));
@@ -97,7 +100,7 @@ public class YarProtocolUtil {
      */
     private static void addArguments(DefaultRequest request, Class<?> interfaceClass, String methodName, Object[] arguments) {
         Method targetMethod = null;
-        // TODO 需要考虑每次反射代价，考虑是否需要缓存
+        // TODO 是否需要缓存
         Method[] methods = interfaceClass.getDeclaredMethods();
         for (Method m : methods) {
             if (m.getName().equalsIgnoreCase(methodName) && m.getParameterTypes().length == arguments.length) {
@@ -123,19 +126,23 @@ public class YarProtocolUtil {
         YarResponse yarResponse = new YarResponse();
         yarResponse.setPackagerName(packagerName);
         yarResponse.setError(errMsg);
-        yarResponse.setStatus("500"); // TODO 需要确定含义
+        yarResponse.setStatus("500");
         return yarResponse;
     }
 
 
     // 参数适配为java对应类型
     private static Object[] adaptParams(Object[] arguments, Class<?>[] argumentClazz) {
-        // TODO 需要特别适配空类型
-        // Object[] adapterArguments = new Object[arguments.length];
-        // for (int i = 0; i < argumentClazz.length; i++) {
-        //
-        // }
-        // request.setArguments(adapterArguments);
+
+        for (int i = 0; i < argumentClazz.length; i++) {
+            if (("java.lang.Double".equals(arguments[i].getClass().getName()) && "float".equals(argumentClazz[i].getName()) || "java.lang.Float"
+                    .equals(argumentClazz[i].getName()))) {
+                arguments[i] = ((Double) arguments[i]).floatValue();
+            } else if ("java.lang.Long".equals(arguments[i].getClass().getName())
+                    && ("int".equals(argumentClazz[i].getName()) || "java.lang.Integer".equals(argumentClazz[i].getName()))) {
+                arguments[i] = ((Long) arguments[i]).intValue();
+            }
+        }
         return arguments;
     }
 

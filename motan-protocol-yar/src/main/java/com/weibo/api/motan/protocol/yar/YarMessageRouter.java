@@ -16,6 +16,7 @@ package com.weibo.api.motan.protocol.yar;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.Provider;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
@@ -34,7 +35,7 @@ public class YarMessageRouter extends ProviderProtectedMessageRouter {
         String packagerName = yarRequest.getPackagerName();
         Provider<?> provider = providerMap.get(yarRequest.getRequestPath());
         if (provider == null) {
-            // TODO 返回默认异常 response
+            throw new MotanServiceException("can nor find service provider. request path:" + yarRequest.getRequestPath());
         }
         Class<?> clazz = provider.getInterface();
         Request request = YarProtocolUtil.convert(yarRequest, clazz);
@@ -45,8 +46,7 @@ public class YarMessageRouter extends ProviderProtectedMessageRouter {
 
     @Override
     public void addProvider(Provider<?> provider) {
-        // TODO 优先注解获取path。
-        String path = YarProtocolUtil.getYarPath(provider.getUrl());
+        String path = YarProtocolUtil.getYarPath(provider.getInterface(), provider.getUrl());
         Provider<?> old = providerMap.putIfAbsent(path, provider);
         if (old != null) {
             throw new MotanFrameworkException("duplicate yar provider");
@@ -55,7 +55,7 @@ public class YarMessageRouter extends ProviderProtectedMessageRouter {
 
     @Override
     public void removeProvider(Provider<?> provider) {
-        String path = YarProtocolUtil.getYarPath(provider.getUrl());
+        String path = YarProtocolUtil.getYarPath(provider.getInterface(), provider.getUrl());
         providerMap.remove(path);
     }
 

@@ -85,11 +85,13 @@ public class YarMessageHandlerWarpper implements MessageHandler {
         }
         FullHttpResponse httpResponse =
                 new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(responseBytes));
-        httpResponse.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/octet-stream");
+        httpResponse.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/x-www-form-urlencoded");
         httpResponse.headers().set(HttpHeaders.Names.CONTENT_LENGTH, httpResponse.content().readableBytes());
 
         if (HttpHeaders.isKeepAlive(httpRequest)) {
             httpResponse.headers().set(HttpHeaders.Names.CONNECTION, Values.KEEP_ALIVE);
+        }else{
+            httpResponse.headers().set(HttpHeaders.Names.CONNECTION, Values.CLOSE);
         }
 
         return httpResponse;

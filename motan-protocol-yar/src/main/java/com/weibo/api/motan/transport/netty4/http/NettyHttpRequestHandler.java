@@ -20,6 +20,8 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaders.Values;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
@@ -28,6 +30,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MotanSwitcherUtil;
 
 /**
  * 
@@ -39,9 +42,15 @@ import com.weibo.api.motan.util.LoggerUtil;
 
 @Sharable
 public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+    public static final String BAD_REQUEST = "/bad-request";
+    public static final String ROOT_PATH = "/";
+    public static final String STATUS_PATH = "/rpcstatus";
     private Channel serverChannel;
     private ThreadPoolExecutor threadPoolExecutor;
     private MessageHandler messageHandler;
+    protected String swictherName = "feature.configserver.heartbeat";
+    
+    
 
     public NettyHttpRequestHandler(Channel serverChannel) {
         this.serverChannel = serverChannel;
@@ -61,9 +70,23 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
 
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest httpRequest) throws Exception {
-        // TODO check badRequest
+        // check badRequest
+        if(BAD_REQUEST.equals(httpRequest.getUri())){
+            sendResponse(ctx, buildDefaultResponse("bad request!", HttpResponseStatus.BAD_REQUEST));
+            return;
+        }
+        
+        // service status 
+        if(ROOT_PATH.equals(httpRequest.getUri()) || STATUS_PATH.equals(httpRequest.getUri())){
+            if(isSwitchOpen()){// 200
+                sendResponse(ctx, buildDefaultResponse("ok!", HttpResponseStatus.OK));
+            }else{//503
+                sendResponse(ctx, buildErrorResponse("service not available!"));
+            }
+            return;
+        }
 
-        // TODO 需要测试跨线程有没有内存无法释放的问题，如果有就使用map传递到messageHandler
+        // TODO 需要测试跨线程有没有内存无法释放的问题，如果有问题就使用map传递到messageHandler
         httpRequest.content().retain();
 
         if (threadPoolExecutor == null) {
@@ -85,18 +108,47 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
             httpResponse = (FullHttpResponse) messageHandler.handle(serverChannel, httpRequest);
         } catch (Exception e) {
             LoggerUtil.error("NettyHttpHandler process http request fail.", e);
-            httpResponse = getDefaultErrorResponse(e.getMessage());
+            httpResponse = buildErrorResponse(e.getMessage());
         } finally {
             httpRequest.content().release();
         }
+        sendResponse(ctx, httpResponse);
+    }
+
+    private void sendResponse(ChannelHandlerContext ctx, FullHttpResponse httpResponse){
         try {
             ctx.write(httpResponse);
             ctx.flush();
         } catch (Exception e) {
             LoggerUtil.error("NettyHttpHandler write response fail.", e);
+        } finally {
+            // 关闭链接
+            if (httpResponse == null || !Values.KEEP_ALIVE.equals(httpResponse.headers().get(HttpHeaders.Names.CONNECTION))) {
+                ctx.close();
+            }
         }
     }
-
+    
+    protected FullHttpResponse buildErrorResponse(String errMsg) {
+        return buildDefaultResponse(errMsg, HttpResponseStatus.SERVICE_UNAVAILABLE);
+    }
+    
+    protected FullHttpResponse buildDefaultResponse(String msg, HttpResponseStatus status){
+        FullHttpResponse errorResponse =
+                new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, Unpooled.wrappedBuffer(msg
+                        .getBytes()));
+        return errorResponse;
+    }
+    
+    /**
+     * 判断服务开关状态，关闭时返回503
+     * @return
+     */
+    protected boolean isSwitchOpen(){
+        return MotanSwitcherUtil.isOpen(swictherName);
+    }
+    
+    
     public MessageHandler getMessageHandler() {
         return messageHandler;
     }
@@ -105,11 +157,5 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
         this.messageHandler = messageHandler;
     }
 
-    protected FullHttpResponse getDefaultErrorResponse(String errMsg) {
-        FullHttpResponse errorResponse =
-                new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.SERVICE_UNAVAILABLE, Unpooled.wrappedBuffer(errMsg
-                        .getBytes()));
-        return errorResponse;
-    }
 
 }
