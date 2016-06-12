@@ -48,6 +48,7 @@ public class MotanConstants {
     public static final String SCOPE_LOCAL = "local";
     public static final String SCOPE_REMOTE = "remote";
     public static final String REGISTRY_PROTOCOL_LOCAL = "local";
+    public static final String REGISTRY_PROTOCOL_DIRECT = "direct";
     public static final String REGISTRY_PROTOCOL_ZOOKEEPER = "zookeeper";
     public static final String PROTOCOL_INJVM = "injvm";
     public static final String PROTOCOL_MOTAN = "motan";
