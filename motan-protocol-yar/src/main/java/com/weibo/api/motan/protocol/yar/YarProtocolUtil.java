@@ -28,7 +28,13 @@ import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.ReflectUtil;
 import com.weibo.yar.YarRequest;
 import com.weibo.yar.YarResponse;
-
+/**
+ * 
+ * @Description yar protocol util. 
+ * @author zhanglei
+ * @date 2016年6月8日
+ *
+ */
 public class YarProtocolUtil {
     // 如果接口类有
     public static String getYarPath(Class<?> interfaceClazz, URL url) {
@@ -82,16 +88,21 @@ public class YarProtocolUtil {
         YarResponse yarResponse = new YarResponse();
         yarResponse.setId(response.getRequestId());
         yarResponse.setPackagerName(packagerName);
-        yarResponse.setRet(response.getValue());
         if (response.getException() != null) {
-            yarResponse.setError(response.getException().getMessage());
+            if(response.getException() instanceof MotanBizException){
+                yarResponse.setError(response.getException().getCause().getMessage());
+            }else{
+                yarResponse.setError(response.getException().getMessage());
+            }
+        }else{
+            yarResponse.setRet(response.getValue());
         }
 
         return yarResponse;
     }
 
     /**
-     * 给Request添加请求参数相关信息。 由于php类型不敏感，所以只对方法名和参数个数做匹配，然后对参数做兼容处理
+     * 给Request添加请求参数相关信息。
      * 
      * @param interfaceClass
      * @param methodName
@@ -103,6 +114,7 @@ public class YarProtocolUtil {
         // TODO 是否需要缓存
         Method[] methods = interfaceClass.getDeclaredMethods();
         for (Method m : methods) {
+            //FIXME 弱类型语言转换可能出现歧义，暂时通过限制同名方法参数个数不能相同避免。
             if (m.getName().equalsIgnoreCase(methodName) && m.getParameterTypes().length == arguments.length) {
                 targetMethod = m;
                 break;

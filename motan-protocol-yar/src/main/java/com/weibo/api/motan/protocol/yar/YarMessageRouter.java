@@ -24,7 +24,13 @@ import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.ProviderProtectedMessageRouter;
 import com.weibo.yar.YarRequest;
 import com.weibo.yar.YarResponse;
-
+/**
+ * 
+ * @Description yar message router
+ * @author zhanglei
+ * @date 2016年6月8日
+ *
+ */
 public class YarMessageRouter extends ProviderProtectedMessageRouter {
     protected ConcurrentHashMap<String, Provider<?>> providerMap = new ConcurrentHashMap<String, Provider<?>>();
 

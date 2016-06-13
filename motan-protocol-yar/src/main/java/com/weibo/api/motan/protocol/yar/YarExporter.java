@@ -13,8 +13,14 @@
  */
 package com.weibo.api.motan.protocol.yar;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
+import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.AbstractExporter;
 import com.weibo.api.motan.rpc.Provider;
 import com.weibo.api.motan.rpc.URL;
@@ -42,8 +48,10 @@ public class YarExporter<T> extends AbstractExporter<T> {
         if (heartbeatFactory == null) {
             url.addParameter(URLParamType.heartbeatFactory.getName(), "noHeartbeat");
         }
+        //FIXME 弱语言类型转换可能出现歧义，暂时通过限制同名方法参数个数不能相同避免。
+        validateInterface(provider.getInterface());
         server = endpointFactory.createServer(url, yarProtocol.initRequestRouter(url, provider));
-        // TODO 验证provider提供的方法名和参数个数不能相同
+        
     }
 
 
@@ -65,6 +73,24 @@ public class YarExporter<T> extends AbstractExporter<T> {
     @Override
     protected boolean doInit() {
         return server.open();
+    }
+    
+    protected void validateInterface(Class<?> interfaceClazz){
+        HashMap<String, List<Integer>> tempMap = new HashMap<String, List<Integer>>();
+        for(Method m : interfaceClazz.getDeclaredMethods()){
+            if(!tempMap.containsKey(m.getName())){
+                List<Integer> templist = new ArrayList<Integer>();
+                templist.add(m.getParameterTypes().length);
+                tempMap.put(m.getName(), templist);
+            }else{
+                List<Integer> templist = tempMap.get(m.getName());
+                if(templist.contains(m.getParameterTypes().length)){
+                    throw new MotanFrameworkException("in yar protocol, methods with same name must have different params size !");
+                }else{
+                    templist.add(m.getParameterTypes().length);
+                }
+            }
+        }
     }
 
 }

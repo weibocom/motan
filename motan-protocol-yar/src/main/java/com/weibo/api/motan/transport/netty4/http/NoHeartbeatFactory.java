@@ -18,7 +18,13 @@ import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.transport.HeartbeatFactory;
 import com.weibo.api.motan.transport.MessageHandler;
-
+/**
+ * 
+ * @Description no heartbeatFactory
+ * @author zhanglei
+ * @date 2016年6月8日
+ *
+ */
 @SpiMeta(name = "noHeartbeat")
 public class NoHeartbeatFactory implements HeartbeatFactory {
 
