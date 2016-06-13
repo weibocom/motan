@@ -19,7 +19,7 @@
     </parent>
     <artifactId>serialization-extension</artifactId>
     <name>serialization-extension</name>
-    <url>http://maven.apache.org</url>
+    <url>https://github.com/weibocom/motan</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

@@ -20,12 +20,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.weibo</groupId>
-        <artifactId>motan</artifactId>
+        <artifactId>protocol-extension</artifactId>
         <version>0.1.2-SNAPSHOT</version>
     </parent>
     <artifactId>motan-protocol-yar</artifactId>
     <name>motan-protocol-yar</name>
-    <url>http://maven.apache.org</url>
+    <url>https://github.com/weibocom/motan</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -38,7 +38,7 @@
         <dependency>
             <groupId>com.weibo</groupId>
             <artifactId>yar-java</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
     </dependencies>
 </project>
