@@ -1,132 +1,163 @@
-/*
- *  Copyright 2009-2016 Weibo, Inc.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
-
 package com.weibo.api.motan.registry.zookeeper;
 
 import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.registry.NotifyListener;
+import com.weibo.api.motan.registry.support.command.CommandListener;
+import com.weibo.api.motan.registry.support.command.ServiceListener;
 import com.weibo.api.motan.rpc.URL;
-import org.I0Itec.zkclient.IZkChildListener;
+import junit.framework.Assert;
 import org.I0Itec.zkclient.ZkClient;
-import org.jmock.Expectations;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.io.InputStream;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import java.util.Properties;
 
 public class ZookeeperRegistryTest {
-    private static JUnit4Mockery mockery = null;
     private ZookeeperRegistry registry;
-    private URL url;
-    private URL clientUrl;
+    private URL serviceUrl, clientUrl;
+    private EmbeddedZookeeper zookeeper;
+    private ZkClient zkClient;
+    private String service = "com.weibo.motan.demoService";
 
     @Before
     public void setUp() throws Exception {
-        // zookeeper://127.0.0.1:2181/com.weibo.api.motan.registry.RegistryService?group=yf_rpc
-        URL zkUrl = new URL("zookeeper", "127.0.0.1", 2181, "com.weibo.api.motan.registry.RegistryService");
-        mockery = new JUnit4Mockery() {
-            {
-                setImposteriser(ClassImposteriser.INSTANCE);
-            }
-        };
+        Properties properties = new Properties();
+        InputStream in = EmbeddedZookeeper.class.getResourceAsStream("/zoo.cfg");
+        properties.load(in);
+        int port = Integer.parseInt(properties.getProperty("clientPort"));
+        in.close();
 
-        ZkClient mockZkClient = mockery.mock(ZkClient.class);
-        registry = new ZookeeperRegistry(zkUrl, mockZkClient);
+        URL zkUrl = new URL("zookeeper", "127.0.0.1", port, "com.weibo.api.motan.registry.RegistryService");
+        clientUrl = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 0, service);
+        clientUrl.addParameter("group", "aaa");
 
-        url = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8001, "com.weibo.motan.demo.service.MotanDemoService");
-        clientUrl = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 0, "com.weibo.motan.demo.service.MotanDemoService");
+        serviceUrl = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8001, service);
+        serviceUrl.addParameter("group", "aaa");
 
-        final List<String> currentChilds = new ArrayList<String>();
+        zookeeper = new EmbeddedZookeeper();
+        zookeeper.start();
 
-        mockery.checking(new Expectations() {
-            {
-                allowing(any(ZkClient.class)).method("exists");
-                will(returnValue(false));
-                allowing(any(ZkClient.class)).method("delete");
-                will(returnValue(true));
-                allowing(any(ZkClient.class)).method("createPersistent");
-                will(returnValue(null));
-                allowing(any(ZkClient.class)).method("createEphemeral");
-                will(returnValue(null));
-                allowing(any(ZkClient.class)).method("subscribeChildChanges");
-                will(returnValue(currentChilds));
-                allowing(any(ZkClient.class)).method("unsubscribeChildChanges");
-                will(returnValue(null));
-                allowing(any(ZkClient.class)).method("readData");
-                will(returnValue("motan://127.0.0.1:8001/com.weibo.motan.demo.service.MotanDemoService?export=demoMotan:8002&protocol=motan&module=motan-demo-rpc&application=myMotanDemo&group=motan-demo-rpc&nodeType=service"));
-                allowing(any(ZkClient.class)).method("getChildren");
-                will(returnValue(currentChilds));
-            }
-        });
+        zkClient = new ZkClient("127.0.0.1:" + port, 5000);
+        registry = new ZookeeperRegistry(zkUrl, zkClient);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        zkClient.deleteRecursive(MotanConstants.ZOOKEEPER_REGISTRY_NAMESPACE);
+        zookeeper = null;
     }
 
     @Test
-    public void testDoRegister() {
-        registry.register(url);
-        Collection<URL> registeredUrls = registry.getRegisteredServiceUrls();
-        assertTrue(registeredUrls.contains(url));
-    }
-
-    @Test
-    public void testDoUnregister() {
-        registry.register(url);
-        registry.unregister(url);
-        Collection<URL> registeredUrls = registry.getRegisteredServiceUrls();
-        assertFalse(registeredUrls.contains(url));
-    }
-
-    @Test
-    public void testDoSubscribe() {
-        NotifyListener notifyListener = new NotifyListener() {
+    public void subAndUnsubService() throws Exception {
+        ServiceListener serviceListener = new ServiceListener() {
             @Override
-            public void notify(URL registryUrl, List<URL> urls) {
+            public void notifyService(URL refUrl, URL registryUrl, List<URL> urls) {
+                if (!urls.isEmpty()) {
+                    Assert.assertTrue(urls.contains(serviceUrl));
+                }
             }
         };
-        registry.doSubscribe(clientUrl, notifyListener);
-        ConcurrentHashMap<URL, ConcurrentHashMap<NotifyListener, IZkChildListener>> urlListeners = registry.getUrlListeners();
-        assertTrue(urlListeners.containsKey(clientUrl));
-        assertFalse(urlListeners.get(clientUrl).isEmpty());
+        registry.subscribeService(clientUrl, serviceListener);
+        Assert.assertTrue(containsServiceListener(clientUrl, serviceListener));
+        registry.doRegister(serviceUrl);
+        registry.doAvailable(serviceUrl);
+        Thread.sleep(2000);
+
+        registry.unsubscribeService(clientUrl, serviceListener);
+        Assert.assertFalse(containsServiceListener(clientUrl, serviceListener));
+    }
+
+    private boolean containsServiceListener(URL clientUrl, ServiceListener serviceListener) {
+        return registry.getServiceListeners().get(clientUrl).containsKey(serviceListener);
     }
 
     @Test
-    public void testDoUnsubscribe() {
-        NotifyListener notifyListener = new NotifyListener() {
+    public void subAndUnsubCommand() throws Exception {
+        final String command = "{\"index\":0,\"mergeGroups\":[\"aaa:1\",\"bbb:1\"],\"pattern\":\"*\",\"routeRules\":[]}\n";
+        CommandListener commandListener = new CommandListener() {
             @Override
-            public void notify(URL registryUrl, List<URL> urls) {
+            public void notifyCommand(URL refUrl, String commandString) {
+                if (commandString != null) {
+                    Assert.assertTrue(commandString.equals(command));
+                }
             }
         };
-        registry.doSubscribe(clientUrl, notifyListener);
-        registry.doUnsubscribe(clientUrl, notifyListener);
-        ConcurrentHashMap<URL, ConcurrentHashMap<NotifyListener, IZkChildListener>> urlListeners = registry.getUrlListeners();
-        assertTrue(urlListeners.get(clientUrl).isEmpty());
+        registry.subscribeCommand(clientUrl, commandListener);
+        Assert.assertTrue(containsCommandListener(clientUrl, commandListener));
+
+        String commandPath = ZkUtils.toCommandPath(clientUrl);
+        if (!zkClient.exists(commandPath)) {
+            zkClient.createPersistent(commandPath, true);
+        }
+        zkClient.writeData(commandPath, command);
+        Thread.sleep(2000);
+
+        zkClient.delete(commandPath);
+
+        registry.unsubscribeCommand(clientUrl, commandListener);
+        Assert.assertFalse(containsCommandListener(clientUrl, commandListener));
+    }
+
+    private boolean containsCommandListener(URL clientUrl, CommandListener commandListener) {
+        return registry.getCommandListeners().get(clientUrl).containsKey(commandListener);
     }
 
     @Test
-    public void testDoDiscover() {
-        registry.doRegister(url);
-        registry.doAvailable(url);
-        List<URL> urls = registry.doDiscover(clientUrl);
-        urls.contains(url);
+    public void discoverService() throws Exception {
+        registry.doRegister(serviceUrl);
+        List<URL> results = registry.discoverService(clientUrl);
+        Assert.assertTrue(results.isEmpty());
+
+        registry.doAvailable(serviceUrl);
+        results = registry.discoverService(clientUrl);
+        Assert.assertTrue(results.contains(serviceUrl));
     }
+
+    @Test
+    public void discoverCommand() throws Exception {
+        String result = registry.discoverCommand(clientUrl);
+        Assert.assertTrue(result.equals(""));
+
+        String command = "{\"index\":0,\"mergeGroups\":[\"aaa:1\",\"bbb:1\"],\"pattern\":\"*\",\"routeRules\":[]}\n";
+        String commandPath = ZkUtils.toCommandPath(clientUrl);
+        if (!zkClient.exists(commandPath)) {
+            zkClient.createPersistent(commandPath, true);
+        }
+        zkClient.writeData(commandPath, command);
+        result = registry.discoverCommand(clientUrl);
+        Assert.assertTrue(result.equals(command));
+    }
+
+    @Test
+    public void doRegisterAndAvailable() throws Exception {
+        String node = serviceUrl.getServerPortStr();
+        List<String> available, unavailable;
+        String unavailablePath = ZkUtils.toNodeTypePath(serviceUrl, ZkNodeType.UNAVAILABLE_SERVER);
+        String availablePath = ZkUtils.toNodeTypePath(serviceUrl, ZkNodeType.AVAILABLE_SERVER);
+
+        registry.doRegister(serviceUrl);
+        unavailable = zkClient.getChildren(unavailablePath);
+        Assert.assertTrue(unavailable.contains(node));
+
+        registry.doAvailable(serviceUrl);
+        unavailable = zkClient.getChildren(unavailablePath);
+        Assert.assertFalse(unavailable.contains(node));
+        available = zkClient.getChildren(availablePath);
+        Assert.assertTrue(available.contains(node));
+
+        registry.doUnavailable(serviceUrl);
+        unavailable = zkClient.getChildren(unavailablePath);
+        Assert.assertTrue(unavailable.contains(node));
+        available = zkClient.getChildren(availablePath);
+        Assert.assertFalse(available.contains(node));
+
+        registry.doUnregister(serviceUrl);
+        unavailable = zkClient.getChildren(unavailablePath);
+        Assert.assertFalse(unavailable.contains(node));
+        available = zkClient.getChildren(availablePath);
+        Assert.assertFalse(available.contains(node));
+    }
+
 }
