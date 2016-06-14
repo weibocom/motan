@@ -340,7 +340,7 @@ public class ConsulRegistry extends CommandFailbackRegistry {
 
         @Override
         public void run() {
-            LoggerUtil.info("start group lookup thread. lookup interval: " + lookupInterval + "ms, group: " + group);
+            LoggerUtil.info("start command lookup thread. lookup interval: " + lookupInterval + "ms, group: " + group);
             while (true) {
                 try {
                     sleep(lookupInterval);
