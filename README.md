@@ -12,7 +12,7 @@ Motan is a remote procedure call(RPC) framework for rapid development of high pe
 - Supports advanced scheduling features like weighted load-balance, scheduling cross IDCs, etc.
 - Optimization for high load scenarios, provides high availability in production environment.
 
-# Quick Start  
+# Quick Start
 
 The quick start gives very basic example of running client and server on the same machine. For the detailed information about using and developing Motan, please jump to [Documents](#documents).
 
