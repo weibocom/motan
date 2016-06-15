@@ -1,5 +1,6 @@
 package com.weibo.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.Response;
@@ -7,6 +8,7 @@ import com.ecwid.consul.v1.kv.model.GetValue;
 import com.weibo.api.motan.registry.consul.ConsulConstants;
 import com.weibo.api.motan.registry.support.command.RpcCommand;
 import com.weibo.api.motan.registry.support.command.RpcCommandUtil;
+import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.utils.ConsulClientWrapper;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +83,7 @@ public class ConsulCommandService extends AbstractCommandService {
      */
     @Override
     public boolean setCommand(String group, RpcCommand command) {
+        LoggerUtil.info(String.format("set command: group=%s, command=%s: ", group, JSON.toJSONString(command)));
         List<RpcCommand.ClientCommand> newCommandList = new ArrayList<RpcCommand.ClientCommand>();
         for (RpcCommand.ClientCommand clientCommand : command.getClientCommandList()) {
             List<String> newMergeGroups = new ArrayList<String>();

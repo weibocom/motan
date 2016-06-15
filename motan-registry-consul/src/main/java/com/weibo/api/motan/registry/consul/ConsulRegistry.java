@@ -1,7 +1,6 @@
 package com.weibo.api.motan.registry.consul;
 
 import com.weibo.api.motan.common.URLParamType;
-import com.weibo.api.motan.registry.consul.*;
 import com.weibo.api.motan.registry.consul.client.MotanConsulClient;
 import com.weibo.api.motan.registry.support.command.CommandFailbackRegistry;
 import com.weibo.api.motan.registry.support.command.CommandListener;
@@ -22,19 +21,19 @@ public class ConsulRegistry extends CommandFailbackRegistry {
     private ConsulHeartbeatManager heartbeatManager;
     private int lookupInterval;
 
-    // consul service的本地缓存。 key为group（consul中的service），value为接口名与对应的url list
+    // service local cache. key: group, value: <service interface name, url list>
     private ConcurrentHashMap<String, ConcurrentHashMap<String, List<URL>>> serviceCache = new ConcurrentHashMap<String, ConcurrentHashMap<String, List<URL>>>();
-    // consul command的本地缓存。 key为group（consul中的service），value为service接口名
+    // command local cache. key: group, value: service interface name
     private ConcurrentHashMap<String, String> commandCache = new ConcurrentHashMap<String, String>();
 
-    // 记录所有已经启动查询service线程的group，保证每个group只启动一个线程。map的值用来记录上次查询consul的consulIndex
+    // record lookup service thread, insure each group start only one thread, <group, lastConsulIndexId>
     private ConcurrentHashMap<String, Long> lookupGroupServices = new ConcurrentHashMap<String, Long>();
-    // 记录所有已经启动查询command线程的group
+    // record lookup command thread, <group, command>
     private ConcurrentHashMap<String, String> lookupGroupCommands = new ConcurrentHashMap<String, String>();
 
-    // 保持服务订阅方的所有回调listener,当订阅的服务发生变更时会通过listener进行回调
+    // record subscribers service callback listeners, listener was called when corresponding service changes
     private ConcurrentHashMap<String, ConcurrentHashMap<URL, ServiceListener>> serviceListeners = new ConcurrentHashMap<String, ConcurrentHashMap<URL, ServiceListener>>();
-    // 指令的回调listener,当订阅的指令发生变更时通过listener进行回调
+    // record subscribers command callback listeners, listener was called when corresponding command changes
     private ConcurrentHashMap<String, ConcurrentHashMap<URL, CommandListener>> commandListeners = new ConcurrentHashMap<String, ConcurrentHashMap<URL, CommandListener>>();
     private ThreadPoolExecutor notifyExecutor;
 
@@ -98,7 +97,8 @@ public class ConsulRegistry extends CommandFailbackRegistry {
     }
 
     /**
-     * 每个group使用一个查询线程进行服务发现，如果是新注册的group就开启一个新的查询线程。
+     * if new group registed, start a new lookup thread
+     * each group start a lookup thread to discover service
      *
      * @param url
      */
@@ -244,10 +244,10 @@ public class ConsulRegistry extends CommandFailbackRegistry {
     }
 
     /**
-     * 直接获取consul service数据。 返回值为consul response，可以从其中获取对应indexid
+     * directly fetch consul service data.
      *
      * @param serviceName
-     * @return 可能会返回null
+     * @return ConsulResponse or null
      */
     private ConsulResponse<List<ConsulService>> lookupConsulService(String serviceName, Long lastConsulIndexId) {
         ConsulResponse<List<ConsulService>> response = client.lookupHealthService(
@@ -257,10 +257,13 @@ public class ConsulRegistry extends CommandFailbackRegistry {
     }
 
     /**
-     * 更新一个group的缓存, 如果cluster有更新，则更新本地缓存，并通知对应cluster
+     * update service cache of the group.
+     * update local cache when service list changed,
+     * if need notify, notify service
      *
      * @param group
      * @param groupUrls
+     * @param needNotify
      */
     private void updateServiceCache(String group, ConcurrentHashMap<String, List<URL>> groupUrls, boolean needNotify) {
         if (groupUrls != null && !groupUrls.isEmpty()) {
@@ -292,6 +295,15 @@ public class ConsulRegistry extends CommandFailbackRegistry {
         }
     }
 
+    /**
+     * update command cache of the group.
+     * update local cache when command changed,
+     * if need notify, notify command
+     *
+     * @param group
+     * @param command
+     * @param needNotify
+     */
     private void updateCommandCache(String group, String command, boolean needNotify) {
         String oldCommand = commandCache.get(group);
         if (!command.equals(oldCommand)) {

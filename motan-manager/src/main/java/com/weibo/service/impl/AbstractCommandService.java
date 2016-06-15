@@ -1,5 +1,6 @@
 package com.weibo.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.weibo.api.motan.registry.support.command.RpcCommand;
 import com.weibo.api.motan.registry.support.command.RpcCommandUtil;
@@ -26,6 +27,7 @@ public abstract class AbstractCommandService implements CommandService {
      */
     @Override
     public boolean addCommand(String group, RpcCommand.ClientCommand command) {
+        LoggerUtil.info(String.format("add command: group=%s, command=%s: ", group, JSON.toJSONString(command)));
         RpcCommand remoteCommand = RpcCommandUtil.stringToCommand(getCommands(group));
         if (remoteCommand == null) {
             remoteCommand = new RpcCommand();
@@ -53,6 +55,7 @@ public abstract class AbstractCommandService implements CommandService {
      */
     @Override
     public boolean updateCommand(String group, RpcCommand.ClientCommand command) {
+        LoggerUtil.info(String.format("update command: group=%s, command=%s: ", group, JSON.toJSONString(command)));
         RpcCommand remoteCommand = RpcCommandUtil.stringToCommand(getCommands(group));
         if (remoteCommand == null) {
             LoggerUtil.info("update failed, command not found");
@@ -89,6 +92,7 @@ public abstract class AbstractCommandService implements CommandService {
      */
     @Override
     public boolean deleteCommand(String group, int index) {
+        LoggerUtil.info(String.format("delete command: group=%s, index=%d: ", group, index));
         RpcCommand remoteCommand = RpcCommandUtil.stringToCommand(getCommands(group));
         if (remoteCommand == null) {
             LoggerUtil.info("delete failed, command not found");
