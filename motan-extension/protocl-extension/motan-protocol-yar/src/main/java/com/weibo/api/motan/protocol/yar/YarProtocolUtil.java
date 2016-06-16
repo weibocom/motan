@@ -147,13 +147,16 @@ public class YarProtocolUtil {
     private static Object[] adaptParams(Object[] arguments, Class<?>[] argumentClazz) {
 
         for (int i = 0; i < argumentClazz.length; i++) {
-            if (("java.lang.Double".equals(arguments[i].getClass().getName()) && "float".equals(argumentClazz[i].getName()) || "java.lang.Float"
-                    .equals(argumentClazz[i].getName()))) {
-                arguments[i] = ((Double) arguments[i]).floatValue();
-            } else if ("java.lang.Long".equals(arguments[i].getClass().getName())
-                    && ("int".equals(argumentClazz[i].getName()) || "java.lang.Integer".equals(argumentClazz[i].getName()))) {
-                arguments[i] = ((Long) arguments[i]).intValue();
+            if(arguments[i] != null){
+                if (("java.lang.Double".equals(arguments[i].getClass().getName()) && "float".equals(argumentClazz[i].getName()) || "java.lang.Float"
+                        .equals(argumentClazz[i].getName()))) {
+                    arguments[i] = ((Double) arguments[i]).floatValue();
+                } else if ("java.lang.Long".equals(arguments[i].getClass().getName())
+                        && ("int".equals(argumentClazz[i].getName()) || "java.lang.Integer".equals(argumentClazz[i].getName()))) {
+                    arguments[i] = ((Long) arguments[i]).intValue();
+                }
             }
+            
         }
         return arguments;
     }

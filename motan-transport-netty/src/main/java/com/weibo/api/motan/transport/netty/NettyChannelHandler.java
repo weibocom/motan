@@ -32,6 +32,7 @@ import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.DefaultResponse;
+import com.weibo.api.motan.rpc.RpcContext;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.LoggerUtil;
@@ -110,21 +111,12 @@ public class NettyChannelHandler extends SimpleChannelHandler {
 			threadPoolExecutor.execute(new Runnable() {
 				@Override
                 public void run() {
-                    // TODO 线程上下文初始化（requestIdFromClient）
-                    long requestId = 0;
-                    try {
-                        if (request.getAttachments() == null || !request.getAttachments().containsKey(URLParamType.requestIdFromClient.getName())) {
-                            requestId = 0;
-                        } else {
-                            requestId = Long.valueOf(request.getAttachments().get(URLParamType.requestIdFromClient.getName()));
-                        }
-                    } catch (Exception e) {
-                        LoggerUtil.error("Transfer request id error!", e.getCause());
-                    }
-                    //TODO 上下文
-//                    RequestTraceContext.init(requestId);
-                    processRequest(ctx, request, processStartTime);
-//                    RequestTraceContext.finish();
+				    try{
+				        RpcContext.init(request);
+	                    processRequest(ctx, request, processStartTime);
+				    }finally{
+				        RpcContext.destroy();
+				    }
                 }
             });
 		} catch (RejectedExecutionException rejectException) {
