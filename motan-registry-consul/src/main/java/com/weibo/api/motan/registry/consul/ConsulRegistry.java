@@ -23,7 +23,7 @@ public class ConsulRegistry extends CommandFailbackRegistry {
 
     // service local cache. key: group, value: <service interface name, url list>
     private ConcurrentHashMap<String, ConcurrentHashMap<String, List<URL>>> serviceCache = new ConcurrentHashMap<String, ConcurrentHashMap<String, List<URL>>>();
-    // command local cache. key: group, value: service interface name
+    // command local cache. key: group, value: command content
     private ConcurrentHashMap<String, String> commandCache = new ConcurrentHashMap<String, String>();
 
     // record lookup service thread, insure each group start only one thread, <group, lastConsulIndexId>
