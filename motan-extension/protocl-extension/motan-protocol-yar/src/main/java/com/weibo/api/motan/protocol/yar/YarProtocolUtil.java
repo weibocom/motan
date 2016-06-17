@@ -128,7 +128,7 @@ public class YarProtocolUtil {
 
         if (arguments != null && arguments.length > 0) {
             Class<?>[] argumentClazz = targetMethod.getParameterTypes();
-            request.setArguments(adaptParams(arguments, argumentClazz));
+            request.setArguments(adaptParams(targetMethod, arguments, argumentClazz));
         }
 
 
@@ -144,15 +144,65 @@ public class YarProtocolUtil {
 
 
     // 参数适配为java对应类型
-    private static Object[] adaptParams(Object[] arguments, Class<?>[] argumentClazz) {
-
+    private static Object[] adaptParams(Method method, Object[] arguments, Class<?>[] argumentClazz) {
+        //FIXME php调用时，如果不显示使用数字类型，参数可能为string，需要对java类型做兼容。
+        //形参可能是基本类型或对象，实参一定是对象。有没有更优雅的兼容方式？
         for (int i = 0; i < argumentClazz.length; i++) {
-            if (("java.lang.Double".equals(arguments[i].getClass().getName()) && "float".equals(argumentClazz[i].getName()) || "java.lang.Float"
-                    .equals(argumentClazz[i].getName()))) {
-                arguments[i] = ((Double) arguments[i]).floatValue();
-            } else if ("java.lang.Long".equals(arguments[i].getClass().getName())
-                    && ("int".equals(argumentClazz[i].getName()) || "java.lang.Integer".equals(argumentClazz[i].getName()))) {
-                arguments[i] = ((Long) arguments[i]).intValue();
+            try{
+                if("int".equals(argumentClazz[i].getName()) || "java.lang.Integer".equals(argumentClazz[i].getName())){
+                    if(arguments[i] == null){
+                        arguments[i] = 0;//default
+                    }else if(arguments[i] instanceof String){
+                        arguments[i] = Integer.parseInt((String) arguments[i]);
+                    }else if(arguments[i] instanceof Number){
+                        arguments[i] = ((Number)arguments[i]).intValue();
+                    }else{
+                        throw new RuntimeException();
+                    }
+                } else if("long".equals(argumentClazz[i].getName()) || "java.lang.Long".equals(argumentClazz[i].getName())){
+                    if(arguments[i] == null){
+                        arguments[i] = 0;//default
+                    }else if(arguments[i] instanceof String){
+                        arguments[i] = Long.parseLong((String) arguments[i]);
+                    }else if(arguments[i] instanceof Number){
+                        arguments[i] = ((Number)arguments[i]).longValue();
+                    }else{
+                        throw new RuntimeException();
+                    }
+                }else if("float".equals(argumentClazz[i].getName()) || "java.lang.Float".equals(argumentClazz[i].getName())){
+                    if(arguments[i] == null){
+                        arguments[i] = 0.0f;//default
+                    }else if(arguments[i] instanceof String){
+                        arguments[i] = Float.parseFloat((String) arguments[i]);
+                    }else if(arguments[i] instanceof Number){
+                        arguments[i] = ((Number)arguments[i]).floatValue();
+                    }else{
+                        throw new RuntimeException();
+                    }
+                }else if("double".equals(argumentClazz[i].getName()) || "java.lang.Double".equals(argumentClazz[i].getName())){
+                    if(arguments[i] == null){
+                        arguments[i] = 0.0f;//default
+                    }else if(arguments[i] instanceof String){
+                        arguments[i] = Double.parseDouble((String) arguments[i]);
+                    }else if(arguments[i] instanceof Number){
+                        arguments[i] = ((Number)arguments[i]).doubleValue();
+                    }else{
+                        throw new RuntimeException();
+                    }
+                }else if("boolean".equals(argumentClazz[i].getName()) || "java.lang.Boolean".equals(argumentClazz[i].getName())){
+                    if(arguments[i] instanceof Boolean){
+                        continue;
+                    }
+                    if(arguments[i] instanceof String){
+                        arguments[i] = Boolean.valueOf(((String) arguments[i]));
+                    }else {
+                        throw new RuntimeException();
+                    }
+                }
+            }catch(Exception e){
+                throw new MotanServiceException("adapt param fail! method:" + method.toString() 
+                    + ", require param:" + argumentClazz[i].getName() 
+                    + ", actual param:" + (arguments[i] == null ? null : arguments[i].getClass().getName() + "-" + arguments[i]));
             }
         }
         return arguments;
