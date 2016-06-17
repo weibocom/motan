@@ -86,7 +86,6 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
             return;
         }
 
-        // TODO 需要测试跨线程有没有内存无法释放的问题，如果有问题就使用map传递到messageHandler
         httpRequest.content().retain();
 
         if (threadPoolExecutor == null) {

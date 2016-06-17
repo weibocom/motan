@@ -48,7 +48,7 @@ public class YarExporter<T> extends AbstractExporter<T> {
         if (heartbeatFactory == null) {
             url.addParameter(URLParamType.heartbeatFactory.getName(), "noHeartbeat");
         }
-        //FIXME 弱语言类型转换可能出现歧义，暂时通过限制同名方法参数个数不能相同避免。
+        //FIXME 弱类型语言转换可能出现歧义，暂时通过限制同名方法参数个数不能相同避免。
         validateInterface(provider.getInterface());
         server = endpointFactory.createServer(url, yarProtocol.initRequestRouter(url, provider));
         
