@@ -40,6 +40,10 @@ public class MockUtils {
      * @return
      */
     public static URL getMockUrl(int port) {
+        return getMockUrl(address, port);
+    }
+
+    public static URL getMockUrl(String address, int port) {
         Map<String, String> params = new HashMap<String, String>();
         params.put(URLParamType.group.getName(), group);
         params.put(URLParamType.protocol.getName(), protocol);

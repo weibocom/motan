@@ -15,8 +15,8 @@ public class ConsulRegistryTest {
     private MockConsulClient client;
     private ConsulRegistry registry;
     private URL registerUrl;
-    private URL serviceUrl, clientUrl;
-    private String serviceid;
+    private URL serviceUrl, serviceUrl2, clientUrl, clientUrl2;
+    private String serviceid, serviceid2;
     private long interval = 1000;
     private long sleepTime;
 
@@ -28,8 +28,11 @@ public class ConsulRegistryTest {
         registry = new ConsulRegistry(registerUrl, client);
 
         serviceUrl = MockUtils.getMockUrl(8001);
+        serviceUrl2 = MockUtils.getMockUrl(8002);
         serviceid = ConsulUtils.convertConsulSerivceId(serviceUrl);
-        clientUrl = MockUtils.getMockUrl(0);
+        serviceid2 = ConsulUtils.convertConsulSerivceId(serviceUrl2);
+        clientUrl = MockUtils.getMockUrl("127.0.0.1", 0);
+        clientUrl2 = MockUtils.getMockUrl("127.0.0.2", 0);
 
         sleepTime = ConsulConstants.SWITCHER_CHECK_CIRCLE + 500;
     }
@@ -43,27 +46,34 @@ public class ConsulRegistryTest {
     public void doRegisterAndAvailable() throws Exception {
         // register
         registry.doRegister(serviceUrl);
+        registry.doRegister(serviceUrl2);
         Assert.assertTrue(client.isRegistered(serviceid));
         Assert.assertFalse(client.isWorking(serviceid));
+        Assert.assertTrue(client.isRegistered(serviceid2));
+        Assert.assertFalse(client.isWorking(serviceid2));
 
         // available
         registry.doAvailable(null);
         Thread.sleep(sleepTime);
         Assert.assertTrue(client.isWorking(serviceid));
+        Assert.assertTrue(client.isWorking(serviceid2));
 
         // unavailable
         registry.doUnavailable(null);
         Thread.sleep(sleepTime);
         Assert.assertFalse(client.isWorking(serviceid));
+        Assert.assertFalse(client.isWorking(serviceid2));
 
         // unregister
         registry.doUnregister(serviceUrl);
         Assert.assertFalse(client.isRegistered(serviceid));
+        Assert.assertTrue(client.isRegistered(serviceid2));
+        registry.doUnregister(serviceUrl2);
+        Assert.assertFalse(client.isRegistered(serviceid2));
     }
 
-    @Test
-    public void subAndUnsubService() throws Exception {
-        ServiceListener serviceListener = new ServiceListener() {
+    private ServiceListener createNewServiceListener(final URL serviceUrl) {
+        return new ServiceListener() {
             @Override
             public void notifyService(URL refUrl, URL registryUrl, List<URL> urls) {
                 if (!urls.isEmpty()) {
@@ -71,14 +81,30 @@ public class ConsulRegistryTest {
                 }
             }
         };
+    }
+
+    @Test
+    public void subAndUnsubService() throws Exception {
+        ServiceListener serviceListener = createNewServiceListener(serviceUrl);
+        ServiceListener serviceListener2 = createNewServiceListener(serviceUrl);
+
         registry.subscribeService(clientUrl, serviceListener);
+        registry.subscribeService(clientUrl2, serviceListener2);
         Assert.assertTrue(containsServiceListener(serviceUrl, clientUrl, serviceListener));
+        Assert.assertTrue(containsServiceListener(serviceUrl, clientUrl2, serviceListener2));
+
         registry.doRegister(serviceUrl);
+        registry.doRegister(serviceUrl2);
         registry.doAvailable(null);
         Thread.sleep(sleepTime);
 
         registry.unsubscribeService(clientUrl, serviceListener);
         Assert.assertFalse(containsServiceListener(serviceUrl, clientUrl, serviceListener));
+        Assert.assertTrue(containsServiceListener(serviceUrl, clientUrl2, serviceListener2));
+
+        registry.unsubscribeService(clientUrl2, serviceListener2);
+        Assert.assertFalse(containsServiceListener(serviceUrl, clientUrl2, serviceListener2));
+
     }
 
     @Test

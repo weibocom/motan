@@ -29,8 +29,10 @@ public class ConsulRegistry extends CommandFailbackRegistry {
     // record lookup service thread, insure each group start only one thread, <group, lastConsulIndexId>
     private ConcurrentHashMap<String, Long> lookupGroupServices = new ConcurrentHashMap<String, Long>();
     // record lookup command thread, <group, command>
+    // TODO: 2016/6/17 change value to consul index
     private ConcurrentHashMap<String, String> lookupGroupCommands = new ConcurrentHashMap<String, String>();
 
+    // TODO: 2016/6/17 clientUrl support multiple listener
     // record subscribers service callback listeners, listener was called when corresponding service changes
     private ConcurrentHashMap<String, ConcurrentHashMap<URL, ServiceListener>> serviceListeners = new ConcurrentHashMap<String, ConcurrentHashMap<URL, ServiceListener>>();
     // record subscribers command callback listeners, listener was called when corresponding command changes
