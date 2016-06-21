@@ -34,9 +34,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class RequestIdGenerator {
     protected static final AtomicLong offset = new AtomicLong(0);
-    protected static final AtomicLong lastOffsetResetTime = new AtomicLong();
-    protected static int BITS = 20;
-    protected static long MAX_COUNT_PER_MILLIS = 1L << BITS;
+    protected static final int BITS = 20;
+    protected static final long MAX_COUNT_PER_MILLIS = 1 << BITS;
 
 
     /**
@@ -47,14 +46,10 @@ public class RequestIdGenerator {
     public static long getRequestId() {
         long currentTime = System.currentTimeMillis();
         long count = offset.incrementAndGet();
-        if(count == MAX_COUNT_PER_MILLIS){
+        while(count >= MAX_COUNT_PER_MILLIS){
             synchronized (RequestIdGenerator.class){
-                if(offset.get() == MAX_COUNT_PER_MILLIS){
+                if(offset.get() >= MAX_COUNT_PER_MILLIS){
                     offset.set(0);
-                    while(lastOffsetResetTime.get() == currentTime){
-                        currentTime = System.currentTimeMillis();
-                    }
-                    lastOffsetResetTime.set(currentTime);
                 }
             }
             count = offset.incrementAndGet();

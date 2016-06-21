@@ -5,7 +5,6 @@ package com.weibo.api.motan.util;
 
 import com.google.common.collect.Lists;
 import junit.framework.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
@@ -32,13 +31,8 @@ public class RequestIdGeneratorTest {
 
     @Test
     public void testNoMillisCollide() {
-        int oldBits = RequestIdGenerator.BITS;
-        long oldMaxCount = RequestIdGenerator.MAX_COUNT_PER_MILLIS;
 
-        RequestIdGenerator.BITS = 0;
-        RequestIdGenerator.MAX_COUNT_PER_MILLIS = 1;
-
-        int threadNum = Runtime.getRuntime().availableProcessors() * 2;
+        int threadNum = Runtime.getRuntime().availableProcessors() * 200;
         final CyclicBarrier cyclicBarrier = new CyclicBarrier(threadNum, new Runnable() {
             @Override
             public void run() {
@@ -54,7 +48,7 @@ public class RequestIdGeneratorTest {
                 @Override
                 public Boolean call() throws Exception {
                     cyclicBarrier.await();
-                    long id = RequestIdGenerator.getRequestId() >> RequestIdGenerator.BITS;
+                    long id = RequestIdGenerator.getRequestId();
                     boolean result = memory.putIfAbsent(id, "") == null;
                     return result;
 
@@ -78,9 +72,6 @@ public class RequestIdGeneratorTest {
                 throw new RuntimeException(e);
             }
         }
-
-        RequestIdGenerator.BITS = oldBits;
-        RequestIdGenerator.MAX_COUNT_PER_MILLIS = oldMaxCount;
 
     }
 
