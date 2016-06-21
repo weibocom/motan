@@ -24,6 +24,8 @@ import com.weibo.api.motan.config.BasicRefererInterfaceConfig;
 import com.weibo.api.motan.config.BasicServiceInterfaceConfig;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RegistryConfig;
+import com.weibo.api.motan.rpc.init.Initializable;
+import com.weibo.api.motan.rpc.init.InitializationFactory;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 
 public class MotanNamespaceHandler extends NamespaceHandlerSupport {
@@ -41,5 +43,7 @@ public class MotanNamespaceHandler extends NamespaceHandlerSupport {
         registerBeanDefinitionParser("basicService", new MotanBeanDefinitionParser(BasicServiceInterfaceConfig.class, true));
         registerBeanDefinitionParser("basicReferer", new MotanBeanDefinitionParser(BasicRefererInterfaceConfig.class, true));
         registerBeanDefinitionParser("spi", new MotanBeanDefinitionParser(SpiConfigBean.class, true));
+        Initializable initialization = new InitializationFactory().getInitialization();
+        initialization.init();
     }
 }
