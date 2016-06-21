@@ -3,9 +3,8 @@ package com.weibo.api.motan.registry.consul;
 import com.weibo.api.motan.registry.consul.client.MotanConsulClient;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -18,15 +17,18 @@ public class MockConsulClient extends MotanConsulClient {
     // 保存各个mock service的心跳次数。
     private ConcurrentHashMap<String, AtomicLong> checkPassTimesMap = new ConcurrentHashMap<String, AtomicLong>();
 
-    // 保存注册过的mock service
-    private Set<String> registerServices = new HashSet<String>();
+    // 保存注册过的service和service工作状态，true表示正常，false表示不对外提供服务
+    private ConcurrentHashMap<String, Boolean> serviceStatus = new ConcurrentHashMap<String, Boolean>();
+    // 保存注册的serviceid与service对应关系
+    private ConcurrentHashMap<String, ConsulService> services = new ConcurrentHashMap<String, ConsulService>();
+    // 保存KVValue
+    private ConcurrentHashMap<String, String> KVValues = new ConcurrentHashMap<String, String>();
 
     private int mockServiceNum = 10;// 获取服务时，返回的mock service数量
     private long mockIndex = 10;
 
     public MockConsulClient(String host, int port) {
         super(host, port);
-
     }
 
     @Override
@@ -37,34 +39,51 @@ public class MockConsulClient extends MotanConsulClient {
             times = checkPassTimesMap.get(serviceid);
         }
         times.getAndIncrement();
+
+        serviceStatus.put(serviceid, true);
+    }
+
+    @Override
+    public void checkFail(String serviceid) {
+        serviceStatus.put(serviceid, false);
     }
 
     @Override
     public void registerService(ConsulService service) {
-        registerServices.add(service.getId());
-        System.out.println("mock register service success! serviceid :" + service.getId());
-
+        serviceStatus.put(service.getId(), false);
+        services.put(service.getId(), service);
     }
 
     @Override
-    public void deregisterService(String serviceid) {
-        registerServices.remove(serviceid);
-        System.out.println("mock deregister service success! serviceid :" + serviceid);
+    public void unregisterService(String serviceid) {
+        serviceStatus.remove(serviceid);
+        services.remove(serviceid);
     }
 
     @Override
     public ConsulResponse<List<ConsulService>> lookupHealthService(String serviceName, long lastConsulIndex) {
         ConsulResponse<List<ConsulService>> res = new ConsulResponse<List<ConsulService>>();
-        res.setConsulIndex(++mockIndex);
+        res.setConsulIndex(lastConsulIndex + 1);
         res.setConsulKnownLeader(true);
-        res.setConsulLastContact(0l);
+        res.setConsulLastContact(0L);
 
         List<ConsulService> list = new ArrayList<ConsulService>();
-        for (int i = 0; i < mockServiceNum; i++) {
-            list.add(MockUtils.getMockService(i));
+        for (Map.Entry<String, Boolean> entry : serviceStatus.entrySet()) {
+            if (entry.getValue()) {
+                list.add(services.get(entry.getKey()));
+            }
         }
         res.setValue(list);
         return res;
+    }
+
+    @Override
+    public String lookupCommand(String group) {
+        String command = KVValues.get(group);
+        if (command == null) {
+            command = "";
+        }
+        return command;
     }
 
     public long getCheckPassTimes(String serviceid) {
@@ -89,12 +108,17 @@ public class MockConsulClient extends MotanConsulClient {
      * @param serviceid
      * @return
      */
-    public boolean isServiceRegister(String serviceid) {
-        return registerServices.contains(serviceid);
+    public boolean isRegistered(String serviceid) {
+        return serviceStatus.containsKey(serviceid);
+    }
+
+    public boolean isWorking(String serviceid) {
+        return serviceStatus.get(serviceid);
     }
 
     public void removeService(String serviceid) {
-        registerServices.remove(serviceid);
+        serviceStatus.remove(serviceid);
+        services.remove(serviceid);
     }
 
 
@@ -102,9 +126,12 @@ public class MockConsulClient extends MotanConsulClient {
         return mockIndex;
     }
 
-    @Override
-    public void checkFail(String serviceid) {
+    public void setKVValue(String key, String value) {
+        KVValues.put(key, value);
+    }
 
+    public void removeKVValue(String key) {
+        KVValues.remove(key);
     }
 
 }
