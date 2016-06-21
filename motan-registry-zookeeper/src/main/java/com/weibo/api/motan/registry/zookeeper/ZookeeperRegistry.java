@@ -21,24 +21,42 @@ import com.weibo.api.motan.registry.support.command.CommandFailbackRegistry;
 import com.weibo.api.motan.registry.support.command.CommandListener;
 import com.weibo.api.motan.registry.support.command.ServiceListener;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
 import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.IZkDataListener;
+import org.I0Itec.zkclient.IZkStateListener;
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.zookeeper.Watcher;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ZookeeperRegistry extends CommandFailbackRegistry {
     private ZkClient zkClient;
+    private Set<URL> registeredServices = new ConcurrentHashSet<URL>();
+    private Set<URL> availableServices = new ConcurrentHashSet<URL>();
     private ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>> serviceListeners = new ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>>();
     private ConcurrentHashMap<URL, ConcurrentHashMap<CommandListener, IZkDataListener>> commandListeners = new ConcurrentHashMap<URL, ConcurrentHashMap<CommandListener, IZkDataListener>>();
 
     public ZookeeperRegistry(URL url, ZkClient client) {
         super(url);
         this.zkClient = client;
+        IZkStateListener zkStateListener = new IZkStateListener() {
+            @Override
+            public void handleStateChanged(Watcher.Event.KeeperState state) throws Exception {
+                // do nothing
+            }
+
+            @Override
+            public void handleNewSession() throws Exception {
+                reconnect();
+            }
+        };
+        zkClient.subscribeStateChanges(zkStateListener);
     }
 
     public ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>> getServiceListeners() {
@@ -158,6 +176,7 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
 
     @Override
     protected void doRegister(URL url) {
+        registeredServices.add(url);
         // 防止旧节点未正常注销
         removeNode(url, ZkNodeType.AVAILABLE_SERVER);
         removeNode(url, ZkNodeType.UNAVAILABLE_SERVER);
@@ -166,6 +185,7 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
 
     @Override
     protected void doUnregister(URL url) {
+        registeredServices.remove(url);
         removeNode(url, ZkNodeType.AVAILABLE_SERVER);
         removeNode(url, ZkNodeType.UNAVAILABLE_SERVER);
     }
@@ -173,12 +193,14 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
     @Override
     protected void doAvailable(URL url) {
         if (url == null) {
+            availableServices.addAll(getRegisteredServiceUrls());
             for (URL u : getRegisteredServiceUrls()) {
                 removeNode(u, ZkNodeType.AVAILABLE_SERVER);
                 removeNode(u, ZkNodeType.UNAVAILABLE_SERVER);
                 createNode(u, ZkNodeType.AVAILABLE_SERVER);
             }
         } else {
+            availableServices.add(url);
             removeNode(url, ZkNodeType.AVAILABLE_SERVER);
             removeNode(url, ZkNodeType.UNAVAILABLE_SERVER);
             createNode(url, ZkNodeType.AVAILABLE_SERVER);
@@ -188,12 +210,14 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
     @Override
     protected void doUnavailable(URL url) {
         if (url == null) {
+            availableServices.removeAll(getRegisteredServiceUrls());
             for (URL u : getRegisteredServiceUrls()) {
                 removeNode(u, ZkNodeType.AVAILABLE_SERVER);
                 removeNode(u, ZkNodeType.UNAVAILABLE_SERVER);
                 createNode(u, ZkNodeType.UNAVAILABLE_SERVER);
             }
         } else {
+            availableServices.remove(url);
             removeNode(url, ZkNodeType.AVAILABLE_SERVER);
             removeNode(url, ZkNodeType.UNAVAILABLE_SERVER);
             createNode(url, ZkNodeType.UNAVAILABLE_SERVER);
@@ -229,6 +253,20 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
         String nodePath = ZkUtils.toNodePath(url, nodeType);
         if (zkClient.exists(nodePath)) {
             zkClient.delete(nodePath);
+        }
+    }
+
+    private void reconnect() {
+        LoggerUtil.info("[{}] reconnect: register services {}", registryClassName, registeredServices);
+        for (URL url : registeredServices) {
+            doRegister(url);
+        }
+        LoggerUtil.info("[{}] reconnect: available services {}", registryClassName, availableServices);
+        for (URL url : availableServices) {
+            if (!registeredServices.contains(url)) {
+                doRegister(url);
+            }
+            doAvailable(url);
         }
     }
 }
