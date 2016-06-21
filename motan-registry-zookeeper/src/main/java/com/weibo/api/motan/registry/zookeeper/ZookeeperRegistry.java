@@ -147,10 +147,15 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
     protected void unsubscribeCommand(URL url, CommandListener commandListener) {
         Map<CommandListener, IZkDataListener> dataChangeListeners = commandListeners.get(url);
         if (dataChangeListeners != null) {
-            IZkDataListener zkDataListener = dataChangeListeners.get(commandListener);
-            if (zkDataListener != null) {
-                zkClient.unsubscribeDataChanges(ZkUtils.toCommandPath(url), zkDataListener);
-                dataChangeListeners.remove(commandListener);
+            synchronized (dataChangeListeners) {
+                IZkDataListener zkDataListener = dataChangeListeners.get(commandListener);
+                if (zkDataListener != null) {
+                    zkClient.unsubscribeDataChanges(ZkUtils.toCommandPath(url), zkDataListener);
+                    dataChangeListeners.remove(commandListener);
+                }
+                if (dataChangeListeners.isEmpty()) {
+                    serviceListeners.remove(url);
+                }
             }
         }
     }

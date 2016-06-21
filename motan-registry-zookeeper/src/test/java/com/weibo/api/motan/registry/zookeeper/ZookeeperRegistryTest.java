@@ -5,6 +5,8 @@ import com.weibo.api.motan.registry.support.command.CommandListener;
 import com.weibo.api.motan.registry.support.command.ServiceListener;
 import com.weibo.api.motan.rpc.URL;
 import junit.framework.Assert;
+import org.I0Itec.zkclient.IZkChildListener;
+import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.junit.After;
 import org.junit.Before;
@@ -13,6 +15,7 @@ import org.junit.Test;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ZookeeperRegistryTest {
     private ZookeeperRegistry registry;
@@ -70,7 +73,11 @@ public class ZookeeperRegistryTest {
     }
 
     private boolean containsServiceListener(URL clientUrl, ServiceListener serviceListener) {
-        return registry.getServiceListeners().get(clientUrl).containsKey(serviceListener);
+        ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>> listeners = registry.getServiceListeners();
+        if (listeners.isEmpty()) {
+            return false;
+        }
+        return listeners.get(clientUrl).containsKey(serviceListener);
     }
 
     @Test
@@ -101,7 +108,11 @@ public class ZookeeperRegistryTest {
     }
 
     private boolean containsCommandListener(URL clientUrl, CommandListener commandListener) {
-        return registry.getCommandListeners().get(clientUrl).containsKey(commandListener);
+        ConcurrentHashMap<URL, ConcurrentHashMap<CommandListener, IZkDataListener>> listeners = registry.getCommandListeners();
+        if (listeners.isEmpty()) {
+            return false;
+        }
+        return listeners.get(clientUrl).containsKey(commandListener);
     }
 
     @Test
