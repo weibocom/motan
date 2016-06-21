@@ -53,7 +53,8 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
 
             @Override
             public void handleNewSession() throws Exception {
-                reconnect();
+                reconnectService();
+                reconnectClient();
             }
         };
         zkClient.subscribeStateChanges(zkStateListener);
@@ -256,17 +257,40 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
         }
     }
 
-    private void reconnect() {
-        LoggerUtil.info("[{}] reconnect: register services {}", registryClassName, registeredServices);
+    private void reconnectService() {
         for (URL url : registeredServices) {
             doRegister(url);
         }
-        LoggerUtil.info("[{}] reconnect: available services {}", registryClassName, availableServices);
+        LoggerUtil.info("[{}] reconnect: register services {}", registryClassName, registeredServices);
+
         for (URL url : availableServices) {
             if (!registeredServices.contains(url)) {
                 doRegister(url);
             }
             doAvailable(url);
         }
+        LoggerUtil.info("[{}] reconnect: available services {}", registryClassName, availableServices);
+    }
+
+    private void reconnectClient() {
+        for (Map.Entry entry : serviceListeners.entrySet()) {
+            URL url = (URL) entry.getKey();
+            ConcurrentHashMap<ServiceListener, IZkChildListener> childChangeListeners = serviceListeners.get(url);
+            if (childChangeListeners != null) {
+                for (Map.Entry e : childChangeListeners.entrySet()) {
+                    subscribeService(url, (ServiceListener) e.getKey());
+                }
+            }
+        }
+        for (Map.Entry entry : commandListeners.entrySet()) {
+            URL url = (URL) entry.getKey();
+            ConcurrentHashMap<CommandListener, IZkDataListener> dataChangeListeners = commandListeners.get(url);
+            if (dataChangeListeners != null) {
+                for (Map.Entry e : dataChangeListeners.entrySet()) {
+                    subscribeCommand(url, (CommandListener) e.getKey());
+                }
+            }
+        }
+        LoggerUtil.info("[{}] reconnect: clients {}", registryClassName, availableServices);
     }
 }
