@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.IZkDataListener;
@@ -43,7 +44,9 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
     private Set<URL> availableServices = new ConcurrentHashSet<URL>();
     private ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>> serviceListeners = new ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>>();
     private ConcurrentHashMap<URL, ConcurrentHashMap<CommandListener, IZkDataListener>> commandListeners = new ConcurrentHashMap<URL, ConcurrentHashMap<CommandListener, IZkDataListener>>();
-
+    private final ReentrantLock clientLock = new ReentrantLock();
+    private final ReentrantLock serverLock = new ReentrantLock();
+    
     public ZookeeperRegistry(URL url, ZkClient client) {
         super(url);
         this.zkClient = client;
@@ -74,6 +77,7 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
     @Override
     protected void subscribeService(final URL url, final ServiceListener serviceListener) {
         try {
+            clientLock.lock();
             ConcurrentHashMap<ServiceListener, IZkChildListener> childChangeListeners = serviceListeners.get(url);
             if (childChangeListeners == null) {
                 serviceListeners.putIfAbsent(url, new ConcurrentHashMap<ServiceListener, IZkChildListener>());
@@ -100,12 +104,15 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
             LoggerUtil.info(String.format("[ZookeeperRegistry] subscribe service: path=%s, info=%s", ZkUtils.toNodePath(url, ZkNodeType.AVAILABLE_SERVER), url.toFullStr()));
         } catch (Throwable e) {
             throw new MotanFrameworkException(String.format("Failed to subscribe %s to zookeeper(%s), cause: %s", url, getUrl(), e.getMessage()), e);
+        } finally {
+            clientLock.unlock();
         }
     }
 
     @Override
     protected void subscribeCommand(final URL url, final CommandListener commandListener) {
         try {
+            clientLock.lock();
             ConcurrentHashMap<CommandListener, IZkDataListener> dataChangeListeners = commandListeners.get(url);
             if (dataChangeListeners == null) {
                 commandListeners.putIfAbsent(url, new ConcurrentHashMap<CommandListener, IZkDataListener>());
@@ -134,12 +141,15 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
             LoggerUtil.info(String.format("[ZookeeperRegistry] subscribe command: path=%s, info=%s", commandPath, url.toFullStr()));
         } catch (Throwable e) {
             throw new MotanFrameworkException(String.format("Failed to subscribe %s to zookeeper(%s), cause: %s", url, getUrl(), e.getMessage()), e);
+        } finally {
+            clientLock.unlock();
         }
     }
 
     @Override
     protected void unsubscribeService(URL url, ServiceListener serviceListener) {
         try {
+            clientLock.lock();
             Map<ServiceListener, IZkChildListener> childChangeListeners = serviceListeners.get(url);
             if (childChangeListeners != null) {
                 IZkChildListener zkChildListener = childChangeListeners.get(serviceListener);
@@ -150,12 +160,15 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
             }
         } catch (Throwable e) {
             throw new MotanFrameworkException(String.format("Failed to unsubscribe service %s to zookeeper(%s), cause: %s", url, getUrl(), e.getMessage()), e);
+        } finally {
+            clientLock.unlock();
         }
     }
 
     @Override
     protected void unsubscribeCommand(URL url, CommandListener commandListener) {
         try {
+            clientLock.lock();
             Map<CommandListener, IZkDataListener> dataChangeListeners = commandListeners.get(url);
             if (dataChangeListeners != null) {
                 IZkDataListener zkDataListener = dataChangeListeners.get(commandListener);
@@ -166,6 +179,8 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
             }
         } catch (Throwable e) {
             throw new MotanFrameworkException(String.format("Failed to unsubscribe command %s to zookeeper(%s), cause: %s", url, getUrl(), e.getMessage()), e);
+        } finally {
+            clientLock.unlock();
         }
     }
 
@@ -200,56 +215,72 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
     @Override
     protected void doRegister(URL url) {
         try {
+            serverLock.lock();
             // 防止旧节点未正常注销
             removeNode(url, ZkNodeType.AVAILABLE_SERVER);
             removeNode(url, ZkNodeType.UNAVAILABLE_SERVER);
             createNode(url, ZkNodeType.UNAVAILABLE_SERVER);
         } catch (Throwable e) {
             throw new MotanFrameworkException(String.format("Failed to register %s to zookeeper(%s), cause: %s", url, getUrl(), e.getMessage()), e);
+        } finally {
+            serverLock.unlock();
         }
     }
 
     @Override
     protected void doUnregister(URL url) {
         try {
+            serverLock.lock();
             removeNode(url, ZkNodeType.AVAILABLE_SERVER);
             removeNode(url, ZkNodeType.UNAVAILABLE_SERVER);
         } catch (Throwable e) {
             throw new MotanFrameworkException(String.format("Failed to unregister %s to zookeeper(%s), cause: %s", url, getUrl(), e.getMessage()), e);
+        } finally {
+            serverLock.unlock();
         }
     }
 
     @Override
     protected void doAvailable(URL url) {
-        if (url == null) {
-            availableServices.addAll(getRegisteredServiceUrls());
-            for (URL u : getRegisteredServiceUrls()) {
-                removeNode(u, ZkNodeType.AVAILABLE_SERVER);
-                removeNode(u, ZkNodeType.UNAVAILABLE_SERVER);
-                createNode(u, ZkNodeType.AVAILABLE_SERVER);
+        try{
+            serverLock.lock();
+            if (url == null) {
+                availableServices.addAll(getRegisteredServiceUrls());
+                for (URL u : getRegisteredServiceUrls()) {
+                    removeNode(u, ZkNodeType.AVAILABLE_SERVER);
+                    removeNode(u, ZkNodeType.UNAVAILABLE_SERVER);
+                    createNode(u, ZkNodeType.AVAILABLE_SERVER);
+                }
+            } else {
+                availableServices.add(url);
+                removeNode(url, ZkNodeType.AVAILABLE_SERVER);
+                removeNode(url, ZkNodeType.UNAVAILABLE_SERVER);
+                createNode(url, ZkNodeType.AVAILABLE_SERVER);
             }
-        } else {
-            availableServices.add(url);
-            removeNode(url, ZkNodeType.AVAILABLE_SERVER);
-            removeNode(url, ZkNodeType.UNAVAILABLE_SERVER);
-            createNode(url, ZkNodeType.AVAILABLE_SERVER);
+        } finally {
+            serverLock.unlock();
         }
     }
 
     @Override
     protected void doUnavailable(URL url) {
-        if (url == null) {
-            availableServices.removeAll(getRegisteredServiceUrls());
-            for (URL u : getRegisteredServiceUrls()) {
-                removeNode(u, ZkNodeType.AVAILABLE_SERVER);
-                removeNode(u, ZkNodeType.UNAVAILABLE_SERVER);
-                createNode(u, ZkNodeType.UNAVAILABLE_SERVER);
+        try{
+            serverLock.lock();
+            if (url == null) {
+                availableServices.removeAll(getRegisteredServiceUrls());
+                for (URL u : getRegisteredServiceUrls()) {
+                    removeNode(u, ZkNodeType.AVAILABLE_SERVER);
+                    removeNode(u, ZkNodeType.UNAVAILABLE_SERVER);
+                    createNode(u, ZkNodeType.UNAVAILABLE_SERVER);
+                }
+            } else {
+                availableServices.remove(url);
+                removeNode(url, ZkNodeType.AVAILABLE_SERVER);
+                removeNode(url, ZkNodeType.UNAVAILABLE_SERVER);
+                createNode(url, ZkNodeType.UNAVAILABLE_SERVER);
             }
-        } else {
-            availableServices.remove(url);
-            removeNode(url, ZkNodeType.AVAILABLE_SERVER);
-            removeNode(url, ZkNodeType.UNAVAILABLE_SERVER);
-            createNode(url, ZkNodeType.UNAVAILABLE_SERVER);
+        } finally {
+            serverLock.unlock();
         }
     }
 
@@ -288,44 +319,54 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
     private void reconnectService() {
         Collection<URL> allRegisteredServices = getRegisteredServiceUrls();
         if (allRegisteredServices != null && !allRegisteredServices.isEmpty()) {
-            for (URL url : allRegisteredServices) {
-                doRegister(url);
-            }
-            LoggerUtil.info("[{}] reconnect: register services {}", registryClassName, allRegisteredServices);
-
-            for (URL url : availableServices) {
-                if (!allRegisteredServices.contains(url)) {
-                    LoggerUtil.warn("reconnect url not register. url:{}", url);
-                    continue;
+            try {
+                serverLock.lock();
+                for (URL url : getRegisteredServiceUrls()) {
+                    doRegister(url);
                 }
-                doAvailable(url);
+                LoggerUtil.info("[{}] reconnect: register services {}", registryClassName, allRegisteredServices);
+
+                for (URL url : availableServices) {
+                    if (!getRegisteredServiceUrls().contains(url)) {
+                        LoggerUtil.warn("reconnect url not register. url:{}", url);
+                        continue;
+                    }
+                    doAvailable(url);
+                }
+                LoggerUtil.info("[{}] reconnect: available services {}", registryClassName, availableServices);
+            } finally {
+                serverLock.unlock();
             }
-            LoggerUtil.info("[{}] reconnect: available services {}", registryClassName, availableServices);
         }
     }
 
     @SuppressWarnings("rawtypes")
     private void reconnectClient() {
         if (serviceListeners != null && !serviceListeners.isEmpty()) {
-            for (Map.Entry entry : serviceListeners.entrySet()) {
-                URL url = (URL) entry.getKey();
-                ConcurrentHashMap<ServiceListener, IZkChildListener> childChangeListeners = serviceListeners.get(url);
-                if (childChangeListeners != null) {
-                    for (Map.Entry e : childChangeListeners.entrySet()) {
-                        subscribeService(url, (ServiceListener) e.getKey());
+            try {
+                clientLock.lock();
+                for (Map.Entry entry : serviceListeners.entrySet()) {
+                    URL url = (URL) entry.getKey();
+                    ConcurrentHashMap<ServiceListener, IZkChildListener> childChangeListeners = serviceListeners.get(url);
+                    if (childChangeListeners != null) {
+                        for (Map.Entry e : childChangeListeners.entrySet()) {
+                            subscribeService(url, (ServiceListener) e.getKey());
+                        }
                     }
                 }
-            }
-            for (Map.Entry entry : commandListeners.entrySet()) {
-                URL url = (URL) entry.getKey();
-                ConcurrentHashMap<CommandListener, IZkDataListener> dataChangeListeners = commandListeners.get(url);
-                if (dataChangeListeners != null) {
-                    for (Map.Entry e : dataChangeListeners.entrySet()) {
-                        subscribeCommand(url, (CommandListener) e.getKey());
+                for (Map.Entry entry : commandListeners.entrySet()) {
+                    URL url = (URL) entry.getKey();
+                    ConcurrentHashMap<CommandListener, IZkDataListener> dataChangeListeners = commandListeners.get(url);
+                    if (dataChangeListeners != null) {
+                        for (Map.Entry e : dataChangeListeners.entrySet()) {
+                            subscribeCommand(url, (CommandListener) e.getKey());
+                        }
                     }
                 }
+                LoggerUtil.info("[{}] reconnect all clients", registryClassName);
+            } finally {
+                clientLock.unlock();
             }
-            LoggerUtil.info("[{}] reconnect all clients", registryClassName);
         }
     }
 }
