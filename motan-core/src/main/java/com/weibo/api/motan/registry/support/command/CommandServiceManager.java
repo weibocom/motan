@@ -74,7 +74,7 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
         }
 
         URL urlCopy = serviceUrl.createCopy();
-        String groupName = urlCopy.getParameter(URLParamType.group.getName());
+        String groupName = urlCopy.getParameter(URLParamType.group.getName(), URLParamType.group.getValue());
         groupServiceCache.put(groupName, urls);
 
         List<URL> finalResult = new ArrayList<URL>();
@@ -311,7 +311,7 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
 
     private List<URL> discoverOneGroup(URL urlCopy) {
         LoggerUtil.info("CommandServiceManager discover one group. url:" + urlCopy.toSimpleString());
-        String group = urlCopy.getParameter(URLParamType.group.getName());
+        String group = urlCopy.getParameter(URLParamType.group.getName(), URLParamType.group.getValue());
         List<URL> list = groupServiceCache.get(group);
         if (list == null) {
             list = registry.discoverService(urlCopy);
