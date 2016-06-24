@@ -16,6 +16,7 @@
 
 package com.weibo.api.motan.config.springsupport;
 
+import com.weibo.api.motan.config.BasicServiceInterfaceConfig;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -29,6 +30,9 @@ import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
+import org.springframework.beans.factory.ListableBeanFactory;
+
+import java.util.Arrays;
 
 public class RefererConfigBean<T> extends RefererConfig<T> implements FactoryBean<T>, BeanFactoryAware, InitializingBean, DisposableBean {
 
@@ -76,6 +80,15 @@ public class RefererConfigBean<T> extends RefererConfig<T> implements FactoryBea
      */
     private void checkAndConfigBasicConfig() {
         if (getBasicReferer() == null) {
+            if (MotanNamespaceHandler.basicRefererConfigDefineNames.size() == 0) {
+                if (beanFactory instanceof ListableBeanFactory) {
+                    ListableBeanFactory listableBeanFactory = (ListableBeanFactory) beanFactory;
+                    String[] basicRefererConfigNames = listableBeanFactory.getBeanNamesForType
+                            (BasicRefererInterfaceConfig
+                                    .class);
+                    MotanNamespaceHandler.basicRefererConfigDefineNames.addAll(Arrays.asList(basicRefererConfigNames));
+                }
+            }
             for (String name : MotanNamespaceHandler.basicRefererConfigDefineNames) {
                 BasicRefererInterfaceConfig biConfig = beanFactory.getBean(name, BasicRefererInterfaceConfig.class);
                 if (biConfig == null) {
