@@ -175,6 +175,7 @@ The quick start gives very basic example of running client and server on the sam
 * fingki([@fingki](https://github.com/fingki))
 * 午夜([@sumory](https://github.com/sumory))
 * guanly([@guanly](https://github.com/guanly))
+* Di Tang([@tangdi](https://github.com/tangdi))
 
 # License
 
