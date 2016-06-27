@@ -148,7 +148,6 @@ public class YarProtocolUtil {
         //FIXME php调用时，如果不显示使用数字类型，参数可能为string，需要对java类型做兼容。
         //形参可能是基本类型或对象，实参一定是对象。有没有更优雅的兼容方式？
         for (int i = 0; i < argumentClazz.length; i++) {
-
             try{
                 if("int".equals(argumentClazz[i].getName()) || "java.lang.Integer".equals(argumentClazz[i].getName())){
                     if(arguments[i] == null){
