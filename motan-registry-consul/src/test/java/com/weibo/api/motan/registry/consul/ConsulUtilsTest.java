@@ -1,20 +1,17 @@
 package com.weibo.api.motan.registry.consul;
 
-import static org.junit.Assert.*;
-
+import com.weibo.api.motan.rpc.URL;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.weibo.api.motan.registry.consul.ConsulUtils;
-import com.weibo.api.motan.rpc.URL;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
- * 
- * @Description ConsulUtilsTest
  * @author zhanglei28
+ * @Description ConsulUtilsTest
  * @date 2016年3月22日
- *
  */
 public class ConsulUtilsTest {
     String testGroup;
@@ -38,13 +35,13 @@ public class ConsulUtilsTest {
         testPort = 8888;
         testProtocol = "motan";
         url = new URL(testProtocol, testHost, testPort, testPath);
-
         testServiceId = testHost + ":" + testPort + "-" + testPath;
-        testServiceTag = "protocol_" + testProtocol;
+        testServiceTag = ConsulConstants.CONSUL_TAG_MOTAN_PROTOCOL + ":" + testProtocol;
     }
 
     @After
-    public void tearDown() throws Exception {}
+    public void tearDown() throws Exception {
+    }
 
     @Test
     public void testConvertGroupToServiceName() {
@@ -68,18 +65,6 @@ public class ConsulUtilsTest {
     public void testGetPathFromServiceId() {
         String tempPath = ConsulUtils.getPathFromServiceId(testServiceId);
         assertEquals(testPath, tempPath);
-    }
-
-    @Test
-    public void testConvertProtocolToTag() {
-        String tempTag = ConsulUtils.convertProtocolToTag(testProtocol);
-        assertEquals(testServiceTag, tempTag);
-    }
-
-    @Test
-    public void testGetProtocolFromTag() {
-        String tempProtocol = ConsulUtils.getProtocolFromTag(testServiceTag);
-        assertEquals(testProtocol, tempProtocol);
     }
 
 }

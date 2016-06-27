@@ -51,18 +51,18 @@ public class ConsulHeartbeatManagerTest {
 
         // 打开心跳
         setHeartbeatSwitcher(true);
-        checkHeartbeat(mockServices, true, 5);
+        checkHeartbeat(mockServices, true, serviceNum);
 
         // 关闭心跳
         setHeartbeatSwitcher(false);
         Thread.sleep(100);
-        checkHeartbeat(mockServices, false, 5);
+        checkHeartbeat(mockServices, false, serviceNum);
 
     }
 
     private void checkHeartbeat(Map<String, Long> services, boolean start, int times) throws InterruptedException {
         // 检查times次心跳
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < times; i++) {
             Thread.sleep(ConsulConstants.HEARTBEAT_CIRCLE + 500);
             for (Entry<String, Long> entry : services.entrySet()) {
                 long heartbeatTimes = client.getCheckPassTimes(entry.getKey());
