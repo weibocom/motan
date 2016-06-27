@@ -1,5 +1,23 @@
 # Change Log
 
+## [0.1.2](https://github.com/weibocom/motan/tree/0.1.2) (2016-06-27)
+[Full Changelog](https://github.com/weibocom/motan/compare/0.1.1...0.1.2)
+
+**Implemented enhancements:**
+
+- support command parse in consul registry [\#96](https://github.com/weibocom/motan/pull/96) ([sunnights](https://github.com/sunnights))
+- - support command parse in zk registry [\#49](https://github.com/weibocom/motan/pull/49) ([sunnights](https://github.com/sunnights))
+- Support direct registry [\#110](https://github.com/weibocom/motan/pull/110) ([qdaxb](https://github.com/qdaxb))
+
+**Fixed bugs:**
+
+- fix bug of lost server node when zookeeper session change [\#133](https://github.com/weibocom/motan/pull/133) ([Ray](https://github.com/rayzhang0603))
+- fix bug of potential overflow of requestId [\#124](https://github.com/weibocom/motan/pull/124) ([Di Tang](https://github.com/tangdi))
+- parsing multi directurl [\#78](https://github.com/weibocom/motan/pull/78) ([Ray](https://github.com/rayzhang0603))
+
+**Merged pull requests:**
+
+
 ## [0.1.1](https://github.com/weibocom/motan/tree/0.1.1) (2016-05-14)
 [Full Changelog](https://github.com/weibocom/motan/compare/0.1.0...0.1.1)
 

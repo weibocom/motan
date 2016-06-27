@@ -14,8 +14,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.util.*;
 
-import static com.weibo.api.motan.registry.consul.ConsulConstants.CONSUL_SERVICE_MOTAN_PRE;
-
 @Service
 @Lazy
 public class ConsulRegistryService implements RegistryService {
@@ -28,6 +26,7 @@ public class ConsulRegistryService implements RegistryService {
 
     /**
      * Unit Test中使用
+     *
      * @param consulClient
      */
     public ConsulRegistryService(ConsulClient consulClient) {
@@ -62,24 +61,24 @@ public class ConsulRegistryService implements RegistryService {
         Set<String> services = new HashSet<String>();
         List<CatalogService> serviceList = getCatalogServicesByGroup(dcGroup);
         for (CatalogService service : serviceList) {
-            services.add(formatServiceName(getDcName(dcGroup), service));
+            services.add(formatServiceName(service));
         }
         return new ArrayList<String>(services);
     }
 
     private List<CatalogService> getCatalogServicesByGroup(String dcGroup) {
         QueryParams queryParams = new QueryParams(getDcName(dcGroup));
-        return consulClient.getCatalogService(CONSUL_SERVICE_MOTAN_PRE + getGroupName(dcGroup), queryParams).getValue();
+        return consulClient.getCatalogService(getGroupName(dcGroup), queryParams).getValue();
     }
 
     @Override
-    public List<JSONObject> getNodes(String dcGroup, String dcService, String nodeType) {
+    public List<JSONObject> getNodes(String dcGroup, String service, String nodeType) {
         List<JSONObject> results = new ArrayList<JSONObject>();
-        List<Check> checks = consulClient.getHealthChecksForService(CONSUL_SERVICE_MOTAN_PRE + getGroupName(dcGroup), new QueryParams(getDcName(dcGroup))).getValue();
+        List<Check> checks = consulClient.getHealthChecksForService(getGroupName(dcGroup), new QueryParams(getDcName(dcGroup))).getValue();
         for (Check check : checks) {
             String serviceId = check.getServiceId();
             String[] strings = serviceId.split("-");
-            if (strings[1].equals(getServiceName(dcService))) {
+            if (strings[1].equals(service)) {
                 Check.CheckStatus status = check.getStatus();
                 JSONObject node = new JSONObject();
                 if (nodeType.equals(status.toString())) {
@@ -110,22 +109,18 @@ public class ConsulRegistryService implements RegistryService {
     }
 
     private String formatGroupName(String dc, String groupName) {
-        return dc + "_" + groupName.substring(CONSUL_SERVICE_MOTAN_PRE.length());
+        return dc + ":" + groupName;
     }
 
-    private String formatServiceName(String dc, CatalogService catalogService) {
-        return dc + "_" + catalogService.getServiceId().split("-")[1];
+    private String formatServiceName(CatalogService catalogService) {
+        return catalogService.getServiceId().split("-")[1];
     }
 
     private String getDcName(String dcString) {
-        return dcString.substring(0, dcString.indexOf("_"));
+        return dcString.substring(0, dcString.indexOf(":"));
     }
 
     private String getGroupName(String dcGroup) {
-        return dcGroup.substring(dcGroup.indexOf("_") + 1);
-    }
-
-    private String getServiceName(String dcService) {
-        return dcService.substring(dcService.indexOf("_") + 1);
+        return dcGroup.substring(dcGroup.indexOf(":") + 1);
     }
 }
