@@ -40,11 +40,6 @@ public class AnnotationRpcServerDemo {
 
     }
 
-//    @Bean
-//    public AnnotationBean motanAnnotationBean() {
-//        AnnotationBean motanAnnotationBean = new AnnotationBean();
-//        return motanAnnotationBean;
-//    }
 
     @Bean(name="demoMotan")
     public ProtocolConfigBean protocolConfig1() {
