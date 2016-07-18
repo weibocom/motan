@@ -9,6 +9,7 @@ import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.config.springsupport.annotation.MotanReferer;
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
+import com.weibo.api.motan.config.springsupport.util.SpringBeanUtil;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -22,8 +23,6 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Field;
@@ -34,16 +33,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.regex.Pattern;
 
 /**
+ * @author fld
+ *
  * Annotation bean for motan
  * <p>
  * <p>
  * Created by fld on 16/5/13.
  */
 public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor, BeanPostProcessor, BeanFactoryAware {
-    public static final Pattern COMMA_SPLIT_PATTERN = Pattern.compile("\\s*[,]+\\s*");
 
 
     private String id;
@@ -214,26 +213,16 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                 }
 
                 if (!StringUtils.isBlank(protocolValue)) {
-                    List<ProtocolConfig> protocolConfigs = new ArrayList<ProtocolConfig>();
-                    String[] protocols = protocolValue.split("\\s*[,]+\\s*");
-                    for (String protocolId : protocols) {
-                        if (protocolId != null && protocolId.length() > 0) {
-                            protocolConfigs.add(beanFactory.getBean(protocolId, ProtocolConfig.class));
-                        }
-                    }
+                    List<ProtocolConfig> protocolConfigs = SpringBeanUtil.getMultiBeans(beanFactory, protocolValue, SpringBeanUtil.COMMA_SPLIT_PATTERN,
+                            ProtocolConfig.class);
                     serviceConfig.setProtocols(protocolConfigs);
                 }
 
 //                String[] methods() default {};
 
                 if (service.registry() != null && service.registry().length() > 0) {
-                    List<RegistryConfig> registryConfigs = new ArrayList<RegistryConfig>();
-                    String[] registries = service.registry().split("\\s*[,]+\\s*");
-                    for (String registryId : registries) {
-                        if (registryId != null && registryId.length() > 0) {
-                            registryConfigs.add(beanFactory.getBean(registryId, RegistryConfig.class));
-                        }
-                    }
+                    List<RegistryConfig> registryConfigs = SpringBeanUtil.getMultiBeans(beanFactory, service.registry
+                            (), SpringBeanUtil.COMMA_SPLIT_PATTERN, RegistryConfig.class);
                     serviceConfig.setRegistries(registryConfigs);
                 }
 
@@ -384,23 +373,9 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
             if (beanFactory != null) {
                 if (reference.protocol() != null && reference.protocol().length() > 0) {
                     //多个PROTOCOL
-                    if (!reference.protocol().contains(",")) {
-                        ProtocolConfig pc = beanFactory.getBean(reference.protocol(), ProtocolConfig.class);
-                        if (pc != null) {
-                            referenceConfig.setProtocol(pc);
-                        }
-                    } else {
-                        String[] values = reference.protocol().split("\\s*[,]+\\s*");
-                        List<ProtocolConfig> protocolConfigs = new ArrayList<ProtocolConfig>();
-                        for (int i = 0; i < values.length; i++) {
-                            String val = values[i];
-                            ProtocolConfig pc = beanFactory.getBean(val, ProtocolConfig.class);
-                            if (pc != null) {
-                                protocolConfigs.add(pc);
-                            }
-                        }
-                        referenceConfig.setProtocols(protocolConfigs);
-                    }
+                    List<ProtocolConfig> protocolConfigs = SpringBeanUtil.getMultiBeans(beanFactory, reference
+                            .protocol(), SpringBeanUtil.COMMA_SPLIT_PATTERN, ProtocolConfig.class);
+                    referenceConfig.setProtocols(protocolConfigs);
                 }
 
                 if (reference.directUrl() != null && reference.directUrl().length() > 0) {
@@ -419,35 +394,12 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
 //                    referenceConfig.setC(reference.client());
                 }
 
-                if (reference.throwException()) {
-                    referenceConfig.setThrowException(true);
-                }
-
-                if (reference.shareChannel()) {
-                    referenceConfig.setShareChannel(true);
-                }
-
-                if (reference.protocol() != null && reference.protocol().length() > 0) {
-                    List<ProtocolConfig> protocolConfigs = new ArrayList<ProtocolConfig>();
-                    String[] protocols = reference.protocol().split("\\s*[,]+\\s*");
-                    for (String protocolId : protocols) {
-                        if (protocolId != null && protocolId.length() > 0) {
-                            protocolConfigs.add(beanFactory.getBean(protocolId, ProtocolConfig.class));
-                        }
-                    }
-                    referenceConfig.setProtocols(protocolConfigs);
-                }
 
 //                String[] methods() default {};
 
                 if (reference.registry() != null && reference.registry().length() > 0) {
-                    List<RegistryConfig> registryConfigs = new ArrayList<RegistryConfig>();
-                    String[] registries = reference.registry().split("\\s*[,]+\\s*");
-                    for (String registryId : registries) {
-                        if (registryId != null && registryId.length() > 0) {
-                            registryConfigs.add(beanFactory.getBean(registryId, RegistryConfig.class));
-                        }
-                    }
+                    List<RegistryConfig> registryConfigs = SpringBeanUtil.getMultiBeans(beanFactory, reference
+                            .registry(), SpringBeanUtil.COMMA_SPLIT_PATTERN, RegistryConfig.class);
                     referenceConfig.setRegistries(registryConfigs);
                 }
 
@@ -491,7 +443,6 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                     referenceConfig.setMock(reference.mock());
                 }
 
-                // 是否共享 channel
                 if (reference.shareChannel()) {
                     referenceConfig.setShareChannel(reference.shareChannel());
                 }
@@ -586,7 +537,7 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
     public void setPackage(String annotationPackage) {
         this.annotationPackage = annotationPackage;
         this.annotationPackages = (annotationPackage == null || annotationPackage.length() == 0) ? null
-                : COMMA_SPLIT_PATTERN.split(annotationPackage);
+                : annotationPackage.split(SpringBeanUtil.COMMA_SPLIT_PATTERN);
     }
 
     public String getId() {

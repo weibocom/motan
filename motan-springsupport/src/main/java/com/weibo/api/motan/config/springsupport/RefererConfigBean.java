@@ -16,23 +16,22 @@
 
 package com.weibo.api.motan.config.springsupport;
 
-import com.weibo.api.motan.config.BasicServiceInterfaceConfig;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.InitializingBean;
-
 import com.weibo.api.motan.config.BasicRefererInterfaceConfig;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
 
 import java.util.Arrays;
+
 
 public class RefererConfigBean<T> extends RefererConfig<T> implements FactoryBean<T>, BeanFactoryAware, InitializingBean, DisposableBean {
 

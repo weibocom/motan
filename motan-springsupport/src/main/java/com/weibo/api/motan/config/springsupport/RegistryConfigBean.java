@@ -39,7 +39,11 @@ import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.MathUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
-
+/**
+ * @author fld
+ *
+ * Created by fld on 16/5/13.
+ */
 public class RegistryConfigBean extends RegistryConfig implements BeanNameAware {
 
     @Override

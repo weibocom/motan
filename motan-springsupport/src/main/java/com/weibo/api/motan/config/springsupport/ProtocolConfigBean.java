@@ -40,6 +40,11 @@ import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.MathUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
+/**
+ * @author fld
+ *
+ * Created by fld on 16/5/13.
+ */
 public class ProtocolConfigBean extends ProtocolConfig implements BeanNameAware {
 
     @Override

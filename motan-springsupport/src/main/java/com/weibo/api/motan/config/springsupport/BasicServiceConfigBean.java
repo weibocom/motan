@@ -20,18 +20,21 @@ import com.weibo.api.motan.config.BasicServiceInterfaceConfig;
 import com.weibo.api.motan.config.ConfigUtil;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RegistryConfig;
+import com.weibo.api.motan.config.springsupport.util.SpringBeanUtil;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.core.annotation.Order;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * @author fld
+ *         <p>
+ *         Created by fld on 16/5/13.
+ */
 public class BasicServiceConfigBean extends BasicServiceInterfaceConfig implements BeanNameAware,
         InitializingBean, BeanFactoryAware {
 
@@ -60,37 +63,25 @@ public class BasicServiceConfigBean extends BasicServiceInterfaceConfig implemen
         setProtocols(extractProtocols(protocol, beanFactory));
     }
 
-    public  List<ProtocolConfig> extractProtocols(String protocols, BeanFactory beanFactory) {
+    public List<ProtocolConfig> extractProtocols(String protocols, BeanFactory beanFactory) {
         if (protocols != null && protocols.length() > 0) {
-            if (!protocols.contains(",")) {
-                ProtocolConfig protocolConfig = beanFactory.getBean(protocols, ProtocolConfig.class);
-                return Collections.singletonList(protocolConfig);
-            } else {
-                String[] values = protocols.split("\\s*[,]+\\s*");
-                List<ProtocolConfig> protocolConfigList = new ArrayList<ProtocolConfig>();
-                for (String proto : values) {
-                    ProtocolConfig protocolConfig = beanFactory.getBean(proto, ProtocolConfig.class);
-                    protocolConfigList.add(protocolConfig);
-                }
-                return protocolConfigList;
-            }
+            List<ProtocolConfig> protocolConfigList = SpringBeanUtil.getMultiBeans(beanFactory, protocols,
+                    SpringBeanUtil.COMMA_SPLIT_PATTERN, ProtocolConfig.class);
+
+            return protocolConfigList;
         } else {
             return null;
         }
     }
 
-    public  List<RegistryConfig> extractRegistries(String registries, BeanFactory beanFactory) {
+    public List<RegistryConfig> extractRegistries(String registries, BeanFactory beanFactory) {
         if (registries != null && registries.length() > 0) {
             if (!registries.contains(",")) {
                 RegistryConfig registryConfig = beanFactory.getBean(registries, RegistryConfig.class);
                 return Collections.singletonList(registryConfig);
             } else {
-                String[] names = registries.split("\\s*[,]+\\s*");
-                List<RegistryConfig> registryConfigList = new ArrayList<RegistryConfig>();
-                for (String registryName : names) {
-                    RegistryConfig registryConfig = beanFactory.getBean(registryName, RegistryConfig.class);
-                    registryConfigList.add(registryConfig);
-                }
+                List<RegistryConfig> registryConfigList = SpringBeanUtil.getMultiBeans(beanFactory, registries,
+                        SpringBeanUtil.COMMA_SPLIT_PATTERN, RegistryConfig.class);
                 return registryConfigList;
             }
         } else {
@@ -107,7 +98,7 @@ public class BasicServiceConfigBean extends BasicServiceInterfaceConfig implemen
         setCheck(String.valueOf(value));
     }
 
-    public void setAccessLog(boolean value){
+    public void setAccessLog(boolean value) {
         setAccessLog(String.valueOf(value));
     }
 }
