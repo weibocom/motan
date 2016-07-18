@@ -65,6 +65,8 @@ public class ConfigUtil {
                     int port = MathUtil.parseInt(ppDetail[0], 0);
                     if(port <= 0){
                         throw new MotanServiceException("Export is malformed :" + export);
+                    }else{
+                        pps.put(MotanConstants.PROTOCOL_MOTAN, port);
                     }
                 }
                 

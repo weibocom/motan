@@ -17,6 +17,8 @@
 package com.weibo.api.motan.config.springsupport;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
@@ -30,6 +32,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.config.BasicServiceInterfaceConfig;
+import com.weibo.api.motan.config.ConfigUtil;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.config.ServiceConfig;
@@ -122,10 +125,22 @@ public class ServiceConfigBean<T> extends ServiceConfig<T>
             }
         }
         if(CollectionUtil.isEmpty(getProtocols()) && StringUtils.isNotEmpty(getExport())){
-            int port = MathUtil.parseInt(export, 0);
-            if(port > 0){
-                export = MotanConstants.PROTOCOL_MOTAN + ":" + export;
-                setProtocol(MotanFrameworkUtil.getDefaultProtocolConfig());
+            Map<String, Integer> exportMap = ConfigUtil.parseExport(export);
+            if(!exportMap.isEmpty()){
+                List<ProtocolConfig> protos = new ArrayList<ProtocolConfig>();
+                for (String p : exportMap.keySet()) {
+                    ProtocolConfig proto = beanFactory.getBean(p, ProtocolConfig.class);
+                    if(proto == null){
+                        if(MotanConstants.PROTOCOL_MOTAN.equals(p)){
+                            proto = MotanFrameworkUtil.getDefaultProtocolConfig();
+                        } else{
+                            throw new MotanFrameworkException(String.format("cann't find %s ProtocolConfig bean! export:%s", p, export),
+                                MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
+                        }
+                    }
+                    protos.add(proto);
+                }
+                setProtocols(protos);
             }
         }
         if (StringUtils.isEmpty(getExport()) || CollectionUtil.isEmpty(getProtocols())) {
