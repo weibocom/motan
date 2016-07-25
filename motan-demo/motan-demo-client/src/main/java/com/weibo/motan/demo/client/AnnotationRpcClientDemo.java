@@ -16,16 +16,17 @@
 
 package com.weibo.motan.demo.client;
 
-import com.weibo.api.motan.config.springsupport.AnnotationBean;
 import com.weibo.api.motan.config.springsupport.BasicRefererConfigBean;
 import com.weibo.api.motan.config.springsupport.ProtocolConfigBean;
 import com.weibo.api.motan.config.springsupport.RegistryConfigBean;
+import com.weibo.api.motan.config.springsupport.annotation.EnableMotan;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 @Configuration
+@EnableMotan(packages = "com.weibo.motan.demo.client")
 public class AnnotationRpcClientDemo {
 
     public static void main(String[] args) throws InterruptedException {

@@ -24,5 +24,5 @@
        http://www.springframework.org/schema/context/spring-context-2.5.xsd">
 
     <context:component-scan base-package="com.weibo.motan.demo"/>
-    <motan:annotation />
+    <!--<motan:annotation />-->
 </beans>

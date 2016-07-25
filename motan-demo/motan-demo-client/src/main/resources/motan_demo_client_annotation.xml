@@ -25,5 +25,5 @@
 
     <context:component-scan base-package="com.weibo.motan.demo"/>
 
-    <motan:annotation package="com.weibo.motan.demo.client"/>
+    <!--<motan:annotation package="com.weibo.motan.demo.client"/>-->
 </beans>
