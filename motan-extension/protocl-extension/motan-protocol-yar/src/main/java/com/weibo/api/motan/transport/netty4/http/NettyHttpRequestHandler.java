@@ -91,12 +91,18 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
         if (threadPoolExecutor == null) {
             processHttpRequest(ctx, httpRequest);
         } else {
-            threadPoolExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    processHttpRequest(ctx, httpRequest);
-                }
-            });
+            try{
+                threadPoolExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        processHttpRequest(ctx, httpRequest);
+                    }
+                });
+            }catch(Exception e){
+                LoggerUtil.error("request is rejected by threadpool!", e);
+                httpRequest.content().release();
+                sendResponse(ctx, buildErrorResponse("request is rejected by threadpool!"));
+            }
         }
     }
 

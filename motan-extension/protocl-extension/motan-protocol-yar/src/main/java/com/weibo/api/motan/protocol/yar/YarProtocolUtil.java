@@ -61,6 +61,9 @@ public class YarProtocolUtil {
         request.setMethodName(yarRequest.getMethodName());
         request.setRequestId(yarRequest.getId());
         addArguments(request, interfaceClass, yarRequest.getMethodName(), yarRequest.getParameters());
+        if(yarRequest instanceof AttachmentRequest){
+            request.setAttachments(((AttachmentRequest)yarRequest).getAttachments());
+        }
         return request;
     }
 

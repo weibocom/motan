@@ -24,8 +24,11 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.protocol.yar.AttachmentRequest;
 import com.weibo.api.motan.protocol.yar.YarMessageRouter;
 import com.weibo.api.motan.protocol.yar.YarProtocolUtil;
 import com.weibo.api.motan.transport.Channel;
@@ -62,14 +65,23 @@ public class YarMessageHandlerWarpper implements MessageHandler {
     @Override
     public Object handle(Channel channel, Object message) {
         FullHttpRequest httpRequest = (FullHttpRequest) message;
-        final String requestPath = httpRequest.getUri();
+        String uri = httpRequest.getUri();
+        int index = uri.indexOf("?");// should not be null
+        String requestPath = uri;
+        Map<String, String> attachments = null;
+        if (index > -1) {
+            requestPath = uri.substring(0, index);
+            if (index != uri.length() - 1) {
+                attachments = getAttachMents(uri.substring(index + 1, uri.length()));
+            }
+        }
         YarResponse yarResponse = null;
         String packagerName = "JSON";
         try {
             ByteBuf buf = httpRequest.content();
             final byte[] contentBytes = new byte[buf.readableBytes()];
             buf.getBytes(0, contentBytes);
-            YarRequest yarRequest = YarProtocol.buildRequest(contentBytes);
+            YarRequest yarRequest = new AttachmentRequest(YarProtocol.buildRequest(contentBytes), attachments);
             yarRequest.setRequestPath(requestPath);
             yarResponse = (YarResponse) orgHandler.handle(channel, yarRequest);
 
@@ -90,11 +102,25 @@ public class YarMessageHandlerWarpper implements MessageHandler {
 
         if (HttpHeaders.isKeepAlive(httpRequest)) {
             httpResponse.headers().set(HttpHeaders.Names.CONNECTION, Values.KEEP_ALIVE);
-        }else{
+        } else {
             httpResponse.headers().set(HttpHeaders.Names.CONNECTION, Values.CLOSE);
         }
 
         return httpResponse;
+    }
+
+    private Map<String, String> getAttachMents(String params) {
+        Map<String, String> map = new HashMap<String, String>();
+        String[] paramArray = params.split("&");
+        for (String param : paramArray) {
+            String[] kv = param.split("=");
+            if (kv.length == 2) {
+                map.put(kv[0], kv[1]);
+            } else {
+                LoggerUtil.warn("yar attachment parse fail. uri param:" + param);
+            }
+        }
+        return map;
     }
 
 }
