@@ -48,10 +48,11 @@ public class YarExporter<T> extends AbstractExporter<T> {
         if (heartbeatFactory == null) {
             url.addParameter(URLParamType.heartbeatFactory.getName(), "noHeartbeat");
         }
-        //FIXME 弱类型语言转换可能出现歧义，暂时通过限制同名方法参数个数不能相同避免。
+        // FIXME to avoid parameters ambiguous in weak type language，parameters size of method with
+        // same name must be different.
         validateInterface(provider.getInterface());
         server = endpointFactory.createServer(url, yarProtocol.initRequestRouter(url, provider));
-        
+
     }
 
 
@@ -74,19 +75,19 @@ public class YarExporter<T> extends AbstractExporter<T> {
     protected boolean doInit() {
         return server.open();
     }
-    
-    protected void validateInterface(Class<?> interfaceClazz){
+
+    protected void validateInterface(Class<?> interfaceClazz) {
         HashMap<String, List<Integer>> tempMap = new HashMap<String, List<Integer>>();
-        for(Method m : interfaceClazz.getDeclaredMethods()){
-            if(!tempMap.containsKey(m.getName())){
+        for (Method m : interfaceClazz.getDeclaredMethods()) {
+            if (!tempMap.containsKey(m.getName())) {
                 List<Integer> templist = new ArrayList<Integer>();
                 templist.add(m.getParameterTypes().length);
                 tempMap.put(m.getName(), templist);
-            }else{
+            } else {
                 List<Integer> templist = tempMap.get(m.getName());
-                if(templist.contains(m.getParameterTypes().length)){
+                if (templist.contains(m.getParameterTypes().length)) {
                     throw new MotanFrameworkException("in yar protocol, methods with same name must have different params size !");
-                }else{
+                } else {
                     templist.add(m.getParameterTypes().length);
                 }
             }

@@ -41,7 +41,7 @@ public class YarMessageRouter extends ProviderProtectedMessageRouter {
         String packagerName = yarRequest.getPackagerName();
         Provider<?> provider = providerMap.get(yarRequest.getRequestPath());
         if (provider == null) {
-            throw new MotanServiceException("can nor find service provider. request path:" + yarRequest.getRequestPath());
+            throw new MotanServiceException("can not find service provider. request path:" + yarRequest.getRequestPath());
         }
         Class<?> clazz = provider.getInterface();
         Request request = YarProtocolUtil.convert(yarRequest, clazz);

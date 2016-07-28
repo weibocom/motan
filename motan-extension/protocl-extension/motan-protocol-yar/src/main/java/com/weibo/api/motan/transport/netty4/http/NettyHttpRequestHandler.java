@@ -27,6 +27,7 @@ import io.netty.handler.codec.http.HttpVersion;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
+import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.LoggerUtil;
@@ -48,7 +49,7 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
     private Channel serverChannel;
     private ThreadPoolExecutor threadPoolExecutor;
     private MessageHandler messageHandler;
-    protected String swictherName = "feature.configserver.heartbeat";
+    protected String swictherName = MotanConstants.REGISTRY_HEARTBEAT_SWITCHER;
     
     
 
@@ -121,14 +122,16 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
     }
 
     private void sendResponse(ChannelHandlerContext ctx, FullHttpResponse httpResponse){
+        boolean close = false;
         try {
             ctx.write(httpResponse);
             ctx.flush();
         } catch (Exception e) {
             LoggerUtil.error("NettyHttpHandler write response fail.", e);
+            close = true;
         } finally {
-            // 关闭链接
-            if (httpResponse == null || !Values.KEEP_ALIVE.equals(httpResponse.headers().get(HttpHeaders.Names.CONNECTION))) {
+            // close connection
+            if (close || httpResponse == null || !Values.KEEP_ALIVE.equals(httpResponse.headers().get(HttpHeaders.Names.CONNECTION))) {
                 ctx.close();
             }
         }
@@ -146,7 +149,7 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
     }
     
     /**
-     * 判断服务开关状态，关闭时返回503
+     * is service switcher close. http status will be 503 when switcher is close
      * @return
      */
     protected boolean isSwitchOpen(){

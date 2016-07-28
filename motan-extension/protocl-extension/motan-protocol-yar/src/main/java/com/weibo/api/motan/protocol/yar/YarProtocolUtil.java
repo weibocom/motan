@@ -28,15 +28,16 @@ import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.ReflectUtil;
 import com.weibo.yar.YarRequest;
 import com.weibo.yar.YarResponse;
+
 /**
  * 
- * @Description yar protocol util. 
+ * @Description yar protocol util.
  * @author zhanglei
  * @date 2016年6月8日
  *
  */
 public class YarProtocolUtil {
-    // 如果接口类有
+
     public static String getYarPath(Class<?> interfaceClazz, URL url) {
         if (interfaceClazz != null) {
             YarConfig config = interfaceClazz.getAnnotation(YarConfig.class);
@@ -44,12 +45,12 @@ public class YarProtocolUtil {
                 return config.path();
             }
         }
-        // 默认使用/group/urlpath
+        // '/group/urlpath' as default
         return "/" + url.getGroup() + "/" + url.getPath();
     }
 
     /**
-     * 转换yar请求为motan rpc请求。 由于php类型不敏感，故转换请求时只判断方法名和参数个数是否相等。相等时尝试转换为对应类型。
+     * convert yar request to motan rpc request
      * 
      * @param yarRequest
      * @param interfaceClass
@@ -61,13 +62,13 @@ public class YarProtocolUtil {
         request.setMethodName(yarRequest.getMethodName());
         request.setRequestId(yarRequest.getId());
         addArguments(request, interfaceClass, yarRequest.getMethodName(), yarRequest.getParameters());
-        if(yarRequest instanceof AttachmentRequest){
-            request.setAttachments(((AttachmentRequest)yarRequest).getAttachments());
+        if (yarRequest instanceof AttachmentRequest) {
+            request.setAttachments(((AttachmentRequest) yarRequest).getAttachments());
         }
         return request;
     }
 
-    public static YarRequest convert(Request request, Class<?> interfaceClass, String packagerName) {
+    public static YarRequest convert(Request request, String packagerName) {
         YarRequest yarRequest = new YarRequest();
         yarRequest.setId(request.getRequestId());
         yarRequest.setMethodName(request.getMethodName());
@@ -92,12 +93,12 @@ public class YarProtocolUtil {
         yarResponse.setId(response.getRequestId());
         yarResponse.setPackagerName(packagerName);
         if (response.getException() != null) {
-            if(response.getException() instanceof MotanBizException){
+            if (response.getException() instanceof MotanBizException) {
                 yarResponse.setError(response.getException().getCause().getMessage());
-            }else{
+            } else {
                 yarResponse.setError(response.getException().getMessage());
             }
-        }else{
+        } else {
             yarResponse.setRet(response.getValue());
         }
 
@@ -105,7 +106,7 @@ public class YarProtocolUtil {
     }
 
     /**
-     * 给Request添加请求参数相关信息。
+     * add arguments
      * 
      * @param interfaceClass
      * @param methodName
@@ -114,10 +115,10 @@ public class YarProtocolUtil {
      */
     private static void addArguments(DefaultRequest request, Class<?> interfaceClass, String methodName, Object[] arguments) {
         Method targetMethod = null;
-        // TODO 是否需要缓存
         Method[] methods = interfaceClass.getDeclaredMethods();
         for (Method m : methods) {
-            //FIXME 弱类型语言转换可能出现歧义，暂时通过限制同名方法参数个数不能相同避免。
+            // FIXME parameters may be ambiguous in weak type language, temporarily by limiting the
+            // size of parameters with same method name to avoid.
             if (m.getName().equalsIgnoreCase(methodName) && m.getParameterTypes().length == arguments.length) {
                 targetMethod = m;
                 break;
@@ -146,66 +147,67 @@ public class YarProtocolUtil {
     }
 
 
-    // 参数适配为java对应类型
+    // adapt parameters to java class type
     private static Object[] adaptParams(Method method, Object[] arguments, Class<?>[] argumentClazz) {
-        //FIXME php调用时，如果不显示使用数字类型，参数可能为string，需要对java类型做兼容。
-        //形参可能是基本类型或对象，实参一定是对象。有没有更优雅的兼容方式？
+        // FIXME the real parameter type may not same with formal parameter, for instance, formal
+        // parameter type is int, the real parameter maybe use String in php
+        // any elegant way?
         for (int i = 0; i < argumentClazz.length; i++) {
-            try{
-                if("int".equals(argumentClazz[i].getName()) || "java.lang.Integer".equals(argumentClazz[i].getName())){
-                    if(arguments[i] == null){
-                        arguments[i] = 0;//default
-                    }else if(arguments[i] instanceof String){
+            try {
+                if ("int".equals(argumentClazz[i].getName()) || "java.lang.Integer".equals(argumentClazz[i].getName())) {
+                    if (arguments[i] == null) {
+                        arguments[i] = 0;// default
+                    } else if (arguments[i] instanceof String) {
                         arguments[i] = Integer.parseInt((String) arguments[i]);
-                    }else if(arguments[i] instanceof Number){
-                        arguments[i] = ((Number)arguments[i]).intValue();
-                    }else{
+                    } else if (arguments[i] instanceof Number) {
+                        arguments[i] = ((Number) arguments[i]).intValue();
+                    } else {
                         throw new RuntimeException();
                     }
-                } else if("long".equals(argumentClazz[i].getName()) || "java.lang.Long".equals(argumentClazz[i].getName())){
-                    if(arguments[i] == null){
-                        arguments[i] = 0;//default
-                    }else if(arguments[i] instanceof String){
+                } else if ("long".equals(argumentClazz[i].getName()) || "java.lang.Long".equals(argumentClazz[i].getName())) {
+                    if (arguments[i] == null) {
+                        arguments[i] = 0;// default
+                    } else if (arguments[i] instanceof String) {
                         arguments[i] = Long.parseLong((String) arguments[i]);
-                    }else if(arguments[i] instanceof Number){
-                        arguments[i] = ((Number)arguments[i]).longValue();
-                    }else{
+                    } else if (arguments[i] instanceof Number) {
+                        arguments[i] = ((Number) arguments[i]).longValue();
+                    } else {
                         throw new RuntimeException();
                     }
-                }else if("float".equals(argumentClazz[i].getName()) || "java.lang.Float".equals(argumentClazz[i].getName())){
-                    if(arguments[i] == null){
-                        arguments[i] = 0.0f;//default
-                    }else if(arguments[i] instanceof String){
+                } else if ("float".equals(argumentClazz[i].getName()) || "java.lang.Float".equals(argumentClazz[i].getName())) {
+                    if (arguments[i] == null) {
+                        arguments[i] = 0.0f;// default
+                    } else if (arguments[i] instanceof String) {
                         arguments[i] = Float.parseFloat((String) arguments[i]);
-                    }else if(arguments[i] instanceof Number){
-                        arguments[i] = ((Number)arguments[i]).floatValue();
-                    }else{
+                    } else if (arguments[i] instanceof Number) {
+                        arguments[i] = ((Number) arguments[i]).floatValue();
+                    } else {
                         throw new RuntimeException();
                     }
-                }else if("double".equals(argumentClazz[i].getName()) || "java.lang.Double".equals(argumentClazz[i].getName())){
-                    if(arguments[i] == null){
-                        arguments[i] = 0.0f;//default
-                    }else if(arguments[i] instanceof String){
+                } else if ("double".equals(argumentClazz[i].getName()) || "java.lang.Double".equals(argumentClazz[i].getName())) {
+                    if (arguments[i] == null) {
+                        arguments[i] = 0.0f;// default
+                    } else if (arguments[i] instanceof String) {
                         arguments[i] = Double.parseDouble((String) arguments[i]);
-                    }else if(arguments[i] instanceof Number){
-                        arguments[i] = ((Number)arguments[i]).doubleValue();
-                    }else{
+                    } else if (arguments[i] instanceof Number) {
+                        arguments[i] = ((Number) arguments[i]).doubleValue();
+                    } else {
                         throw new RuntimeException();
                     }
-                }else if("boolean".equals(argumentClazz[i].getName()) || "java.lang.Boolean".equals(argumentClazz[i].getName())){
-                    if(arguments[i] instanceof Boolean){
+                } else if ("boolean".equals(argumentClazz[i].getName()) || "java.lang.Boolean".equals(argumentClazz[i].getName())) {
+                    if (arguments[i] instanceof Boolean) {
                         continue;
                     }
-                    if(arguments[i] instanceof String){
+                    if (arguments[i] instanceof String) {
                         arguments[i] = Boolean.valueOf(((String) arguments[i]));
-                    }else {
+                    } else {
                         throw new RuntimeException();
                     }
                 }
-            }catch(Exception e){
-                throw new MotanServiceException("adapt param fail! method:" + method.toString() 
-                    + ", require param:" + argumentClazz[i].getName() 
-                    + ", actual param:" + (arguments[i] == null ? null : arguments[i].getClass().getName() + "-" + arguments[i]));
+            } catch (Exception e) {
+                throw new MotanServiceException("adapt param fail! method:" + method.toString() + ", require param:"
+                        + argumentClazz[i].getName() + ", actual param:"
+                        + (arguments[i] == null ? null : arguments[i].getClass().getName() + "-" + arguments[i]));
             }
         }
         return arguments;
