@@ -24,6 +24,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>serialization-extension</module>
-        <module>protocl-extension</module>
+        <module>protocol-extension</module>
     </modules>
 </project>
