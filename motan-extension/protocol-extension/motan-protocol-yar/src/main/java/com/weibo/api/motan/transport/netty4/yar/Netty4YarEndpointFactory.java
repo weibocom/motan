@@ -14,6 +14,7 @@
 package com.weibo.api.motan.transport.netty4.yar;
 
 import com.weibo.api.motan.core.extension.SpiMeta;
+import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.Client;
 import com.weibo.api.motan.transport.MessageHandler;
@@ -25,7 +26,7 @@ import com.weibo.api.motan.transport.support.AbstractEndpointFactory;
  * 
  * @Description yar endpoint factory use netty4
  * @author zhanglei
- * @date 2016年5月31日
+ * @date 2016-5-31
  *
  */
 @SpiMeta(name = "netty4yar")
@@ -38,8 +39,8 @@ public class Netty4YarEndpointFactory extends AbstractEndpointFactory {
 
     @Override
     protected Client innerCreateClient(URL url) {
-        // TODO Auto-generated method stub
-        return null;
+        // TODO 
+        throw new MotanFrameworkException("not yet implemented!");
     }
 
 }

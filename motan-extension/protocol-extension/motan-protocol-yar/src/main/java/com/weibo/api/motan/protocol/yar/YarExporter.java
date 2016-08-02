@@ -31,7 +31,7 @@ import com.weibo.api.motan.transport.Server;
  * 
  * @Description YarExporter
  * @author zhanglei
- * @date 2016年5月31日
+ * @date 2016-5-31
  *
  */
 public class YarExporter<T> extends AbstractExporter<T> {

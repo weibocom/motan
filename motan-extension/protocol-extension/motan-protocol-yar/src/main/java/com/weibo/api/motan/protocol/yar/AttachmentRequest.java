@@ -22,7 +22,7 @@ import com.weibo.yar.YarRequest;
  * @Description YarRequest with attachments. rpc attachments such as auth，application can pass with
  *              this class.
  * @author zhanglei
- * @date 2016年7月26日
+ * @date 2016-7-26
  *
  */
 public class AttachmentRequest extends YarRequest {

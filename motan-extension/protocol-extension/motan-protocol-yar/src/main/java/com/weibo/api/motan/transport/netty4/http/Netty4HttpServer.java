@@ -49,10 +49,10 @@ import com.weibo.api.motan.util.StatsUtil;
  * 
  * @Description netty 4 http server.
  * @author zhanglei
- * @date 2016年5月31日
+ * @date 2016-5-31
  *
  */
-// TODO 后续移到transport netty4 模块
+// TODO move to transport netty4 module
 public class Netty4HttpServer extends AbstractServer implements StatisticCallback {
     private MessageHandler messageHandler;
     private URL url;

@@ -33,7 +33,7 @@ import com.weibo.yar.YarResponse;
  * 
  * @Description yar protocol util.
  * @author zhanglei
- * @date 2016年6月8日
+ * @date 2016-6-8
  *
  */
 public class YarProtocolUtil {

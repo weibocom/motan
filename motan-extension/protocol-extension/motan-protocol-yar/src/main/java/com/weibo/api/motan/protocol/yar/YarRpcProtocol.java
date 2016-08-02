@@ -16,6 +16,7 @@ package com.weibo.api.motan.protocol.yar;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.weibo.api.motan.core.extension.SpiMeta;
+import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.protocol.AbstractProtocol;
 import com.weibo.api.motan.rpc.Exporter;
 import com.weibo.api.motan.rpc.Provider;
@@ -29,7 +30,7 @@ import com.weibo.api.motan.util.MotanFrameworkUtil;
  * 
  * @Description yar rpc protocol
  * @author zhanglei
- * @date 2016年5月25日
+ * @date 2016-5-25
  *
  */
 @SpiMeta(name = "yar")
@@ -44,8 +45,8 @@ public class YarRpcProtocol extends AbstractProtocol {
 
     @Override
     protected <T> Referer<T> createReferer(Class<T> clz, URL url, URL serviceUrl) {
-        // TODO Auto-generated method stub
-        return null;
+        //TODO
+        throw new MotanFrameworkException("not yet implemented!");
     }
 
     public ProviderMessageRouter initRequestRouter(URL url, Provider<?> provider) {

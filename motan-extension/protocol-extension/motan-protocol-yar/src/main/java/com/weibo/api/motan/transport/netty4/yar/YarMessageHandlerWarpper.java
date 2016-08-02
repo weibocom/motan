@@ -42,7 +42,7 @@ import com.weibo.yar.YarResponse;
  * 
  * @Description wrapper to process yar message
  * @author zhanglei
- * @date 2016年5月31日
+ * @date 2016-5-31
  *
  */
 public class YarMessageHandlerWarpper implements MessageHandler {

@@ -22,7 +22,7 @@ import com.weibo.api.motan.transport.MessageHandler;
  * 
  * @Description no heartbeatFactory
  * @author zhanglei
- * @date 2016年6月8日
+ * @date 2016-6-8
  *
  */
 @SpiMeta(name = "noHeartbeat")

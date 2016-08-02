@@ -37,7 +37,7 @@ import com.weibo.api.motan.util.MotanSwitcherUtil;
  * 
  * @Description http request handler for netty4
  * @author zhanglei
- * @date 2016年5月31日
+ * @date 2016-5-31
  *
  */
 

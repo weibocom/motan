@@ -22,16 +22,16 @@ import java.lang.annotation.Target;
 
 /**
  * 
- * @Description yar rpc 配置
+ * @Description yar rpc config
  * @author zhanglei
- * @date 2016年6月7日
+ * @date 2016-6-7
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 public @interface YarConfig {
     /**
-     * yar rpc 的request path
+     * yar rpc request path
      * @return path
      */
     String path() default "";
