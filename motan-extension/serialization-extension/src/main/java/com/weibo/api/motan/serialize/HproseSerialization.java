@@ -19,14 +19,16 @@ package com.weibo.api.motan.serialize;
 import com.weibo.api.motan.codec.Serialization;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import hprose.io.ByteBufferStream;
-import hprose.io.HproseFormatter;
+import hprose.io.HproseReader;
+import hprose.io.HproseWriter;
 import java.io.IOException;
 
 /**
- * hprose 序列化，要求序列化的对象实现 java.io.Serializable 接口
+ * hprose 序列化，不要求序列化的对象实现 java.io.Serializable 接口，
+ * 但序列化的字段需要是 public 的，或者定义有 public 的 setter 和 getter 方法。
  *
  * @author mabingyao
- * @version 创建时间：2016-7-30
+ * @version 创建时间：2016-8-11
  *
  */
 @SpiMeta(name = "hprose")
@@ -34,7 +36,9 @@ public class HproseSerialization implements Serialization {
 
     @Override
     public byte[] serialize(Object data) throws IOException {
-        ByteBufferStream stream = HproseFormatter.serialize(data);
+        ByteBufferStream stream = new ByteBufferStream();
+        HproseWriter writer = new HproseWriter(stream.getOutputStream());
+        writer.serialize(data);
         byte[] result = stream.toArray();
         stream.close();
         return result;
@@ -43,6 +47,6 @@ public class HproseSerialization implements Serialization {
     @SuppressWarnings("unchecked")
     @Override
     public <T> T deserialize(byte[] data, Class<T> clz) throws IOException {
-        return HproseFormatter.unserialize(data, clz);
+        return new HproseReader(data).unserialize(clz);
     }
 }
