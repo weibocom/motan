@@ -17,8 +17,11 @@
 package com.weibo.api.motan.config.springsupport;
 
 import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
+
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
@@ -26,6 +29,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -39,16 +43,15 @@ import com.weibo.api.motan.config.ServiceConfig;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.util.CollectionUtil;
-import com.weibo.api.motan.util.MathUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 public class ServiceConfigBean<T> extends ServiceConfig<T>
         implements
-            BeanPostProcessor,
-            BeanFactoryAware,
-            InitializingBean,
-            DisposableBean,
-            ApplicationListener<ContextRefreshedEvent> {
+        BeanPostProcessor,
+        BeanFactoryAware,
+        InitializingBean,
+        DisposableBean,
+        ApplicationListener<ContextRefreshedEvent> {
 
     private static final long serialVersionUID = -7247592395983804440L;
 
@@ -99,6 +102,15 @@ public class ServiceConfigBean<T> extends ServiceConfig<T>
      */
     private void checkAndConfigBasicConfig() {
         if (getBasicServiceConfig() == null) {
+            if (MotanNamespaceHandler.basicServiceConfigDefineNames.size() == 0) {
+                if (beanFactory instanceof ListableBeanFactory) {
+                    ListableBeanFactory listableBeanFactory = (ListableBeanFactory) beanFactory;
+                    String[] basicServiceConfigNames = listableBeanFactory.getBeanNamesForType
+                            (BasicServiceInterfaceConfig
+                                    .class);
+                    MotanNamespaceHandler.basicServiceConfigDefineNames.addAll(Arrays.asList(basicServiceConfigNames));
+                }
+            }
             for (String name : MotanNamespaceHandler.basicServiceConfigDefineNames) {
                 BasicServiceInterfaceConfig biConfig = beanFactory.getBean(name, BasicServiceInterfaceConfig.class);
                 if (biConfig == null) {
@@ -124,6 +136,7 @@ public class ServiceConfigBean<T> extends ServiceConfig<T>
                 setProtocols(new ArrayList<ProtocolConfig>(getBasicServiceConfig().getProtocols()));
             }
         }
+
         if(CollectionUtil.isEmpty(getProtocols()) && StringUtils.isNotEmpty(getExport())){
             Map<String, Integer> exportMap = ConfigUtil.parseExport(export);
             if(!exportMap.isEmpty()){

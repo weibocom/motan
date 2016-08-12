@@ -43,6 +43,7 @@ public class MotanNamespaceHandler extends NamespaceHandlerSupport {
         registerBeanDefinitionParser("basicService", new MotanBeanDefinitionParser(BasicServiceInterfaceConfig.class, true));
         registerBeanDefinitionParser("basicReferer", new MotanBeanDefinitionParser(BasicRefererInterfaceConfig.class, true));
         registerBeanDefinitionParser("spi", new MotanBeanDefinitionParser(SpiConfigBean.class, true));
+        registerBeanDefinitionParser("annotation", new MotanBeanDefinitionParser(AnnotationBean.class, true));
         Initializable initialization = new InitializationFactory().getInitialization();
         initialization.init();
     }

@@ -1,5 +1,20 @@
 # Change Log
 
+## [0.2.0](https://github.com/weibocom/motan/tree/0.2.0) (2016-08-05)
+[Full Changelog](https://github.com/weibocom/motan/compare/0.1.2...0.2.0)
+
+**Implemented enhancements:**
+
+- support yar protocol [\#160](https://github.com/weibocom/motan/pull/160) ([Ray](https://github.com/rayzhang0603))
+
+**Fixed bugs:**
+
+- fix bug of LocalFirstLoadBalance referer select [\#155](https://github.com/weibocom/motan/issues/155) 
+
+**Merged pull requests:**
+
+- add annotation for spring [\#101](https://github.com/weibocom/motan/pull/101) ([feilaoda](https://github.com/feilaoda)) 
+
 ## [0.1.2](https://github.com/weibocom/motan/tree/0.1.2) (2016-06-27)
 [Full Changelog](https://github.com/weibocom/motan/compare/0.1.1...0.1.2)
 

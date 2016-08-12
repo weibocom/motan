@@ -13,7 +13,7 @@
     <parent>
         <groupId>com.weibo</groupId>
         <artifactId>motan</artifactId>
-        <version>0.1.3-SNAPSHOT</version>
+        <version>0.2.1-SNAPSHOT</version>
     </parent>
     <artifactId>motan-extension</artifactId>
     <name>motan-extension</name>
@@ -24,6 +24,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>serialization-extension</module>
-        <module>protocl-extension</module>
+        <module>protocol-extension</module>
     </modules>
 </project>
