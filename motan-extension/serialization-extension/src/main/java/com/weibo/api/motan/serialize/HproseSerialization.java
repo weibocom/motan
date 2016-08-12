@@ -36,12 +36,19 @@ public class HproseSerialization implements Serialization {
 
     @Override
     public byte[] serialize(Object data) throws IOException {
-        ByteBufferStream stream = new ByteBufferStream();
-        HproseWriter writer = new HproseWriter(stream.getOutputStream());
-        writer.serialize(data);
-        byte[] result = stream.toArray();
-        stream.close();
-        return result;
+        ByteBufferStream stream = null;
+        try {
+            stream = new ByteBufferStream();
+            HproseWriter writer = new HproseWriter(stream.getOutputStream());
+            writer.serialize(data);
+            byte[] result = stream.toArray();
+            return result;
+        }
+        finally {
+            if (stream != null) {
+                stream.close();
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
