@@ -10,8 +10,11 @@ import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.config.springsupport.annotation.MotanReferer;
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import com.weibo.api.motan.config.springsupport.util.SpringBeanUtil;
+import com.weibo.api.motan.rpc.init.Initializable;
+import com.weibo.api.motan.rpc.init.InitializationFactory;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -62,7 +65,11 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
     private final Set<ServiceConfigBean<?>> serviceConfigs = new ConcurrentHashSet<ServiceConfigBean<?>>();
 
     private final ConcurrentMap<String, RefererConfigBean> referenceConfigs = new ConcurrentHashMap<String, RefererConfigBean>();
-
+    static{
+        //custom Initializable before motan beans inited
+        Initializable initialization = InitializationFactory.getInitialization();
+        initialization.init();
+    }
 
     /**
      * @param beanFactory

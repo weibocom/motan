@@ -25,34 +25,41 @@ import com.weibo.api.motan.util.LoggerUtil;
  *              will be init in default. U can set sequence by annotation @see
  *              com.weibo.api.motan.core.extension.Activation
  * @author zhanglei
- * @date 2016年6月15日
+ * @date 2016-6-15
  *
  */
 public class InitializationFactory {
-    public Initializable getInitialization() {
-        return new AllSpiInitialization();
+    private static boolean isInit = false;
+    private static Initializable instance = new AllSpiInitialization();
+    public static Initializable getInitialization() {
+        return instance;
     }
 
-    class AllSpiInitialization implements Initializable {
+    static class AllSpiInitialization implements Initializable {
 
         @Override
         // find all initilizable spi and init it.
         public synchronized void init() {
-            try {
-                ExtensionLoader<Initializable> extensionLoader = ExtensionLoader.getExtensionLoader(Initializable.class);
-                List<Initializable> allInit = extensionLoader.getExtensions(null);
-                if (allInit != null && !allInit.isEmpty()) {
-                    for (Initializable initializable : allInit) {
-                        try {
-                            initializable.init();
-                            LoggerUtil.info(initializable.getClass().getName() + " is init.");
-                        } catch (Exception initErr) {
-                            LoggerUtil.error(initializable.getClass().getName() + " init fail!", initErr);
+            if(!isInit){
+                try {
+                    LoggerUtil.info("AllSpiInitialization init.");
+                    ExtensionLoader<Initializable> extensionLoader = ExtensionLoader.getExtensionLoader(Initializable.class);
+                    List<Initializable> allInit = extensionLoader.getExtensions(null);
+                    if (allInit != null && !allInit.isEmpty()) {
+                        for (Initializable initializable : allInit) {
+                            try {
+                                initializable.init();
+                                LoggerUtil.info(initializable.getClass().getName() + " is init.");
+                            } catch (Exception initErr) {
+                                LoggerUtil.error(initializable.getClass().getName() + " init fail!", initErr);
+                            }
                         }
                     }
+                    isInit = true;
+                    LoggerUtil.info("AllSpiInitialization init finish.");
+                } catch (Exception e) {
+                    LoggerUtil.error("Initializable spi init fail!", e);;
                 }
-            } catch (Exception e) {
-                LoggerUtil.error("Initializable spi init fail!", e);;
             }
         }
     }

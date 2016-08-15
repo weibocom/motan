@@ -20,7 +20,7 @@ import com.weibo.api.motan.core.extension.Spi;
  * 
  * @Description Initializable. the implement must be thread safe!
  * @author zhanglei
- * @date 2016年6月15日
+ * @date 2016-6-15
  *
  */
 @Spi(scope = Scope.SINGLETON)
