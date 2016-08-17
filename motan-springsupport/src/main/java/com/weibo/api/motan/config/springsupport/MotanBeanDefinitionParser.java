@@ -144,13 +144,6 @@ public class MotanBeanDefinitionParser implements BeanDefinitionParser {
                 continue;
             }
             String value = element.getAttribute(property);
-            if (StringUtils.isBlank(value) && "protocol".equals(property)) {
-                // srevice中的protocol信息是隐含在export中，所以需要从export中获取protocol来配置
-                String exportValue = element.getAttribute(URLParamType.export.getName());
-                if (!StringUtils.isBlank(exportValue)) {
-                    value = ConfigUtil.extractProtocols(exportValue);
-                }
-            }
             if ("methods".equals(property)) {
                 parseMethods(id, element.getChildNodes(), bd, parserContext);
             }
@@ -171,7 +164,7 @@ public class MotanBeanDefinitionParser implements BeanDefinitionParser {
                     }
                 }
                 reference = new RuntimeBeanReference(value);
-            } else if ("protocol".equals(property)) {
+            } else if ("protocol".equals(property) && !StringUtils.isBlank(value)) {
                 if (!value.contains(",")) {
                     reference = new RuntimeBeanReference(value);
                 } else {

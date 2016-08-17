@@ -64,6 +64,8 @@ public interface LogService {
     boolean isTraceEnabled();
 
     boolean isDebugEnabled();
+    
+    boolean isInfoEnabled();
 
     boolean isWarnEnabled();
 

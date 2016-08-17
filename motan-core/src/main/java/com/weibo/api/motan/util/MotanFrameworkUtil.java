@@ -112,8 +112,12 @@ public class MotanFrameworkUtil {
      * @return
      */
     public static String getFullMethodString(Request request) {
-        return getGroupFromRequest(request) + "_" + request.getInterfaceName() + "." + request.getMethodName() + "("
+        return request.getInterfaceName() + "." + request.getMethodName() + "("
                 + request.getParamtersDesc() + ")";
+    }
+    
+    public static String getGroupMethodString(Request request){
+        return getGroupFromRequest(request) + "_" + getFullMethodString(request);
     }
 
 
