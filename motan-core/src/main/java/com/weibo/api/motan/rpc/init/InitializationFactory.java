@@ -29,8 +29,9 @@ import com.weibo.api.motan.util.LoggerUtil;
  *
  */
 public class InitializationFactory {
-    private static boolean isInit = false;
+    private static boolean inited = false;
     private static Initializable instance = new AllSpiInitialization();
+
     public static Initializable getInitialization() {
         return instance;
     }
@@ -40,7 +41,7 @@ public class InitializationFactory {
         @Override
         // find all initilizable spi and init it.
         public synchronized void init() {
-            if(!isInit){
+            if (!inited) {
                 try {
                     LoggerUtil.info("AllSpiInitialization init.");
                     ExtensionLoader<Initializable> extensionLoader = ExtensionLoader.getExtensionLoader(Initializable.class);
@@ -55,7 +56,7 @@ public class InitializationFactory {
                             }
                         }
                     }
-                    isInit = true;
+                    inited = true;
                     LoggerUtil.info("AllSpiInitialization init finish.");
                 } catch (Exception e) {
                     LoggerUtil.error("Initializable spi init fail!", e);;
