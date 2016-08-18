@@ -69,7 +69,7 @@ public class LocalFirstLoadBalance<T> extends AbstractLoadBalance<T> {
 
         List<Referer<T>> localReferers = searchLocalReferer(referers, NetUtils.getLocalAddress().getHostAddress());
 
-        if (localReferers.isEmpty()) {
+        if (!localReferers.isEmpty()) {
             referers = localReferers;
         }
 

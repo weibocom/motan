@@ -65,14 +65,14 @@ public class AccessStatisticFilter implements Filter {
             }
 
             Application application;
+            String statName =
+                    caller.getUrl().getProtocol() + MotanConstants.PROTOCOL_SEPARATOR + MotanFrameworkUtil.getGroupMethodString(request);
             if (caller instanceof Provider) {
                 application = new Application(ApplicationInfo.STATISTIC, "rpc_service");
-            } else {
-                application = ApplicationInfo.getApplication(caller.getUrl());
+                StatsUtil.accessStatistic(statName, application, end, end - start, bizProcessTime, accessStatus);
             }
-            StatsUtil.accessStatistic(
-                    caller.getUrl().getProtocol() + MotanConstants.PROTOCOL_SEPARATOR + MotanFrameworkUtil.getFullMethodString(request),
-                    application, end, end - start, bizProcessTime, accessStatus);
+            application = ApplicationInfo.getApplication(caller.getUrl());
+            StatsUtil.accessStatistic(statName, application, end, end - start, bizProcessTime, accessStatus);
 
         }
     }

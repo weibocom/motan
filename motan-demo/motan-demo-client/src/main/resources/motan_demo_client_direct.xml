@@ -21,7 +21,7 @@
        http://api.weibo.com/schema/motan http://api.weibo.com/schema/motan.xsd">
 
 	<!-- 注册中心配置 -->
-	<motan:registry regProtocol="local" name="motanDemo" />
+	<motan:registry regProtocol="direct" address="localhost:8002" name="motanDemo" />
 
 	<!-- motan协议配置 -->
 	<motan:protocol default="true" name="motan" haStrategy="failover"
@@ -35,7 +35,6 @@
 
 	<!-- 具体referer配置。使用方通过beanid使用服务接口类 -->
 	<motan:referer id="motanDemoReferer"
-		directUrl="localhost:8002"
 		interface="com.weibo.motan.demo.service.MotanDemoService"
 		connectTimeout="300" requestTimeout="300" basicReferer="motantestClientBasicConfig" />
 

@@ -38,13 +38,15 @@ public class ApplicationInfo {
     public static Application getApplication(URL url) {
         Application application = applications.get(url.getPath());
         if (application == null && MotanConstants.NODE_TYPE_REFERER.equals(url.getParameter(URLParamType.nodeType.getName()))) {
-            String app = url.getParameter(URLParamType.application.getName(), URLParamType.application.getValue()) + CLIENT;
-            String module = url.getParameter(URLParamType.module.getName(), URLParamType.module.getValue()) + CLIENT;
-
-            applications.putIfAbsent(url.getPath() + CLIENT, new Application(app, module));
             application = applications.get(url.getPath() + CLIENT);
-        }
+            if(application == null){
+                String app = url.getParameter(URLParamType.application.getName(), URLParamType.application.getValue()) + CLIENT;
+                String module = url.getParameter(URLParamType.module.getName(), URLParamType.module.getValue()) + CLIENT;
 
+                applications.putIfAbsent(url.getPath() + CLIENT, new Application(app, module));
+                application = applications.get(url.getPath() + CLIENT);
+            }
+        }
         return application;
     }
 

@@ -157,7 +157,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
                         durl.setHost(hostPort[0].trim());
                         durl.setPort(Integer.parseInt(hostPort[1].trim()));
                         durl.addParameter(URLParamType.nodeType.getName(), MotanConstants.NODE_TYPE_SERVICE);
-                        duBuf.append(StringTools.urlDecode(durl.toFullStr())).append(MotanConstants.COMMA_SEPARATOR);
+                        duBuf.append(StringTools.urlEncode(durl.toFullStr())).append(MotanConstants.COMMA_SEPARATOR);
                     }
                 }
                 if (duBuf.length() > 0) {
