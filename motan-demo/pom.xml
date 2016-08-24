@@ -61,6 +61,11 @@
             <artifactId>motan-protocol-yar</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.3.3</version>       
+        </dependency>
         
         <!-- spring web -->
         <dependency>
