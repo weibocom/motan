@@ -17,11 +17,9 @@
 package com.weibo.api.motan.config.springsupport;
 
 import java.util.ArrayList;
-
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Arrays;
-
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
@@ -30,6 +28,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -137,20 +136,24 @@ public class ServiceConfigBean<T> extends ServiceConfig<T>
             }
         }
 
-        if(CollectionUtil.isEmpty(getProtocols()) && StringUtils.isNotEmpty(getExport())){
+        if (CollectionUtil.isEmpty(getProtocols()) && StringUtils.isNotEmpty(getExport())) {
             Map<String, Integer> exportMap = ConfigUtil.parseExport(export);
-            if(!exportMap.isEmpty()){
+            if (!exportMap.isEmpty()) {
                 List<ProtocolConfig> protos = new ArrayList<ProtocolConfig>();
                 for (String p : exportMap.keySet()) {
-                    ProtocolConfig proto = beanFactory.getBean(p, ProtocolConfig.class);
-                    if(proto == null){
-                        if(MotanConstants.PROTOCOL_MOTAN.equals(p)){
+                    ProtocolConfig proto = null;
+                    try {
+                        proto = beanFactory.getBean(p, ProtocolConfig.class);
+                    } catch (NoSuchBeanDefinitionException e) {}
+                    if (proto == null) {
+                        if (MotanConstants.PROTOCOL_MOTAN.equals(p)) {
                             proto = MotanFrameworkUtil.getDefaultProtocolConfig();
-                        } else{
+                        } else {
                             throw new MotanFrameworkException(String.format("cann't find %s ProtocolConfig bean! export:%s", p, export),
-                                MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
+                                    MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
                         }
                     }
+
                     protos.add(proto);
                 }
                 setProtocols(protos);
