@@ -34,6 +34,7 @@ import com.weibo.api.motan.util.MotanFrameworkUtil;
  */
 
 public abstract class AbstractLoadBalance<T> implements LoadBalance<T> {
+    public static final int MAX_REFERER_COUNT = 10;
 
     private List<Referer<T>> referers;
 
