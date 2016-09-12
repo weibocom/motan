@@ -22,7 +22,7 @@
     <parent>
         <groupId>com.weibo</groupId>
         <artifactId>motan</artifactId>
-        <version>0.2.1-SNAPSHOT</version>
+        <version>0.2.2-SNAPSHOT</version>
     </parent>
     <artifactId>motan-demo</artifactId>
     <name>motan-demo</name>
@@ -60,6 +60,11 @@
             <groupId>com.weibo</groupId>
             <artifactId>motan-protocol-yar</artifactId>
             <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.3.3</version>       
         </dependency>
         
         <!-- spring web -->

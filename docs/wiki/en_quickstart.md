@@ -97,7 +97,6 @@ The quick start gives very basic example of running server and client on the sam
     
         public static void main(String[] args) throws InterruptedException {
             ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:motan_server.xml");
-            MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
             System.out.println("server start...");
         }
     }

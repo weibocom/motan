@@ -43,7 +43,6 @@ import com.weibo.api.motan.rpc.Request;
  */
 @SpiMeta(name = "activeWeight")
 public class ActiveWeightLoadBalance<T> extends AbstractLoadBalance<T> {
-    public static final int MAX_REFERER_COUNT = 10;
     private static Random random = new Random();
 
     @Override
