@@ -28,7 +28,8 @@ import com.weibo.api.motan.common.URLParamType;
  * 
  */
 public class RpcContext {
-    private Map<Object, Object> attribute = new HashMap<Object, Object>();
+    private Map<Object, Object> attributes = new HashMap<Object, Object>();
+    private Map<String, String> attachments = new HashMap<String, String>();
     private Request request;
     private Response response;
     private String clientRequestId = null;
@@ -57,6 +58,12 @@ public class RpcContext {
         localContext.set(context);
         return context;
     }
+    
+    public static RpcContext init(){
+        RpcContext context = new RpcContext();
+        localContext.set(context);
+        return context;
+    }
 
     public static void destroy() {
         localContext.remove();
@@ -75,15 +82,35 @@ public class RpcContext {
     }
     
     public void putAttribute(Object key, Object value){
-        attribute.put(key, value);
+        attributes.put(key, value);
     }
     
     public Object getAttribute(Object key) {
-        return attribute.get(key);
+        return attributes.get(key);
     }
     
     public void revomeAttribute(Object key){
-        attribute.remove(key);
+        attributes.remove(key);
+    }
+    
+    public Map<Object, Object> getAttributes(){
+        return attributes;
+    }
+    
+    public void setRpcAttachment(String key, String value){
+        attachments.put(key, value);
+    }
+    
+    public String getRpcAttachment(String key){
+        return attachments.get(key);
+    }
+    
+    public void removeRpcAttachment(String key){
+        attachments.remove(key);
+    }
+    
+    public Map<String, String> getRpcAttachments(){
+        return attachments;
     }
 
     public Request getRequest() {
