@@ -83,9 +83,9 @@ public class ConsistentHashLoadBalance<T> extends AbstractLoadBalance<T> {
 
     private int getHash(Request request) {
         if (request.getArguments() == null || request.getArguments().length == 0) {
-            return request.hashCode();
+            return 0x7fffffff & request.hashCode();
         } else {
-            return Arrays.hashCode(request.getArguments());
+            return 0x7fffffff & Arrays.hashCode(request.getArguments());
         }
     }
 
