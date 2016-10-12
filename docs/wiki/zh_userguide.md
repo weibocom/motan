@@ -259,15 +259,14 @@ Motan支持使用多种Registry模块，使用不同注册中心需要依赖对�
     
 ### 不使用注册中心
 
-在开发及测试环境下，经常需要绕过注册中心，只测试指定服务提供者，这时候可能需要
-点对点直连，点对点直联方式，将以服务接口为单位，忽略注册中心的提供者列表，需要在配置**motan:referer**时定义directUrl属性：
+在开发及测试环境下，经常需要绕过注册中心，只测试指定服务提供者，这时候可能需要点对点直连，点对点直联方式:
 
 ```xml
-<motan:registry regProtocol="direct” name=“directRegistry” port=“8002" address=“192.168.1.2" />
+<motan:registry regProtocol="direct" name="directRegistry" port="8002" address="192.168.1.2" />
 ```
 or
 ```
-<motan:registry regProtocol="direct” name=“directRegistry” address=“192.168.1.2:8002,192.168.1.3:8002" />
+<motan:registry regProtocol="direct" name="directRegistry" address="192.168.1.2:8002,192.168.1.3:8002" />
 ```
 
 ## 服务提供方(motan:service)
