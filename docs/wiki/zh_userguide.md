@@ -263,7 +263,11 @@ Motan支持使用多种Registry模块，使用不同注册中心需要依赖对�
 点对点直连，点对点直联方式，将以服务接口为单位，忽略注册中心的提供者列表，需要在配置**motan:referer**时定义directUrl属性：
 
 ```xml
-<motan:referer id="xxxService" interface="com.motan.xxx.XxxService" directUrl="server_ip:server_port" />
+<motan:registry regProtocol="direct” name=“directRegistry” port=“8002" address=“192.168.1.2" />
+```
+or
+```
+<motan:registry regProtocol="direct” name=“directRegistry” address=“192.168.1.2:8002,192.168.1.3:8002" />
 ```
 
 ## 服务提供方(motan:service)
