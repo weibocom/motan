@@ -35,6 +35,11 @@
             <artifactId>motan-demo-api</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.creditease</groupId>
+            <artifactId>ra-service-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

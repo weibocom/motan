@@ -16,23 +16,27 @@
 
 package com.weibo.motan.demo.client;
 
+import com.creditease.ra.api.riskmodel.PortfolioApi;
+import com.creditease.ra.api.riskmodel.param.req.dto.PortfolioReqDto;
+import com.creditease.ra.api.riskmodel.param.res.dto.PortfolioResDto;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.motan.demo.service.MotanDemoService;
 
-public class MotanApiClientDemo {
+public class RaServiceMotanApiClientDemo {
 
     public static void main(String[] args) {
-        RefererConfig<MotanDemoService> motanDemoServiceReferer = new RefererConfig<MotanDemoService>();
+        RefererConfig<PortfolioApi> motanDemoServiceReferer = new RefererConfig<PortfolioApi>();
 
         // 设置接口及实现类
-        motanDemoServiceReferer.setInterface(MotanDemoService.class);
+        motanDemoServiceReferer.setInterface(PortfolioApi.class);
 
         // 配置服务的group以及版本号
-        motanDemoServiceReferer.setGroup("motan-demo-rpc");
+        motanDemoServiceReferer.setGroup("front-rpc");
         motanDemoServiceReferer.setVersion("1.0");
         motanDemoServiceReferer.setRequestTimeout(300);
+        motanDemoServiceReferer.setRequestTimeout(10000);
 
         // 配置注册中心直连调用
         // RegistryConfig directRegistry = new RegistryConfig();
@@ -42,7 +46,7 @@ public class MotanApiClientDemo {
         // 配置ZooKeeper注册中心
         RegistryConfig zookeeperRegistry = new RegistryConfig();
         zookeeperRegistry.setRegProtocol("zookeeper");
-        zookeeperRegistry.setAddress("10.100.138.170:2181,10.100.138.171:2181,10.100.138.172:2181");
+        zookeeperRegistry.setAddress("10.100.138.171:2181,10.100.138.172:2181");
         zookeeperRegistry.setConnectTimeout(2000);
         motanDemoServiceReferer.setRegistry(zookeeperRegistry);
 
@@ -51,11 +55,15 @@ public class MotanApiClientDemo {
         protocol.setId("motan");
         protocol.setName("motan");
         motanDemoServiceReferer.setProtocol(protocol);
-        // motanDemoServiceReferer.setDirectUrl("localhost:8002");  // 注册中心直连调用需添加此配置
+         motanDemoServiceReferer.setDirectUrl("localhost:8002");  // 注册中心直连调用需添加此配置
 
         // 使用服务
-        MotanDemoService service = motanDemoServiceReferer.getRef();
-        System.out.println(service.hello("motan"));
+        PortfolioApi service = motanDemoServiceReferer.getRef();
+        PortfolioReqDto reqDto = new PortfolioReqDto();
+        reqDto.setModelId(2);
+        reqDto.setType(2);
+        PortfolioResDto portfolioResDto= service.getPortfolioList(reqDto);
+        System.out.println(portfolioResDto.getModelId());
 
         System.exit(0);
     }
