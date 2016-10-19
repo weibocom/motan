@@ -56,10 +56,11 @@ public class ClientStatistics {
             above100sum += statistic.above100sum;
             above500sum += statistic.above500sum;
             above1000sum += statistic.above1000sum;
-
+        }
+        for(int i=0; i < statistics.get(0).statisticTime;i++) {
             long runnableTPS = 0;
-            for (int i = 0; i < statistic.statisticTime; i++) {
-                runnableTPS += (statistic.TPS[i] + statistic.errTPS[i]);
+            for (RunnableStatistics statistic : statistics) {
+                runnableTPS += (statistic.TPS[i]+statistic.errTPS[i]);
                 succTPS += statistic.TPS[i];
                 succRT += statistic.RT[i];
                 errTPS += statistic.errTPS[i];
