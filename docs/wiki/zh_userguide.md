@@ -357,7 +357,7 @@ Motan支持在Consul、ZooKeeper集群环境下优雅的关闭节点，当需要
 待关闭节点需要调用以下代码，建议通过servlet或业务的管理模块进行该调用。
 
 ```java
-MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true)
+MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, false)
 ```
 
 ## 管理后台
