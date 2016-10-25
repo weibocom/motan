@@ -15,11 +15,10 @@
  */
 package com.weibo.api.motan.protocol.grpc;
 
-import io.grpc.MethodDescriptor;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerServiceDefinition;
-import io.grpc.ServiceDescriptor;
+import io.grpc.netty.NettyServerBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,12 +26,19 @@ import java.util.concurrent.ExecutorService;
 
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.protocol.grpc.http.HttpProtocolNegotiator;
+import com.weibo.api.motan.protocol.grpc.http.NettyHttpRequestHandler;
 import com.weibo.api.motan.rpc.Exporter;
 import com.weibo.api.motan.rpc.Provider;
 import com.weibo.api.motan.rpc.URL;
-
-public class GrpcServer {
-    //TODO 是否扩展motan的server？
+/**
+ * 
+ * @Description GrpcServer
+ * @author zhanglei
+ * @date Oct 13, 2016
+ *
+ */
+public class GrpcServer{
     private int port;
     private MotanHandlerRegistry registry;
     private Server server;
@@ -40,6 +46,7 @@ public class GrpcServer {
     private boolean init;
     private boolean shareChannel;
     private ExecutorService executor;
+    private NettyHttpRequestHandler httpHandler;
     
     public GrpcServer(int port) {
         super();
@@ -59,7 +66,7 @@ public class GrpcServer {
         this.executor = executor;
     }
 
-
+    @SuppressWarnings("rawtypes")
     public void init() throws Exception{
         if(!init){
             synchronized (this) {
@@ -71,6 +78,10 @@ public class GrpcServer {
                     if(executor != null){
                         builder.executor(executor);
                     }
+                    if(builder instanceof NettyServerBuilder){
+                        httpHandler = new NettyHttpRequestHandler(executor);
+                        ((NettyServerBuilder)builder).protocolNegotiator(new HttpProtocolNegotiator(httpHandler));
+                    }
                     server = builder.build();
                     server.start();
                     init = true;
@@ -79,6 +90,7 @@ public class GrpcServer {
         }
     }
     
+    @SuppressWarnings("rawtypes")
     public void addExporter(Exporter<?> exporter) throws Exception{
         Provider provider = exporter.getProvider();        
         ServerServiceDefinition serviceDefine = GrpcUtil.getServiceDefByAnnotation(provider.getInterface());
@@ -90,20 +102,13 @@ public class GrpcServer {
                 throw new MotanFrameworkException("url:" + exporter.getUrl() + " cannot share channel with url:" + url);
             }
             registry.addService(serviceDefine, provider);
+            if(httpHandler != null){
+                httpHandler.addProvider(provider);
+            }
             serviceDefinetions.put(exporter.getUrl(), serviceDefine);
         }        
     }
-    
-    private ServerServiceDefinition genServiceDef(String clazzName) throws Exception{
-        Class<?> clazz = Class.forName(clazzName);
-        io.grpc.ServiceDescriptor desc = (ServiceDescriptor) clazz.getMethod("getServiceDescriptor", null).invoke(null, null);
-        io.grpc.ServerServiceDefinition.Builder builder = io.grpc.ServerServiceDefinition.builder(desc);
-        for(MethodDescriptor<?,?> methodDesc : desc.getMethods()){
-            builder.addMethod(methodDesc, new MotanServerCallHandler());
-        }
-        return builder.build();
-    }
-    
+  
     /**
      * remove service specified by url.
      * the server will be closed if all service is remove 
@@ -112,12 +117,14 @@ public class GrpcServer {
     public void safeRelease(URL url){
         synchronized (serviceDefinetions) {
             registry.removeService(serviceDefinetions.remove(url));
+            if(httpHandler != null){
+                httpHandler.removeProvider(url);
+            }
             if(serviceDefinetions.isEmpty()){
                 server.shutdown();
                 if(executor != null){
                     executor.shutdownNow();
                 }
-
             }
         }
     }

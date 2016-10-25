@@ -21,25 +21,31 @@ import io.grpc.ServerServiceDefinition;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.Provider;
-
+/**
+ * 
+ * @Description MotanHandlerRegistry
+ * @author zhanglei
+ * @date Oct 13, 2016
+ *
+ */
 public class MotanHandlerRegistry extends HandlerRegistry {
     private ConcurrentHashMap<String, ServerMethodDefinition<?, ?>> methods = new ConcurrentHashMap<String, ServerMethodDefinition<?, ?>>();
-    
+
     @Override
     public ServerMethodDefinition<?, ?> lookupMethod(String methodName, String authority) {
         return methods.get(methodName);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void addService(ServerServiceDefinition service, Provider provider) {
-        
+
         for (ServerMethodDefinition<?, ?> method : service.getMethods()) {
             Method providerMethod = GrpcUtil.getMethod(method.getMethodDescriptor().getFullMethodName(), provider.getInterface());
             MotanServerCallHandler handler;
-            if(method.getServerCallHandler() instanceof MotanServerCallHandler){
+            if (method.getServerCallHandler() instanceof MotanServerCallHandler) {
                 handler = (MotanServerCallHandler) method.getServerCallHandler();
-            }else{
+            } else {
                 handler = new MotanServerCallHandler();
                 method = method.withServerCallHandler(handler);
             }
@@ -48,19 +54,19 @@ public class MotanHandlerRegistry extends HandlerRegistry {
         }
     }
 
-    public void addService(BindableService bindableService, Provider provider){
+    @SuppressWarnings("rawtypes")
+    public void addService(BindableService bindableService, Provider provider) {
         addService(bindableService.bindService(), provider);
     }
-    
-    public void removeService(ServerServiceDefinition service){
-        if(service != null){
+
+    public void removeService(ServerServiceDefinition service) {
+        if (service != null) {
             for (ServerMethodDefinition<?, ?> method : service.getMethods()) {
                 methods.remove(method.getMethodDescriptor().getFullMethodName());
             }
         }
     }
-    
-    
-    
+
+
 
 }

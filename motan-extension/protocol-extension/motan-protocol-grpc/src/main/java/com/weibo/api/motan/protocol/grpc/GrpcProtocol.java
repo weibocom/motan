@@ -15,11 +15,11 @@ package com.weibo.api.motan.protocol.grpc;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.DefaultThreadFactory;
+import com.weibo.api.motan.core.StandardThreadExecutor;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.protocol.AbstractProtocol;
 import com.weibo.api.motan.rpc.AbstractExporter;
@@ -32,7 +32,13 @@ import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
-
+/**
+ * 
+ * @Description GrpcProtocol
+ * @author zhanglei
+ * @date Oct 13, 2016
+ *
+ */
 @SpiMeta(name = "grpc")
 public class GrpcProtocol extends AbstractProtocol {
     protected ConcurrentHashMap<String, GrpcServer> serverMap = new ConcurrentHashMap<String, GrpcServer>();
@@ -44,27 +50,27 @@ public class GrpcProtocol extends AbstractProtocol {
         if (server == null) {
             boolean shareChannel =
                     url.getBooleanParameter(URLParamType.shareChannel.getName(), URLParamType.shareChannel.getBooleanValue());
-         // TODO 自定义线程池
-//            int workerQueueSize = url.getIntParameter(URLParamType.workerQueueSize.getName(), URLParamType.workerQueueSize.getIntValue());
-//
-//            int minWorkerThread = 0, maxWorkerThread = 0;
-//
-//            if (shareChannel) {
-//                minWorkerThread =
-//                        url.getIntParameter(URLParamType.minWorkerThread.getName(), MotanConstants.NETTY_SHARECHANNEL_MIN_WORKDER);
-//                maxWorkerThread =
-//                        url.getIntParameter(URLParamType.maxWorkerThread.getName(), MotanConstants.NETTY_SHARECHANNEL_MAX_WORKDER);
-//            } else {
-//                minWorkerThread =
-//                        url.getIntParameter(URLParamType.minWorkerThread.getName(), MotanConstants.NETTY_NOT_SHARECHANNEL_MIN_WORKDER);
-//                maxWorkerThread =
-//                        url.getIntParameter(URLParamType.maxWorkerThread.getName(), MotanConstants.NETTY_NOT_SHARECHANNEL_MAX_WORKDER);
-//            }
-            
-             ExecutorService executor = Executors.newCachedThreadPool(new DefaultThreadFactory());
-             server = new GrpcServer(url.getPort(), shareChannel, executor);
 
-            server = new GrpcServer(url.getPort(), shareChannel);
+            int workerQueueSize = url.getIntParameter(URLParamType.workerQueueSize.getName(), URLParamType.workerQueueSize.getIntValue());
+
+            int minWorkerThread = 0, maxWorkerThread = 0;
+
+            if (shareChannel) {
+                minWorkerThread =
+                        url.getIntParameter(URLParamType.minWorkerThread.getName(), MotanConstants.NETTY_SHARECHANNEL_MIN_WORKDER);
+                maxWorkerThread =
+                        url.getIntParameter(URLParamType.maxWorkerThread.getName(), MotanConstants.NETTY_SHARECHANNEL_MAX_WORKDER);
+            } else {
+                minWorkerThread =
+                        url.getIntParameter(URLParamType.minWorkerThread.getName(), MotanConstants.NETTY_NOT_SHARECHANNEL_MIN_WORKDER);
+                maxWorkerThread =
+                        url.getIntParameter(URLParamType.maxWorkerThread.getName(), MotanConstants.NETTY_NOT_SHARECHANNEL_MAX_WORKDER);
+            }
+
+            ExecutorService executor =
+                    new StandardThreadExecutor(minWorkerThread, maxWorkerThread, workerQueueSize, new DefaultThreadFactory("GrpcServer-"
+                            + url.getServerPortStr(), true));
+            server = new GrpcServer(url.getPort(), shareChannel, executor);
             serverMap.putIfAbsent(ipPort, server);
             server = serverMap.get(ipPort);
 
@@ -85,6 +91,7 @@ public class GrpcProtocol extends AbstractProtocol {
             this.server = server;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public void unexport() {
             String protocolKey = MotanFrameworkUtil.getProtocolKey(url);

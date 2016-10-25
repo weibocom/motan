@@ -1,19 +1,17 @@
 /*
- *  Copyright 2009-2016 Weibo, Inc.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2016 Weibo, Inc.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
-package com.weibo.api.motan.protocol.grpc;
+package com.weibo.api.motan.rpc;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,12 +78,9 @@ public class ResponseFuture implements Response, Future {
                     lock.wait();
                 } catch (Exception e) {
                     cancel(new MotanServiceException(this.getClass().getName() + " getValue InterruptedException : "
-                            + MotanFrameworkUtil.toString(request) + " cost="
-                            + (System.currentTimeMillis() - createTime), e));
+                            + MotanFrameworkUtil.toString(request) + " cost=" + (System.currentTimeMillis() - createTime), e));
                 }
 
-                // don't need to notifylisteners, because onSuccess or
-                // onFailure or cancel method already call notifylisteners
                 return getValueOrThrowable();
             } else {
                 long waitTime = timeout - (System.currentTimeMillis() - createTime);
@@ -94,8 +89,7 @@ public class ResponseFuture implements Response, Future {
                     for (;;) {
                         try {
                             lock.wait(waitTime);
-                        } catch (InterruptedException e) {
-                        }
+                        } catch (InterruptedException e) {}
 
                         if (!isDoing()) {
                             break;
@@ -123,12 +117,12 @@ public class ResponseFuture implements Response, Future {
 
     @Override
     public boolean cancel() {
-        Exception e = new MotanServiceException(this.getClass().getName() + " task cancel: serverPort="
-                + serverUrl.getServerPortStr() + " " + MotanFrameworkUtil.toString(request) + " cost="
-                + (System.currentTimeMillis() - createTime));
+        Exception e =
+                new MotanServiceException(this.getClass().getName() + " task cancel: serverPort=" + serverUrl.getServerPortStr() + " "
+                        + MotanFrameworkUtil.toString(request) + " cost=" + (System.currentTimeMillis() - createTime));
         return cancel(e);
     }
-    
+
     protected boolean cancel(Exception e) {
         synchronized (lock) {
             if (!isDoing()) {
@@ -168,8 +162,6 @@ public class ResponseFuture implements Response, Future {
         boolean notifyNow = false;
         synchronized (lock) {
             if (!isDoing()) {
-                // is success, failure, timeout or cancel, don't add into
-                // listeners, just notify
                 notifyNow = true;
             } else {
                 if (listeners == null) {
@@ -204,12 +196,13 @@ public class ResponseFuture implements Response, Future {
             if (!isDoing()) {
                 return;
             }
-            
+
             state = FutureState.CANCELLED;
-            exception = new MotanServiceException(this.getClass().getName() + " request timeout: serverPort="
-                    + serverUrl.getServerPortStr() + " " + MotanFrameworkUtil.toString(request) + " cost="
-                    + (System.currentTimeMillis() - createTime), MotanErrorMsgConstant.SERVICE_TIMEOUT);
-            
+            exception =
+                    new MotanServiceException(this.getClass().getName() + " request timeout: serverPort=" + serverUrl.getServerPortStr()
+                            + " " + MotanFrameworkUtil.toString(request) + " cost=" + (System.currentTimeMillis() - createTime),
+                            MotanErrorMsgConstant.SERVICE_TIMEOUT);
+
             lock.notifyAll();
         }
 
@@ -272,7 +265,7 @@ public class ResponseFuture implements Response, Future {
     public void setProcessTime(long time) {
         this.processTime = time;
     }
-    
+
     public int getTimeout() {
         return timeout;
     }
