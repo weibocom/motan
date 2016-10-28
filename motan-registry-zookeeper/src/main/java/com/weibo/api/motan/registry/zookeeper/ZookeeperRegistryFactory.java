@@ -36,6 +36,7 @@ public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
                     registryUrl.getIntParameter(URLParamType.registrySessionTimeout.getName(),
                             URLParamType.registrySessionTimeout.getIntValue());
             ZkClient zkClient = new ZkClient(registryUrl.getParameter("address"), sessionTimeout, timeout);
+
             //add zk acl addauth
             String scheme = registryUrl.getParameter(URLParamType.scheme.getName(),URLParamType.scheme.getValue());
             String username = registryUrl.getParameter(URLParamType.username.getName(),URLParamType.scheme.getValue());
