@@ -234,7 +234,7 @@
                     </plugin>
                 </plugins>
             </build>
-            <distributionManagement>
+            <!--<distributionManagement>
                 <snapshotRepository>
                     <id>ossrh</id>
                     <url>https://oss.sonatype.org/content/repositories/snapshots</url>
@@ -243,11 +243,23 @@
                     <id>ossrh</id>
                     <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
+            </distributionManagement>-->
+            <distributionManagement>
+                <repository>
+                    <id>nexus-releases</id>
+                    <name>Nexus Release Repository</name>
+                    <url>http://maven.caiwu.corp/nexus/content/repositories/releases/</url>
+                </repository>
+                <snapshotRepository>
+                    <id>snapshots</id>
+                    <name>Nexus Snapshot Repository</name>
+                    <url>http://maven.caiwu.corp/nexus/content/repositories/snapshots/</url>
+                </snapshotRepository>
             </distributionManagement>
         </profile>
     </profiles>
 
-    <developers>
+    <!--<developers>
         <developer>
             <name>Ray</name>
             <email>zzll0603@126.com</email>
@@ -258,5 +270,5 @@
             <email>uaxb@hotmail.com</email>
             <organization>Weibo</organization>
         </developer>
-    </developers>
+    </developers>-->
 </project>

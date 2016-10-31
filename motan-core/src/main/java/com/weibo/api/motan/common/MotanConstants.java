@@ -108,7 +108,7 @@ public class MotanConstants {
      * heartbeat constants end
      */
 
-    public static final String ZOOKEEPER_REGISTRY_NAMESPACE = "/motan";
+    public static final String ZOOKEEPER_REGISTRY_NAMESPACE = "/ToumiRA/motanRPC";
     public static final String ZOOKEEPER_REGISTRY_COMMAND = "/command";
 
     public static final String REGISTRY_HEARTBEAT_SWITCHER = "feature.configserver.heartbeat";
