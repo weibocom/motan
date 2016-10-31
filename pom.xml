@@ -244,18 +244,7 @@
                     <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
             </distributionManagement>-->
-            <distributionManagement>
-                <repository>
-                    <id>nexus-releases</id>
-                    <name>Nexus Release Repository</name>
-                    <url>http://maven.caiwu.corp/nexus/content/repositories/releases/</url>
-                </repository>
-                <snapshotRepository>
-                    <id>snapshots</id>
-                    <name>Nexus Snapshot Repository</name>
-                    <url>http://maven.caiwu.corp/nexus/content/repositories/snapshots/</url>
-                </snapshotRepository>
-            </distributionManagement>
+
         </profile>
     </profiles>
 
