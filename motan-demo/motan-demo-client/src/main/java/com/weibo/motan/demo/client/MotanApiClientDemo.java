@@ -42,8 +42,7 @@ public class MotanApiClientDemo {
         // 配置ZooKeeper注册中心
         RegistryConfig zookeeperRegistry = new RegistryConfig();
         zookeeperRegistry.setRegProtocol("zookeeper");
-        zookeeperRegistry.setAddress("10.100.138.170:2181,10.100.138.171:2181,10.100.138.172:2181");
-        zookeeperRegistry.setConnectTimeout(2000);
+        zookeeperRegistry.setAddress("127.0.0.1:2181");
         motanDemoServiceReferer.setRegistry(zookeeperRegistry);
 
         // 配置RPC协议
