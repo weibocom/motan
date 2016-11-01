@@ -234,7 +234,7 @@
                     </plugin>
                 </plugins>
             </build>
-            <!--<distributionManagement>
+            <distributionManagement>
                 <snapshotRepository>
                     <id>ossrh</id>
                     <url>https://oss.sonatype.org/content/repositories/snapshots</url>
@@ -243,12 +243,11 @@
                     <id>ossrh</id>
                     <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
-            </distributionManagement>-->
-
+            </distributionManagement>
         </profile>
     </profiles>
 
-    <!--<developers>
+    <developers>
         <developer>
             <name>Ray</name>
             <email>zzll0603@126.com</email>
@@ -259,5 +258,5 @@
             <email>uaxb@hotmail.com</email>
             <organization>Weibo</organization>
         </developer>
-    </developers>-->
+    </developers>
 </project>

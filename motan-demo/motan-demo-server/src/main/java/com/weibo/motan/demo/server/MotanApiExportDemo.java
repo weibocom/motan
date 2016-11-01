@@ -45,8 +45,7 @@ public class MotanApiExportDemo {
         // 配置ZooKeeper注册中心
         RegistryConfig zookeeperRegistry = new RegistryConfig();
         zookeeperRegistry.setRegProtocol("zookeeper");
-        zookeeperRegistry.setAddress("10.100.138.170:2181,10.100.138.171:2181,10.100.138.172:2181");
-        zookeeperRegistry.setConnectTimeout(2000);
+        zookeeperRegistry.setAddress("127.0.0.1:2181");
         motanDemoService.setRegistry(zookeeperRegistry);
 
         // 配置RPC协议
@@ -55,7 +54,7 @@ public class MotanApiExportDemo {
         protocol.setName("motan");
         motanDemoService.setProtocol(protocol);
 
-        motanDemoService.setExport("motan:8006");
+        motanDemoService.setExport("motan:8002");
         motanDemoService.export();
 
         MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
