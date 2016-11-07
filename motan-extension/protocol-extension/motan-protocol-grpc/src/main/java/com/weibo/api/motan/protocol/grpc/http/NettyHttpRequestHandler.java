@@ -34,6 +34,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,6 +57,7 @@ import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
+import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.ReflectUtil;
 
 /**
@@ -73,6 +75,7 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
     public static final String STATUS_PATH = "/rpcstatus";
     private ExecutorService executor;
     protected String swictherName = MotanConstants.REGISTRY_HEARTBEAT_SWITCHER;
+    @SuppressWarnings("rawtypes")
     protected ConcurrentHashMap<String, Provider> providerMap = new ConcurrentHashMap<String, Provider>();
     protected ConcurrentHashMap<String, MethodInfo> methodDescMap = new ConcurrentHashMap<String, MethodInfo>();
 
@@ -148,6 +151,12 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
         FullHttpResponse httpResponse = null;
         try {
             DefaultRequest rpcRequest = buildRpcRequest(httpRequest);
+
+            String ip = NetUtils.getHostName(ctx.channel().remoteAddress());
+            if(ip != null){
+                rpcRequest.setAttachment(URLParamType.host.getName(), ip);
+            }
+            
             Provider provider = providerMap.get(rpcRequest.getInterfaceName());
             if (provider == null) {
                 httpResponse = buildErrorResponse("request service not exist. service:" + rpcRequest.getInterfaceName());
@@ -206,10 +215,10 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
         rpcRequest.setArguments(parseArguments(params.get("params"), mi));
         return rpcRequest;
     }
-    
-    private void addAttachment(DefaultRequest rpcRequest, HttpHeaders headers){
-        for(Entry<String, String> h : headers){
-            //TODO remove unuse header
+
+    private void addAttachment(DefaultRequest rpcRequest, HttpHeaders headers) {
+        for (Entry<String, String> h : headers) {
+            // TODO remove unuse header
             rpcRequest.setAttachment(h.getKey(), h.getValue());
         }
     }
@@ -232,11 +241,7 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
 
         Class<?>[] paramsType = methodInfo.getMethod().getParameterTypes();
         JsonParser parser = new JsonParser();
-        JsonArray jsonArray = (JsonArray) parser.parse(params);
-        // if(paramsType.length != jsonArray.size()){
-        // throw new MotanServiceException("params size wrong. params size should be " +
-        // paramsType.length);
-        // }
+        JsonArray jsonArray = (JsonArray) parser.parse(params);        
         try {
             Object[] result = new Object[jsonArray.size()];
             for (int i = 0; i < jsonArray.size(); i++) {
@@ -271,6 +276,7 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
         return marshaller.parse(is);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     protected FullHttpResponse buildHttpResponse(Response response, boolean keepAlive) throws Exception {
         Object value = response.getValue();
         byte[] responseBytes = null;
@@ -281,7 +287,7 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
             responseBytes = new byte[is.available()];
             is.read(responseBytes);
         } else {
-            // TODO
+            // TODO not pb
         }
 
         FullHttpResponse httpResponse =
@@ -309,7 +315,7 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
         } finally {
             // close connection
             if (close || httpResponse == null
-                    || !HttpHeaderValues.KEEP_ALIVE.equals(httpResponse.headers().get(HttpHeaders.Names.CONNECTION))) {
+                    || !HttpHeaderValues.KEEP_ALIVE.equals(httpResponse.headers().get(HttpHeaderNames.CONNECTION))) {
                 ctx.close();
             }
         }

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.common.MotanConstants;
@@ -32,6 +33,7 @@ import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.ApplicationInfo;
 import com.weibo.api.motan.rpc.DefaultRequest;
 import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.RpcContext;
 import com.weibo.api.motan.switcher.Switcher;
 import com.weibo.api.motan.switcher.SwitcherService;
 import com.weibo.api.motan.util.ExceptionUtil;
@@ -100,6 +102,12 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
             // 带上client的application和module
             request.setAttachment(URLParamType.application.getName(), ApplicationInfo.getApplication(cluster.getUrl()).getApplication());
             request.setAttachment(URLParamType.module.getName(), ApplicationInfo.getApplication(cluster.getUrl()).getModule());
+            Map<String, String> attachments = RpcContext.getContext().getRpcAttachments();
+            if(attachments != null && !attachments.isEmpty()){
+                for(Entry<String, String> entry : attachments.entrySet()){
+                    request.setAttachment(entry.getKey(), entry.getValue());
+                }
+            }
             Response response = null;
             boolean throwException =
                     Boolean.parseBoolean(cluster.getUrl().getParameter(URLParamType.throwException.getName(),

@@ -15,14 +15,18 @@ package com.weibo.api.motan.protocol.grpc;
 
 import io.grpc.CallOptions;
 import io.grpc.ClientCall;
+import io.grpc.ForwardingClientCall.SimpleForwardingClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.MethodDescriptor.MethodType;
 import io.grpc.stub.ClientCalls;
 import io.grpc.stub.StreamObserver;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import com.weibo.api.motan.common.URLParamType;
@@ -39,7 +43,7 @@ import com.weibo.api.motan.rpc.URL;
  * @date Oct 13, 2016
  *
  */
-public class GrpcClient{
+public class GrpcClient {
 
     private URL url;
     private Class<?> interfaceClazz;
@@ -55,8 +59,8 @@ public class GrpcClient{
         this.interfaceClazz = interfaceClazz;
     }
 
-    @SuppressWarnings("unchecked")
-    public <ReqT, RespT> Response request(Request request) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <ReqT, RespT> Response request(final Request request) {
         MethodDescriptor<ReqT, RespT> methodDesc = methodDescMap.get(request.getMethodName());
         if (methodDesc == null) {
             throw new MotanServiceException("request method grpc descriptornot found.method:" + request.getMethodName());
@@ -68,7 +72,20 @@ public class GrpcClient{
         if (timeout < 0) {
             throw new MotanServiceException("request timeout invalid.method timeout:" + timeout);
         }
-        ClientCall<ReqT, RespT> call = channel.newCall(methodDesc, callOption.withDeadlineAfter(timeout, TimeUnit.MILLISECONDS));
+        ClientCall<ReqT, RespT> call =
+                new SimpleForwardingClientCall(channel.newCall(methodDesc, callOption.withDeadlineAfter(timeout, TimeUnit.MILLISECONDS))) {
+
+                    public void start(Listener responseListener, Metadata headers) {
+                        Map<String, String> attachments = request.getAttachments();
+                        if (attachments != null && !attachments.isEmpty()) {
+                            for (Entry<String, String> entry : attachments.entrySet()) {
+                                headers.put(Metadata.Key.of(entry.getKey(), Metadata.ASCII_STRING_MARSHALLER), entry.getValue());
+                            }
+                        }
+                        super.start(responseListener, headers);
+                    }
+                };
+
 
         GrpcResponseFuture<RespT> responseFuture = new GrpcResponseFuture<RespT>(request, timeout, url, call);
         MethodType methodType = methodDesc.getType();

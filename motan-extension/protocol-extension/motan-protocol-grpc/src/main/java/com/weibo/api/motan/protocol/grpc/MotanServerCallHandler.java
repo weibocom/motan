@@ -13,6 +13,7 @@
  */
 package com.weibo.api.motan.protocol.grpc;
 
+import io.grpc.Attributes;
 import io.grpc.Metadata;
 import io.grpc.ServerCall;
 import io.grpc.ServerCall.Listener;
@@ -22,12 +23,16 @@ import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 
 import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Set;
 
+import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.DefaultRequest;
 import com.weibo.api.motan.rpc.Provider;
 import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.ReflectUtil;
 /**
  * 
@@ -99,12 +104,24 @@ public class MotanServerCallHandler<Req, Resp> implements ServerCallHandler<Req,
             public void onHalfClose() {
                 if (request != null) {
                     DefaultRequest motanRequest = getBaseMotanRequest(headers);
+                    
+                    String ip = NetUtils.getHostName(call.attributes().get(ServerCall.REMOTE_ADDR_KEY));
+                    if(ip != null){
+                        motanRequest.setAttachment(URLParamType.host.getName(), ip);
+                    }
                     if (responseStream) {
                         motanRequest.setArguments(new Object[] {request, responseObserver});
                     } else {
                         motanRequest.setArguments(new Object[] {request});
                     }
-                    Response response = provider.call(motanRequest);
+                    Response response = null;
+                    try{
+                        response = provider.call(motanRequest);
+                    }catch(Exception e){
+                        responseObserver.onError(e);
+                        return;
+                    }
+                    
                     if (response.getValue() != null) {
                         responseObserver.onNext((RespT) response.getValue());
                         responseObserver.onCompleted();
@@ -245,7 +262,7 @@ public class MotanServerCallHandler<Req, Resp> implements ServerCallHandler<Req,
             if (metadata == null) {
                 metadata = new Metadata();
             }
-            call.close(Status.fromThrowable(t), metadata);
+            call.close(Status.INTERNAL.withDescription(t.getMessage()).withCause(t), metadata);
         }
 
         @Override

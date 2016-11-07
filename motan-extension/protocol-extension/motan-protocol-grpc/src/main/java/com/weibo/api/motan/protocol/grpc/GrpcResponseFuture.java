@@ -58,6 +58,7 @@ public class GrpcResponseFuture<RespT> extends ResponseFuture implements StreamO
         } else {
             this.exception = new MotanServiceException("grpc response future has fatal error.", t);
         }
+        done();
     }
 
     @Override
