@@ -1,5 +1,35 @@
 # Change Log
 
+## [0.2.1](https://github.com/weibocom/motan/tree/0.2.1) (2016-08-18)
+[Full Changelog](https://github.com/weibocom/motan/compare/0.2.0...0.2.1)
+
+**Implemented enhancements:**
+
+- add Initialization SPI [\#171](https://github.com/weibocom/motan/pull/171) ([Ray](https://github.com/rayzhang0603))
+- add abstract mockprotocol [\#171](https://github.com/weibocom/motan/pull/171) ([Ray](https://github.com/rayzhang0603))
+
+**Fixed bugs:**
+
+
+**Merged pull requests:**
+
+- Added hprose serialization support [\#162](https://github.com/weibocom/motan/pull/162) ([小马哥](https://github.com/andot)) 
+
+## [0.2.0](https://github.com/weibocom/motan/tree/0.2.0) (2016-08-05)
+[Full Changelog](https://github.com/weibocom/motan/compare/0.1.2...0.2.0)
+
+**Implemented enhancements:**
+
+- support yar protocol [\#160](https://github.com/weibocom/motan/pull/160) ([Ray](https://github.com/rayzhang0603))
+
+**Fixed bugs:**
+
+- fix bug of LocalFirstLoadBalance referer select [\#155](https://github.com/weibocom/motan/issues/155) 
+
+**Merged pull requests:**
+
+- add annotation for spring [\#101](https://github.com/weibocom/motan/pull/101) ([feilaoda](https://github.com/feilaoda)) 
+
 ## [0.1.2](https://github.com/weibocom/motan/tree/0.1.2) (2016-06-27)
 [Full Changelog](https://github.com/weibocom/motan/compare/0.1.1...0.1.2)
 

@@ -16,6 +16,8 @@
 
 package com.weibo.api.motan.exception;
 
+import com.weibo.api.motan.rpc.RpcContext;
+
 
 /**
  * @author maijunsheng
@@ -82,9 +84,8 @@ public abstract class MotanAbstractException extends RuntimeException {
             message = motanErrorMsg.getMessage();
         }
 
-        // TODO 统一上下文 requestid
         return "error_message: " + message + ", status: " + motanErrorMsg.getStatus() + ", error_code: " + motanErrorMsg.getErrorCode()
-                + ",r=";
+                + ",r=" + RpcContext.getContext().getRequestId();
     }
 
     public int getStatus() {

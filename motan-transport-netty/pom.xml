@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>com.weibo</groupId>
 		<artifactId>motan</artifactId>
-		<version>0.1.3-SNAPSHOT</version>
+		<version>0.2.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>motan-transport-netty</artifactId>
 	<name>motan-transport-netty</name>

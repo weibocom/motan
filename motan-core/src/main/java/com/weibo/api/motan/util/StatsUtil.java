@@ -38,13 +38,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class StatsUtil {
 
-    public static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-    protected static final ConcurrentMap<String, AccessStatisticItem> accessStatistics = new ConcurrentHashMap<String, AccessStatisticItem>();
-    protected static final List<StatisticCallback> statisticCallbacks = new CopyOnWriteArrayList<StatisticCallback>();
-    private static String SEPARATE = "\\|";
+    public static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+    protected static ConcurrentMap<String, AccessStatisticItem> accessStatistics = new ConcurrentHashMap<String, AccessStatisticItem>();
+    protected static List<StatisticCallback> statisticCallbacks = new CopyOnWriteArrayList<StatisticCallback>();
+    public static String SEPARATE = "\\|";
+    protected static ScheduledFuture<?> scheduledFuture;
 
     static {
-        executorService.scheduleAtFixedRate(new Runnable() {
+        scheduledFuture = executorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
             public void run() {

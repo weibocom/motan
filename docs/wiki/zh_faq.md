@@ -10,7 +10,7 @@ Motan的请求在传输层面都是异步调用的，不需要额外配置。
 开源版Motan包含了内部版本中的大部分功能，主要是去除了一些内部的依赖组件相关的功能。
 
 #### Motan支持php调用吗？
-目前Motan还不支持php调用，我们正在进行这方面工作，已经在小范围测试。
+目前Motan支持php的YAR协议调用，见motan-extension下的motan-protocol-yar模块。
 
 #### 我在使用Motan的过程中发现日志里有错误，如何解决？
 请参考 [错误码及异常日志说明](zh_errorcode)，或者[提交Issue](https://github.com/weibocom/motan/issues)与我们交流。

@@ -42,17 +42,6 @@ public class AnnotationRpcClientDemo {
         System.exit(0);
     }
 
-//    /**
-//     * 设置Bean是必须的
-//     *
-//     * @return
-//     */
-////    @Bean
-//    public AnnotationBean motanAnnotationBean() {
-//        AnnotationBean motanAnnotationBean = new AnnotationBean("com.weibo");
-////        motanAnnotationBean.setPackageName("com.weibo");
-//        return motanAnnotationBean;
-//    }
 
     @Bean(name = "demoMotan")
     public ProtocolConfigBean demoMotanProtocolConfig() {

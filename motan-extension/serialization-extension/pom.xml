@@ -15,14 +15,24 @@
     <parent>
         <groupId>com.weibo</groupId>
         <artifactId>motan-extension</artifactId>
-        <version>0.1.3-SNAPSHOT</version>
+        <version>0.2.2-SNAPSHOT</version>
     </parent>
     <artifactId>serialization-extension</artifactId>
     <name>serialization-extension</name>
-    <url>http://maven.apache.org</url>
+    <url>https://github.com/weibocom/motan</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>org.hprose</groupId>
+            <artifactId>hprose-java</artifactId>
+            <version>[2.0.18,)</version>
+        </dependency>
+        <dependency>
+            <groupId>com.weibo</groupId>
+            <artifactId>motan-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

@@ -3,6 +3,9 @@
   - [集群调用示例](#集群调用示例)
     - [使用Consul作为注册中心](#使用Consul作为注册中心)
     - [使用ZooKeeper作为注册中心](#使用Zookeeper作为注册中心)
+  - [其他调用示例](#其他调用示例)
+    - [提供YAR协议服务](#提供YAR协议服务)
+    - [使用注解方式配置motan](#使用注解方式配置motan)
 
 快速入门中会给出一些基本使用场景下的配置方式，更详细的使用文档请参考[用户指南](zh_userguide).
 
@@ -18,19 +21,19 @@
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-core</artifactId>
-        <version>0.1.1</version>
+        <version>0.2.1</version>
     </dependency>
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-transport-netty</artifactId>
-        <version>0.1.1</version>
+        <version>0.2.1</version>
     </dependency>
     
     <!-- only needed for spring-based features -->
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-springsupport</artifactId>
-        <version>0.1.1</version>
+        <version>0.2.1</version>
     </dependency>
     <dependency>
         <groupId>org.springframework</groupId>
@@ -96,7 +99,6 @@
     
         public static void main(String[] args) throws InterruptedException {
             ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:motan_server.xml");
-            MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
             System.out.println("server start...");
         }
     }
@@ -230,7 +232,7 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-registry-zookeeper</artifactId>
-        <version>0.1.1</version>
+        <version>0.2.1</version>
     </dependency>
     ```
 
@@ -274,3 +276,176 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
 [maven]:https://maven.apache.org
 [gradle]:http://gradle.org
 
+## <a id="other"></a>其他调用示例
+
+###<a id="motan-yar"></a>提供YAR协议服务
+    
+[YAR](https://github.com/laruence/yar)协议是php的一个rpc扩展，motan框架可以提供yar协议的RPC服务
+1、引入motan-protocol-yar.jar
+
+   ```xml
+    <dependency>
+        <groupId>com.weibo</groupId>
+        <artifactId>motan-protocol-yar</artifactId>
+        <version>0.2.1</version>
+    </dependency>
+   ```
+    
+2、在服务接口类上增加注解@YarConfig,声明服务的uri
+
+   ```java
+    @YarConfig(path = "/openapi/yarserver/test")
+    public interface YarService {
+        public String hello(String name);
+    ｝
+   ```
+    
+3、配置protocol的name="yar" 
+
+   ```xml
+    <motan:protocol id="demoYar" name="yar" .../>
+   ```
+    
+4、配置service的export，使用yar协议提供服务
+    
+   ```xml
+    <motan:service interface="com.weibo.motan.demo.service.YarService"
+       export="demoYar:8003" .../>
+   ```
+    
+具体配置见motan-demo模块
+YAR协议使用[yar-java](https://github.com/weibocom/yar-java)进行解析，java作为YAR client时可以直接使用
+
+###<a id="motan-annotation"></a>使用注解方式配置motan
+####server端配置
+
+1、声明Annotation用来指定需要解析的包名
+
+   ```java
+    @Bean
+    public AnnotationBean motanAnnotationBean() {
+        AnnotationBean motanAnnotationBean = new AnnotationBean();
+        motanAnnotationBean.setPackage("com.weibo.motan.demo.server");
+        return motanAnnotationBean;
+    }
+   ```
+
+2、配置ProtocolConfig、RegistryConfig、BasicServiceConfig的bean对象，功能与xml配置中的protocol、registry、basicService标签一致。
+
+   ```java
+    @Bean(name = "demoMotan")
+    public ProtocolConfigBean protocolConfig1() {
+        ProtocolConfigBean config = new ProtocolConfigBean();
+        config.setDefault(true);
+        config.setName("motan");
+        config.setMaxContentLength(1048576);
+        return config;
+    }
+
+    @Bean(name = "registryConfig1")
+    public RegistryConfigBean registryConfig() {
+        RegistryConfigBean config = new RegistryConfigBean();
+        config.setRegProtocol("local");
+        return config;
+    }
+
+    @Bean
+    public BasicServiceConfigBean baseServiceConfig() {
+        BasicServiceConfigBean config = new BasicServiceConfigBean();
+        config.setExport("demoMotan:8002");
+        config.setGroup("testgroup");
+        config.setAccessLog(false);
+        config.setShareChannel(true);
+        config.setModule("motan-demo-rpc");
+        config.setApplication("myMotanDemo");
+        config.setRegistry("registryConfig1");
+        return config;
+    }
+   ```
+    
+3、service的实现类上添加@MotanService注解，注解的配置参数与xml配置方式的service标签一致。
+
+   ```java
+    @MotanService(export = "8002")
+    public class MotanDemoServiceImpl implements MotanDemoService {
+
+        public String hello(String name) {
+            System.out.println(name);
+            return "Hello " + name + "!";
+        }
+    }
+   ```
+    
+4、使用[spring-boot](https://github.com/spring-projects/spring-boot)启动服务
+
+   ```java
+    @EnableAutoConfiguration
+    @SpringBootApplication
+    public class SpringBootRpcServerDemo {
+
+        public static void main(String[] args) {
+            System.setProperty("server.port", "8081");
+            ConfigurableApplicationContext context =  SpringApplication.run(SpringBootRpcServerDemo.class, args);
+          
+        MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
+            System.out.println("server start...");
+        }
+    }
+   ```
+    
+server端详细配置请参考motan-demo模块
+
+####client端配置
+1、声明Annotation、protocolConfig、RegistryConfig的配置bean。方式与server端配置类似。
+
+2、配置basicRefererConfig bean
+
+   ```java
+    @Bean(name = "motantestClientBasicConfig")
+    public BasicRefererConfigBean baseRefererConfig() {
+        BasicRefererConfigBean config = new BasicRefererConfigBean();
+        config.setProtocol("demoMotan");
+        config.setGroup("motan-demo-rpc");
+        config.setModule("motan-demo-rpc");
+        config.setApplication("myMotanDemo");
+        config.setRegistry("registry");
+        config.setCheck(false);
+        config.setAccessLog(true);
+        config.setRetries(2);
+        config.setThrowException(true);
+        return config;
+    }
+   ```
+    
+3、在使用motan service 的对象上添加@MotanReferer注解，注册配置与xml方式的referer标签一致
+
+   ```java
+    @RestController
+    public class HelloController {
+
+        @MotanReferer(basicReferer = "motantestClientBasicConfig", group = "testgroup", directUrl = "127.0.0.1:8002")
+        MotanDemoService service;
+
+        @RequestMapping("/")
+        @ResponseBody
+        public String home() {
+            String result = service.hello("test");
+            return result;
+        }
+    }
+   ```
+    
+4、使用spring-boot启动client
+
+   ```java
+    @EnableAutoConfiguration
+    @SpringBootApplication
+    public class SpringBootRpcClientDemo {
+
+        public static void main(String[] args) {
+            SpringApplication.run(SpringBootRpcClientDemo.class, args);
+        }
+    }
+   ```
+    
+client端详细配置请参考motan-demo模块
