@@ -23,6 +23,7 @@ import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.NetUtils;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * "本地服务优先" 负载均衡
@@ -42,7 +43,6 @@ import java.util.*;
 @SpiMeta(name = "localFirst")
 public class LocalFirstLoadBalance<T> extends AbstractLoadBalance<T> {
     public static final int MAX_REFERER_COUNT = 10;
-    private static Random random = new Random();
 
     public static long ipToLong(final String addr) {
         final String[] addressBytes = addr.split("\\.");
@@ -107,7 +107,7 @@ public class LocalFirstLoadBalance<T> extends AbstractLoadBalance<T> {
         }
 
         int refererSize = referers.size();
-        int startIndex = random.nextInt(refererSize);
+        int startIndex = ThreadLocalRandom.current().nextInt(refererSize);
         int currentCursor = 0;
         int currentAvailableCursor = 0;
 

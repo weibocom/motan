@@ -1,17 +1,15 @@
 /*
- *  Copyright 2009-2016 Weibo, Inc.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2016 Weibo, Inc.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 package com.weibo.api.motan.filter;
@@ -23,6 +21,7 @@ import com.weibo.api.motan.exception.MotanBizException;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.ReflectUtil;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -30,6 +29,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -135,7 +135,8 @@ public class ServiceMockFilter implements Filter {
         return response;
     }
 
-    private Object invoke(Object clz, Method method, Object[] args, MockInfo info) throws InterruptedException, InvocationTargetException, IllegalAccessException {
+    private Object invoke(Object clz, Method method, Object[] args, MockInfo info) throws InterruptedException, InvocationTargetException,
+            IllegalAccessException {
 
         info.callNum.addAndGet(1);
 
@@ -151,7 +152,7 @@ public class ServiceMockFilter implements Filter {
 
         long sleepTime;
 
-        int n = new Random().nextInt(1000);
+        int n = ThreadLocalRandom.current().nextInt(1000);
 
         long delta = (long) (rMean - info.mean + 1);
         if (n < 900) {
@@ -175,7 +176,7 @@ public class ServiceMockFilter implements Filter {
             while (info.errorRate * rate < 1) {
                 rate *= 10;
             }
-            if (new Random().nextInt(rate) == 1) {
+            if (ThreadLocalRandom.current().nextInt(rate) == 1) {
                 throw new RuntimeException();
             }
         }

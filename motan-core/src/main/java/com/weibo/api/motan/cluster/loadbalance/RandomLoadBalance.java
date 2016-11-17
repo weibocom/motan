@@ -17,6 +17,7 @@
 package com.weibo.api.motan.cluster.loadbalance;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.rpc.Referer;
@@ -36,7 +37,7 @@ public class RandomLoadBalance<T> extends AbstractLoadBalance<T> {
     protected Referer<T> doSelect(Request request) {
         List<Referer<T>> referers = getReferers();
 
-        int idx = (int) (Math.random() * referers.size());
+        int idx = (int) (ThreadLocalRandom.current().nextDouble() * referers.size());
         for (int i = 0; i < referers.size(); i++) {
             Referer<T> ref = referers.get((i + idx) % referers.size());
             if (ref.isAvailable()) {
@@ -50,7 +51,7 @@ public class RandomLoadBalance<T> extends AbstractLoadBalance<T> {
     protected void doSelectToHolder(Request request, List<Referer<T>> refersHolder) {
         List<Referer<T>> referers = getReferers();
 
-        int idx = (int) (Math.random() * referers.size());
+        int idx = (int) (ThreadLocalRandom.current().nextDouble() * referers.size());
         for (int i = 0; i < referers.size(); i++) {
             Referer<T> referer = referers.get((i + idx) % referers.size());
             if (referer.isAvailable()) {
