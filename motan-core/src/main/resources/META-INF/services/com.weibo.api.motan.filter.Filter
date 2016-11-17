@@ -19,3 +19,4 @@ com.weibo.api.motan.filter.ActiveLimitFilter
 com.weibo.api.motan.filter.AccessStatisticFilter
 com.weibo.api.motan.filter.SwitcherFilter
 com.weibo.api.motan.filter.ServiceMockFilter
+com.weibo.api.motan.filter.ThreadProtectedFilter

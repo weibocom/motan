@@ -13,7 +13,6 @@
  */
 package com.weibo.api.motan.protocol.grpc;
 
-import io.grpc.Attributes;
 import io.grpc.Metadata;
 import io.grpc.ServerCall;
 import io.grpc.ServerCall.Listener;
@@ -23,17 +22,17 @@ import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 
 import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.Set;
 
 import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.exception.MotanBizException;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.DefaultRequest;
 import com.weibo.api.motan.rpc.Provider;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.ReflectUtil;
+
 /**
  * 
  * @Description MotanServerCallHandler
@@ -51,6 +50,7 @@ public class MotanServerCallHandler<Req, Resp> implements ServerCallHandler<Req,
     private String paramsDesc;
     private boolean requestStream = false;
     private boolean responseStream = false;
+    private static Metadata.Key<String> REQUEST_ID = Metadata.Key.of("rid", Metadata.ASCII_STRING_MARSHALLER);
 
     public void init(Provider<?> provider, Method method) {
         checkMethod(method);
@@ -104,9 +104,9 @@ public class MotanServerCallHandler<Req, Resp> implements ServerCallHandler<Req,
             public void onHalfClose() {
                 if (request != null) {
                     DefaultRequest motanRequest = getBaseMotanRequest(headers);
-                    
+
                     String ip = NetUtils.getHostName(call.attributes().get(ServerCall.REMOTE_ADDR_KEY));
-                    if(ip != null){
+                    if (ip != null) {
                         motanRequest.setAttachment(URLParamType.host.getName(), ip);
                     }
                     if (responseStream) {
@@ -115,17 +115,17 @@ public class MotanServerCallHandler<Req, Resp> implements ServerCallHandler<Req,
                         motanRequest.setArguments(new Object[] {request});
                     }
                     Response response = null;
-                    try{
+                    try {
                         response = provider.call(motanRequest);
-                    }catch(Exception e){
+                        if (response.getValue() != null) {
+                            responseObserver.onNext((RespT) response.getValue());
+                            responseObserver.onCompleted();
+                        }
+                    } catch (Exception e) {
                         responseObserver.onError(e);
                         return;
                     }
-                    
-                    if (response.getValue() != null) {
-                        responseObserver.onNext((RespT) response.getValue());
-                        responseObserver.onCompleted();
-                    }
+
                     responseObserver.freeze();
                     if (call.isReady()) {
                         onReady();
@@ -206,11 +206,18 @@ public class MotanServerCallHandler<Req, Resp> implements ServerCallHandler<Req,
         request.setMethodName(methodName);
         request.setParamtersDesc(paramsDesc);
         request.setInterfaceName(provider.getInterface().getName());
+        String rid = headers.get(REQUEST_ID);
+        if (rid == null) {
+            rid = headers.get(Metadata.Key.of(URLParamType.requestIdFromClient.getName().toLowerCase(), Metadata.ASCII_STRING_MARSHALLER));
+        }
+        if (rid != null) {
+            request.setAttachment(URLParamType.requestIdFromClient.getName(), rid);
+        }
         // fill attachment info from headers
         Set<String> keys = headers.keys();
-        for(String key : keys){
+        for (String key : keys) {
             String value = headers.get(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER));
-            if(value != null){
+            if (value != null) {
                 request.setAttachment(key, value);
             }
         }
@@ -262,7 +269,11 @@ public class MotanServerCallHandler<Req, Resp> implements ServerCallHandler<Req,
             if (metadata == null) {
                 metadata = new Metadata();
             }
-            call.close(Status.INTERNAL.withDescription(t.getMessage()).withCause(t), metadata);
+            if (t instanceof MotanBizException) {
+                call.close(Status.INTERNAL.withDescription(t.getMessage()).withCause(t), metadata);
+            } else {
+                call.close(Status.UNAVAILABLE.withDescription(t.getMessage()).withCause(t), metadata);
+            }
         }
 
         @Override
