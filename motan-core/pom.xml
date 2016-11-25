@@ -21,7 +21,7 @@
     <parent>
         <artifactId>motan</artifactId>
         <groupId>com.weibo</groupId>
-        <version>0.2.2</version>
+        <version>0.2.3-SNAPSHOT</version>
     </parent>
     <artifactId>motan-core</artifactId>
     <name>motan-core</name>
