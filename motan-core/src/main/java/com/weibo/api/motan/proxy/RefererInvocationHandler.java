@@ -150,9 +150,7 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
      * @return
      */
     public boolean isLocalMethod(Method method){
-        String methodName = method.getName();
-        if("toString".equals(methodName) || "equals".equals(methodName) 
-                || "hashCode".equals(methodName) ||"finalize".equals(methodName)){
+        if(method.getDeclaringClass().equals(Object.class)){
             try{
                 Method interfaceMethod = clz.getDeclaredMethod(method.getName(), method.getParameterTypes());
                 return false;
