@@ -53,7 +53,7 @@ public class ProviderProtectedMessageRouter extends ProviderMessageRouter {
     protected ConcurrentMap<String, AtomicInteger> requestCounters = new ConcurrentHashMap<String, AtomicInteger>();
     protected AtomicInteger totalCounter = new AtomicInteger(0);
 
-    protected Object lock = new Object();
+
 
     public ProviderProtectedMessageRouter() {
         super();
@@ -73,11 +73,8 @@ public class ProviderProtectedMessageRouter extends ProviderMessageRouter {
 
         try {
             int requestCounter = 0, totalCounter = 0;
-            synchronized (lock) {
-                requestCounter = incrRequestCounter(requestKey);
-                totalCounter = incrTotalCounter();
-            }
-
+            requestCounter = incrRequestCounter(requestKey);
+            totalCounter = incrTotalCounter();
             if (isAllowRequest(requestCounter, totalCounter, maxThread, request)) {
                 return super.call(request, provider);
             } else {
@@ -86,10 +83,8 @@ public class ProviderProtectedMessageRouter extends ProviderMessageRouter {
             }
 
         } finally {
-            synchronized (lock) {
-                decrTotalCounter();
-                decrRequestCounter(requestKey);
-            }
+            decrTotalCounter();
+            decrRequestCounter(requestKey);
         }
     }
 

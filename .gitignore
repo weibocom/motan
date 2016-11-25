@@ -3,6 +3,7 @@
 */logs/
 */*/logs/
 */target/
+bin/
 
 # maven ignore
 target/

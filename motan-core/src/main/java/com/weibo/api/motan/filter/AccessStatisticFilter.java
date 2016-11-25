@@ -30,6 +30,8 @@ import com.weibo.api.motan.util.StatsUtil.AccessStatus;
  */
 @SpiMeta(name = "statistic")
 public class AccessStatisticFilter implements Filter {
+    protected static Application RPC_SERVICES = new Application(ApplicationInfo.STATISTIC, "rpc_service");
+
     @Override
     public Response filter(Caller<?> caller, Request request) {
         long start = System.currentTimeMillis();
@@ -68,7 +70,7 @@ public class AccessStatisticFilter implements Filter {
             String statName =
                     caller.getUrl().getProtocol() + MotanConstants.PROTOCOL_SEPARATOR + MotanFrameworkUtil.getGroupMethodString(request);
             if (caller instanceof Provider) {
-                application = new Application(ApplicationInfo.STATISTIC, "rpc_service");
+                application = RPC_SERVICES;
                 StatsUtil.accessStatistic(statName, application, end, end - start, bizProcessTime, accessStatus);
             }
             application = ApplicationInfo.getApplication(caller.getUrl());

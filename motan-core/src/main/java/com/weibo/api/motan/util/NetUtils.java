@@ -175,14 +175,17 @@ public class NetUtils {
         String name = address.getHostAddress();
         return (name != null && !ANYHOST.equals(name) && !LOCALHOST.equals(name) && IP_PATTERN.matcher(name).matches());
     }
-
+    //return ip to avoid lookup dns
     public static String getHostName(SocketAddress socketAddress) {
         if (socketAddress == null) {
             return null;
         }
 
         if (socketAddress instanceof InetSocketAddress) {
-            return ((InetSocketAddress) socketAddress).getHostName();
+            InetAddress addr = ((InetSocketAddress) socketAddress).getAddress();
+            if(addr != null){
+                return addr.getHostAddress();
+            }
         }
 
         return null;
