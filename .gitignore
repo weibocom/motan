@@ -3,6 +3,7 @@
 */logs/
 */*/logs/
 */target/
+bin/
 
 # maven ignore
 target/
@@ -33,4 +34,3 @@ target/
 .DS_Store
 Thumbs.db
 logs/
-bin/

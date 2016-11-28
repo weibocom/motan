@@ -383,11 +383,15 @@ public class ConsulRegistry extends CommandFailbackRegistry {
         @Override
         public void run() {
             ConcurrentHashMap<URL, ServiceListener> listeners = serviceListeners.get(service);
-            synchronized (listeners) {
-                for (Map.Entry<URL, ServiceListener> entry : listeners.entrySet()) {
-                    ServiceListener serviceListener = entry.getValue();
-                    serviceListener.notifyService(entry.getKey(), getUrl(), urls);
+            if (listeners != null) {
+                synchronized (listeners) {
+                    for (Map.Entry<URL, ServiceListener> entry : listeners.entrySet()) {
+                        ServiceListener serviceListener = entry.getValue();
+                        serviceListener.notifyService(entry.getKey(), getUrl(), urls);
+                    }
                 }
+            } else {
+                LoggerUtil.debug("need not notify service:" + service);
             }
         }
     }

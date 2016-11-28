@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.rpc.Referer;
@@ -43,15 +44,13 @@ import com.weibo.api.motan.rpc.Request;
  */
 @SpiMeta(name = "activeWeight")
 public class ActiveWeightLoadBalance<T> extends AbstractLoadBalance<T> {
-    public static final int MAX_REFERER_COUNT = 10;
-    private static Random random = new Random();
 
     @Override
     protected Referer<T> doSelect(Request request) {
         List<Referer<T>> referers = getReferers();
 
         int refererSize = referers.size();
-        int startIndex = random.nextInt(refererSize);
+        int startIndex = ThreadLocalRandom.current().nextInt(refererSize);
         int currentCursor = 0;
         int currentAvailableCursor = 0;
 
@@ -84,7 +83,7 @@ public class ActiveWeightLoadBalance<T> extends AbstractLoadBalance<T> {
         List<Referer<T>> referers = getReferers();
 
         int refererSize = referers.size();
-        int startIndex = random.nextInt(refererSize);
+        int startIndex = ThreadLocalRandom.current().nextInt(refererSize);
         int currentCursor = 0;
         int currentAvailableCursor = 0;
 
