@@ -2,6 +2,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/weibocom/motan/blob/master/LICENSE)
 [![Maven Central](https://img.shields.io/maven-central/v/com.weibo/motan.svg?label=Maven Central)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.weibo%22%20AND%20motan)
 [![Build Status](https://img.shields.io/travis/weibocom/motan/master.svg?label=Build)](https://travis-ci.org/weibocom/motan)
+[![codebeat](https://codebeat.co/badges/2bbabd9a-722d-409c-8b7e-37ae2f326060)](https://codebeat.co/projects/github-com-weibocom-motan)
 
 # Overview
 Motan is a remote procedure call(RPC) framework for rapid development of high performance distributed services.
