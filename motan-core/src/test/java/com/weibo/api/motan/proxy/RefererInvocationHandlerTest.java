@@ -20,8 +20,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import static junit.framework.Assert.*;
-
 import org.jmock.Expectations;
 import org.junit.Test;
 
@@ -31,16 +29,17 @@ import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanBizException;
 import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.URL;
 
 public class RefererInvocationHandlerTest extends BaseTestCase {
 
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
     public void testInvokeException() throws Throwable {
         final Cluster cluster = mockery.mock(Cluster.class);
-        final Request request = mockery.mock(Request.class);
         final URL u = new URL("motan", "local", 80, "test");
         u.addParameter(URLParamType.nodeType.getName(), MotanConstants.NODE_TYPE_REFERER);
         mockery.checking(new Expectations() {
@@ -64,7 +63,62 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
         }
 
     }
+    
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Test
+    public void testLocalMehtod() throws Exception{
+        final Cluster cluster = mockery.mock(Cluster.class);
+        final URL u = new URL("motan", "local", 80, "test");
+        final List<Referer> referers = new ArrayList<Referer>();
+        final Referer referer = mockery.mock(Referer.class); 
+        referers.add(referer);
+        mockery.checking(new Expectations() {
+            {
+                allowing(cluster).getUrl();
+                will(returnValue(u));
+                allowing(referer).getUrl();
+                will(returnValue(u));
+                allowing(referer).isAvailable();
+                will(returnValue(true));
+                allowing(cluster).getReferers();
+                will(returnValue(referers));
+            }
+        });
+        RefererInvocationHandler handler = new RefererInvocationHandler(TestService.class, cluster);
+        //local method
+        Method method = TestServiceImpl.class.getMethod("toString", new Class<?>[]{});
+        assertTrue(handler.isLocalMethod(method));
+        try {
+            String result = (String)handler.invoke(null, method, null);
+            assertEquals("{protocol:motan[motan://local:80/test?group=default_rpc, available:true]}", result);
+        } catch (Throwable e) {
+            assertTrue(false);
+        }
+        
+        method = TestServiceImpl.class.getMethod("hashCode", new Class<?>[]{});
+        assertTrue(handler.isLocalMethod(method));
+        
+        //remote method
+        method = TestServiceImpl.class.getMethod("hello", new Class<?>[]{});
+        assertFalse(handler.isLocalMethod(method));
+        method = TestServiceImpl.class.getMethod("equals", new Class<?>[]{Object.class});
+        assertFalse(handler.isLocalMethod(method));
+        
+        
+        
+    }
 
-
+    interface TestService{
+        String hello();
+        boolean equals(Object o);
+    }
+    
+    class TestServiceImpl implements TestService{
+        @Override
+        public String hello() {
+            return "hello";
+        }
+        
+    }
 
 }

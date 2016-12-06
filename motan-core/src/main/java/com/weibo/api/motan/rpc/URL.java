@@ -397,7 +397,12 @@ public class URL {
         if (!version.equals(refVersion)) {
             return false;
         }
-
+        // check serialize
+        String serialize = getParameter(URLParamType.serialize.getName(), URLParamType.serialize.getValue());
+        String refSerialize = refUrl.getParameter(URLParamType.serialize.getName(), URLParamType.serialize.getValue());
+        if (!serialize.equals(refSerialize)) {
+            return false;
+        }
         // 由于需要提供跨group访问rpc的能力，所以不再验证group是否一致。
         return true;
     }

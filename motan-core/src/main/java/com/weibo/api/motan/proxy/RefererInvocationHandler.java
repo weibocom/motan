@@ -31,6 +31,7 @@ import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.ApplicationInfo;
 import com.weibo.api.motan.rpc.DefaultRequest;
+import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.switcher.Switcher;
 import com.weibo.api.motan.switcher.SwitcherService;
@@ -75,6 +76,12 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        if(isLocalMethod(method)){
+            if("toString".equals(method.getName())){
+                return clustersToString();
+            }
+            throw new MotanServiceException("can not invoke local method:" + method.getName());
+        }
         DefaultRequest request = new DefaultRequest();
 
         request.setRequestId(RequestIdGenerator.getRequestId());
@@ -135,6 +142,35 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
         throw new MotanServiceException("Referer call Error: cluster not exist, interface=" + clz.getName() + " "
                 + MotanFrameworkUtil.toString(request), MotanErrorMsgConstant.SERVICE_UNFOUND);
 
+    }
+    
+    /**
+     * tostring,equals,hashCode,finalize等接口未声明的方法不进行远程调用
+     * @param method
+     * @return
+     */
+    public boolean isLocalMethod(Method method){
+        if(method.getDeclaringClass().equals(Object.class)){
+            try{
+                Method interfaceMethod = clz.getDeclaredMethod(method.getName(), method.getParameterTypes());
+                return false;
+            }catch(Exception e){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private String clustersToString(){
+        StringBuilder sb = new StringBuilder();
+        for(Cluster<T> cluster: clusters){
+            sb.append("{protocol:").append(cluster.getUrl().getProtocol());
+            for(Referer<T> refer : (List<Referer<T>>)cluster.getReferers()){
+                sb.append("[").append(refer.getUrl().toSimpleString()).append(", available:").append(refer.isAvailable()).append("]");
+            }
+            sb.append("}");
+        }
+        return sb.toString();
     }
 
     private Object getDefaultReturnValue(Class<?> returnType) {

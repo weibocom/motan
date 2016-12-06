@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.util.MathUtil;
 
 /**
  * 
@@ -65,6 +66,6 @@ public class RoundRobinLoadBalance<T> extends AbstractLoadBalance<T> {
 
     // get positive int
     private int getNextPositive() {
-        return 0x7fffffff & idx.incrementAndGet();
+        return MathUtil.getPositive(idx.incrementAndGet());
     }
 }

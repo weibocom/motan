@@ -31,4 +31,13 @@ public class MathUtil {
             return defaultValue;
         }
     }
+    
+    /**
+     * return positive int value of originValue
+     * @param originValue
+     * @return positive int
+     */
+    public static int getPositive(int originValue){
+        return 0x7fffffff & originValue;
+    }
 }

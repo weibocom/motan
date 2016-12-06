@@ -70,7 +70,7 @@ public class ActiveWeightLoadBalanceTest {
         if (refererSize <= ActiveWeightLoadBalance.MAX_REFERER_COUNT) {
             Assert.assertEquals(referer.activeRefererCount(), lowActive);
         } else {
-            Assert.assertTrue(refererSize - ActiveWeightLoadBalance.MAX_REFERER_COUNT >= referer.activeRefererCount());
+            Assert.assertTrue(refererSize - ActiveWeightLoadBalance.MAX_REFERER_COUNT + 1 >= referer.activeRefererCount());
         }
 
         List<Referer> referersHolder = new ArrayList<Referer>();
@@ -102,7 +102,7 @@ public class ActiveWeightLoadBalanceTest {
         if (availableSize <= ActiveWeightLoadBalance.MAX_REFERER_COUNT) {
             Assert.assertTrue(referer.activeRefererCount() - lowActive - unAvailableSize <= 0);
         } else {
-            Assert.assertTrue(refererSize - ActiveWeightLoadBalance.MAX_REFERER_COUNT + unAvailableSize >= referer.activeRefererCount());
+            Assert.assertTrue(refererSize - ActiveWeightLoadBalance.MAX_REFERER_COUNT + unAvailableSize +1 >= referer.activeRefererCount());
         }
 
         List<Referer> referersHolder = new ArrayList<Referer>();

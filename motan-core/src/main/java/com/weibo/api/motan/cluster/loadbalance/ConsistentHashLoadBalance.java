@@ -25,6 +25,7 @@ import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.util.MathUtil;
 
 /**
  * 
@@ -82,11 +83,13 @@ public class ConsistentHashLoadBalance<T> extends AbstractLoadBalance<T> {
     }
 
     private int getHash(Request request) {
+        int hashcode;
         if (request.getArguments() == null || request.getArguments().length == 0) {
-            return 0x7fffffff & request.hashCode();
+            hashcode = request.hashCode();
         } else {
-            return 0x7fffffff & Arrays.hashCode(request.getArguments());
+            hashcode = Arrays.hashCode(request.getArguments());
         }
+        return MathUtil.getPositive(hashcode);
     }
 
 

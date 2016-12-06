@@ -237,7 +237,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 		// 实际上，极端情况下，connectTimeout会达到500ms，因为netty nio的实现中，是依赖BossThread来控制超时，
 		// 如果为了严格意义的timeout，那么需要应用端进行控制。
-		int timeout = getUrl().getIntParameter(URLParamType.requestTimeout.getName(), URLParamType.requestTimeout.getIntValue());
+		int timeout = getUrl().getIntParameter(URLParamType.connectTimeout.getName(), URLParamType.connectTimeout.getIntValue());
         if (timeout <= 0) {
             throw new MotanFrameworkException("NettyClient init Error: timeout(" + timeout + ") <= 0 is forbid.",
                     MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);

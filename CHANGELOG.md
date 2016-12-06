@@ -1,5 +1,22 @@
 # Change Log
 
+## [0.2.2](https://github.com/weibocom/motan/tree/0.2.2) (2016-11-25)
+[Full Changelog](https://github.com/weibocom/motan/compare/0.2.1...0.2.2)
+
+**Implemented enhancements:**
+
+- local method do not request server [\#286](https://github.com/weibocom/motan/pull/286) ([Ray](https://github.com/rayzhang0603))
+- use ThreadLocalRandom
+
+
+**Fixed bugs:**
+
+- loadbalance index overflow
+- consul registry notify NPE
+
+**Merged pull requests:**
+
+
 ## [0.2.1](https://github.com/weibocom/motan/tree/0.2.1) (2016-08-18)
 [Full Changelog](https://github.com/weibocom/motan/compare/0.2.0...0.2.1)
 
