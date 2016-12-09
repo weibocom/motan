@@ -16,12 +16,10 @@
 
 package com.weibo.api.motan.benchmark;
 
-import java.io.Serializable;
-import java.util.Map;
-
 import com.weibo.api.motan.codec.Serialization;
 import com.weibo.api.motan.serialize.FastJsonSerialization;
 import com.weibo.api.motan.serialize.Hessian2Serialization;
+import com.weibo.api.motan.serialize.ProtostuffSerialization;
 
 /**
  * @author maijunsheng
@@ -32,9 +30,11 @@ public class SerializeTest {
     private static final int loop = 10000;
 
     public static void main(String[] args) throws Exception {
+    	System.out.println(System.currentTimeMillis());
+    	System.out.println(System.nanoTime());
         Hessian2Serialization hession = new Hessian2Serialization();
         FastJsonSerialization fastjson = new FastJsonSerialization();
-
+        ProtostuffSerialization protostuff = new ProtostuffSerialization();
         SerializeObject object = new SerializeObject();
         object.setHello("hello world");
         object.setAge(1000000L);
@@ -44,18 +44,22 @@ public class SerializeTest {
         for (int i = 0; i < loop; i++) {
             hession.serialize(object);
             fastjson.serialize(object);
+            protostuff.serialize(object);
         }
 
         byte[] fastjsonBytes = fastjson.serialize(object);
         byte[] hessionBytes = hession.serialize(object);
+        byte[] protostuffBytes = protostuff.serialize(object);
 
         for (int i = 0; i < loop; i++) {
             hession.deserialize(hessionBytes, object.getClass());
             fastjson.deserialize(fastjsonBytes, object.getClass());
+            protostuff.deserialize(protostuffBytes, object.getClass());
         }
 
         costtime(hession, object);
         costtime(fastjson, object);
+        costtime(protostuff, object);
 
         System.out.println("~~~~~~~~~~~~~~~~~~~~\n");
 
@@ -64,6 +68,9 @@ public class SerializeTest {
 
         System.out.println("FastJsonSerialization serialize size: " + fastjsonBytes.length);
         costtime(fastjson, object);
+
+        System.out.println("ProtostuffSerialization serialize size: " + protostuffBytes.length);
+        costtime(protostuff, object);
 
     }
 
@@ -92,53 +99,3 @@ public class SerializeTest {
 }
 
 
-class SerializeObject implements Serializable {
-    private static final long serialVersionUID = 2366873906296131107L;
-    private long age;
-    private String hello;
-    private int[] arr;
-    private int[][] arr2;
-    private Map<String, Object> obj;
-
-    public SerializeObject() {}
-
-    public void setAge(long age) {
-        this.age = age;
-    }
-
-    public void setHello(String hello) {
-        this.hello = hello;
-    }
-
-    public void setArr(int[] arr) {
-        this.arr = arr;
-    }
-
-    public void setArr2(int[][] arr2) {
-        this.arr2 = arr2;
-    }
-
-    public long getAge() {
-        return age;
-    }
-
-    public String getHello() {
-        return hello;
-    }
-
-    public int[] getArr() {
-        return arr;
-    }
-
-    public int[][] getArr2() {
-        return arr2;
-    }
-
-    public Map<String, Object> getObj() {
-        return obj;
-    }
-
-    public void setObj(Map<String, Object> obj) {
-        this.obj = obj;
-    }
-}
