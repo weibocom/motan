@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <!-- ~ Copyright 2009-2016 Weibo, Inc. ~ ~ Licensed under the Apache License, 
     Version 2.0 (the "License"); ~ you may not use this file except in compliance 
     with the License. ~ You may obtain a copy of the License at ~ ~ http://www.apache.org/licenses/LICENSE-2.0 
@@ -7,31 +7,20 @@
     WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. ~ See the 
     License for the specific language governing permissions and ~ limitations 
     under the License. -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.weibo</groupId>
-        <artifactId>motan</artifactId>
+        <artifactId>motan-extension</artifactId>
         <version>0.2.3-SNAPSHOT</version>
     </parent>
-    <artifactId>motan-extension</artifactId>
-    <name>motan-extension</name>
+    <artifactId>filter-extension</artifactId>
+    <name>filter-extension</name>
     <url>https://github.com/weibocom/motan</url>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
     <packaging>pom</packaging>
-    <dependencies>
-        <dependency>
-            <groupId>com.weibo</groupId>
-            <artifactId>motan-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
     <modules>
-        <module>serialization-extension</module>
-        <module>protocol-extension</module>
-        <module>filter-extension</module>
+        <module>filter-opentracing</module>
     </modules>
 </project>
