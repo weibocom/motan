@@ -22,6 +22,7 @@
     <url>https://github.com/weibocom/motan</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <protostuff.version>1.5.2</protostuff.version>
     </properties>
     <dependencies>
         <dependency>
@@ -34,5 +35,15 @@
             <artifactId>motan-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+			<groupId>io.protostuff</groupId>
+			<artifactId>protostuff-core</artifactId>
+			<version>${protostuff.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.protostuff</groupId>
+			<artifactId>protostuff-runtime</artifactId>
+			<version>${protostuff.version}</version>
+		</dependency>
     </dependencies>
 </project>
