@@ -95,6 +95,8 @@ public class ExtensionLoader<T> {
         try {
             Spi spi = type.getAnnotation(Spi.class);
 
+            if(spi==null) return null;
+
             if (spi.scope() == Scope.SINGLETON) {
                 return getSingletonInstance(name);
             } else {
