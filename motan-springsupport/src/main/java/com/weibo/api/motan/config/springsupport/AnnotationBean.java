@@ -26,6 +26,7 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.core.Ordered;
 import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Field;
@@ -45,7 +46,7 @@ import java.util.concurrent.ConcurrentMap;
  * <p>
  * Created by fld on 16/5/13.
  */
-public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor, BeanPostProcessor, BeanFactoryAware {
+public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor, BeanPostProcessor, BeanFactoryAware, Ordered {
 
 
     private String id;
@@ -558,5 +559,10 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
         this.beanFactory = beanFactory;
+    }
+
+    @Override
+    public int getOrder() {
+        return 0;
     }
 }
