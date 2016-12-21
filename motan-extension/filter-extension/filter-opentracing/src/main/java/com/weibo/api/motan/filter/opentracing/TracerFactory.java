@@ -15,6 +15,11 @@
  */
 package com.weibo.api.motan.filter.opentracing;
 
+import java.util.Iterator;
+import java.util.ServiceLoader;
+
+import com.weibo.api.motan.util.LoggerUtil;
+
 import io.opentracing.Tracer;
 /**
  * 
@@ -25,19 +30,44 @@ import io.opentracing.Tracer;
  */
 public interface TracerFactory {
     public static final TracerFactory DEFAULT = new DefaultTracerFactory();
-    
+
     /**
-     * get a Tracer implementation.
-     * this method may called every request, consider whether singleton pattern is needed 
+     * get a Tracer implementation. this method may called every request, consider whether singleton
+     * pattern is needed
+     * 
      * @return
      */
     Tracer getTracer();
 
-    class DefaultTracerFactory implements TracerFactory{
+    class DefaultTracerFactory implements TracerFactory {
+        private static Tracer tracer = null;
+
+        static {
+            loadDefaultTracer();
+        }
+
+        /**
+         * load SPI Tracer and set default. the first tracer was used if more than one tracer was
+         * found.
+         */
+        private static void loadDefaultTracer() {
+            try {
+                Iterator<Tracer> implementations = ServiceLoader.load(Tracer.class, Tracer.class.getClassLoader()).iterator();
+                if (implementations.hasNext()) {
+                    tracer = implementations.next();
+                    LoggerUtil.info("io.opentracing.Tracer load in DefaultTracerFactory, " + tracer.getClass().getSimpleName()
+                            + " is used as default tracer.");
+                }
+            } catch (Exception e) {
+                LoggerUtil.warn("DefaultTracerFactory load Tracer fail.", e);
+            }
+        }
+
+
         @Override
         public Tracer getTracer() {
-            return null;
+            return tracer;
         }
-        
+
     }
 }
