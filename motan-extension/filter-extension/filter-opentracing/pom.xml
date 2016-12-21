@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!-- ~ Copyright 2009-2016 Weibo, Inc. ~ ~ Licensed under the Apache License, 
+    Version 2.0 (the "License"); ~ you may not use this file except in compliance 
+    with the License. ~ You may obtain a copy of the License at ~ ~ http://www.apache.org/licenses/LICENSE-2.0 
+    ~ ~ Unless required by applicable law or agreed to in writing, software ~ 
+    distributed under the License is distributed on an "AS IS" BASIS, ~ WITHOUT 
+    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. ~ See the 
+    License for the specific language governing permissions and ~ limitations 
+    under the License. -->
+<project
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.weibo</groupId>
+        <artifactId>filter-extension</artifactId>
+        <version>0.2.3-SNAPSHOT</version>
+    </parent>
+    <artifactId>filter-opentracing</artifactId>
+    <name>filter-opentracing</name>
+    <url>https://github.com/weibocom/motan</url>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <opentracing.version>0.20.4</opentracing.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.weibo</groupId>
+            <artifactId>motan-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.opentracing</groupId>
+            <artifactId>opentracing-api</artifactId>
+            <version>${opentracing.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.opentracing</groupId>
+            <artifactId>opentracing-impl</artifactId>
+            <version>${opentracing.version}</version>
+        </dependency>
+
+        <!-- for test -->
+        <dependency>
+            <groupId>io.opentracing</groupId>
+            <artifactId>opentracing-mock</artifactId>
+            <version>${opentracing.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.opentracing.brave</groupId>
+            <artifactId>brave-opentracing</artifactId>
+            <version>0.16.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.zipkin.brave</groupId>
+            <artifactId>brave-spancollector-http</artifactId>
+            <version>3.16.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.weibo</groupId>
+            <artifactId>motan-transport-netty</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.weibo</groupId>
+            <artifactId>motan-springsupport</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>4.2.4.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
