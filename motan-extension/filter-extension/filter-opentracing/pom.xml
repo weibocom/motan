@@ -21,6 +21,7 @@
     <url>https://github.com/weibocom/motan</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <opentracing.version>0.20.2</opentracing.version>
     </properties>
     <dependencies>
         <dependency>
@@ -31,14 +32,19 @@
         <dependency>
             <groupId>io.opentracing</groupId>
             <artifactId>opentracing-api</artifactId>
-            <version>0.20.2</version>
+            <version>${opentracing.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.opentracing</groupId>
+            <artifactId>opentracing-impl</artifactId>
+            <version>${opentracing.version}</version>
         </dependency>
 
         <!-- for test -->
         <dependency>
             <groupId>io.opentracing</groupId>
             <artifactId>opentracing-mock</artifactId>
-            <version>0.20.2</version>
+            <version>${opentracing.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

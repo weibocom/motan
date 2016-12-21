@@ -13,6 +13,7 @@
  */
 package com.weibo.api.motan.filter.opentracing;
 
+import io.opentracing.NoopTracer;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
@@ -49,8 +50,8 @@ public class OpenTracingFilter implements Filter {
 
     @Override
     public Response filter(Caller<?> caller, Request request) {
-        Tracer tracer = OpenTracingContext.getTracer();
-        if (tracer == null) {
+        Tracer tracer = getTracer();
+        if (tracer == null || tracer instanceof NoopTracer) {
             return caller.call(request);
         }
         if (caller instanceof Provider) { // server end
@@ -58,6 +59,10 @@ public class OpenTracingFilter implements Filter {
         } else { // client end
             return processRefererTrace(tracer, caller, request);
         }
+    }
+    
+    protected Tracer getTracer(){
+        return OpenTracingContext.getTracer();
     }
 
     /**

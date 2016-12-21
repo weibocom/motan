@@ -15,12 +15,13 @@
  */
 package com.weibo.api.motan.filter.opentracing;
 
+import io.opentracing.NoopTracerFactory;
+import io.opentracing.Tracer;
+
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
 import com.weibo.api.motan.util.LoggerUtil;
-
-import io.opentracing.Tracer;
 /**
  * 
  * @Description TracerFactory
@@ -40,23 +41,29 @@ public interface TracerFactory {
     Tracer getTracer();
 
     class DefaultTracerFactory implements TracerFactory {
-        private static Tracer tracer = null;
+        private static Tracer tracer =  NoopTracerFactory.create();
 
         static {
             loadDefaultTracer();
         }
 
         /**
-         * load SPI Tracer and set default. the first tracer was used if more than one tracer was
-         * found.
+         * load SPI Tracer and set default only if one tracer is found.
          */
         private static void loadDefaultTracer() {
             try {
                 Iterator<Tracer> implementations = ServiceLoader.load(Tracer.class, Tracer.class.getClassLoader()).iterator();
                 if (implementations.hasNext()) {
-                    tracer = implementations.next();
-                    LoggerUtil.info("io.opentracing.Tracer load in DefaultTracerFactory, " + tracer.getClass().getSimpleName()
+                    Tracer firstTracer = implementations.next();
+                    if(!implementations.hasNext()){
+                        // only one tracer is found.
+                        tracer = firstTracer;
+                        LoggerUtil.info("io.opentracing.Tracer load in DefaultTracerFactory, " + tracer.getClass().getSimpleName()
                             + " is used as default tracer.");
+                    } else {
+                        LoggerUtil.info("io.opentracing.Tracer load in DefaultTracerFactory, NoopTracer is used as default tracer since more than one tracer is found.");
+                    }
+                    
                 }
             } catch (Exception e) {
                 LoggerUtil.warn("DefaultTracerFactory load Tracer fail.", e);
