@@ -21,7 +21,7 @@
     <url>https://github.com/weibocom/motan</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <opentracing.version>0.20.2</opentracing.version>
+        <opentracing.version>0.20.4</opentracing.version>
     </properties>
     <dependencies>
         <dependency>
