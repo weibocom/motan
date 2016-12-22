@@ -179,7 +179,7 @@ The quick start gives very basic example of running client and server on the sam
 * Di Tang([@tangdi](https://github.com/tangdi))
 * 肥佬大([@feilaoda](https://github.com/feilaoda))
 * 小马哥([@andot](https://github.com/andot))
-* wu-sheng([@wu-sheng](https://github.com/wu-sheng)) &nbsp;&nbsp;&nbsp; _Assist to join [OpenTracing](http://opentracing.io) **Supported Frameworks** List_
+* wu-sheng([@wu-sheng](https://github.com/wu-sheng)) &nbsp;&nbsp;&nbsp; _Assist Motan to become the first Chinese RPC framework on [OpenTracing](http://opentracing.io) **Supported Frameworks List**_
 
 # License
 
