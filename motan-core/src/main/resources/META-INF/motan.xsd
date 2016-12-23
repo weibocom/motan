@@ -65,7 +65,7 @@
                     <xsd:documentation><![CDATA[ 注册中心缺省端口. ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="connectTimeout" type="xsd:integer" use="optional">
+            <xsd:attribute name="connectTimeout" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ 注册中心连接超时时间(毫秒). ]]></xsd:documentation>
                 </xsd:annotation>
@@ -75,12 +75,12 @@
                     <xsd:documentation><![CDATA[ 注册中心请求超时时间(毫秒). ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="registrySessionTimeout" type="xsd:integer" use="optional">
+            <xsd:attribute name="registrySessionTimeout" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ 注册中心会话超时时间(毫秒). ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="registryRetryPeriod" type="xsd:integer" use="optional">
+            <xsd:attribute name="registryRetryPeriod" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ registryRetryPeriod. ]]></xsd:documentation>
                 </xsd:annotation>
@@ -90,17 +90,17 @@
                     <xsd:documentation><![CDATA[ 启动时检查注册中心是否存在. ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="dynamic" type="xsd:boolean" use="optional">
+            <xsd:attribute name="dynamic" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ 在该注册中心是否自动注册. ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="register" type="xsd:boolean" use="optional">
+            <xsd:attribute name="register" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ 在该注册中心上服务是否暴露. ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="subscribe" type="xsd:boolean" use="optional">
+            <xsd:attribute name="subscribe" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ 在该注册中心上服务是否引用. ]]></xsd:documentation>
                 </xsd:annotation>
@@ -110,7 +110,7 @@
                     <xsd:documentation><![CDATA[ 注册中心移除策略，仅对vitage生效. ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="default" type="xsd:boolean" use="optional">
+            <xsd:attribute name="default" type="xsd:string" use="optional">
 	            <xsd:annotation>
 	                <xsd:documentation><![CDATA[ is default protocol ]]></xsd:documentation>
 	            </xsd:annotation>    
@@ -154,7 +154,7 @@
                     <xsd:documentation><![CDATA[ 连接请求超时时间(毫秒). ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="retries" type="xsd:integer" use="optional">
+            <xsd:attribute name="retries" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ retries  ]]></xsd:documentation>
                 </xsd:annotation>
@@ -169,7 +169,7 @@
                     <xsd:documentation><![CDATA[ 监听器配置. ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="connections" type="xsd:integer" use="optional">
+            <xsd:attribute name="connections" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ 连接数限制,0表示共享连接，否则为该服务独享连接数;默认共享. ]]></xsd:documentation>
                 </xsd:annotation>
@@ -184,22 +184,22 @@
                     <xsd:documentation><![CDATA[ 模块信息. ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="shareChannel" type="xsd:boolean" use="optional">
+            <xsd:attribute name="shareChannel" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ 是否共享channel. ]]></xsd:documentation>
             	</xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="timeout" type="xsd:integer" use="optional">
+            <xsd:attribute name="timeout" type="xsd:string" use="optional">
 	            <xsd:annotation>
 	                <xsd:documentation><![CDATA[ The method invoke timeout. ]]></xsd:documentation>
 	            </xsd:annotation>
 	        </xsd:attribute>
-	        <xsd:attribute name="actives" type="xsd:integer" use="optional">
+	        <xsd:attribute name="actives" type="xsd:string" use="optional">
 	            <xsd:annotation>
 	                <xsd:documentation><![CDATA[ The max active requests. ]]></xsd:documentation>
 	            </xsd:annotation>
 	        </xsd:attribute>
-	        <xsd:attribute name="async" type="xsd:boolean" use="optional">
+	        <xsd:attribute name="async" type="xsd:string" use="optional">
 	            <xsd:annotation>
 	                <xsd:documentation><![CDATA[ The method does async. ]]></xsd:documentation>
 	            </xsd:annotation>
@@ -219,12 +219,12 @@
                     <xsd:documentation><![CDATA[ 注册中心的id列表，多个用“,”分隔，如果为空，则使用所有的配置中心. ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="register" type="xsd:boolean" use="optional">
+            <xsd:attribute name="register" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ 在该注册中心上服务是否暴露. ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="subscribe" type="xsd:boolean" use="optional">
+            <xsd:attribute name="subscribe" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ 在该注册中心上服务是否引用. ]]></xsd:documentation>
                 </xsd:annotation>
@@ -239,12 +239,12 @@
                     <xsd:documentation><![CDATA[ 当使用VintageRetryLookupRegistry时，从config server同步三次失败并且feature.motanmcq.loadaddressfromfs开关打开时，把这个配置指定的地址作为服务地址，以逗号分割 ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="usegz" type="xsd:boolean" use="optional">
+            <xsd:attribute name="usegz" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ 是否开启gzip压缩.只有compressMotan的codec才能支持 ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="mingzSize" type="xsd:integer" use="optional">
+            <xsd:attribute name="mingzSize" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ 开启gzip压缩的阈值.usegz开关开启，且传输数据大于此阈值时，才会进行gzip压缩。只有compressMotan的codec才能支持 ]]></xsd:documentation>
                 </xsd:annotation>
@@ -272,17 +272,17 @@
 	                <xsd:documentation><![CDATA[ 序列化方式 ]]></xsd:documentation>
 	            </xsd:annotation>
 	        </xsd:attribute>
-	        <xsd:attribute name="payload" type="xsd:integer" use="optional">
+	        <xsd:attribute name="payload" type="xsd:string" use="optional">
 	            <xsd:annotation>
 	                <xsd:documentation><![CDATA[ 最大请求数据长度 ]]></xsd:documentation>
 	            </xsd:annotation>
 	        </xsd:attribute>
-	        <xsd:attribute name="buffer" type="xsd:integer" use="optional">
+	        <xsd:attribute name="buffer" type="xsd:string" use="optional">
 	            <xsd:annotation>
 	                <xsd:documentation><![CDATA[ 缓存区大小 ]]></xsd:documentation>
 	            </xsd:annotation>
 	        </xsd:attribute>
-	       <xsd:attribute name="heartbeat" type="xsd:integer" use="optional">
+	       <xsd:attribute name="heartbeat" type="xsd:string" use="optional">
 	            <xsd:annotation>
 	                <xsd:documentation><![CDATA[ 心跳间隔 ]]></xsd:documentation>
 	            </xsd:annotation>    
@@ -292,12 +292,12 @@
 	                <xsd:documentation><![CDATA[ 网络传输方式 ]]></xsd:documentation>
 	            </xsd:annotation>
 	       </xsd:attribute>
-	       <xsd:attribute name="threads" type="xsd:integer" use="optional">
+	       <xsd:attribute name="threads" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ 线程池大小  ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="iothreads" type="xsd:integer" use="optional">
+            <xsd:attribute name="iothreads" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ IO线程池大小 ]]></xsd:documentation>
                 </xsd:annotation>
@@ -307,43 +307,43 @@
                     <xsd:documentation><![CDATA[ 请求超时 ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="minClientConnection" type="xsd:integer" use="optional">
+            <xsd:attribute name="minClientConnection" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ minClientConnection ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="maxClientConnection" type="xsd:integer" use="optional">
+            <xsd:attribute name="maxClientConnection" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ maxClientConnection ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
             
-            <xsd:attribute name="minWorkerThread" type="xsd:integer" use="optional">
+            <xsd:attribute name="minWorkerThread" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ minWorkerThread ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="maxWorkerThread" type="xsd:integer" use="optional">
+            <xsd:attribute name="maxWorkerThread" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ maxWorkerThread ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="maxContentLength" type="xsd:integer" use="optional">
+            <xsd:attribute name="maxContentLength" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ maxContentLength ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="maxServerConnection" type="xsd:integer" use="optional">
+            <xsd:attribute name="maxServerConnection" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ maxContentLength ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="poolLifo" type="xsd:boolean" use="optional">
+            <xsd:attribute name="poolLifo" type="xsd:string" use="optional">
 	            <xsd:annotation>
 	                <xsd:documentation><![CDATA[ is poolLifo ]]></xsd:documentation>
 	            </xsd:annotation>    
 	       </xsd:attribute>
-	       <xsd:attribute name="lazyInit" type="xsd:boolean" use="optional">
+	       <xsd:attribute name="lazyInit" type="xsd:string" use="optional">
 	            <xsd:annotation>
 	                <xsd:documentation><![CDATA[ is lazyInit ]]></xsd:documentation>
 	            </xsd:annotation>    
@@ -368,12 +368,12 @@
                     <xsd:documentation><![CDATA[ haStrategy ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="workerQueueSize" type="xsd:integer" use="optional">
+            <xsd:attribute name="workerQueueSize" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ workerQueueSize  ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="acceptConnections" type="xsd:integer" use="optional">
+            <xsd:attribute name="acceptConnections" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ acceptConnections  ]]></xsd:documentation>
                 </xsd:annotation>
@@ -390,22 +390,22 @@
                     <xsd:documentation><![CDATA[ filter ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="retries" type="xsd:integer" use="optional">
+            <xsd:attribute name="retries" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ retries  ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="async" type="xsd:boolean" use="optional">
+            <xsd:attribute name="async" type="xsd:string" use="optional">
 	            <xsd:annotation>
 	                <xsd:documentation><![CDATA[ is async ]]></xsd:documentation>
 	            </xsd:annotation>    
 	       </xsd:attribute>
-            <xsd:attribute name="queueSize" type="xsd:integer" use="optional">
+            <xsd:attribute name="queueSize" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ 线程池队列大小  ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-           <xsd:attribute name="accepts" type="xsd:integer" use="optional">
+           <xsd:attribute name="accepts" type="xsd:string" use="optional">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[ 最大接收连接数 ]]></xsd:documentation>
                 </xsd:annotation>    
@@ -431,7 +431,7 @@
                     <xsd:documentation><![CDATA[ codec ]]></xsd:documentation>
                 </xsd:annotation>    
            </xsd:attribute>
-	       <xsd:attribute name="default" type="xsd:boolean" use="optional">
+	       <xsd:attribute name="default" type="xsd:string" use="optional">
 	            <xsd:annotation>
 	                <xsd:documentation><![CDATA[ is default protocol ]]></xsd:documentation>
 	            </xsd:annotation>    
