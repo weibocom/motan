@@ -1,11 +1,7 @@
 package com.weibo.api.motan.registry.zookeeper;
 
-import com.google.common.base.Optional;
 import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.URL;
-import org.apache.commons.lang3.StringUtils;
-
 
 public class ZkUtils {
 
