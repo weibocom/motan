@@ -62,6 +62,11 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
                 reconnectService();
                 reconnectClient();
             }
+
+            @Override
+            public void handleSessionEstablishmentError(Throwable throwable) throws Exception {
+                //version 0.5 client new add method
+            }
         };
         zkClient.subscribeStateChanges(zkStateListener);
     }

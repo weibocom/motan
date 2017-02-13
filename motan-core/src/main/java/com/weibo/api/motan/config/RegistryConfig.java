@@ -69,6 +69,15 @@ public class RegistryConfig extends AbstractConfig {
     // vintage的配置移除策略，@see #RegistryConfig#Excise
     private String excise;
 
+    // zk acl addauth scheme
+    private String scheme;
+
+    // zk acl addauth用户名
+    private String username;
+
+    // zk acl addauth密码
+    private String password;
+
     @ConfigDesc(key = "protocol")
     public String getRegProtocol() {
         return regProtocol;
@@ -177,6 +186,30 @@ public class RegistryConfig extends AbstractConfig {
 
     public void setConnectTimeout(Integer connectTimeout) {
         this.connectTimeout = connectTimeout;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getScheme() {
+        return scheme;
+    }
+
+    public void setScheme(String scheme) {
+        this.scheme = scheme;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     /**

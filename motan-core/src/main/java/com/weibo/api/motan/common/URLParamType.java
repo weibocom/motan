@@ -122,7 +122,16 @@ public enum URLParamType {
     localServiceAddress("localServiceAddress", ""),
 
     // 切换group时，各个group的权重比。默认无权重
-    weights("weights", "");
+    weights("weights", ""),
+
+    //zk acl scheme;
+    scheme("scheme", "digest"),
+
+    //zk acl username;
+    username("username", ""),
+
+    //zk acl password;
+    password("password", "");
 
     private String name;
     private String value;

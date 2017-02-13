@@ -39,7 +39,7 @@
 		<dependency>
 			<groupId>com.101tec</groupId>
 			<artifactId>zkclient</artifactId>
-			<version>0.3</version>
+			<version>0.5</version>
 		</dependency>
 	</dependencies>
 </project>
