@@ -1,5 +1,21 @@
 # Change Log
 
+## [0.2.3](https://github.com/weibocom/motan/tree/0.2.3) (2017-02-16)
+[Full Changelog](https://github.com/weibocom/motan/compare/0.2.2...0.2.3)
+
+**Implemented enhancements:**
+
+- OpenTracing supported [\#311](https://github.com/weibocom/motan/pull/311) ([Ray](https://github.com/rayzhang0603))
+- change xsd type to string  [\#326](https://github.com/weibocom/motan/pull/326) ([Ray](https://github.com/rayzhang0603))
+
+**Fixed bugs:**
+
+- add Ordered interface to AnnotationBean [\#322](https://github.com/weibocom/motan/pull/322) ([feilaoda](https://github.com/feilaoda)) 
+- available after register while heartbeat switcher is open  [\#305](https://github.com/weibocom/motan/pull/305) ([Ray](https://github.com/rayzhang0603))
+
+**Merged pull requests:**
+
+
 ## [0.2.2](https://github.com/weibocom/motan/tree/0.2.2) (2016-11-25)
 [Full Changelog](https://github.com/weibocom/motan/compare/0.2.1...0.2.2)
 

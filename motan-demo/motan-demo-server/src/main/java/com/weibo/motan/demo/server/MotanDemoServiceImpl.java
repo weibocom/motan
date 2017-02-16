@@ -19,7 +19,7 @@ package com.weibo.motan.demo.server;
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import com.weibo.motan.demo.service.MotanDemoService;
 
-@MotanService(export = "8002")
+@MotanService(export = "demoMotan:8002")
 public class MotanDemoServiceImpl implements MotanDemoService {
 
     public String hello(String name) {
