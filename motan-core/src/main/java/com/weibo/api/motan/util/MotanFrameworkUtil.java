@@ -256,5 +256,12 @@ public class MotanFrameworkUtil {
         return local;
     }
     
+    public static String removeAsyncSuffix(String path){
+        if(path != null && path.endsWith(MotanConstants.ASYNC_SUFFIX)){
+            return path.substring(0, path.length() - MotanConstants.ASYNC_SUFFIX.length());
+        }
+        return path;
+    }
+    
     
 }

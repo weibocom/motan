@@ -33,6 +33,8 @@ import com.weibo.api.motan.rpc.ApplicationInfo;
 import com.weibo.api.motan.rpc.DefaultRequest;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.ResponseFuture;
+import com.weibo.api.motan.rpc.RpcContext;
 import com.weibo.api.motan.switcher.Switcher;
 import com.weibo.api.motan.switcher.SwitcherService;
 import com.weibo.api.motan.util.ExceptionUtil;
@@ -76,19 +78,25 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        if(isLocalMethod(method)){
-            if("toString".equals(method.getName())){
+        if (isLocalMethod(method)) {
+            if ("toString".equals(method.getName())) {
                 return clustersToString();
             }
             throw new MotanServiceException("can not invoke local method:" + method.getName());
         }
         DefaultRequest request = new DefaultRequest();
-
         request.setRequestId(RequestIdGenerator.getRequestId());
         request.setArguments(args);
-        request.setMethodName(method.getName());
+        String methodName = method.getName();
+        boolean async = false;
+        if (methodName.endsWith(MotanConstants.ASYNC_SUFFIX) && method.getReturnType().equals(ResponseFuture.class)) {
+            methodName = MotanFrameworkUtil.removeAsyncSuffix(methodName);
+            async = true;
+        }
+        RpcContext.getContext().putAttribute(MotanConstants.ASYNC_SUFFIX, async);
+        request.setMethodName(methodName);
         request.setParamtersDesc(ReflectUtil.getMethodParamDesc(method));
-        request.setInterfaceName(clz.getName());
+        request.setInterfaceName(MotanFrameworkUtil.removeAsyncSuffix(clz.getName()));
         request.setAttachment(URLParamType.requestIdFromClient.getName(), String.valueOf(RequestIdGenerator.getRequestIdFromClient()));
 
         // 当 referer配置多个protocol的时候，比如A,B,C，
@@ -113,7 +121,11 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
                             URLParamType.throwException.getValue()));
             try {
                 response = cluster.call(request);
-                return response.getValue();
+                if (async && response instanceof ResponseFuture) {
+                    return response;
+                } else {
+                    return response.getValue();
+                }
             } catch (RuntimeException e) {
                 if (ExceptionUtil.isBizException(e)) {
                     Throwable t = e.getCause();
