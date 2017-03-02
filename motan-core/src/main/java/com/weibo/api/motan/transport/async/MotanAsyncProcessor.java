@@ -58,11 +58,18 @@ import com.weibo.api.motan.rpc.ResponseFuture;
 @SupportedAnnotationTypes({"com.weibo.api.motan.transport.async.MotanAsync"})
 public class MotanAsyncProcessor extends AbstractProcessor {
     protected static String ASYNC = MotanConstants.ASYNC_SUFFIX;
-    protected static String SRC_DIR = "src/main/java/";
-    protected static String TARGET_DIR = "target/generated-sources/annotations/";
+    protected static String GENERATE_PATH_KEY = "motanGeneratePath";
+    protected static String TARGET_DIR;
 
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
+        String path = processingEnv.getOptions().get(GENERATE_PATH_KEY);// use javac complie options -AmotanGeneratePath=xxx
+        if(path != null){
+            TARGET_DIR = path;
+        } else{ //use jvm option -DmotanGeneratePath=xxx
+            TARGET_DIR = System.getProperty(GENERATE_PATH_KEY, "target/generated-sources/annotations/");
+        }
+        
     }
 
     @Override
@@ -71,7 +78,7 @@ public class MotanAsyncProcessor extends AbstractProcessor {
             return true;
         }
         for (Element elem : roundEnv.getElementsAnnotatedWith(MotanAsync.class)) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "MotanAsyncProcessor will process " + elem.toString());
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "MotanAsyncProcessor will process " + elem.toString() + ", generate class path:" + TARGET_DIR);
             try {
                 writeAsyncClass(elem);
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "MotanAsyncProcessor done for " + elem.toString());

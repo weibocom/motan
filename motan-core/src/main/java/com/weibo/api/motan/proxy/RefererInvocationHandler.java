@@ -54,6 +54,7 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
     private List<Cluster<T>> clusters;
     private Class<T> clz;
     private SwitcherService switcherService = null;
+    private String interfaceName;
 
     public RefererInvocationHandler(Class<T> clz, Cluster<T> cluster) {
         this.clz = clz;
@@ -75,6 +76,7 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
         String switchName =
                 this.clusters.get(0).getUrl().getParameter(URLParamType.switcherService.getName(), URLParamType.switcherService.getValue());
         switcherService = ExtensionLoader.getExtensionLoader(SwitcherService.class).getExtension(switchName);
+        interfaceName = MotanFrameworkUtil.removeAsyncSuffix(clz.getName());
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -96,7 +98,7 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
         RpcContext.getContext().putAttribute(MotanConstants.ASYNC_SUFFIX, async);
         request.setMethodName(methodName);
         request.setParamtersDesc(ReflectUtil.getMethodParamDesc(method));
-        request.setInterfaceName(MotanFrameworkUtil.removeAsyncSuffix(clz.getName()));
+        request.setInterfaceName(interfaceName);
         request.setAttachment(URLParamType.requestIdFromClient.getName(), String.valueOf(RequestIdGenerator.getRequestIdFromClient()));
 
         // 当 referer配置多个protocol的时候，比如A,B,C，

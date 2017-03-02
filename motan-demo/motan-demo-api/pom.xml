@@ -67,7 +67,7 @@
                             <goal>compile</goal>
                         </goals>
                         <configuration>
-                            <fork>true</fork> <!-- bug; non-forked compiler has basedir set to user.dir or sth -->
+                            <fork>true</fork> <!-- if true, jvm options -DmotanGeneratePath=xxx maybe not work -->
                         </configuration>
                     </execution>
                 </executions>
