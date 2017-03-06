@@ -17,49 +17,112 @@
 package com.weibo.motan.demo.server;
 
 import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.config.BasicServiceInterfaceConfig;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.config.ServiceConfig;
+import com.weibo.api.motan.config.apisupport.MotanPackageBaseExportor;
+import com.weibo.api.motan.config.apisupport.MotanServiceExportContext;
+import com.weibo.api.motan.config.apisupport.PackageBaseExportorEvent;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
 import com.weibo.motan.demo.service.MotanDemoService;
 
 public class MotanApiExportDemo {
 
     public static void main(String[] args) throws InterruptedException {
-        ServiceConfig<MotanDemoService> motanDemoService = new ServiceConfig<MotanDemoService>();
+//        ServiceConfig<MotanDemoService> motanDemoService = new ServiceConfig<MotanDemoService>();
+//
+//        // 设置接口及实现类
+//        motanDemoService.setInterface(MotanDemoService.class);
+//        motanDemoService.setRef(new MotanDemoServiceImpl());
+//
+//        // 配置服务的group以及版本号
+//        motanDemoService.setGroup("motan-demo-rpc");
+//        motanDemoService.setVersion("1.0");
+//
+//        // 配置注册中心直连调用
+//        // RegistryConfig directRegistry = new RegistryConfig();
+//        // directRegistry.setRegProtocol("local");
+//        // directRegistry.setCheck("false"); //不检查是否注册成功
+//        // motanDemoService.setRegistry(directRegistry);
+//
+//        // 配置ZooKeeper注册中心
+//        RegistryConfig zookeeperRegistry = new RegistryConfig();
+//        zookeeperRegistry.setRegProtocol("zookeeper");
+//        zookeeperRegistry.setAddress("127.0.0.1:2181");
+//        motanDemoService.setRegistry(zookeeperRegistry);
+//
+//        // 配置RPC协议
+//        ProtocolConfig protocol = new ProtocolConfig();
+//        protocol.setId("motan");
+//        protocol.setName("motan");
+//        motanDemoService.setProtocol(protocol);
+//
+//        motanDemoService.setExport("motan:8002");
+//        motanDemoService.export();
+//
+//        MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
+//
+//        System.out.println("server start...");
 
-        // 设置接口及实现类
-        motanDemoService.setInterface(MotanDemoService.class);
-        motanDemoService.setRef(new MotanDemoServiceImpl());
 
-        // 配置服务的group以及版本号
-        motanDemoService.setGroup("motan-demo-rpc");
-        motanDemoService.setVersion("1.0");
-
-        // 配置注册中心直连调用
-        // RegistryConfig directRegistry = new RegistryConfig();
-        // directRegistry.setRegProtocol("local");
-        // directRegistry.setCheck("false"); //不检查是否注册成功
-        // motanDemoService.setRegistry(directRegistry);
-
-        // 配置ZooKeeper注册中心
         RegistryConfig zookeeperRegistry = new RegistryConfig();
         zookeeperRegistry.setRegProtocol("zookeeper");
         zookeeperRegistry.setAddress("127.0.0.1:2181");
-        motanDemoService.setRegistry(zookeeperRegistry);
 
         // 配置RPC协议
         ProtocolConfig protocol = new ProtocolConfig();
         protocol.setId("motan");
         protocol.setName("motan");
-        motanDemoService.setProtocol(protocol);
 
-        motanDemoService.setExport("motan:8002");
-        motanDemoService.export();
+
+
+        BasicServiceInterfaceConfig basicServiceInterfaceConfig = new BasicServiceInterfaceConfig();
+        basicServiceInterfaceConfig.setShareChannel(true);
+        basicServiceInterfaceConfig.setRegistry(zookeeperRegistry);
+        basicServiceInterfaceConfig.setProtocol(protocol);
+        basicServiceInterfaceConfig.setExport("motan:8002");
+        basicServiceInterfaceConfig.setGroup("motan-test-rpc");
+        basicServiceInterfaceConfig.setVersion("1.0");
+
+        MotanPackageBaseExportor motanPackageBaseExportor = new MotanPackageBaseExportor(
+                basicServiceInterfaceConfig,
+                new PackageBaseExportorEvent() {
+                    @Override
+                    public void onFetchMotanServiceClass(Class<?> motanServiceClass) {
+                        System.out.println("onFetchMotanServiceClass: " + motanServiceClass.getSimpleName());
+                    }
+
+                    @Override
+                    public void onCreateMotanServiceBean(Object obj, String clazzName) {
+                        System.out.println("onCreateMotanServiceBean" + clazzName);
+                    }
+
+                    @Override
+                    public void onCreateMotanServiceConfig(ServiceConfig obj, String clazzName) {
+                        System.out.println(obj);
+                    }
+
+                    @Override
+                    public void beforeExportService(MotanServiceExportContext context) {
+                        System.out.println(context.getPkgName());
+                    }
+
+                    @Override
+                    public void afterExportServcie() {
+
+                        System.out.println("after export");
+
+                    }
+                },
+                "com.weibo.motan.demo");
+        motanPackageBaseExportor.doExport();
 
         MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
 
         System.out.println("server start...");
+
+
     }
 
 }

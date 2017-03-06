@@ -113,7 +113,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
 
         checkInterfaceAndMethods(interfaceClass, methods);
-
+        beforeLoadRegistryUrlsAndProtocols();
         List<URL> registryUrls = loadRegistryUrls();
         if (registryUrls == null || registryUrls.size() == 0) {
             throw new IllegalStateException("Should set registry config for service:" + interfaceClass.getName());
@@ -130,6 +130,16 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
 
         afterExport();
+    }
+
+    public void beforeLoadRegistryUrlsAndProtocols() {
+        if((registries == null || registries.isEmpty())
+                && basicServiceConfig != null) {
+            registries = basicServiceConfig.getRegistries();
+        }
+        if(protocols == null) {
+            protocols = basicServiceConfig.protocols;
+        }
     }
 
     public synchronized void unexport() {
@@ -240,8 +250,14 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     }
 
     public Map<String, Integer> getProtocolAndPort() {
-        if (StringUtils.isBlank(export)) {
-            throw new MotanServiceException("export should not empty in service config:" + interfaceClass.getName());
+        String export = null;
+        if (StringUtils.isBlank(this.export)) {
+            if(StringUtils.isBlank((export = basicServiceConfig.getExport()))) {
+                throw new MotanServiceException("export should not empty in service config:" + interfaceClass.getName());
+            }
+            else {
+                this.export = export;
+            }
         }
         return ConfigUtil.parseExport(this.export);
     }
