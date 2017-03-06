@@ -16,9 +16,9 @@
 package com.weibo.api.motan.rpc;
 
 public interface ResponseFuture extends Future, Response{
-    public void onSuccess(Response response);
+    void onSuccess(Response response);
 
-    public void onFailure(Response response) ;
+    void onFailure(Response response) ;
     
-    public long getCreateTime();
+    long getCreateTime();
 }

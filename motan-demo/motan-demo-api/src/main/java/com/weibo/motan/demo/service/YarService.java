@@ -21,29 +21,29 @@ import com.weibo.api.motan.protocol.yar.annotation.YarConfig;
 @YarConfig(path = "/openapi/yarserver/test")
 public interface YarService {
 
-    public String hello(String name);
+    String hello(String name);
 
-    public void testVoid();
+    void testVoid();
 
-    public String testArgVoid();
+    String testArgVoid();
 
-    public String testString(String arg);
+    String testString(String arg);
 
-    public int testInt(int i);
+    int testInt(int i);
 
-    public Integer testInteger(Integer integer);
+    Integer testInteger(Integer integer);
 
-    public boolean testBoolean(boolean b);
+    boolean testBoolean(boolean b);
 
-    public long testLong(long l);
+    long testLong(long l);
 
-    public float testFloat(Float f);
+    float testFloat(Float f);
 
-    public double testDouble(Double d);
+    double testDouble(Double d);
 
-    public List<Object> testList(List<Object> list);
+    List<Object> testList(List<Object> list);
 
-    public Map<String, Object> testMap(Map<String, Object> map);
+    Map<String, Object> testMap(Map<String, Object> map);
 
 
 }
