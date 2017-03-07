@@ -137,8 +137,8 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                 && basicServiceConfig != null) {
             registries = basicServiceConfig.getRegistries();
         }
-        if(protocols == null) {
-            protocols = basicServiceConfig.protocols;
+        if(protocols == null && basicServiceConfig != null) {
+            protocols = basicServiceConfig.getProtocols();
         }
     }
 
@@ -252,7 +252,9 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     public Map<String, Integer> getProtocolAndPort() {
         String export = null;
         if (StringUtils.isBlank(this.export)) {
-            if(StringUtils.isBlank((export = basicServiceConfig.getExport()))) {
+
+            if(basicServiceConfig == null ||
+                    StringUtils.isBlank((export = basicServiceConfig.getExport()))) {
                 throw new MotanServiceException("export should not empty in service config:" + interfaceClass.getName());
             }
             else {
