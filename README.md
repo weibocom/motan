@@ -155,10 +155,11 @@ The quick start gives very basic example of running client and server on the sam
 
 ##  Asynchronous calls
 
-1. Based on Synchronous calls example, add @MotanAsync annotation with interface `FooService`.
+1. Based on the `Synchronous calls` example, add `@MotanAsync` annotation to interface `FooService`.
 
     ```java
     package quickstart;
+    import com.weibo.api.motan.transport.async.MotanAsync;
     
     @MotanAsync
     public interface FooService {
@@ -166,7 +167,7 @@ The quick start gives very basic example of running client and server on the sam
     }
     ```
 
-2. Use maven plugin for adding folder `target/generated-sources/annotations/` as source path.  
+2. Include the plugin into the POM file to set folder `target/generated-sources/annotations/` as source folder.  
 
     ```xml
     <plugin>
@@ -189,7 +190,7 @@ The quick start gives very basic example of running client and server on the sam
     </plugin>
     ```
 
-3. Modify `motan_client.xml` referer's element `interface` from `FooService` to `FooServiceAsync`.
+3. Modify referer's element `interface` in `motan_client.xml` from `FooService` to `FooServiceAsync`.
 
     ```xml
     <motan:referer id="remoteService" interface="quickstart.FooServiceAsync" directUrl="localhost:8002"/>
