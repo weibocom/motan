@@ -12,6 +12,7 @@ Motan is a remote procedure call(RPC) framework for rapid development of high pe
 - Provides cluster support and integrate with popular service discovery services like [Consul][consul] or [Zookeeper][zookeeper]. 
 - Supports advanced scheduling features like weighted load-balance, scheduling cross IDCs, etc.
 - Optimization for high load scenarios, provides high availability in production environment.
+- Supports both synchronous and asynchronous calls.
 
 # Quick Start
 
@@ -21,25 +22,27 @@ The quick start gives very basic example of running client and server on the sam
 >  * JDK 1.7 or above
 >  * A java-based project management software like [Maven][maven] or [Gradle][gradle]
 
+## Synchronous calls
+
 1. Add dependencies to pom.
 
    ```xml
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-core</artifactId>
-        <version>0.2.2</version>
+        <version>0.3.0</version>
     </dependency>
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-transport-netty</artifactId>
-        <version>0.2.2</version>
+        <version>0.3.0</version>
     </dependency>
     
     <!-- dependencies blow were only needed for spring-based features -->
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-springsupport</artifactId>
-        <version>0.2.2</version>
+        <version>0.3.0</version>
     </dependency>
     <dependency>
         <groupId>org.springframework</groupId>
@@ -149,7 +152,86 @@ The quick start gives very basic example of running client and server on the sam
     ```
     
     Execute main function in Client will invoke the remote service and print response.
+
+##  Asynchronous calls
+
+1. Based on the `Synchronous calls` example, add `@MotanAsync` annotation to interface `FooService`.
+
+    ```java
+    package quickstart;
+    import com.weibo.api.motan.transport.async.MotanAsync;
     
+    @MotanAsync
+    public interface FooService {
+        public String hello(String name);
+    }
+    ```
+
+2. Include the plugin into the POM file to set `target/generated-sources/annotations/` as source folder.  
+
+    ```xml
+    <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.10</version>
+        <executions>
+            <execution>
+                <phase>generate-sources</phase>
+                <goals>
+                    <goal>add-source</goal>
+                </goals>
+                <configuration>
+                    <sources>
+                        <source>${project.build.directory}/generated-sources/annotations</source>
+                    </sources>
+                </configuration>
+            </execution>
+        </executions>
+    </plugin>
+    ```
+
+3. Modify referer's attribute `interface` in `motan_client.xml` from `FooService` to `FooServiceAsync`.
+
+    ```xml
+    <motan:referer id="remoteService" interface="quickstart.FooServiceAsync" directUrl="localhost:8002"/>
+    ```
+    
+4. Start asynchronous calls.
+
+    ```java
+    public static void main(String[] args) {
+        ApplicationContext ctx = new ClassPathXmlApplicationContext(new String[] {"classpath:motan_client.xml"});
+
+        FooServiceAsync service = (FooServiceAsync) ctx.getBean("remoteService");
+
+        // sync call
+        System.out.println(service.hello("motan"));
+
+        // async call
+        ResponseFuture future = service.helloAsync("motan async ");
+        System.out.println(future.getValue());
+
+        // multi call
+        ResponseFuture future1 = service.helloAsync("motan async multi-1");
+        ResponseFuture future2 = service.helloAsync("motan async multi-2");
+        System.out.println(future1.getValue() + ", " + future2.getValue());
+
+        // async with listener
+        FutureListener listener = new FutureListener() {
+            @Override
+            public void operationComplete(Future future) throws Exception {
+                System.out.println("async call "
+                        + (future.isSuccess() ? "sucess! value:" + future.getValue() : "fail! exception:"
+                                + future.getException().getMessage()));
+            }
+        };
+        ResponseFuture future3 = service.helloAsync("motan async multi-1");
+        ResponseFuture future4 = service.helloAsync("motan async multi-2");
+        future3.addListener(listener);
+        future4.addListener(listener);
+    }
+    ```
+
 
 # Documents
 
