@@ -167,7 +167,7 @@ The quick start gives very basic example of running client and server on the sam
     }
     ```
 
-2. Include the plugin into the POM file to set folder `target/generated-sources/annotations/` as source folder.  
+2. Include the plugin into the POM file to set `target/generated-sources/annotations/` as source folder.  
 
     ```xml
     <plugin>
@@ -190,7 +190,7 @@ The quick start gives very basic example of running client and server on the sam
     </plugin>
     ```
 
-3. Modify referer's element `interface` in `motan_client.xml` from `FooService` to `FooServiceAsync`.
+3. Modify referer's attribute `interface` in `motan_client.xml` from `FooService` to `FooServiceAsync`.
 
     ```xml
     <motan:referer id="remoteService" interface="quickstart.FooServiceAsync" directUrl="localhost:8002"/>
