@@ -13,37 +13,28 @@
  */
 package com.weibo.motan.demo.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import com.weibo.api.motan.protocol.yar.annotation.YarConfig;
+import com.weibo.api.motan.transport.async.MotanAsync;
 
-@YarConfig(path = "/openapi/yarserver/test")
-public interface YarService {
+@MotanAsync
+public interface TestInterface<K, V> extends TestSuperInterface {
+    ArrayList<String> xxx(ConcurrentHashMap<String, Boolean> map);
 
-    String hello(String name);
+    List<K> methodRaw();
 
-    void testVoid();
+    Map<K, V> methodRaw(List<String> list);
 
-    String testArgVoid();
+    List<String> methodType();
 
-    String testString(String arg);
+    List<?> methodWildcard();
 
-    int testInt(int i);
+    List<? extends Number> methodBoundedWildcard();
 
-    Integer testInteger(Integer integer);
+    <T extends List<String>> Map<K, V> methodTypeLiteral();
 
-    boolean testBoolean(boolean b);
-
-    long testLong(long l);
-
-    float testFloat(Float f);
-
-    double testDouble(Double d);
-
-    List<Object> testList(List<Object> list);
-
-    Map<String, Object> testMap(Map<String, Object> map);
-
-
+    <T extends List<T>> void method(String p1, T p2, List<?> p3, List<T> p4);
 }

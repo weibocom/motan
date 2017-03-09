@@ -13,13 +13,12 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+package com.weibo.api.motan.rpc;
 
-package com.weibo.motan.demo.service;
+public interface ResponseFuture extends Future, Response{
+    void onSuccess(Response response);
 
-import com.weibo.api.motan.transport.async.MotanAsync;
-
-@MotanAsync
-public interface MotanDemoService {
-	String hello(String name);
-
+    void onFailure(Response response) ;
+    
+    long getCreateTime();
 }

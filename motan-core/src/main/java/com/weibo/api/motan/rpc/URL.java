@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 /**
  * <pre>
@@ -63,7 +64,7 @@ public class URL {
         this.protocol = protocol;
         this.host = host;
         this.port = port;
-        this.path = path;
+        this.path = removeAsyncPath(path);
         this.parameters = parameters;
     }
 
@@ -177,7 +178,7 @@ public class URL {
     }
 
     public void setPath(String path) {
-        this.path = path;
+        this.path = removeAsyncPath(path);
     }
 
     public String getVersion() {
@@ -482,6 +483,16 @@ public class URL {
             numbers = new ConcurrentHashMap<String, Number>();
         }
         return numbers;
+    }
+    
+    /**
+     * because async call in client path with Async suffix,we need
+     * remove Async suffix in path for subscribe.
+     * @param path
+     * @return
+     */
+    private String removeAsyncPath(String path){
+        return MotanFrameworkUtil.removeAsyncSuffix(path);
     }
 
 }

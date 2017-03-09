@@ -16,34 +16,9 @@ package com.weibo.motan.demo.service;
 import java.util.List;
 import java.util.Map;
 
-import com.weibo.api.motan.protocol.yar.annotation.YarConfig;
+public interface TestSuperInterface {
+    String extendsMethod(Map<String, Boolean> map);
 
-@YarConfig(path = "/openapi/yarserver/test")
-public interface YarService {
-
-    String hello(String name);
-
-    void testVoid();
-
-    String testArgVoid();
-
-    String testString(String arg);
-
-    int testInt(int i);
-
-    Integer testInteger(Integer integer);
-
-    boolean testBoolean(boolean b);
-
-    long testLong(long l);
-
-    float testFloat(Float f);
-
-    double testDouble(Double d);
-
-    List<Object> testList(List<Object> list);
-
-    Map<String, Object> testMap(Map<String, Object> map);
-
+    List<?> extendsMethod2();
 
 }

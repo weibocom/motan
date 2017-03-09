@@ -44,6 +44,7 @@ import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.RpcContext;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.AbstractPoolClient;
 import com.weibo.api.motan.transport.Channel;
@@ -111,9 +112,12 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 			throw new MotanServiceException("NettyChannel is unavaliable: url=" + url.getUri()
 					+ MotanFrameworkUtil.toString(request));
 		}
-		boolean async = url.getMethodParameter(request.getMethodName(), request.getParamtersDesc()
-		        , URLParamType.async.getName(), URLParamType.async.getBooleanValue());
-		return request(request, async);
+		boolean isAsync = false;
+		Object async = RpcContext.getContext().getAttribute(MotanConstants.ASYNC_SUFFIX);
+		if(async != null && async instanceof Boolean){
+		    isAsync = (Boolean)async;
+		}
+		return request(request, isAsync);
 	}
 
 	@Override

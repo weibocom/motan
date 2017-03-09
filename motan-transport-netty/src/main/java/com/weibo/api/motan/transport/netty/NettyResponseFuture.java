@@ -25,10 +25,10 @@ import com.weibo.api.motan.common.FutureState;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
-import com.weibo.api.motan.rpc.Future;
 import com.weibo.api.motan.rpc.FutureListener;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.ResponseFuture;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
@@ -57,7 +57,7 @@ import com.weibo.api.motan.util.MotanFrameworkUtil;
  * @version 创建时间：2013-5-31
  * 
  */
-public class NettyResponseFuture implements Response, Future {
+public class NettyResponseFuture implements ResponseFuture {
 	private volatile FutureState state = FutureState.DOING;
 
 	private Object lock = new Object();
