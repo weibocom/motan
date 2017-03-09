@@ -1,5 +1,17 @@
 # Change Log
 
+## [0.3.0](https://github.com/weibocom/motan/tree/0.3.0) (2017-03-09)
+[Full Changelog](https://github.com/weibocom/motan/compare/0.2.3...0.3.0)
+
+**Implemented enhancements:**
+
+- async call [\#372](https://github.com/weibocom/motan/pull/372) ([Ray](https://github.com/rayzhang0603))
+
+**Fixed bugs:**
+
+**Merged pull requests:**
+
+
 ## [0.2.3](https://github.com/weibocom/motan/tree/0.2.3) (2017-02-16)
 [Full Changelog](https://github.com/weibocom/motan/compare/0.2.2...0.2.3)
 
