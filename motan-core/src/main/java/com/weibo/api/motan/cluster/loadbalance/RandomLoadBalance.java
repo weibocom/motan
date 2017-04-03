@@ -55,7 +55,7 @@ public class RandomLoadBalance<T> extends AbstractLoadBalance<T> {
         for (int i = 0; i < referers.size(); i++) {
             Referer<T> referer = referers.get((i + idx) % referers.size());
             if (referer.isAvailable()) {
-                refersHolder.add(referers.get((i + idx) % referers.size()));
+                refersHolder.add(referer);
             }
         }
     }
