@@ -7,8 +7,8 @@
 The quick start gives very basic example of running server and client on the same machine. For more details about using and developing Motan, please jump to [Documents](en_userguide).
 
 > The minimum requirements to run the quick start are:
->  * JDK 1.7 or above.
->  * A java-based project management software like [Maven][maven] or [Gradle][gradle].
+> * JDK 1.7 or above.
+> * A java-based project management software like [Maven][maven] or [Gradle][gradle].
 
 ## <a id="peer-to-peer"></a>Using Motan in single machine environment
 
@@ -19,19 +19,19 @@ The quick start gives very basic example of running server and client on the sam
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-core</artifactId>
-        <version>0.1.1</version>
+        <version>0.3.0</version>
     </dependency>
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-transport-netty</artifactId>
-        <version>0.1.1</version>
+        <version>0.3.0</version>
     </dependency>
     
     <!-- dependencies blow were only needed for spring-based features -->
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-springsupport</artifactId>
-        <version>0.1.1</version>
+        <version>0.3.0</version>
     </dependency>
     <dependency>
         <groupId>org.springframework</groupId>
@@ -53,9 +53,9 @@ The quick start gives very basic example of running server and client on the sam
     ```
 
 3. Write an implementation, create and start RPC Server.
-    
+
     `src/main/java/quickstart/FooServiceImpl.java`  
-    
+
     ```java
     package quickstart;
 
@@ -69,7 +69,7 @@ The quick start gives very basic example of running server and client on the sam
     ```
 
     `src/main/resources/motan_server.xml`
-    
+
     ```xml
     <?xml version="1.0" encoding="UTF-8"?>
     <beans xmlns="http://www.springframework.org/schema/beans"
@@ -84,24 +84,24 @@ The quick start gives very basic example of running server and client on the sam
         <motan:service interface="quickstart.FooService" ref="serviceImpl" export="8002" />
     </beans>
     ```
-    
+
     `src/main/java/quickstart/Server.java`
-    
+
     ```java
     package quickstart;
-    
+
     import org.springframework.context.ApplicationContext;
     import org.springframework.context.support.ClassPathXmlApplicationContext;
-    
+
     public class Server {
-    
+
         public static void main(String[] args) throws InterruptedException {
             ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:motan_server.xml");
             System.out.println("server start...");
         }
     }
     ```
-    
+
     Execute main function in Server will start a Motan server listening on port 8002.
 
 4. Create and start RPC Client.
@@ -128,20 +128,21 @@ The quick start gives very basic example of running server and client on the sam
 
     import org.springframework.context.ApplicationContext;
     import org.springframework.context.support.ClassPathXmlApplicationContext;
+    ```
 
 
     public class Client {
-    
+
         public static void main(String[] args) throws InterruptedException {
             ApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:motan_client.xml");
             FooService service = (FooService) ctx.getBean("remoteService");
             System.out.println(service.hello("motan"));
         }
     }
-    ```
+    ​```
     
     Execute main function in Client will invoke the remote service and print response.
-    
+
 ## <a id="cluster"></a>Using Motan in cluster environment
 
 In cluster environment, the external service discovery components such as Consul or ZooKeeper is needed to support the use of Motan.
@@ -152,17 +153,17 @@ In cluster environment, the external service discovery components such as Consul
 #### <a id="consul-start"></a>Install and Start Consul
 
 ##### Install（[Official Document](https://www.consul.io/intro/getting-started/install.html)）
-    
+
     # Taking Linux as an example
     wget https://releases.hashicorp.com/consul/0.6.4/consul_0.6.4_linux_amd64.zip
     unzip consul_0.6.4_linux_amd64.zip
     sudo mv consul /bin
-    
+
 ##### Start（[Official Document](https://www.consul.io/intro/getting-started/agent.html)）
 
     Starting the test environment：
     consul agent -dev
-    
+
 UI backend [http://localhost:8500/ui](http://localhost:8500/ui)
 
 #### <a id="motan-consul"></a>Motan-Consul configuration
@@ -181,7 +182,7 @@ UI backend [http://localhost:8500/ui](http://localhost:8500/ui)
 
     ```xml
     <motan:registry regProtocol="consul" name="my_consul" address="127.0.0.1:8500"/>
-    ```   
+    ```
 
 3. Change the way of service discovery to registry in the configuration of server and client.
 
@@ -190,17 +191,19 @@ UI backend [http://localhost:8500/ui](http://localhost:8500/ui)
     ```xml
     <motan:service interface="quickstart.FooService" ref="serviceImpl" registry="my_consul" export="8002" />
     ```
-	
+
     client:
 
     ```xml
     <motan:referer id="remoteService" interface="quickstart.FooService" registry="my_consul"/>
     ```
 
-4. After the server starts, you SHOULD call heartbeat switcher explicitly in order to start heartbeat for Consul.
+4. After the server starts, you SHOULD call heartbeat switcher explicitly in order to start heartbeat for Consul in server.java.
 
     ```java
-    MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true)
+    ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:motan_server.xml");
+    //if you want to use zookeeper or consul
+    MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
     ```
 
 5. Go to [UI backend](http://localhost:8500/ui). Verify whether the service is normal.
@@ -237,17 +240,17 @@ Install and start ZooKeeper:
 2. Add the definition of ZooKeeper registry in the configuration of server and client.
 
     single node ZooKeeper:  
-    
+
     ```xml
     <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="127.0.0.1:2181"/>
     ```
-    
+
     multi-nodes ZooKeeper:
 
     ```xml
     <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"/>
     ```
-    
+
 3. Change the way of service discovery to registry in the configuration of server and client.
 
     server:
@@ -255,7 +258,7 @@ Install and start ZooKeeper:
     ```xml
     <motan:service interface="quickstart.FooService" ref="serviceImpl" registry="my_zookeeper" export="8002" />
     ```
-	
+
     client:
 
     ```xml
