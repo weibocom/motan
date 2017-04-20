@@ -291,7 +291,7 @@ Install and start ZooKeeper:
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-protocol-yar</artifactId>
-        <version>0.2.1</version>
+        <version>0.3.0</version>
     </dependency>
 ```
 
@@ -322,7 +322,7 @@ We use [yar-java](https://github.com/weibocom/yar-java) to parse YAR protocol,ja
 
 ### <a id="motan-annotation"></a>Use the annotations to configure the motan
 
-#### server configuration
+#### Server configuration
 
 1、Declare Annotation to specify the packages to be parsed
 
@@ -411,7 +411,7 @@ we need to add dependencies in pom
 
 Please refer to the motan-demo module for detailed configuration of the server
 
-#### client configuration
+#### Client configuration
 
 1、Declare the configuration bean for Annotation, protocolConfig, and RegistryConfig. The server is configured similarly to the server。
 
@@ -477,7 +477,7 @@ Motan supports OpenTracing](http://opentracing.io) through the filter's SPI exte
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-protocol-yar</artifactId>
-        <version>0.2.3</version>
+        <version>0.3.0</version>
     </dependency>
 ```
 
