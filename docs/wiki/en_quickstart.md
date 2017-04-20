@@ -277,3 +277,212 @@ Install and start ZooKeeper:
 [maven]:https://maven.apache.org
 [gradle]:http://gradle.org
 
+[maven]: https://maven.apache.org
+[gradle]: http://gradle.org
+
+## <a id="other"></a>Other call examples  
+
+### <a id="motan-yar"></a>Provide YAR protocol services
+
+[YAR](https://github.com/laruence/yar) protocol is a RPC extension of php, the motan framework can provide yar protocol for RPC services
+1、include motan-protocol-yar.jar
+
+```xml
+    <dependency>
+        <groupId>com.weibo</groupId>
+        <artifactId>motan-protocol-yar</artifactId>
+        <version>0.2.1</version>
+    </dependency>
+```
+
+2、Add annotations @YarConfig to the service interface class to declare the uri of the service 
+
+```java
+    @YarConfig(path = "/openapi/yarserver/test")
+    public interface YarService {
+        public String hello(String name);
+    ｝
+```
+
+3、Config protocol name="yar" 
+
+```xml
+    <motan:protocol id="demoYar" name="yar" .../>
+```
+
+4、Configure the export of service, using yar protocol to provide services
+
+```xml
+    <motan:service interface="com.weibo.motan.demo.service.YarService"
+       export="demoYar:8003" .../>
+```
+
+To get specific configuration,check motan-demo module.
+We use [yar-java](https://github.com/weibocom/yar-java) to parse YAR protocol,java can be used directly as YAR client
+
+### <a id="motan-annotation"></a>Use the annotations to configure the motan
+
+#### server configuration
+
+1、Declare Annotation to specify the packages to be parsed
+
+```java
+    @Bean
+    public AnnotationBean motanAnnotationBean() {
+        AnnotationBean motanAnnotationBean = new AnnotationBean();
+        motanAnnotationBean.setPackage("com.weibo.motan.demo.server");
+        return motanAnnotationBean;
+    }
+```
+
+2、Configure ProtocolConfig、RegistryConfig、BasicServiceConfig's bean Object,which function is consistent with the protocol, registry, and basicService tags in the xml configuration.
+
+```java
+    @Bean(name = "demoMotan")
+    public ProtocolConfigBean protocolConfig1() {
+        ProtocolConfigBean config = new ProtocolConfigBean();
+        config.setDefault(true);
+        config.setName("motan");
+        config.setMaxContentLength(1048576);
+        return config;
+    }
+
+    @Bean(name = "registryConfig1")
+    public RegistryConfigBean registryConfig() {
+        RegistryConfigBean config = new RegistryConfigBean();
+        config.setRegProtocol("local");
+        return config;
+    }
+
+    @Bean
+    public BasicServiceConfigBean baseServiceConfig() {
+        BasicServiceConfigBean config = new BasicServiceConfigBean();
+        config.setExport("demoMotan:8002");
+        config.setGroup("testgroup");
+        config.setAccessLog(false);
+        config.setShareChannel(true);
+        config.setModule("motan-demo-rpc");
+        config.setApplication("myMotanDemo");
+        config.setRegistry("registryConfig1");
+        return config;
+    }
+```
+
+3、Add the @MotanService annotation to the implementation class of the service. The configuration parameters of the annotation are consistent with the service tag of the xml configuration。
+
+```java
+    @MotanService(export = "demoMotan:8002")
+    public class MotanDemoServiceImpl implements MotanDemoService {
+
+        public String hello(String name) {
+            System.out.println(name);
+            return "Hello " + name + "!";
+        }
+    }
+```
+
+4、Start service using [spring-boot](https://github.com/spring-projects/spring-boot)
+
+```java
+    @EnableAutoConfiguration
+    @SpringBootApplication
+    public class SpringBootRpcServerDemo {
+
+        public static void main(String[] args) {
+            System.setProperty("server.port", "8081");
+            ConfigurableApplicationContext context =  SpringApplication.run(SpringBootRpcServerDemo.class, args);
+          
+        MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
+            System.out.println("server start...");
+        }
+    }
+```
+
+we need to add dependencies in pom
+
+```xml
+<dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-tools</artifactId>
+        <version>1.5.1.RELEASE</version>
+        <type>pom</type>
+</dependency>
+```
+
+Please refer to the motan-demo module for detailed configuration of the server
+
+#### client configuration
+
+1、Declare the configuration bean for Annotation, protocolConfig, and RegistryConfig. The server is configured similarly to the server。
+
+2、Configure basicRefererConfig bean
+
+```java
+    @Bean(name = "motantestClientBasicConfig")
+    public BasicRefererConfigBean baseRefererConfig() {
+        BasicRefererConfigBean config = new BasicRefererConfigBean();
+        config.setProtocol("demoMotan");
+        config.setGroup("motan-demo-rpc");
+        config.setModule("motan-demo-rpc");
+        config.setApplication("myMotanDemo");
+        config.setRegistry("registry");
+        config.setCheck(false);
+        config.setAccessLog(true);
+        config.setRetries(2);
+        config.setThrowException(true);
+        return config;
+    }
+```
+
+3、Add the @MotanReferer annotation to the object using the motan service, and the registration configuration is consistent with the xml way of the referer tag
+
+```java
+    @RestController
+    public class HelloController {
+
+        @MotanReferer(basicReferer = "motantestClientBasicConfig", group = "testgroup", directUrl = "127.0.0.1:8002")
+        MotanDemoService service;
+
+        @RequestMapping("/")
+        @ResponseBody
+        public String home() {
+            String result = service.hello("test");
+            return result;
+        }
+    }
+```
+
+4、Using spring-boot to start service
+
+```java
+    @EnableAutoConfiguration
+    @SpringBootApplication
+    public class SpringBootRpcClientDemo {
+
+        public static void main(String[] args) {
+            SpringApplication.run(SpringBootRpcClientDemo.class, args);
+        }
+    }
+```
+
+Please refer to the motan-demo module for detailed client configuration
+
+## <a id="opentracing"></a>Using OpenTracing
+
+Motan supports OpenTracing](http://opentracing.io) through the filter's SPI extension mechanism.Motan can support any trace implementation that implements the OpenTracing standard. The following steps are required to use OpenTracing.
+
+1、Introduced filter-opentracing extension
+
+```xml
+    <dependency>
+        <groupId>com.weibo</groupId>
+        <artifactId>motan-protocol-yar</artifactId>
+        <version>0.2.3</version>
+    </dependency>
+```
+
+2、If the third-party trace tool declares the io.opentracing.Tracer's SPI extension, you can directly introduce a third-party trace to the jar package. If the third party does not make a statement, turn to the third step.
+
+3、Customize a TracerFactory to implement TracerFactory interface, through getTracer () to get different tracer implementation. Set the tracerFactory of the OpenTracingContext to a custom TracerFactory。
+
+You can refer to the filter-opentracing module src/test/java/com.weibo.api.motan.filter.opentracing.zipkin.demo to achieve server and client.
