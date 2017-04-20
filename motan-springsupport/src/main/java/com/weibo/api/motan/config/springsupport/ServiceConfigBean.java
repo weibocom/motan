@@ -100,7 +100,7 @@ public class ServiceConfigBean<T> extends ServiceConfig<T>
      * 检查并配置basicConfig
      */
     private void checkAndConfigBasicConfig() {
-        if (getBasicServiceConfig() == null) {
+        if (getBasicService() == null) {
             if (MotanNamespaceHandler.basicServiceConfigDefineNames.size() == 0) {
                 if (beanFactory instanceof ListableBeanFactory) {
                     ListableBeanFactory listableBeanFactory = (ListableBeanFactory) beanFactory;
@@ -116,9 +116,9 @@ public class ServiceConfigBean<T> extends ServiceConfig<T>
                     continue;
                 }
                 if (MotanNamespaceHandler.basicServiceConfigDefineNames.size() == 1) {
-                    setBasicServiceConfig(biConfig);
+                    setBasicService(biConfig);
                 } else if (biConfig.isDefault() != null && biConfig.isDefault().booleanValue()) {
-                    setBasicServiceConfig(biConfig);
+                    setBasicService(biConfig);
                 }
             }
         }
@@ -128,11 +128,11 @@ public class ServiceConfigBean<T> extends ServiceConfig<T>
      * 检查是否已经装配export，如果没有则到basicConfig查找
      */
     private void checkAndConfigExport() {
-        if (StringUtils.isBlank(getExport()) && getBasicServiceConfig() != null
-                && !StringUtils.isBlank(getBasicServiceConfig().getExport())) {
-            setExport(getBasicServiceConfig().getExport());
-            if (getBasicServiceConfig().getProtocols() != null) {
-                setProtocols(new ArrayList<ProtocolConfig>(getBasicServiceConfig().getProtocols()));
+        if (StringUtils.isBlank(getExport()) && getBasicService() != null
+                && !StringUtils.isBlank(getBasicService().getExport())) {
+            setExport(getBasicService().getExport());
+            if (getBasicService().getProtocols() != null) {
+                setProtocols(new ArrayList<ProtocolConfig>(getBasicService().getProtocols()));
             }
         }
 
@@ -169,9 +169,9 @@ public class ServiceConfigBean<T> extends ServiceConfig<T>
      * 检查并配置registry
      */
     private void checkAndConfigRegistry() {
-        if (CollectionUtil.isEmpty(getRegistries()) && getBasicServiceConfig() != null
-                && !CollectionUtil.isEmpty(getBasicServiceConfig().getRegistries())) {
-            setRegistries(getBasicServiceConfig().getRegistries());
+        if (CollectionUtil.isEmpty(getRegistries()) && getBasicService() != null
+                && !CollectionUtil.isEmpty(getBasicService().getRegistries())) {
+            setRegistries(getBasicService().getRegistries());
         }
         if (CollectionUtil.isEmpty(getRegistries())) {
             for (String name : MotanNamespaceHandler.registryDefineNames) {

@@ -54,7 +54,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     // service 对应的exporters，用于管理service服务的生命周期
     private List<Exporter<T>> exporters = new CopyOnWriteArrayList<Exporter<T>>();
     private Class<T> interfaceClass;
-    private BasicServiceInterfaceConfig basicServiceConfig;
+    private BasicServiceInterfaceConfig basicService;
     private AtomicBoolean exported = new AtomicBoolean(false);
     // service的用于注册的url，用于管理service注册的生命周期，url为regitry url，内部嵌套service url。
     private ConcurrentHashSet<URL> registereUrls = new ConcurrentHashSet<URL>();
@@ -153,8 +153,8 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
 
         String hostAddress = host;
-        if (StringUtils.isBlank(hostAddress) && basicServiceConfig != null) {
-            hostAddress = basicServiceConfig.getHost();
+        if (StringUtils.isBlank(hostAddress) && basicService != null) {
+            hostAddress = basicService.getHost();
         }
         if (NetUtils.isInvalidLocalHost(hostAddress)) {
             hostAddress = getLocalHostAddress(registryURLs);
@@ -165,7 +165,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         map.put(URLParamType.nodeType.getName(), MotanConstants.NODE_TYPE_SERVICE);
         map.put(URLParamType.refreshTimestamp.getName(), String.valueOf(System.currentTimeMillis()));
 
-        collectConfigParams(map, protocolConfig, basicServiceConfig, extConfig, this);
+        collectConfigParams(map, protocolConfig, basicService, extConfig, this);
         collectMethodConfigParams(map, this.getMethods());
 
         URL serviceUrl = new URL(protocolName, hostAddress, port, interfaceClass.getName(), map);
@@ -231,12 +231,12 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     }
 
     @ConfigDesc(excluded = true)
-    public BasicServiceInterfaceConfig getBasicServiceConfig() {
-        return basicServiceConfig;
+    public BasicServiceInterfaceConfig getBasicService() {
+        return basicService;
     }
 
-    public void setBasicServiceConfig(BasicServiceInterfaceConfig basicServiceConfig) {
-        this.basicServiceConfig = basicServiceConfig;
+    public void setBasicService(BasicServiceInterfaceConfig basicService) {
+        this.basicService = basicService;
     }
 
     public Map<String, Integer> getProtocolAndPort() {
