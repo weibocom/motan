@@ -15,3 +15,4 @@
 #
 
 com.weibo.api.motan.serialize.HproseSerialization
+com.weibo.api.motan.serialize.ProtostuffSerialization
