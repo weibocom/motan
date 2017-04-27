@@ -14,5 +14,4 @@
 #    limitations under the License.
 #
 
-com.weibo.api.motan.serialize.HproseSerialization
-com.weibo.api.motan.serialize.ProtobufSerialization
+com.weibo.api.motan.codec.ProtobufCodec

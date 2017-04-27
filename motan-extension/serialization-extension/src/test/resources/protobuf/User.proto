@@ -1,0 +1,18 @@
+syntax = "proto3";
+option java_package = "com.weibo.api.motan.serialize.protobuf.gen";
+option java_outer_classname = "UserProto";
+
+message User{
+  int32 id = 1;
+  string name = 2;
+  bool gender = 3;
+  repeated Address address = 4;
+}
+
+message Address{
+  int32 id = 1;
+  string province = 2;
+  string city = 3;
+  string street = 4;
+  string phone = 5;
+}
