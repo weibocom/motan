@@ -27,97 +27,89 @@ import com.weibo.api.motan.config.ServiceConfig;
 import com.weibo.api.motan.serialize.protobuf.gen.UserProto.Address;
 import com.weibo.api.motan.serialize.protobuf.gen.UserProto.User;
 
-public class TestProtoBuf{
-  private ServiceConfig<HelloService> serviceConfig;
-  private RefererConfig<HelloService> refererConfig;
+public class TestProtoBuf {
+	private ServiceConfig<HelloService> serviceConfig;
+	private RefererConfig<HelloService> refererConfig;
 
-  @Before
-  public void setUp(){
-    ProtocolConfig protocolConfig = new ProtocolConfig();
-    protocolConfig.setId("testMotan");
-    protocolConfig.setName("motan");
-    protocolConfig.setSerialization("protobuf");
-    protocolConfig.setCodec("motan");
+	@Before
+	public void setUp() {
+		ProtocolConfig protocolConfig = new ProtocolConfig();
+		protocolConfig.setId("testMotan");
+		protocolConfig.setName("motan");
+		protocolConfig.setSerialization("protobuf");
+		protocolConfig.setCodec("motan");
 
-    RegistryConfig registryConfig = new RegistryConfig();
-    registryConfig.setAddress("127.0.0.1");
-    registryConfig.setPort(8002);
+		RegistryConfig registryConfig = new RegistryConfig();
+		registryConfig.setAddress("127.0.0.1");
+		registryConfig.setPort(8002);
 
-    serviceConfig = new ServiceConfig<HelloService>();
-    serviceConfig.setRef(new HelloServiceImpl());
-    serviceConfig.setInterface(HelloService.class);
-    serviceConfig.setProtocol(protocolConfig);
-    serviceConfig.setExport("testMotan:8002");
-    serviceConfig.setRegistry(registryConfig);
-    serviceConfig.setShareChannel(true);
+		serviceConfig = new ServiceConfig<HelloService>();
+		serviceConfig.setRef(new HelloServiceImpl());
+		serviceConfig.setInterface(HelloService.class);
+		serviceConfig.setProtocol(protocolConfig);
+		serviceConfig.setExport("testMotan:8002");
+		serviceConfig.setRegistry(registryConfig);
+		serviceConfig.setShareChannel(true);
 
-    serviceConfig.export();
+		serviceConfig.export();
 
-    refererConfig = new RefererConfig<HelloService>();
-    refererConfig.setDirectUrl("127.0.0.1:8002");
-    refererConfig.setProtocol(protocolConfig);
-    refererConfig.setInterface(HelloService.class);
+		refererConfig = new RefererConfig<HelloService>();
+		refererConfig.setDirectUrl("127.0.0.1:8002");
+		refererConfig.setProtocol(protocolConfig);
+		refererConfig.setInterface(HelloService.class);
 
-    refererConfig.getRef();
-  }
+		refererConfig.getRef();
+	}
 
-  @Test
-  public void testPrimitiveType(){
-    HelloService service = refererConfig.getRef();
+	@Test
+	public void testPrimitiveType() {
+		HelloService service = refererConfig.getRef();
 
-    Assert.assertEquals("-1", service.sumAsString(Integer.MAX_VALUE, Integer.MIN_VALUE));
-    Assert.assertEquals("-1", service.sumAsString(-2, 1));
+		Assert.assertEquals("-1", service.sumAsString(Integer.MAX_VALUE, Integer.MIN_VALUE));
+		Assert.assertEquals("-1", service.sumAsString(-2, 1));
 
-    Assert.assertEquals((Long) 100L, service.boxIfNotZero(100));
-    Assert.assertNull(service.boxIfNotZero(0));
-  }
+		Assert.assertEquals((Long) 100L, service.boxIfNotZero(100));
+		Assert.assertNull(service.boxIfNotZero(0));
+	}
 
-  @Test(expected = UnsupportedOperationException.class)
-  public void testException(){
-    HelloService service = refererConfig.getRef();
-    service.testException();
-  }
+	@Test(expected = UnsupportedOperationException.class)
+	public void testException() {
+		HelloService service = refererConfig.getRef();
+		service.testException();
+	}
 
-  @Test
-  public void testNull(){
-    HelloService service = refererConfig.getRef();
+	@Test
+	public void testNull() {
+		HelloService service = refererConfig.getRef();
 
-    Assert.assertTrue(service.isNull(null));
+		Assert.assertTrue(service.isNull(null));
 
-    User user = User.newBuilder()
-        .setId(120)
-        .setName("zhou")
-        .build();
+		User user = User.newBuilder().setId(120).setName("zhou").build();
 
-    Assert.assertFalse(service.isNull(user));
-  }
+		Assert.assertFalse(service.isNull(user));
+	}
 
-  @Test
-  public void testProtobuf(){
-    HelloService service = refererConfig.getRef();
-    Address address = service.queryByUid(1);
-    Assert.assertEquals(1, address.getId());
+	@Test
+	public void testProtobuf() {
+		HelloService service = refererConfig.getRef();
+		Address address = service.queryByUid(1);
+		Assert.assertEquals(1, address.getId());
 
-    User user = User.newBuilder()
-        .setId(120)
-        .setName("zhou")
-        .setGender(false)
-        .addAddress(address)
-        .build();
+		User user = User.newBuilder().setId(120).setName("zhou").setGender(false).addAddress(address).build();
 
-    Assert.assertTrue(service.isUserAddress(user, address));
+		Assert.assertTrue(service.isUserAddress(user, address));
 
-    User newOne = service.copy(user);
-    Assert.assertEquals(user.getId(), newOne.getId());
-    Assert.assertEquals(user.getName(), newOne.getName());
-    Assert.assertEquals(user.getGender(), newOne.getGender());
-    Assert.assertEquals(user.getAddress(0).getId(), newOne.getAddress(0).getId());
-  }
+		User newOne = service.copy(user);
+		Assert.assertEquals(user.getId(), newOne.getId());
+		Assert.assertEquals(user.getName(), newOne.getName());
+		Assert.assertEquals(user.getGender(), newOne.getGender());
+		Assert.assertEquals(user.getAddress(0).getId(), newOne.getAddress(0).getId());
+	}
 
-  @After
-  public void tearDown(){
-    refererConfig.destroy();
-    serviceConfig.unexport();
-  }
+	@After
+	public void tearDown() {
+		refererConfig.destroy();
+		serviceConfig.unexport();
+	}
 
 }

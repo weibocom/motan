@@ -195,9 +195,8 @@ public class ProtobufCodec implements Codec {
 		byte dataType = (byte) (flag & MASK);
 		boolean isResponse = (dataType != MotanConstants.FLAG_REQUEST);
 
-		byte[] body = new byte[bodyLength];
-
-		System.arraycopy(data, RpcProtocolVersion.VERSION_1.getHeaderLength(), body, 0, bodyLength);
+		CodedInputStream body = CodedInputStream.newInstance(data, RpcProtocolVersion.VERSION_1.getHeaderLength(),
+				bodyLength);
 
 		long requestId = ByteUtil.bytes2long(data, 4);
 		Serialization serialization = ExtensionLoader.getExtensionLoader(Serialization.class).getExtension(
@@ -223,10 +222,8 @@ public class ProtobufCodec implements Codec {
 		}
 	}
 
-	private Object decodeRequest(byte[] body, long requestId, Serialization serialization)
+	private Object decodeRequest(CodedInputStream input, long requestId, Serialization serialization)
 			throws IOException, ClassNotFoundException {
-		CodedInputStream input = CodedInputStream.newInstance(body);
-
 		String interfaceName = input.readString();
 		String methodName = input.readString();
 		String paramtersDesc = input.readString();
@@ -276,10 +273,9 @@ public class ProtobufCodec implements Codec {
 		return attachments;
 	}
 
-	private Object decodeResponse(byte[] body, byte dataType, long requestId, Serialization serialization)
+	private Object decodeResponse(CodedInputStream input, byte dataType, long requestId, Serialization serialization)
 			throws IOException, ClassNotFoundException {
 
-		CodedInputStream input = CodedInputStream.newInstance(body);
 		long processTime = input.readInt64();
 
 		DefaultResponse response = new DefaultResponse();

@@ -60,6 +60,8 @@ public class ProtobufSerialization implements Serialization {
 			output.writeRawByte((Byte) obj);
 		} else if (clazz == char.class || clazz == Character.class) {
 			output.writeSInt32NoTag((Character) obj);
+		} else if (clazz == short.class || clazz == Short.class) {
+			output.writeSInt32NoTag((Short) obj);
 		} else if (clazz == double.class || clazz == Double.class) {
 			output.writeDoubleNoTag((Double) obj);
 		} else if (clazz == float.class || clazz == Float.class) {
@@ -97,6 +99,8 @@ public class ProtobufSerialization implements Serialization {
 			value = in.readRawByte();
 		} else if (clazz == char.class || clazz == Character.class) {
 			value = (char) in.readSInt32();
+		} else if (clazz == short.class || clazz == Short.class) {
+			value = (short) in.readSInt32();
 		} else if (clazz == double.class || clazz == Double.class) {
 			value = in.readDouble();
 		} else if (clazz == float.class || clazz == Float.class) {
