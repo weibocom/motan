@@ -19,6 +19,8 @@ package com.weibo.api.motan.transport.netty;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
+import com.weibo.api.motan.shutdown.Closable;
+import com.weibo.api.motan.shutdown.ShutDownHook;
 import org.jboss.netty.channel.ChannelFuture;
 
 import com.weibo.api.motan.common.ChannelState;
@@ -41,7 +43,7 @@ import com.weibo.api.motan.util.MotanFrameworkUtil;
  * @version 创建时间：2013-5-31
  * 
  */
-public class NettyChannel implements com.weibo.api.motan.transport.Channel {
+public class NettyChannel implements com.weibo.api.motan.transport.Channel,Closable {
 	private volatile ChannelState state = ChannelState.UNINIT;
 
 	private NettyClient nettyClient;
@@ -54,6 +56,7 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel {
 	public NettyChannel(NettyClient nettyClient) {
 		this.nettyClient = nettyClient;
 		this.remoteAddress = new InetSocketAddress(nettyClient.getUrl().getHost(), nettyClient.getUrl().getPort());
+		ShutDownHook.registerShutdownHook(this);
 	}
 
 	@Override

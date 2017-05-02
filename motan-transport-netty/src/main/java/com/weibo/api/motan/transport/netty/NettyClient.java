@@ -25,6 +25,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.weibo.api.motan.shutdown.Closable;
+import com.weibo.api.motan.shutdown.ShutDownHook;
 import org.apache.commons.pool.BasePoolableObjectFactory;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.ChannelFactory;
@@ -71,7 +73,7 @@ import com.weibo.api.motan.util.StatsUtil;
  * @version 创建时间：2013-5-31
  * 
  */
-public class NettyClient extends AbstractPoolClient implements StatisticCallback {
+public class NettyClient extends AbstractPoolClient implements StatisticCallback,Closable {
     //这里采用默认的CPU数*2
 	private static final ChannelFactory channelFactory = new NioClientSocketChannelFactory(
 			Executors.newCachedThreadPool(new DefaultThreadFactory("nettyClientBoss", true)),
@@ -104,6 +106,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 				new TimeoutMonitor("timeout_monitor_" + url.getHost() + "_" + url.getPort()),
 				MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD, MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD,
 				TimeUnit.MILLISECONDS);
+		ShutDownHook.registerShutdownHook(this);
 	}
 
 	@Override
@@ -288,6 +291,8 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 	@Override
 	public synchronized void close() {
 		close(0);
+		if(!scheduledExecutor.isShutdown())
+			scheduledExecutor.shutdown();
 	}
 
 	/**

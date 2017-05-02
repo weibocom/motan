@@ -19,6 +19,8 @@ package com.weibo.api.motan.transport.netty;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import com.weibo.api.motan.shutdown.Closable;
+import com.weibo.api.motan.shutdown.ShutDownHook;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
@@ -44,7 +46,7 @@ import com.weibo.api.motan.util.NetUtils;
  * @version 创建时间：2013-5-31
  * 
  */
-public class NettyChannelHandler extends SimpleChannelHandler {
+public class NettyChannelHandler extends SimpleChannelHandler implements Closable {
 	private ThreadPoolExecutor threadPoolExecutor;
 	private MessageHandler messageHandler;
 	private Channel serverChannel;
@@ -56,6 +58,7 @@ public class NettyChannelHandler extends SimpleChannelHandler {
 	public NettyChannelHandler(Channel serverChannel, MessageHandler messageHandler) {
 		this.serverChannel = serverChannel;
 		this.messageHandler = messageHandler;
+		ShutDownHook.registerShutdownHook(this);
 	}
 
 	public NettyChannelHandler(Channel serverChannel, MessageHandler messageHandler,
@@ -63,6 +66,7 @@ public class NettyChannelHandler extends SimpleChannelHandler {
 		this.serverChannel = serverChannel;
 		this.messageHandler = messageHandler;
 		this.threadPoolExecutor = threadPoolExecutor;
+		ShutDownHook.registerShutdownHook(this);
 	}
 
 	@Override
@@ -164,5 +168,12 @@ public class NettyChannelHandler extends SimpleChannelHandler {
 				+ " local=" + ctx.getChannel().getLocalAddress() + " event=" + e.getCause(), e.getCause());
 
 		ctx.getChannel().close();
+	}
+
+	@Override
+	public void close() {
+		if(!threadPoolExecutor.isShutdown())
+		this.threadPoolExecutor.shutdown();
+		this.serverChannel.close();
 	}
 }
