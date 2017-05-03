@@ -16,8 +16,9 @@
 
 package com.weibo.api.motan.util;
 
-import com.weibo.api.motan.exception.MotanAbstractException;
-import com.weibo.api.motan.exception.MotanBizException;
+import com.alibaba.fastjson.JSONObject;
+import com.weibo.api.motan.exception.*;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author maijunsheng
@@ -50,5 +51,61 @@ public class ExceptionUtil {
      */
     public static boolean isMotanException(Exception e) {
         return e instanceof MotanAbstractException;
+    }
+
+    public static String toMessage(Exception e){
+        JSONObject jsonObject = new JSONObject();
+        int type = 1;
+        int code = 500;
+        String errmsg = null;
+
+        if(e instanceof MotanFrameworkException){
+            MotanFrameworkException mfe = (MotanFrameworkException)e;
+            type = 0;
+            code = mfe.getErrorCode();
+            errmsg = mfe.getOriginMessage();
+        } else if(e instanceof MotanServiceException){
+            MotanServiceException mse = (MotanServiceException) e;
+            type = 1;
+            code = mse.getErrorCode();
+            errmsg = mse.getOriginMessage();
+        } else if(e instanceof MotanBizException){
+            MotanBizException mbe = (MotanBizException) e;
+            type = 2;
+            code = mbe.getErrorCode();
+            errmsg = mbe.getOriginMessage();
+        } else{
+            errmsg = e.getMessage();
+        }
+        jsonObject.put("errcode",code);
+        jsonObject.put("errmsg", errmsg);
+        jsonObject.put("errtype", type);
+        return jsonObject.toString();
+    }
+
+    public static MotanAbstractException fromMessage(String msg){
+        if(StringUtils.isNotBlank(msg)){
+            try{
+                JSONObject jsonObject = JSONObject.parseObject(msg);
+                int type = jsonObject.getIntValue("errtype");
+                int errcode = jsonObject.getIntValue("errcode");
+                String errmsg = jsonObject.getString("errmsg");
+                MotanAbstractException e = null;
+                switch(type){
+                    case 1:
+                        e = new MotanServiceException(errmsg, new MotanErrorMsg(errcode, errcode, errmsg));
+                        break;
+                    case 2:
+                        e = new MotanBizException(errmsg, new MotanErrorMsg(errcode, errcode, errmsg));
+                        break;
+                    default:
+                        e =  new MotanFrameworkException(errmsg, new MotanErrorMsg(errcode, errcode, errmsg));
+                }
+                return e;
+            }catch(Exception e){
+                LoggerUtil.warn("build exception from msg fail. msg:" + msg);
+            }
+        }
+        return null;
     }
 }

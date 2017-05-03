@@ -56,4 +56,19 @@ public class HproseSerialization implements Serialization {
     public <T> T deserialize(byte[] data, Class<T> clz) throws IOException {
         return new HproseReader(data).unserialize(clz);
     }
+
+    @Override
+    public byte[] serializeMulti(Object[] data) throws IOException {
+        return new byte[0];
+    }
+
+    @Override
+    public Object[] deserializeMulti(byte[] data, Class<?>[] classes) throws IOException {
+        return new Object[0];
+    }
+
+    @Override
+    public int getSerializationNumber() {
+        return 4;
+    }
 }

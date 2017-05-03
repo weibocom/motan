@@ -16,6 +16,18 @@
 
 package com.weibo.api.motan.proxy;
 
+import com.weibo.api.motan.cluster.Cluster;
+import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.core.extension.ExtensionLoader;
+import com.weibo.api.motan.exception.MotanErrorMsgConstant;
+import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.serialize.DeserializableObject;
+import com.weibo.api.motan.switcher.Switcher;
+import com.weibo.api.motan.switcher.SwitcherService;
+import com.weibo.api.motan.util.*;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -23,25 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import com.weibo.api.motan.cluster.Cluster;
-import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.common.URLParamType;
-import com.weibo.api.motan.core.extension.ExtensionLoader;
-import com.weibo.api.motan.exception.MotanErrorMsgConstant;
-import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.ApplicationInfo;
-import com.weibo.api.motan.rpc.DefaultRequest;
-import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.RpcContext;
-import com.weibo.api.motan.switcher.Switcher;
-import com.weibo.api.motan.switcher.SwitcherService;
-import com.weibo.api.motan.util.ExceptionUtil;
-import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.MotanFrameworkUtil;
-import com.weibo.api.motan.util.ReflectUtil;
-import com.weibo.api.motan.util.RequestIdGenerator;
 
 /**
  * 
@@ -121,7 +114,11 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
                             URLParamType.throwException.getValue()));
             try {
                 response = cluster.call(request);
-                return response.getValue();
+                Object value = response.getValue();
+                if(value != null && value instanceof DeserializableObject){
+                    value = ((DeserializableObject)value).deserialize(method.getReturnType());
+                }
+                return value;
             } catch (RuntimeException e) {
                 if (ExceptionUtil.isBizException(e)) {
                     Throwable t = e.getCause();

@@ -13,6 +13,14 @@
  */
 package com.weibo.api.motan.protocol.grpc;
 
+import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.exception.MotanBizException;
+import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.rpc.DefaultRequest;
+import com.weibo.api.motan.rpc.Provider;
+import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.util.NetUtils;
+import com.weibo.api.motan.util.ReflectUtil;
 import io.grpc.Metadata;
 import io.grpc.ServerCall;
 import io.grpc.ServerCall.Listener;
@@ -23,15 +31,6 @@ import io.grpc.stub.StreamObserver;
 
 import java.lang.reflect.Method;
 import java.util.Set;
-
-import com.weibo.api.motan.common.URLParamType;
-import com.weibo.api.motan.exception.MotanBizException;
-import com.weibo.api.motan.exception.MotanFrameworkException;
-import com.weibo.api.motan.rpc.DefaultRequest;
-import com.weibo.api.motan.rpc.Provider;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.util.NetUtils;
-import com.weibo.api.motan.util.ReflectUtil;
 
 /**
  * 
@@ -260,6 +259,7 @@ public class MotanServerCallHandler<Req, Resp> implements ServerCallHandler<Req,
                 call.sendHeaders(new Metadata());
                 sentHeaders = true;
             }
+            //TODO send header from here..
             call.sendMessage(response);
         }
 

@@ -16,6 +16,11 @@
 
 package com.weibo.api.motan.core.extension;
 
+import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.util.LoggerUtil;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,20 +28,9 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceConfigurationError;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.exception.MotanFrameworkException;
-import com.weibo.api.motan.util.LoggerUtil;
 
 /**
  * <pre>
@@ -379,7 +373,7 @@ public class ExtensionLoader<T> {
      * @param clz
      * @return
      */
-    private String getSpiName(Class<?> clz) {
+    public String getSpiName(Class<?> clz) {
         SpiMeta spiMeta = clz.getAnnotation(SpiMeta.class);
 
         String name = (spiMeta != null && !"".equals(spiMeta.name())) ? spiMeta.name() : clz.getSimpleName();

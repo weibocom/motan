@@ -16,13 +16,14 @@
 
 package com.weibo.api.motan.rpc;
 
-import java.lang.reflect.Method;
-
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanBizException;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.serialize.DeserializableObject;
 import com.weibo.api.motan.util.LoggerUtil;
+
+import java.lang.reflect.Method;
 
 /**
  * @author maijunsheng
@@ -54,7 +55,14 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
         }
 
         try {
-            Object value = method.invoke(proxyImpl, request.getArguments());
+            Object[] args = request.getArguments();
+            if(request.getArguments() != null && request.getArguments().length == 1 && request.getArguments()[0] instanceof DeserializableObject){
+                args = ((DeserializableObject)request.getArguments()[0]).deserializeMulti(method.getParameterTypes());
+                if(request instanceof DefaultRequest){
+                    ((DefaultRequest)request).setArguments(args);
+                }
+            }
+            Object value = method.invoke(proxyImpl, args);
             response.setValue(value);
         } catch (Exception e) {
             if (e.getCause() != null) {
@@ -77,5 +85,4 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
         response.setAttachments(request.getAttachments());
         return response;
     }
-
 }

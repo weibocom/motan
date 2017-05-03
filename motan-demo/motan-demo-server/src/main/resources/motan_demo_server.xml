@@ -30,7 +30,7 @@
     <motan:registry regProtocol="zookeeper" name="registry" address="127.0.0.1:2181" connectTimeout="2000"/>
 
     <!-- 协议配置。为防止多个业务配置冲突，推荐使用id表示具体协议。-->
-    <motan:protocol id="demoMotan" default="true" name="motan"
+    <motan:protocol id="demoMotan" default="true" name="motan" codec="" serialization=""
                     maxServerConnection="80000" maxContentLength="1048576"
                     maxWorkerThread="800" minWorkerThread="20"/>
 

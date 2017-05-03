@@ -16,14 +16,14 @@
 
 package com.weibo.api.motan.serialize;
 
-import java.io.IOException;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.SerializeWriter;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.weibo.api.motan.codec.Serialization;
 import com.weibo.api.motan.core.extension.SpiMeta;
+
+import java.io.IOException;
 
 /**
  * fastjson 序列化
@@ -51,5 +51,20 @@ public class FastJsonSerialization implements Serialization {
     @Override
     public <T> T deserialize(byte[] data, Class<T> clz) throws IOException {
         return JSON.parseObject(new String(data), clz);
+    }
+
+    @Override
+    public byte[] serializeMulti(Object[] data) throws IOException {
+        return new byte[0];
+    }
+
+    @Override
+    public Object[] deserializeMulti(byte[] data, Class<?>[] classes) throws IOException {
+        return new Object[0];
+    }
+
+    @Override
+    public int getSerializationNumber() {
+        return 2;
     }
 }

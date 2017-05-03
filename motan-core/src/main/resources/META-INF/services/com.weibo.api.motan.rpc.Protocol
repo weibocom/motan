@@ -16,3 +16,4 @@
 
 com.weibo.api.motan.protocol.injvm.InjvmProtocol
 com.weibo.api.motan.protocol.rpc.DefaultRpcProtocol
+com.weibo.api.motan.protocol.v2motan.MotanV2Protocol

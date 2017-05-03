@@ -16,11 +16,14 @@
 
 package com.weibo.api.motan.rpc;
 
+import com.weibo.api.motan.util.ReflectUtil;
+import org.apache.commons.lang3.StringUtils;
+
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.weibo.api.motan.util.ReflectUtil;
 
 /**
  * @author maijunsheng
@@ -87,17 +90,32 @@ public abstract class AbstractProvider<T> implements Provider<T> {
     }
 
     protected Method lookup(Request request) {
+        Method method = null;
         String methodDesc = ReflectUtil.getMethodDesc(request.getMethodName(), request.getParamtersDesc());
-
-        return methodMap.get(methodDesc);
+        method = methodMap.get(methodDesc);
+        if(method == null && StringUtils.isBlank(request.getParamtersDesc())){
+            method = methodMap.get(request.getMethodName());
+        }
+        return method;
     }
 
     private void initMethodMap(Class<T> clz) {
         Method[] methods = clz.getMethods();
 
+        List<String> dupList = new ArrayList<String>();
         for (Method method : methods) {
             String methodDesc = ReflectUtil.getMethodDesc(method);
             methodMap.put(methodDesc, method);
+            if(methodMap.get(method.getName()) == null){
+                methodMap.put(method.getName(), method);
+            }else{
+                dupList.add(method.getName());
+            }
+        }
+        if (!dupList.isEmpty()){
+            for(String removedName : dupList){
+                methodMap.remove(removedName);
+            }
         }
     }
 

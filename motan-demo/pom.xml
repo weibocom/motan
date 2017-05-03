@@ -28,6 +28,7 @@
     <name>motan-demo</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.source.jdk>1.8</java.source.jdk>
     </properties>
     <dependencies>
         <!-- motan -->
@@ -88,6 +89,12 @@
             <artifactId>httpcore</artifactId>
             <version>4.3.3</version>       
         </dependency>
+
+        <dependency>
+            <groupId>com.weibo</groupId>
+            <artifactId>serialization-extension</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         
         <!-- spring web -->
         <dependency>
@@ -140,8 +147,19 @@
         <module>motan-demo-client</module>
         <module>motan-demo-server</module>
     </modules>
+
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>${java.source.jdk}</source>
+                    <target>${java.source.jdk}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
