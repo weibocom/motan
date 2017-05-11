@@ -52,7 +52,7 @@ public class ShutdownHookTest extends TestCase{
 
     @Test
     protected void TestShutDown(){
-        MotanDemoService motanDemoService = refererConfig.getRef();
+
     }
 
 }
