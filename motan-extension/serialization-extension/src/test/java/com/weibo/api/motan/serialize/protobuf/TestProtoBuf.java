@@ -30,6 +30,7 @@ import com.weibo.api.motan.serialize.protobuf.gen.UserProto.User;
 public class TestProtoBuf {
 	private ServiceConfig<HelloService> serviceConfig;
 	private RefererConfig<HelloService> refererConfig;
+	private HelloService service;
 
 	@Before
 	public void setUp() {
@@ -58,13 +59,11 @@ public class TestProtoBuf {
 		refererConfig.setProtocol(protocolConfig);
 		refererConfig.setInterface(HelloService.class);
 
-		refererConfig.getRef();
+		service = refererConfig.getRef();
 	}
 
 	@Test
 	public void testPrimitiveType() {
-		HelloService service = refererConfig.getRef();
-
 		Assert.assertEquals("-1", service.sumAsString(Integer.MAX_VALUE, Integer.MIN_VALUE));
 		Assert.assertEquals("-1", service.sumAsString(-2, 1));
 
@@ -74,14 +73,11 @@ public class TestProtoBuf {
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testException() {
-		HelloService service = refererConfig.getRef();
 		service.testException();
 	}
 
 	@Test
 	public void testNull() {
-		HelloService service = refererConfig.getRef();
-
 		Assert.assertTrue(service.isNull(null));
 
 		User user = User.newBuilder().setId(120).setName("zhou").build();
@@ -91,7 +87,6 @@ public class TestProtoBuf {
 
 	@Test
 	public void testProtobuf() {
-		HelloService service = refererConfig.getRef();
 		Address address = service.queryByUid(1);
 		Assert.assertEquals(1, address.getId());
 

@@ -18,7 +18,6 @@ package com.weibo.api.motan.serialize;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
@@ -69,10 +68,11 @@ public class ProtobufSerialization implements Serialization {
 		} else if (clazz == String.class) {
 			output.writeStringNoTag(obj.toString());
 		} else if (MessageLite.class.isAssignableFrom(clazz)) {
-			baos.write(MessageLite.class.cast(obj).toByteArray());
+			output.writeMessageNoTag((MessageLite) obj);
 		} else if (Throwable.class.isAssignableFrom(clazz)) {
 			ObjectOutputStream oos = new ObjectOutputStream(baos);
 			oos.writeObject(obj);
+			oos.flush();
 		} else {
 			throw new IllegalArgumentException("can't serialize " + clazz);
 		}
@@ -109,8 +109,10 @@ public class ProtobufSerialization implements Serialization {
 			value = in.readString();
 		} else if (MessageLite.class.isAssignableFrom(clazz)) {
 			try {
-				Method method = clazz.getDeclaredMethod("parseFrom", InputStream.class);
-				value = method.invoke(null, new ByteArrayInputStream(bytes, 0, bytes.length - 1));
+				Method method = clazz.getDeclaredMethod("newBuilder");
+				MessageLite.Builder builder = (MessageLite.Builder) method.invoke(null);
+				in.readMessage(builder, null);
+				value = builder.build();
 			} catch (Exception e) {
 				throw new MotanFrameworkException(e);
 			}
@@ -122,7 +124,7 @@ public class ProtobufSerialization implements Serialization {
 				throw new MotanFrameworkException(e);
 			}
 		} else {
-			throw new IllegalArgumentException("can't serialize " + clazz);
+			throw new IllegalArgumentException("can't deserialize " + clazz);
 		}
 
 		return (T) value;

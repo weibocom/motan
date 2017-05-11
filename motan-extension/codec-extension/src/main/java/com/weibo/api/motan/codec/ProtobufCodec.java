@@ -39,7 +39,7 @@ import com.weibo.api.motan.util.ExceptionUtil;
 import com.weibo.api.motan.util.ReflectUtil;
 
 /**
- * protobuf2/3兼容codec
+ * protobuf2/3兼容codec,序列化时不允许attachments中有键或值为null
  *
  * @author zhouhaocheng
  *
@@ -52,14 +52,23 @@ public class ProtobufCodec implements Codec {
 
 	@Override
 	public byte[] encode(Channel channel, Object message) throws IOException {
-		if (message instanceof Request) {
-			return encodeRequest(channel, (Request) message);
+		try {
+			if (message instanceof Request) {
+				return encodeRequest(channel, (Request) message);
+			} else if (message instanceof Response) {
+				return encodeResponse(channel, (Response) message);
+			}
+		} catch (Exception e) {
+			if (ExceptionUtil.isMotanException(e)) {
+				throw (RuntimeException) e;
+			} else {
+				throw new MotanFrameworkException("encode error: isResponse=" + (message instanceof Response), e,
+						MotanErrorMsgConstant.FRAMEWORK_ENCODE_ERROR);
+			}
 		}
 
-		if (message instanceof Response) {
-			return encodeResponse(channel, (Response) message);
-		}
-		return null;
+		throw new MotanFrameworkException("encode error: message type not support, " + message.getClass(),
+				MotanErrorMsgConstant.FRAMEWORK_ENCODE_ERROR);
 	}
 
 	/**
@@ -107,6 +116,7 @@ public class ProtobufCodec implements Codec {
 		} else {
 			output.writeUInt32NoTag(request.getAttachments().size());
 			for (Map.Entry<String, String> entry : request.getAttachments().entrySet()) {
+				//此处不允许attachement键值为null
 				output.writeStringNoTag(entry.getKey());
 				output.writeStringNoTag(entry.getValue());
 			}
