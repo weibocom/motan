@@ -43,7 +43,7 @@ import com.weibo.api.motan.util.MotanFrameworkUtil;
  * @version 创建时间：2013-5-31
  * 
  */
-public class NettyChannel implements com.weibo.api.motan.transport.Channel,Closable {
+public class NettyChannel implements com.weibo.api.motan.transport.Channel{
 	private volatile ChannelState state = ChannelState.UNINIT;
 
 	private NettyClient nettyClient;
@@ -56,7 +56,6 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel,Closa
 	public NettyChannel(NettyClient nettyClient) {
 		this.nettyClient = nettyClient;
 		this.remoteAddress = new InetSocketAddress(nettyClient.getUrl().getHost(), nettyClient.getUrl().getPort());
-		ShutDownHook.registerShutdownHook(this);
 	}
 
 	@Override

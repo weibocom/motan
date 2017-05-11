@@ -16,6 +16,8 @@
 
 package com.weibo.api.motan.transport.netty;
 
+import com.weibo.api.motan.shutdown.Closable;
+import com.weibo.api.motan.shutdown.ShutDownHook;
 import org.apache.commons.pool.BasePoolableObjectFactory;
 
 import com.weibo.api.motan.rpc.URL;
@@ -30,12 +32,20 @@ public class NettyChannelFactory extends BasePoolableObjectFactory {
 	private String factoryName = "";
 	private NettyClient nettyClient;
 
-	public NettyChannelFactory(NettyClient nettyClient) {
+	public NettyChannelFactory(final NettyClient nettyClient) {
 		super();
 
 		this.nettyClient = nettyClient;
 		this.factoryName = "NettyChannelFactory_" + nettyClient.getUrl().getHost() + "_"
 				+ nettyClient.getUrl().getPort();
+		ShutDownHook.registerShutdownHook(new Closable() {
+			@Override
+			public void close() {
+				if(!nettyClient.isClosed()){
+					nettyClient.close();
+				}
+			}
+		},20);
 	}
 
 	public String getFactoryName() {

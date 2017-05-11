@@ -31,6 +31,8 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.registry.NotifyListener;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.shutdown.Closable;
+import com.weibo.api.motan.shutdown.ShutDownHook;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
 
@@ -52,7 +54,16 @@ public abstract class FailbackRegistry extends AbstractRegistry {
             new ConcurrentHashMap<URL, ConcurrentHashSet<NotifyListener>>();
 
     private static ScheduledExecutorService retryExecutor = Executors.newScheduledThreadPool(1);
-
+    static{
+        ShutDownHook.registerShutdownHook(new Closable() {
+            @Override
+            public void close() {
+                if(!retryExecutor.isShutdown()){
+                    retryExecutor.shutdown();
+                }
+            }
+        },20);
+    }
     public FailbackRegistry(URL url) {
         super(url);
         long retryPeriod = url.getIntParameter(URLParamType.registryRetryPeriod.getName(), URLParamType.registryRetryPeriod.getIntValue());

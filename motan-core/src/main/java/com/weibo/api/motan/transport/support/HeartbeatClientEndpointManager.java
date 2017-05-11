@@ -30,6 +30,8 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.shutdown.Closable;
+import com.weibo.api.motan.shutdown.ShutDownHook;
 import com.weibo.api.motan.transport.Client;
 import com.weibo.api.motan.transport.Endpoint;
 import com.weibo.api.motan.transport.EndpointManager;
@@ -73,6 +75,14 @@ public class HeartbeatClientEndpointManager implements EndpointManager {
 
             }
         }, MotanConstants.HEARTBEAT_PERIOD, MotanConstants.HEARTBEAT_PERIOD, TimeUnit.MILLISECONDS);
+        ShutDownHook.registerShutdownHook(new Closable() {
+            @Override
+            public void close() {
+                if(!executorService.isShutdown()){
+                    executorService.shutdown();
+                }
+            }
+        },20);
     }
 
     @Override

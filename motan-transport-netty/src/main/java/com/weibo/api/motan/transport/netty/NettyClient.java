@@ -73,7 +73,7 @@ import com.weibo.api.motan.util.StatsUtil;
  * @version 创建时间：2013-5-31
  * 
  */
-public class NettyClient extends AbstractPoolClient implements StatisticCallback,Closable {
+public class NettyClient extends AbstractPoolClient implements StatisticCallback {
     //这里采用默认的CPU数*2
 	private static final ChannelFactory channelFactory = new NioClientSocketChannelFactory(
 			Executors.newCachedThreadPool(new DefaultThreadFactory("nettyClientBoss", true)),
@@ -106,7 +106,6 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 				new TimeoutMonitor("timeout_monitor_" + url.getHost() + "_" + url.getPort()),
 				MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD, MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD,
 				TimeUnit.MILLISECONDS);
-		ShutDownHook.registerShutdownHook(this);
 	}
 
 	@Override
