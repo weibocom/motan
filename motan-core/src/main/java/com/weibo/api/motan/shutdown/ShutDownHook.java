@@ -31,7 +31,7 @@ public class ShutDownHook extends Thread{
     @Override
     public synchronized void start(){
         if(instance!=null){
-            LoggerUtil.info("start to close global resource due to priority");
+            LoggerUtil.info("Start to close global resource due to priority");
             Collections.sort(resourceList);
             for (closableObject resource:resourceList) {
                 try{
