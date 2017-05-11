@@ -52,16 +52,6 @@
             <artifactId>javapoet</artifactId>
             <version>1.8.0</version>
         </dependency>
-        <dependency>
-            <groupId>com.weibo</groupId>
-            <artifactId>motan-demo-server</artifactId>
-            <version>0.3.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.weibo</groupId>
-            <artifactId>motan-demo-client</artifactId>
-            <version>0.3.1-SNAPSHOT</version>
-        </dependency>
     </dependencies>
     <build>
         <plugins>

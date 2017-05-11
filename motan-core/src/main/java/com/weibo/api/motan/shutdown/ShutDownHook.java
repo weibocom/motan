@@ -24,6 +24,7 @@ public class ShutDownHook extends Thread{
         if(instance == null){
             instance = new ShutDownHook();
             Runtime.getRuntime().addShutdownHook(instance);
+            LoggerUtil.info("ShutdownHook is initialized");
         }
     }
 
