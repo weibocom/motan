@@ -24,14 +24,18 @@ import org.apache.commons.pool.BasePoolableObjectFactory;
 import org.apache.commons.pool.PoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
 
+import java.util.concurrent.TimeUnit;
+
+
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-14
  */
 public abstract class AbstractPoolClient extends AbstractClient {
-    protected static long defaultMinEvictableIdleTimeMillis = (long) 1000 * 60 * 60;//默认链接空闲时间
-    protected static long defaultSoftMinEvictableIdleTimeMillis = (long) 1000 * 60 * 10;//
-    protected static long defaultTimeBetweenEvictionRunsMillis = (long) 1000 * 60 * 10;//默认回收周期
+
+    protected static long defaultMinEvictableIdleTimeMillis = TimeUnit.HOURS.toMillis(1);//1000 * 60 * 60;//默认链接空闲时间，一小时
+    protected static long defaultSoftMinEvictableIdleTimeMillis = TimeUnit.MINUTES.toMillis(10);//1000 * 60 * 10;//
+    protected static long defaultTimeBetweenEvictionRunsMillis = TimeUnit.MINUTES.toMillis(10);//1000 * 60 * 10;//默认回收周期，十分钟
     protected GenericObjectPool pool;
     protected GenericObjectPool.Config poolConfig;
     protected PoolableObjectFactory factory;
