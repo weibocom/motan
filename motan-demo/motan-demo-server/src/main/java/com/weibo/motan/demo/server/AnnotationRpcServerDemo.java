@@ -18,9 +18,9 @@ package com.weibo.motan.demo.server;
 
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.config.springsupport.BasicServiceConfigBean;
-import com.weibo.api.motan.config.springsupport.AnnotationBean;
 import com.weibo.api.motan.config.springsupport.ProtocolConfigBean;
 import com.weibo.api.motan.config.springsupport.RegistryConfigBean;
+import com.weibo.api.motan.config.springsupport.annotation.EnableMotan;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +30,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 @Configuration
 @ComponentScan
+@EnableMotan
 public class AnnotationRpcServerDemo {
 
     public static void main(String[] args) throws InterruptedException {
