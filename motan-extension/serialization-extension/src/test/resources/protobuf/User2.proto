@@ -1,0 +1,17 @@
+option java_package = "com.weibo.api.motan.serialize.protobuf.gen2";
+option java_outer_classname = "UserProto2";
+
+message User{
+  required int32 id = 1;
+  required string name = 2;
+  optional bool gender = 3;
+  repeated Address address = 4;
+}
+
+message Address{
+  required int32 id = 1;
+  optional string province = 2;
+  optional string city = 3;
+  optional string street = 4;
+  required string phone = 5;
+}
