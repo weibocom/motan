@@ -262,6 +262,10 @@ The quick start gives very basic example of running client and server on the sam
 * 肥佬大([@feilaoda](https://github.com/feilaoda))
 * 小马哥([@andot](https://github.com/andot))
 * wu-sheng([@wu-sheng](https://github.com/wu-sheng)) &nbsp;&nbsp;&nbsp; _Assist Motan to become the first Chinese RPC framework on [OpenTracing](http://opentracing.io) **Supported Frameworks List**_
+* Jin Zhang([@lowzj](https://github.com/lowzj))
+* xiaoqing.yuanfang([@xiaoqing-yuanfang](https://github.com/xiaoqing-yuanfang))
+* 东方上人([@dongfangshangren](https://github.com/dongfangshangren))
+* Voyager3([@xxxxzr](https://github.com/xxxxzr))
 
 # License
 
