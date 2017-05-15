@@ -39,6 +39,7 @@
                         group="motan-demo-rpc" accessLog="false" shareChannel="true" module="motan-demo-rpc"
                         application="myMotanDemo" registry="registry" id="serviceBasicConfig"/>
 
+
     <!-- 具体rpc服务配置，声明实现的接口类。-->
     <motan:service interface="com.weibo.motan.demo.service.MotanDemoService"
                    ref="motanDemoServiceImpl" export="demoMotan:8001" basicService="serviceBasicConfig">

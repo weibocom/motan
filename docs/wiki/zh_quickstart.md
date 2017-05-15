@@ -13,8 +13,8 @@
 快速入门中会给出一些基本使用场景下的配置方式，更详细的使用文档请参考[用户指南](zh_userguide).
 
 > 如果要执行快速入门介绍中的例子，你需要:
->  * JDK 1.7或更高版本。
->  * java依赖管理工具，如[Maven][maven]或[Gradle][gradle]。
+> * JDK 1.7或更高版本。
+> * java依赖管理工具，如[Maven][maven]或[Gradle][gradle]。
 
 ## <a id="peer-to-peer"></a>简单调用示例
 
@@ -26,19 +26,19 @@
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-core</artifactId>
-        <version>0.2.2</version>
+        <version>0.3.0</version>
     </dependency>
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-transport-netty</artifactId>
-        <version>0.2.2</version>
+        <version>0.3.0</version>
     </dependency>
     
     <!-- only needed for spring-based features -->
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-springsupport</artifactId>
-        <version>0.2.2</version>
+        <version>0.3.0</version>
     </dependency>
     <dependency>
         <groupId>org.springframework</groupId>
@@ -60,14 +60,14 @@
     ```
 
 3. 编写业务接口逻辑、创建并启动RPC Server。
-    
+
     `src/main/java/quickstart/FooServiceImpl.java`  
 
     ```java
     package quickstart;
 
     public class FooServiceImpl implements FooService {
-    
+
         public String hello(String name) {
             System.out.println(name + " invoked rpc service");
             return "hello " + name;
@@ -76,7 +76,7 @@
     ```
 
     `src/main/resources/motan_server.xml`
-    
+
     ```xml
     <?xml version="1.0" encoding="UTF-8"?>
     <beans xmlns="http://www.springframework.org/schema/beans"
@@ -93,22 +93,22 @@
     ```
 
        `src/main/java/quickstart/Server.java`
-    
+
     ```java
     package quickstart;
-    
+
     import org.springframework.context.ApplicationContext;
     import org.springframework.context.support.ClassPathXmlApplicationContext;
-    
+
     public class Server {
-    
+
         public static void main(String[] args) throws InterruptedException {
             ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:motan_server.xml");
             System.out.println("server start...");
         }
     }
     ```
-  
+
     执行Server类中的main函数将会启动Motan服务，并监听8002端口.
 
 4. 创建并执行RPC Client。
@@ -135,20 +135,21 @@
 
     import org.springframework.context.ApplicationContext;
     import org.springframework.context.support.ClassPathXmlApplicationContext;
+    ```
 
 
     public class Client {
-    
+
         public static void main(String[] args) throws InterruptedException {
             ApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:motan_client.xml");
             FooService service = (FooService) ctx.getBean("remoteService");
             System.out.println(service.hello("motan"));
         }
     }
-    ```
+    ​```
     
     执行Client类中的main函数将执行一次远程调用，并输出结果。
-    
+
 ### <a id="asynccall"></a>异步调用
 
 异步调用与同步调用基本配置完全一样，只需要在接口类中加上@MotanAsync注解，然后client端稍作修改。server端不需要做任何修改。具体步骤如下：
@@ -157,7 +158,7 @@
 
     ```java
     package quickstart;
-    
+
     @MotanAsync
     public interface FooService {
         public String hello(String name);
@@ -165,29 +166,33 @@
     ```
 
 2. 编译时，Motan自动生成异步service类，生成路径为target/generated-sources/annotations/，生成的类名为service名加上Async，例如service类名为FooService.java,则自动生成的类名为FooServiceAsync.java。
-另外，需要将motan自动生产类文件的路径配置为项目source path，可以使用maven plugin或手动配置。pom.xml配置如下：
+    另外，需要将motan自动生产类文件的路径配置为项目source path，可以使用maven plugin或手动配置。pom.xml配置如下：
 
 
-    ```xml
-    <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.10</version>
-        <executions>
-            <execution>
-                <phase>generate-sources</phase>
-                <goals>
-                    <goal>add-source</goal>
-                </goals>
-                <configuration>
-                    <sources>
-                        <source>${project.build.directory}/generated-sources/annotations</source>
-                    </sources>
-                </configuration>
-            </execution>
-        </executions>
-    </plugin>
-    ```
+    ​```xml
+     <build>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>1.10</version>
+                    <executions>
+                        <execution>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>add-source</goal>
+                            </goals>
+                            <configuration>
+                                <sources>
+                                    <source>${project.build.directory}/generated-sources/annotations</source>
+                                </sources>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </build>
+    ​```
 
 3. 在client端配置motan_client.xml时，在同步调用配置的基础上，只需要修改referer的interface为Motan自动生成的接口类即可。
 
@@ -242,17 +247,17 @@
 #### <a id="consul-start"></a>Consul安装与启动
 
 ##### 安装（[官方文档](https://www.consul.io/intro/getting-started/install.html)）
-    
+
     # 这里以linux为例
     wget https://releases.hashicorp.com/consul/0.6.4/consul_0.6.4_linux_amd64.zip
     unzip consul_0.6.4_linux_amd64.zip
     sudo mv consul /bin
-    
+
 ##### 启动（[官方文档](https://www.consul.io/intro/getting-started/agent.html)）
 
     测试环境启动：
     consul agent -dev
-    
+
 ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
 
 #### <a id="motan-consul"></a>Motan-Consul配置
@@ -271,7 +276,7 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
 
     ```xml
     <motan:registry regProtocol="consul" name="my_consul" address="127.0.0.1:8500"/>
-    ```   
+    ```
 
 3. 在Motan client及server配置改为通过registry服务发现。
 
@@ -327,17 +332,17 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
 2. 在server和client的配置文件中分别增加zookeeper registry定义。 
 
     zookeeper为单节点  
-    
+
     ```xml
     <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="127.0.0.1:2181"/>
     ```
-    
+
     zookeeper多节点集群  
 
     ```xml
     <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"/>
     ```
-    
+
 3. 在Motan client及server配置改为通过registry服务发现。
 
     client
@@ -352,9 +357,11 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
     <motan:service interface="quickstart.FooService" ref="serviceImpl" registry="my_zookeeper" export="8002" />
     ```
 
-4. server程序启动后，需要显式调用心跳开关，注册到zookeeper。
+4. server程序启动后，需要在server.java中显式调用心跳开关，注册到zookeeper。
 
     ```java
+    ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:motan_server.xml");
+    //if you want to use zookeeper or consul
     MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true)
     ```
 
@@ -367,7 +374,7 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
 ## <a id="other"></a>其他调用示例
 
 ###<a id="motan-yar"></a>提供YAR协议服务
-    
+
 [YAR](https://github.com/laruence/yar)协议是php的一个rpc扩展，motan框架可以提供yar协议的RPC服务
 1、引入motan-protocol-yar.jar
 
@@ -378,7 +385,7 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
         <version>0.2.1</version>
     </dependency>
    ```
-    
+
 2、在服务接口类上增加注解@YarConfig,声明服务的uri
 
    ```java
@@ -387,20 +394,20 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
         public String hello(String name);
     ｝
    ```
-    
+
 3、配置protocol的name="yar" 
 
    ```xml
     <motan:protocol id="demoYar" name="yar" .../>
    ```
-    
+
 4、配置service的export，使用yar协议提供服务
-    
+​    
    ```xml
     <motan:service interface="com.weibo.motan.demo.service.YarService"
        export="demoYar:8003" .../>
    ```
-    
+
 具体配置见motan-demo模块
 YAR协议使用[yar-java](https://github.com/weibocom/yar-java)进行解析，java作为YAR client时可以直接使用
 
@@ -450,7 +457,7 @@ YAR协议使用[yar-java](https://github.com/weibocom/yar-java)进行解析，ja
         return config;
     }
    ```
-    
+
 3、service的实现类上添加@MotanService注解，注解的配置参数与xml配置方式的service标签一致。
 
    ```java
@@ -463,7 +470,7 @@ YAR协议使用[yar-java](https://github.com/weibocom/yar-java)进行解析，ja
         }
     }
    ```
-    
+
 4、使用[spring-boot](https://github.com/spring-projects/spring-boot)启动服务
 
    ```java
@@ -480,7 +487,20 @@ YAR协议使用[yar-java](https://github.com/weibocom/yar-java)进行解析，ja
         }
     }
    ```
-    
+
+需要在pom中添加依赖
+
+```xml
+<dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-tools</artifactId>
+        <version>1.5.1.RELEASE</version>
+        <type>pom</type>
+</dependency>
+```
+
+
+
 server端详细配置请参考motan-demo模块
 
 ####client端配置
@@ -504,7 +524,7 @@ server端详细配置请参考motan-demo模块
         return config;
     }
    ```
-    
+
 3、在使用motan service 的对象上添加@MotanReferer注解，注册配置与xml方式的referer标签一致
 
    ```java
@@ -522,7 +542,7 @@ server端详细配置请参考motan-demo模块
         }
     }
    ```
-    
+
 4、使用spring-boot启动client
 
    ```java
@@ -535,7 +555,7 @@ server端详细配置请参考motan-demo模块
         }
     }
    ```
-    
+
 client端详细配置请参考motan-demo模块
 
 ## <a id="opentracing"></a>使用OpenTracing
