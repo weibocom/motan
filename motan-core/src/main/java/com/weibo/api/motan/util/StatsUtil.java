@@ -23,6 +23,8 @@ import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.rpc.Application;
 import com.weibo.api.motan.rpc.ApplicationInfo;
+import com.weibo.api.motan.shutdown.Closable;
+import com.weibo.api.motan.shutdown.ShutDownHook;
 import com.weibo.api.motan.util.StatsUtil.AccessStatus;
 
 import java.text.DecimalFormat;
@@ -43,7 +45,6 @@ public class StatsUtil {
     protected static List<StatisticCallback> statisticCallbacks = new CopyOnWriteArrayList<StatisticCallback>();
     public static String SEPARATE = "\\|";
     protected static ScheduledFuture<?> scheduledFuture;
-
     static {
         scheduledFuture = executorService.scheduleAtFixedRate(new Runnable() {
 
@@ -57,6 +58,14 @@ public class StatsUtil {
                 logStatisticCallback();
             }
         }, MotanConstants.STATISTIC_PEROID, MotanConstants.STATISTIC_PEROID, TimeUnit.SECONDS);
+        ShutDownHook.registerShutdownHook(new Closable() {
+            @Override
+            public void close() {
+                if(!executorService.isShutdown()){
+                    executorService.shutdown();
+                }
+            }
+        });
     }
 
     public static void registryStatisticCallback(StatisticCallback callback) {

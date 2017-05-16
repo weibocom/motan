@@ -16,10 +16,9 @@
 
 package com.weibo.api.motan.transport.netty;
 
-import org.apache.commons.pool.BasePoolableObjectFactory;
-
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.LoggerUtil;
+import org.apache.commons.pool.BasePoolableObjectFactory;
 
 /**
  * @author maijunsheng

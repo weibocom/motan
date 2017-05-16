@@ -8,9 +8,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.weibo.api.motan.registry.consul.client.MotanConsulClient;
+import com.weibo.api.motan.shutdown.Closable;
+import com.weibo.api.motan.shutdown.ShutDownHook;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.MotanSwitcherUtil;
 
 /**
  * consul 心跳管理类。 rpc服务把需要设置passing状态的serviceid注册到此类，
@@ -41,6 +42,14 @@ public class ConsulHeartbeatManager {
 				10000);
 		jobExecutor = new ThreadPoolExecutor(5, 30, 30 * 1000,
 				TimeUnit.MILLISECONDS, workQueue);
+		ShutDownHook.registerShutdownHook(new Closable() {
+			@Override
+			public void close() {
+				if(!heartbeatExecutor.isShutdown()){
+					heartbeatExecutor.shutdown();
+				}
+			}
+		});
 	}
 
 	public void start() {
