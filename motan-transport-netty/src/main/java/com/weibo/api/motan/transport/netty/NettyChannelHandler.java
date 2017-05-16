@@ -16,33 +16,28 @@
 
 package com.weibo.api.motan.transport.netty;
 
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
-
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelHandler;
-
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.RpcContext;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.NetUtils;
+import org.jboss.netty.channel.*;
+
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- *
+ * 
  * @author maijunsheng
  * @version 创建时间：2013-5-31
- *
+ * 
  */
 public class NettyChannelHandler extends SimpleChannelHandler {
 	private ThreadPoolExecutor threadPoolExecutor;
@@ -59,7 +54,7 @@ public class NettyChannelHandler extends SimpleChannelHandler {
 	}
 
 	public NettyChannelHandler(Channel serverChannel, MessageHandler messageHandler,
-							   ThreadPoolExecutor threadPoolExecutor) {
+                               ThreadPoolExecutor threadPoolExecutor) {
 		this.serverChannel = serverChannel;
 		this.messageHandler = messageHandler;
 		this.threadPoolExecutor = threadPoolExecutor;
@@ -96,7 +91,7 @@ public class NettyChannelHandler extends SimpleChannelHandler {
 	 * <pre>
 	 *  request process: 主要来自于client的请求，需要使用threadPoolExecutor进行处理，避免service message处理比较慢导致iothread被阻塞
 	 * </pre>
-	 *
+	 * 
 	 * @param ctx
 	 * @param e
 	 */
@@ -110,15 +105,15 @@ public class NettyChannelHandler extends SimpleChannelHandler {
 		try {
 			threadPoolExecutor.execute(new Runnable() {
 				@Override
-				public void run() {
-					try{
-						RpcContext.init(request);
-						processRequest(ctx, request, processStartTime);
-					}finally{
-						RpcContext.destroy();
-					}
-				}
-			});
+                public void run() {
+				    try{
+				        RpcContext.init(request);
+	                    processRequest(ctx, request, processStartTime);
+				    }finally{
+				        RpcContext.destroy();
+				    }
+                }
+            });
 		} catch (RejectedExecutionException rejectException) {
 			DefaultResponse response = new DefaultResponse();
 			response.setRequestId(request.getRequestId());

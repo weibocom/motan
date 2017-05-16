@@ -16,15 +16,14 @@
 
 package com.weibo.api.motan.transport.netty;
 
-import org.apache.commons.pool.BasePoolableObjectFactory;
-
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.LoggerUtil;
+import org.apache.commons.pool.BasePoolableObjectFactory;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-31
- *
+ * 
  */
 public class NettyChannelFactory extends BasePoolableObjectFactory {
 	private String factoryName = "";
