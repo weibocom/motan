@@ -50,7 +50,7 @@ public class RpcStats {
                     scheduledExecutor.shutdown();
                 }
             }
-        },20);
+        });
     }
     /**
      * call before invoke the request

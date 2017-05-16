@@ -49,7 +49,7 @@ public class ConsulHeartbeatManager {
 					heartbeatExecutor.shutdown();
 				}
 			}
-		},20);
+		});
 	}
 
 	public void start() {

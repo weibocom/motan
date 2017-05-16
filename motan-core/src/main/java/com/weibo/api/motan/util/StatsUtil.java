@@ -65,7 +65,7 @@ public class StatsUtil {
                     executorService.shutdown();
                 }
             }
-        },20);
+        });
     }
 
     public static void registryStatisticCallback(StatisticCallback callback) {

@@ -7,7 +7,7 @@ import java.util.Collections;
 
 /**
  * @author zhanran
- * add a shutDownHook to close some global connections/services
+ * add a shutDownHook to close some global resources
  */
 
 public class ShutDownHook extends Thread{
@@ -29,23 +29,26 @@ public class ShutDownHook extends Thread{
     }
 
     @Override
-    public synchronized void start(){
+    public void run(){
         if(instance!=null){
-            LoggerUtil.info("Start to close global resource due to priority");
-            Collections.sort(resourceList);
-            for (closableObject resource:resourceList) {
-                try{
-                    resource.closable.close();
-                }catch (Exception e){
-                    LoggerUtil.error("Failed to close "+resource.closable.getClass(),e);
-                }
-                LoggerUtil.info("Success to close "+resource.closable.getClass());
-            }
-            LoggerUtil.info("Success to close all the resource!");
-            resourceList.clear();
-        }else{
-            System.exit(0);
+            closeAll();
         }
+    }
+
+    //synchronized method to close all the resources in the list
+    private synchronized void closeAll(){
+        Collections.sort(resourceList);
+        LoggerUtil.info("Start to close global resource due to priority");
+        for (closableObject resource:resourceList) {
+            try{
+                resource.closable.close();
+            }catch (Exception e){
+                LoggerUtil.error("Failed to close "+resource.closable.getClass(),e);
+            }
+            LoggerUtil.info("Success to close "+resource.closable.getClass());
+        }
+        LoggerUtil.info("Success to close all the resource!");
+        resourceList.clear();
     }
 
     public static synchronized void registerShutdownHook(Closable closable){
@@ -62,11 +65,6 @@ public class ShutDownHook extends Thread{
     private static class closableObject implements Comparable<closableObject>{
         Closable closable;
         int priority;
-
-//        public closableObject(Closable closable){
-//            this.closable = closable;
-//            this.priority = defaultPriority;
-//        }
 
         public closableObject(Closable closable,int priority){
             this.closable = closable;

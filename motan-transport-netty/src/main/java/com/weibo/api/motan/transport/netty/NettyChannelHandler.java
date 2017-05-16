@@ -19,8 +19,6 @@ package com.weibo.api.motan.transport.netty;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import com.weibo.api.motan.shutdown.Closable;
-import com.weibo.api.motan.shutdown.ShutDownHook;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
@@ -41,12 +39,12 @@ import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.NetUtils;
 
 /**
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-5-31
- * 
+ *
  */
-public class NettyChannelHandler extends SimpleChannelHandler implements Closable {
+public class NettyChannelHandler extends SimpleChannelHandler{
 	private ThreadPoolExecutor threadPoolExecutor;
 	private MessageHandler messageHandler;
 	private Channel serverChannel;
@@ -98,7 +96,7 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Closabl
 	 * <pre>
 	 *  request process: 主要来自于client的请求，需要使用threadPoolExecutor进行处理，避免service message处理比较慢导致iothread被阻塞
 	 * </pre>
-	 * 
+	 *
 	 * @param ctx
 	 * @param e
 	 */
@@ -168,10 +166,4 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Closabl
 		ctx.getChannel().close();
 	}
 
-	@Override
-	public void close() {
-		if(!threadPoolExecutor.isShutdown())
-		this.threadPoolExecutor.shutdown();
-		this.serverChannel.close();
-	}
 }

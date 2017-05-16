@@ -45,7 +45,7 @@ public class NettyChannelFactory extends BasePoolableObjectFactory {
 					nettyClient.close();
 				}
 			}
-		},20);
+		});
 	}
 
 	public String getFactoryName() {

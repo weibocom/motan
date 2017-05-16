@@ -82,7 +82,7 @@ public class HeartbeatClientEndpointManager implements EndpointManager {
                     executorService.shutdown();
                 }
             }
-        },20);
+        });
     }
 
     @Override

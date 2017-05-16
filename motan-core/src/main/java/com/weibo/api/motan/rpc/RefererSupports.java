@@ -40,7 +40,7 @@ public class RefererSupports{
                 if(!scheduledExecutor.isShutdown())
                 scheduledExecutor.shutdown();
             }
-        },20);
+        });
     }
     // 正常情况下请求超过1s已经是能够忍耐的极限值了，delay 1s进行destroy
     private static final int DELAY_TIME = 1000;

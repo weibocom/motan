@@ -62,7 +62,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
                     retryExecutor.shutdown();
                 }
             }
-        },20);
+        });
     }
     public FailbackRegistry(URL url) {
         super(url);

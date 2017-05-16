@@ -66,7 +66,7 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
             }
         };
         zkClient.subscribeStateChanges(zkStateListener);
-        ShutDownHook.registerShutdownHook(this,20);
+        ShutDownHook.registerShutdownHook(this);
     }
 
     public ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>> getServiceListeners() {

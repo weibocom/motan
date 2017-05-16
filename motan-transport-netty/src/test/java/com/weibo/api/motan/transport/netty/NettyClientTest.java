@@ -97,6 +97,7 @@ public class NettyClientTest {
         } catch (Exception e) {
             assertTrue(false);
         }
+
     }
     
     @Test

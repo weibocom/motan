@@ -25,8 +25,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.weibo.api.motan.shutdown.Closable;
-import com.weibo.api.motan.shutdown.ShutDownHook;
 import org.apache.commons.pool.BasePoolableObjectFactory;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.ChannelFactory;
@@ -58,7 +56,7 @@ import com.weibo.api.motan.util.StatisticCallback;
 import com.weibo.api.motan.util.StatsUtil;
 
 /**
- * 
+ *
  * <pre>
  * 		netty client 相关
  * 			1)  timeout 设置 （connecttimeout，sotimeout, application timeout）
@@ -68,25 +66,17 @@ import com.weibo.api.motan.util.StatsUtil;
  * 			5） 最大返回数据包设置
  * 			6） RPC 的测试的时候，需要非常关注 OOM的问题
  * </pre>
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-5-31
- * 
+ *
  */
 public class NettyClient extends AbstractPoolClient implements StatisticCallback {
-    //这里采用默认的CPU数*2
+	//这里采用默认的CPU数*2
 	private static final ChannelFactory channelFactory = new NioClientSocketChannelFactory(
 			Executors.newCachedThreadPool(new DefaultThreadFactory("nettyClientBoss", true)),
 			Executors.newCachedThreadPool(new DefaultThreadFactory("nettyClientWorker", true)));
-	static {
-		ShutDownHook.registerShutdownHook(new Closable() {
-			@Override
-			public void close() {
-				if(!scheduledExecutor.isShutdown())
-					scheduledExecutor.shutdown();
-			}
-		});
-	}
+
 	// 回收过期任务
 	private static ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(4);
 
@@ -114,7 +104,6 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 				new TimeoutMonitor("timeout_monitor_" + url.getHost() + "_" + url.getPort()),
 				MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD, MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD,
 				TimeUnit.MILLISECONDS);
-//		ShutDownHook.registerShutdownHook();
 	}
 
 	@Override
@@ -126,7 +115,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 		boolean isAsync = false;
 		Object async = RpcContext.getContext().getAttribute(MotanConstants.ASYNC_SUFFIX);
 		if(async != null && async instanceof Boolean){
-		    isAsync = (Boolean)async;
+			isAsync = (Boolean)async;
 		}
 		return request(request, isAsync);
 	}
@@ -152,14 +141,14 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 	/**
 	 * 请求remote service
-	 * 
+	 *
 	 * <pre>
 	 * 		1)  get connection from pool
 	 * 		2)  async requset
 	 * 		3)  return connection to pool
 	 * 		4)  check if async return response, true: return ResponseFuture;  false: return result
 	 * </pre>
-	 * 
+	 *
 	 * @param request
 	 * @param async
 	 * @return
@@ -206,7 +195,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 	/**
 	 * 如果async是false，那么同步获取response的数据
-	 * 
+	 *
 	 * @param response
 	 * @param async
 	 * @return
@@ -246,17 +235,17 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 	 */
 	private void initClientBootstrap() {
 		bootstrap = new ClientBootstrap(channelFactory);
-		
+
 		bootstrap.setOption("keepAlive", true);
 		bootstrap.setOption("tcpNoDelay", true);
 
 		// 实际上，极端情况下，connectTimeout会达到500ms，因为netty nio的实现中，是依赖BossThread来控制超时，
 		// 如果为了严格意义的timeout，那么需要应用端进行控制。
 		int timeout = getUrl().getIntParameter(URLParamType.connectTimeout.getName(), URLParamType.connectTimeout.getIntValue());
-        if (timeout <= 0) {
-            throw new MotanFrameworkException("NettyClient init Error: timeout(" + timeout + ") <= 0 is forbid.",
-                    MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
-        }
+		if (timeout <= 0) {
+			throw new MotanFrameworkException("NettyClient init Error: timeout(" + timeout + ") <= 0 is forbid.",
+					MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
+		}
 		bootstrap.setOption("connectTimeoutMillis", timeout);
 
 		// 最大响应包限制
@@ -362,11 +351,11 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 	/**
 	 * 增加调用失败的次数：
-	 * 
+	 *
 	 * <pre>
 	 * 	 	如果连续失败的次数 >= maxClientConnection, 那么把client设置成不可用状态
 	 * </pre>
-	 * 
+	 *
 	 */
 	void incrErrorCount() {
 		long count = errorCount.incrementAndGet();
@@ -387,11 +376,11 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 	/**
 	 * 重置调用失败的计数 ：
-	 * 
+	 *
 	 * <pre>
 	 * 把节点设置成可用
 	 * </pre>
-	 * 
+	 *
 	 */
 	void resetErrorCount() {
 		errorCount.set(0);
@@ -421,13 +410,13 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 	/**
 	 * 注册回调的resposne
-	 * 
+	 *
 	 * <pre>
-	 * 
+	 *
 	 * 		进行最大的请求并发数的控制，如果超过NETTY_CLIENT_MAX_REQUEST的话，那么throw reject exception
-	 * 
+	 *
 	 * </pre>
-	 * 
+	 *
 	 * @throws MotanServiceException
 	 * @param requestId
 	 * @param nettyResponseFuture
@@ -458,7 +447,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 	/**
 	 * 移除回调的response
-	 * 
+	 *
 	 * @param requestId
 	 * @return
 	 */
@@ -472,9 +461,9 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 	/**
 	 * 回收超时任务
-	 * 
+	 *
 	 * @author maijunsheng
-	 * 
+	 *
 	 */
 	class TimeoutMonitor implements Runnable {
 		private String name;
@@ -495,7 +484,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 						// timeout: remove from callback list, and then cancel
 						removeCallback(entry.getKey());
 						future.cancel();
-					} 
+					}
 				} catch (Exception e) {
 					LoggerUtil.error(
 							name + " clear timeout future Error: uri=" + url.getUri() + " requestId=" + entry.getKey(),
