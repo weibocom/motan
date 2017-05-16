@@ -19,8 +19,6 @@ package com.weibo.api.motan.transport.netty;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
-import com.weibo.api.motan.shutdown.Closable;
-import com.weibo.api.motan.shutdown.ShutDownHook;
 import org.jboss.netty.channel.ChannelFuture;
 
 import com.weibo.api.motan.common.ChannelState;
@@ -41,9 +39,9 @@ import com.weibo.api.motan.util.MotanFrameworkUtil;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-31
- * 
+ *
  */
-public class NettyChannel implements com.weibo.api.motan.transport.Channel{
+public class NettyChannel implements com.weibo.api.motan.transport.Channel {
 	private volatile ChannelState state = ChannelState.UNINIT;
 
 	private NettyClient nettyClient;
@@ -60,12 +58,12 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel{
 
 	@Override
 	public Response request(Request request) throws TransportException {
-	    int timeout = nettyClient.getUrl().getMethodParameter(request.getMethodName(), request.getParamtersDesc(),
-	            URLParamType.requestTimeout.getName(), URLParamType.requestTimeout.getIntValue());
+		int timeout = nettyClient.getUrl().getMethodParameter(request.getMethodName(), request.getParamtersDesc(),
+				URLParamType.requestTimeout.getName(), URLParamType.requestTimeout.getIntValue());
 		if (timeout <= 0) {
-               throw new MotanFrameworkException("NettyClient init Error: timeout(" + timeout + ") <= 0 is forbid.",
-                       MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
-           }
+			throw new MotanFrameworkException("NettyClient init Error: timeout(" + timeout + ") <= 0 is forbid.",
+					MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
+		}
 		NettyResponseFuture response = new NettyResponseFuture(request, timeout, this.nettyClient);
 		this.nettyClient.registerCallback(request.getRequestId(), response);
 
@@ -126,12 +124,12 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel{
 
 			int timeout = nettyClient.getUrl().getIntParameter(URLParamType.connectTimeout.getName(), URLParamType.connectTimeout.getIntValue());
 			if (timeout <= 0) {
-	            throw new MotanFrameworkException("NettyClient init Error: timeout(" + timeout + ") <= 0 is forbid.",
-	                    MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
+				throw new MotanFrameworkException("NettyClient init Error: timeout(" + timeout + ") <= 0 is forbid.",
+						MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
 			}
 			// 不去依赖于connectTimeout
 			boolean result = channleFuture.awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
-            boolean success = channleFuture.isSuccess();
+			boolean success = channleFuture.isSuccess();
 
 			if (result && success) {
 				channel = channleFuture.getChannel();
@@ -142,10 +140,10 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel{
 				state = ChannelState.ALIVE;
 				return true;
 			}
-            boolean connected = false;
-            if(channleFuture.getChannel() != null){
-                connected = channleFuture.getChannel().isConnected();
-            }
+			boolean connected = false;
+			if(channleFuture.getChannel() != null){
+				connected = channleFuture.getChannel().isConnected();
+			}
 
 			if (channleFuture.getCause() != null) {
 				channleFuture.cancel();
@@ -153,9 +151,9 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel{
 						+ nettyClient.getUrl().getUri()+ ", result: " + result + ", success: " + success + ", connected: " + connected, channleFuture.getCause());
 			} else {
 				channleFuture.cancel();
-                throw new MotanServiceException("NettyChannel connect to server timeout url: "
-                        + nettyClient.getUrl().getUri() + ", cost: " + (System.currentTimeMillis() - start) + ", result: " + result + ", success: " + success + ", connected: " + connected);
-            }
+				throw new MotanServiceException("NettyChannel connect to server timeout url: "
+						+ nettyClient.getUrl().getUri() + ", cost: " + (System.currentTimeMillis() - start) + ", result: " + result + ", success: " + success + ", connected: " + connected);
+			}
 		} catch (MotanServiceException e) {
 			throw e;
 		} catch (Exception e) {
