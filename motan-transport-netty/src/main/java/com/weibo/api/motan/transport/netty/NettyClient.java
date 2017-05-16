@@ -78,7 +78,15 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 	private static final ChannelFactory channelFactory = new NioClientSocketChannelFactory(
 			Executors.newCachedThreadPool(new DefaultThreadFactory("nettyClientBoss", true)),
 			Executors.newCachedThreadPool(new DefaultThreadFactory("nettyClientWorker", true)));
-
+	static {
+		ShutDownHook.registerShutdownHook(new Closable() {
+			@Override
+			public void close() {
+				if(!scheduledExecutor.isShutdown())
+					scheduledExecutor.shutdown();
+			}
+		});
+	}
 	// 回收过期任务
 	private static ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(4);
 
@@ -106,6 +114,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 				new TimeoutMonitor("timeout_monitor_" + url.getHost() + "_" + url.getPort()),
 				MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD, MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD,
 				TimeUnit.MILLISECONDS);
+//		ShutDownHook.registerShutdownHook();
 	}
 
 	@Override
@@ -290,8 +299,6 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 	@Override
 	public synchronized void close() {
 		close(0);
-		if(!scheduledExecutor.isShutdown())
-			scheduledExecutor.shutdown();
 	}
 
 	/**
