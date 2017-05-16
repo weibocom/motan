@@ -44,7 +44,7 @@ import com.weibo.api.motan.util.NetUtils;
  * @version 创建时间：2013-5-31
  *
  */
-public class NettyChannelHandler extends SimpleChannelHandler{
+public class NettyChannelHandler extends SimpleChannelHandler {
 	private ThreadPoolExecutor threadPoolExecutor;
 	private MessageHandler messageHandler;
 	private Channel serverChannel;
@@ -59,7 +59,7 @@ public class NettyChannelHandler extends SimpleChannelHandler{
 	}
 
 	public NettyChannelHandler(Channel serverChannel, MessageHandler messageHandler,
-			ThreadPoolExecutor threadPoolExecutor) {
+							   ThreadPoolExecutor threadPoolExecutor) {
 		this.serverChannel = serverChannel;
 		this.messageHandler = messageHandler;
 		this.threadPoolExecutor = threadPoolExecutor;
@@ -110,15 +110,15 @@ public class NettyChannelHandler extends SimpleChannelHandler{
 		try {
 			threadPoolExecutor.execute(new Runnable() {
 				@Override
-                public void run() {
-				    try{
-				        RpcContext.init(request);
-	                    processRequest(ctx, request, processStartTime);
-				    }finally{
-				        RpcContext.destroy();
-				    }
-                }
-            });
+				public void run() {
+					try{
+						RpcContext.init(request);
+						processRequest(ctx, request, processStartTime);
+					}finally{
+						RpcContext.destroy();
+					}
+				}
+			});
 		} catch (RejectedExecutionException rejectException) {
 			DefaultResponse response = new DefaultResponse();
 			response.setRequestId(request.getRequestId());
@@ -165,5 +165,4 @@ public class NettyChannelHandler extends SimpleChannelHandler{
 
 		ctx.getChannel().close();
 	}
-
 }
