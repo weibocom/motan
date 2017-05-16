@@ -58,7 +58,6 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Closabl
 	public NettyChannelHandler(Channel serverChannel, MessageHandler messageHandler) {
 		this.serverChannel = serverChannel;
 		this.messageHandler = messageHandler;
-//		ShutDownHook.registerShutdownHook(this,20);
 	}
 
 	public NettyChannelHandler(Channel serverChannel, MessageHandler messageHandler,
@@ -66,7 +65,6 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Closabl
 		this.serverChannel = serverChannel;
 		this.messageHandler = messageHandler;
 		this.threadPoolExecutor = threadPoolExecutor;
-//		ShutDownHook.registerShutdownHook(this,20);
 	}
 
 	@Override
