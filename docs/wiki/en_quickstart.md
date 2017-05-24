@@ -343,7 +343,7 @@ Install and Start single machine Zookeeper
 
 ## <a id="other"></a>Other invoke examples
 
-###<a id="motan-yar"></a>提供YAR协议服务 Providing YAR protocol service
+###<a id="motan-yar"></a>Providing YAR protocol service
     
 [YAR](https://github.com/laruence/yar) protocol is a rpc extension of php,motan framework can provide yar protocol for RPC services
 1、add motan-protocol-yar.jar
