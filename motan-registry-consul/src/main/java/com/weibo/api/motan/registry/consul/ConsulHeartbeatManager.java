@@ -7,6 +7,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.weibo.api.motan.closable.Closable;
+import com.weibo.api.motan.closable.ShutDownHook;
 import com.weibo.api.motan.registry.consul.client.MotanConsulClient;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
@@ -21,7 +23,7 @@ import com.weibo.api.motan.util.MotanSwitcherUtil;
  * @author zhanglei
  *
  */
-public class ConsulHeartbeatManager {
+public class ConsulHeartbeatManager implements Closable{
 	private MotanConsulClient client;
 	// 所有需要进行心跳的serviceid.
 	private ConcurrentHashSet<String> serviceIds = new ConcurrentHashSet<String>();
@@ -41,6 +43,7 @@ public class ConsulHeartbeatManager {
 				10000);
 		jobExecutor = new ThreadPoolExecutor(5, 30, 30 * 1000,
 				TimeUnit.MILLISECONDS, workQueue);
+		ShutDownHook.registerShutdownHook(this);
 	}
 
 	public void start() {

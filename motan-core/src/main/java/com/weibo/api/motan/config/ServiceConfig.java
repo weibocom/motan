@@ -140,6 +140,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             ConfigHandler configHandler =
                     ExtensionLoader.getExtensionLoader(ConfigHandler.class).getExtension(MotanConstants.DEFAULT_VALUE);
             configHandler.unexport(exporters, registereUrls);
+            LoggerUtil.info(this.id+"is unexported");
         } finally {
             afterUnexport();
         }
