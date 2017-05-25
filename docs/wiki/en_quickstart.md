@@ -343,7 +343,7 @@ Install and Start single machine Zookeeper
 
 ## <a id="other"></a>Other invoke examples
 
-###<a id="motan-yar"></a>Providing YAR protocol service
+### <a id="motan-yar"></a>Providing YAR protocol service
     
 [YAR](https://github.com/laruence/yar) protocol is a rpc extension of php,motan framework can provide yar protocol for RPC services
 1、add motan-protocol-yar.jar
@@ -381,8 +381,8 @@ Install and Start single machine Zookeeper
 Check motan-demo module to get specific configuration.
 YAR protocol use [yar-java](https://github.com/weibocom/yar-java) to parse，and can be use directly when using java as client
 
-###<a id="motan-annotation"></a>Using the annotations to configure the motan
-####server:
+### <a id="motan-annotation"></a>Using the annotations to configure the motan
+#### server:
 
 1、Declare Annotation to specify the name of the package to be resolved
 
@@ -460,7 +460,7 @@ YAR protocol use [yar-java](https://github.com/weibocom/yar-java) to parse，and
     
 Check motan-demo module to get specific configuration
 
-####client:
+#### client:
 1、Declare the configuration bean for Annotation, protocolConfig, and RegistryConfig. The server is configured similarly to the server.
 
 2、Configuring basicRefererConfig bean
@@ -524,7 +524,7 @@ Motan support [OpenTracing](http://opentracing.io)through the filter's SPI exten
    ```xml
     <dependency>
         <groupId>com.weibo</groupId>
-        <artifactId>motan-protocol-yar</artifactId>
+        <artifactId>filter-opentracing</artifactId>
         <version>0.2.3</version>
     </dependency>
    ```
