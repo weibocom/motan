@@ -547,7 +547,7 @@ Motan通过filter的SPI扩展机制支持[OpenTracing](http://opentracing.io)，
    ```xml
     <dependency>
         <groupId>com.weibo</groupId>
-        <artifactId>motan-protocol-yar</artifactId>
+        <artifactId>filter-opentracing</artifactId>
         <version>0.2.3</version>
     </dependency>
    ```
