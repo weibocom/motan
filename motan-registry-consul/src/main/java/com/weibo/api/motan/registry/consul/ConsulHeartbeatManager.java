@@ -23,7 +23,7 @@ import com.weibo.api.motan.util.MotanSwitcherUtil;
  * @author zhanglei
  *
  */
-public class ConsulHeartbeatManager implements Closable{
+public class ConsulHeartbeatManager {
 	private MotanConsulClient client;
 	// 所有需要进行心跳的serviceid.
 	private ConcurrentHashSet<String> serviceIds = new ConcurrentHashSet<String>();
@@ -43,7 +43,6 @@ public class ConsulHeartbeatManager implements Closable{
 				10000);
 		jobExecutor = new ThreadPoolExecutor(5, 30, 30 * 1000,
 				TimeUnit.MILLISECONDS, workQueue);
-		ShutDownHook.registerShutdownHook(this);
 	}
 
 	public void start() {

@@ -41,9 +41,9 @@ import com.weibo.api.motan.util.LoggerUtil;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-14
- * 
+ *
  */
-public class HeartbeatClientEndpointManager implements EndpointManager,Closable {
+public class HeartbeatClientEndpointManager implements EndpointManager{
 
     private ConcurrentMap<Client, HeartbeatFactory> endpoints = new ConcurrentHashMap<Client, HeartbeatFactory>();
 
@@ -75,7 +75,14 @@ public class HeartbeatClientEndpointManager implements EndpointManager,Closable 
 
             }
         }, MotanConstants.HEARTBEAT_PERIOD, MotanConstants.HEARTBEAT_PERIOD, TimeUnit.MILLISECONDS);
-        ShutDownHook.registerShutdownHook(this);
+        ShutDownHook.registerShutdownHook(new Closable() {
+            @Override
+            public void close() {
+                if (!executorService.isShutdown()) {
+                    executorService.shutdown();
+                }
+            }
+        });
     }
 
     @Override
@@ -113,10 +120,5 @@ public class HeartbeatClientEndpointManager implements EndpointManager,Closable 
         return Collections.unmodifiableSet(endpoints.keySet());
     }
 
-    @Override
-    public void close() {
-        if(!executorService.isShutdown()){
-            executorService.shutdown();
-        }
-    }
+
 }
