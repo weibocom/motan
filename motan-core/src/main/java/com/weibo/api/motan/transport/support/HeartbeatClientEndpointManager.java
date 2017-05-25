@@ -119,6 +119,4 @@ public class HeartbeatClientEndpointManager implements EndpointManager{
     public Set<Client> getClients() {
         return Collections.unmodifiableSet(endpoints.keySet());
     }
-
-
 }
