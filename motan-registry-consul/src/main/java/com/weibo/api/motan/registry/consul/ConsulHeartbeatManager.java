@@ -7,8 +7,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.weibo.api.motan.closable.Closable;
-import com.weibo.api.motan.closable.ShutDownHook;
 import com.weibo.api.motan.registry.consul.client.MotanConsulClient;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
