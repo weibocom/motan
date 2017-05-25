@@ -26,24 +26,24 @@
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-core</artifactId>
-        <version>0.2.2</version>
+        <version>RELEASE</version>
     </dependency>
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-transport-netty</artifactId>
-        <version>0.2.2</version>
+        <version>RELEASE</version>
     </dependency>
     
     <!-- only needed for spring-based features -->
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-springsupport</artifactId>
-        <version>0.2.2</version>
+        <version>RELEASE</version>
     </dependency>
     <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-context</artifactId>
-        <version>4.2.4.RELEASE</version>
+        <version>RELEASE</version>
     </dependency>
    ```
 
@@ -172,7 +172,7 @@
     <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.10</version>
+        <version>RELEASE</version>
         <executions>
             <execution>
                 <phase>generate-sources</phase>

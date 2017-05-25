@@ -19,24 +19,24 @@ The quick start gives very basic example of running server and client on the sam
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-core</artifactId>
-        <version>0.1.1</version>
+        <version>RELEASE</version>
     </dependency>
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-transport-netty</artifactId>
-        <version>0.1.1</version>
+        <version>RELEASE</version>
     </dependency>
     
     <!-- dependencies blow were only needed for spring-based features -->
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-springsupport</artifactId>
-        <version>0.1.1</version>
+        <version>RELEASE</version>
     </dependency>
     <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-context</artifactId>
-        <version>4.2.4.RELEASE</version>
+        <version>RELEASE</version>
     </dependency>
    ```
 
@@ -183,7 +183,7 @@ UI backend [http://localhost:8500/ui](http://localhost:8500/ui)
     <motan:registry regProtocol="consul" name="my_consul" address="127.0.0.1:8500"/>
     ```   
 
-3. Change the way of service discovery to registry in the configuration of server and client.
+3. Change the way of service discovery to service discovery through registry in the configuration of server and client.
 
     server:
 
