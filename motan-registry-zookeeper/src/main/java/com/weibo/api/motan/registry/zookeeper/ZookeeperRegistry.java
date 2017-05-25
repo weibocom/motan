@@ -24,6 +24,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.weibo.api.motan.closable.Closable;
+import com.weibo.api.motan.closable.ShutDownHook;
 import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.IZkStateListener;
@@ -39,7 +41,7 @@ import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
 
-public class ZookeeperRegistry extends CommandFailbackRegistry {
+public class ZookeeperRegistry extends CommandFailbackRegistry implements Closable {
     private ZkClient zkClient;
     private Set<URL> availableServices = new ConcurrentHashSet<URL>();
     private ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>> serviceListeners = new ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>>();
@@ -64,6 +66,7 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
             }
         };
         zkClient.subscribeStateChanges(zkStateListener);
+        ShutDownHook.registerShutdownHook(this);
     }
 
     public ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>> getServiceListeners() {
@@ -368,5 +371,10 @@ public class ZookeeperRegistry extends CommandFailbackRegistry {
                 clientLock.unlock();
             }
         }
+    }
+
+    @Override
+    public void close() {
+        this.zkClient.close();
     }
 }
