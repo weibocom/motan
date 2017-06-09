@@ -75,7 +75,11 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
             if("toString".equals(method.getName())){
                 return clustersToString();
             }
-            throw new MotanServiceException("can not invoke local method:" + method.getName());
+            if("equals".equals(method.getName())){
+                return proxyEquals(args[0]);
+            }
+            //TODO use proxy
+//            throw new MotanServiceException("can not invoke local method:" + method.getName());
         }
         DefaultRequest request = new DefaultRequest();
 
@@ -183,6 +187,17 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
             return PrimitiveDefault.getDefaultReturnValue(returnType);
         }
         return null;
+    }
+
+    private boolean proxyEquals(Object o){
+        if(o == null || this.clusters == null){
+            return false;
+        }
+        if (o instanceof List){
+            return this.clusters == o;
+        } else{
+            return o.equals(this.clusters);
+        }
     }
 
     private static class PrimitiveDefault {

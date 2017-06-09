@@ -13,13 +13,13 @@
  */
 package com.weibo.api.motan.protocol.grpc;
 
-import io.grpc.CallOptions;
-import io.grpc.ClientCall;
+import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.URL;
+import io.grpc.*;
 import io.grpc.ForwardingClientCall.SimpleForwardingClientCall;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.Metadata;
-import io.grpc.MethodDescriptor;
 import io.grpc.MethodDescriptor.MethodType;
 import io.grpc.stub.ClientCalls;
 import io.grpc.stub.StreamObserver;
@@ -28,12 +28,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
-
-import com.weibo.api.motan.common.URLParamType;
-import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
 
 
 /**
@@ -118,7 +112,7 @@ public class GrpcClient {
     }
 
     public boolean init() throws Exception {
-        methodDescMap = GrpcUtil.getMethodDescriptorByAnnotation(interfaceClazz);
+        methodDescMap = GrpcUtil.getMethodDescriptorByAnnotation(interfaceClazz, url.getParameter(URLParamType.codec.getName()));
         channel = ManagedChannelBuilder.forAddress(url.getHost(), url.getPort()).usePlaintext(true).build();
         return true;
     }

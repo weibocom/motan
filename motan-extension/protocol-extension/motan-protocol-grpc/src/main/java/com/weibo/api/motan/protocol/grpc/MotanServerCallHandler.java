@@ -82,7 +82,9 @@ public class MotanServerCallHandler<Req, Resp> implements ServerCallHandler<Req,
             throw new MotanFrameworkException("grpc ServerCallHandler not inited!");
         }
         // TODO check header
-
+        if (provider.getUrl().getBooleanParameter(URLParamType.usegz.getName(), URLParamType.usegz.getBooleanValue())){
+            call.setCompression("gzip");
+        }
         return requestStream ? streamCall(call, headers) : unaryCall(call, headers);
     }
 

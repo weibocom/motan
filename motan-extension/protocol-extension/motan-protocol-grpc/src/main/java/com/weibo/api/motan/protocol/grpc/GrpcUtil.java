@@ -13,17 +13,18 @@
  */
 package com.weibo.api.motan.protocol.grpc;
 
+import com.google.protobuf.Message;
+import com.google.protobuf.MessageLite;
+import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.protocol.grpc.annotation.GrpcConfig;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.ServiceDescriptor;
+import io.grpc.protobuf.ProtoUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.weibo.api.motan.exception.MotanFrameworkException;
-import com.weibo.api.motan.protocol.grpc.annotation.GrpcConfig;
 
 /**
  * 
@@ -35,7 +36,7 @@ import com.weibo.api.motan.protocol.grpc.annotation.GrpcConfig;
 public class GrpcUtil {
     @SuppressWarnings("rawtypes")
     private static HashMap<String, HashMap<String, MethodDescriptor>> serviceMap = new HashMap<String, HashMap<String, MethodDescriptor>>();
-
+    public static final String JSON_CODEC = "grpc-json";
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static ServerServiceDefinition getServiceDefByAnnotation(Class<?> clazz) throws Exception {
         ServiceDescriptor serviceDesc = getServiceDesc(getGrpcClassName(clazz));
@@ -60,7 +61,7 @@ public class GrpcUtil {
     }
 
     @SuppressWarnings("rawtypes")
-    public static HashMap<String, MethodDescriptor> getMethodDescriptorByAnnotation(Class<?> clazz) throws Exception {
+    public static HashMap<String, MethodDescriptor> getMethodDescriptorByAnnotation(Class<?> clazz, String codec) throws Exception {
         String clazzName = getGrpcClassName(clazz);
         HashMap<String, MethodDescriptor> result = serviceMap.get(clazzName);
         if (result == null) {
@@ -70,6 +71,9 @@ public class GrpcUtil {
                     HashMap<String, MethodDescriptor> methodMap = new HashMap<String, MethodDescriptor>();
                     for (MethodDescriptor<?, ?> methodDesc : serviceDesc.getMethods()) {
                         Method interfaceMethod = getMethod(methodDesc.getFullMethodName(), clazz);
+                        if(JSON_CODEC.equals(codec)){
+                            methodDesc = convertJsonDescriptor(methodDesc, interfaceMethod.getParameterTypes()[0], interfaceMethod.getReturnType());
+                        }
                         methodMap.put(interfaceMethod.getName(), methodDesc);
                     }
                     serviceMap.put(clazzName, methodMap);
@@ -93,6 +97,27 @@ public class GrpcUtil {
             }
         }
         throw new MotanFrameworkException("not find grpc method");
+    }
+
+    public static MethodDescriptor convertJsonDescriptor(MethodDescriptor oldDesc, Class req, Class res){
+        MethodDescriptor.Marshaller reqMarshaller = getJsonMarshaller(req);
+        MethodDescriptor.Marshaller resMarshaller = getJsonMarshaller(res);
+        if(reqMarshaller != null && resMarshaller != null){
+            return MethodDescriptor.create(oldDesc.getType(), oldDesc.getFullMethodName(), reqMarshaller, resMarshaller);
+        }
+        return null;
+    }
+
+    public static MethodDescriptor.Marshaller getJsonMarshaller(Class clazz) {
+        try {
+            if (MessageLite.class.isAssignableFrom(clazz)) {
+                Method method = clazz.getDeclaredMethod("getDefaultInstance", null);
+                Message message = (Message) method.invoke(null, null);
+                return ProtoUtils.jsonMarshaller(message);
+            }
+        } catch (Exception ignore) {
+        }
+        return null;
     }
 
 }

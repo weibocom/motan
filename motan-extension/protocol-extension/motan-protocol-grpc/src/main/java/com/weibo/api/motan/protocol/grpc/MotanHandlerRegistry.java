@@ -13,21 +13,18 @@
  */
 package com.weibo.api.motan.protocol.grpc;
 
-import io.grpc.BindableService;
-import io.grpc.HandlerRegistry;
-import io.grpc.ServerMethodDefinition;
-import io.grpc.ServerServiceDefinition;
+import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.rpc.Provider;
+import com.weibo.api.motan.util.LoggerUtil;
+import io.grpc.*;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.weibo.api.motan.rpc.Provider;
 /**
- * 
- * @Description MotanHandlerRegistry
  * @author zhanglei
+ * @Description MotanHandlerRegistry
  * @date Oct 13, 2016
- *
  */
 public class MotanHandlerRegistry extends HandlerRegistry {
     private ConcurrentHashMap<String, ServerMethodDefinition<?, ?>> methods = new ConcurrentHashMap<String, ServerMethodDefinition<?, ?>>();
@@ -50,6 +47,13 @@ public class MotanHandlerRegistry extends HandlerRegistry {
                 method = method.withServerCallHandler(handler);
             }
             handler.init(provider, providerMethod);
+            if (GrpcUtil.JSON_CODEC.equals(provider.getUrl().getParameter(URLParamType.codec.getName()))) {
+                MethodDescriptor jsonDesc = GrpcUtil.convertJsonDescriptor(method.getMethodDescriptor(), providerMethod.getParameterTypes()[0], providerMethod.getReturnType());
+                if(jsonDesc != null){
+                    method = ServerMethodDefinition.create(jsonDesc, method.getServerCallHandler());
+                    LoggerUtil.info("grpc method " + jsonDesc.getFullMethodName() +" use codec json.");
+                }
+            }
             methods.put(method.getMethodDescriptor().getFullMethodName(), method);
         }
     }
@@ -66,7 +70,6 @@ public class MotanHandlerRegistry extends HandlerRegistry {
             }
         }
     }
-
 
 
 }
