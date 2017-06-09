@@ -26,24 +26,24 @@
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-core</artifactId>
-        <version>0.2.2</version>
+        <version>RELEASE</version>
     </dependency>
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-transport-netty</artifactId>
-        <version>0.2.2</version>
+        <version>RELEASE</version>
     </dependency>
     
     <!-- only needed for spring-based features -->
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-springsupport</artifactId>
-        <version>0.2.2</version>
+        <version>RELEASE</version>
     </dependency>
     <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-context</artifactId>
-        <version>4.2.4.RELEASE</version>
+        <version>RELEASE</version>
     </dependency>
    ```
 
@@ -172,7 +172,7 @@
     <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.10</version>
+        <version>RELEASE</version>
         <executions>
             <execution>
                 <phase>generate-sources</phase>
@@ -263,7 +263,7 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-registry-consul</artifactId>
-        <version>0.1.1</version>
+        <version>RELEASE</version>
     </dependency>
     ```
 
@@ -320,7 +320,7 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-registry-zookeeper</artifactId>
-        <version>0.2.1</version>
+        <version>RELEASE</version>
     </dependency>
     ```
 
@@ -366,7 +366,7 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
 
 ## <a id="other"></a>其他调用示例
 
-###<a id="motan-yar"></a>提供YAR协议服务
+### <a id="motan-yar"></a>提供YAR协议服务
     
 [YAR](https://github.com/laruence/yar)协议是php的一个rpc扩展，motan框架可以提供yar协议的RPC服务
 1、引入motan-protocol-yar.jar
@@ -375,7 +375,7 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-protocol-yar</artifactId>
-        <version>0.2.1</version>
+        <version>RELEASE</version>
     </dependency>
    ```
     
@@ -404,8 +404,8 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
 具体配置见motan-demo模块
 YAR协议使用[yar-java](https://github.com/weibocom/yar-java)进行解析，java作为YAR client时可以直接使用
 
-###<a id="motan-annotation"></a>使用注解方式配置motan
-####server端配置
+### <a id="motan-annotation"></a>使用注解方式配置motan
+#### server端配置
 
 1、声明Annotation用来指定需要解析的包名
 
@@ -483,7 +483,7 @@ YAR协议使用[yar-java](https://github.com/weibocom/yar-java)进行解析，ja
     
 server端详细配置请参考motan-demo模块
 
-####client端配置
+#### client端配置
 1、声明Annotation、protocolConfig、RegistryConfig的配置bean。方式与server端配置类似。
 
 2、配置basicRefererConfig bean
@@ -547,8 +547,8 @@ Motan通过filter的SPI扩展机制支持[OpenTracing](http://opentracing.io)，
    ```xml
     <dependency>
         <groupId>com.weibo</groupId>
-        <artifactId>motan-protocol-yar</artifactId>
-        <version>0.2.3</version>
+        <artifactId>filter-opentracing</artifactId>
+        <version>RELEASE</version>
     </dependency>
    ```
 

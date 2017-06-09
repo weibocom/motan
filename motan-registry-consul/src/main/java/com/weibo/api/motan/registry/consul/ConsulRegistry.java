@@ -1,5 +1,7 @@
 package com.weibo.api.motan.registry.consul;
 
+import com.weibo.api.motan.closable.Closable;
+import com.weibo.api.motan.closable.ShutDownHook;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.registry.consul.client.MotanConsulClient;
 import com.weibo.api.motan.registry.support.command.CommandFailbackRegistry;
@@ -16,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class ConsulRegistry extends CommandFailbackRegistry {
+public class ConsulRegistry extends CommandFailbackRegistry implements Closable {
     private MotanConsulClient client;
     private ConsulHeartbeatManager heartbeatManager;
     private int lookupInterval;
@@ -49,6 +51,7 @@ public class ConsulRegistry extends CommandFailbackRegistry {
 
         ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(20000);
         notifyExecutor = new ThreadPoolExecutor(10, 30, 30 * 1000, TimeUnit.MILLISECONDS, workQueue);
+        ShutDownHook.registerShutdownHook(this);
         LoggerUtil.info("ConsulRegistry init finish.");
     }
 
@@ -317,6 +320,11 @@ public class ConsulRegistry extends CommandFailbackRegistry {
         } else {
             LoggerUtil.info(String.format("command data not change: group=%s, command=%s: ", group, command));
         }
+    }
+
+    @Override
+    public void close() {
+        heartbeatManager.close();
     }
 
     private class ServiceLookupThread extends Thread {

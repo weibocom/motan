@@ -25,6 +25,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.weibo.api.motan.closable.Closable;
+import com.weibo.api.motan.closable.ShutDownHook;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
@@ -39,9 +41,9 @@ import com.weibo.api.motan.util.LoggerUtil;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-14
- * 
+ *
  */
-public class HeartbeatClientEndpointManager implements EndpointManager {
+public class HeartbeatClientEndpointManager implements EndpointManager{
 
     private ConcurrentMap<Client, HeartbeatFactory> endpoints = new ConcurrentHashMap<Client, HeartbeatFactory>();
 
@@ -73,6 +75,14 @@ public class HeartbeatClientEndpointManager implements EndpointManager {
 
             }
         }, MotanConstants.HEARTBEAT_PERIOD, MotanConstants.HEARTBEAT_PERIOD, TimeUnit.MILLISECONDS);
+        ShutDownHook.registerShutdownHook(new Closable() {
+            @Override
+            public void close() {
+                if (!executorService.isShutdown()) {
+                    executorService.shutdown();
+                }
+            }
+        });
     }
 
     @Override
