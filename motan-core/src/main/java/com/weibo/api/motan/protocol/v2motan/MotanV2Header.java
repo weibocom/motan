@@ -1,3 +1,21 @@
+/*
+ *
+ *   Copyright 2009-2016 Weibo, Inc.
+ *
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ *
+ */
+
 package com.weibo.api.motan.protocol.v2motan;
 
 import com.weibo.api.motan.exception.MotanServiceException;
@@ -91,37 +109,37 @@ public class MotanV2Header {
         this.requestId = requestId;
     }
 
-    public byte[] toBytes(){
+    public byte[] toBytes() {
         ByteBuffer buf = ByteBuffer.allocate(13);
         buf.putShort(MAGIC);
         byte msgType = (byte) 0x00;
-        if(heartbeat){
-            msgType = (byte)((msgType & 0xff) | 0x10);
+        if (heartbeat) {
+            msgType = (byte) ((msgType & 0xff) | 0x10);
         }
-        if(gzip){
-            msgType = (byte)((msgType & 0xff) | 0x08);
+        if (gzip) {
+            msgType = (byte) ((msgType & 0xff) | 0x08);
         }
-        if(oneway){
-            msgType = (byte)((msgType & 0xff) | 0x04);
+        if (oneway) {
+            msgType = (byte) ((msgType & 0xff) | 0x04);
         }
-        if(proxy){
-            msgType = (byte)((msgType & 0xff) | 0x02);
+        if (proxy) {
+            msgType = (byte) ((msgType & 0xff) | 0x02);
         }
-        if(!request){
-            msgType = (byte)((msgType & 0xff) | 0x01);
+        if (!request) {
+            msgType = (byte) ((msgType & 0xff) | 0x01);
         }
 
         buf.put(msgType);
         byte vs = 0x08;
-        if (version != 1){
+        if (version != 1) {
             vs = (byte) ((version << 3) & 0xf8);
         }
-        if(status != 0){
-            vs = (byte)(vs | (status & 0x07));
+        if (status != 0) {
+            vs = (byte) (vs | (status & 0x07));
         }
         buf.put(vs);
         byte se = 0x08;
-        if(serialize != 1){
+        if (serialize != 1) {
             se = (byte) ((serialize << 3) & 0xf8);
         }
         buf.put(se);
@@ -131,27 +149,27 @@ public class MotanV2Header {
 
     }
 
-    public static MotanV2Header buildHeader(byte[] headerBytes){
+    public static MotanV2Header buildHeader(byte[] headerBytes) {
         ByteBuffer buf = ByteBuffer.wrap(headerBytes);
         short mg = buf.getShort();
-        if(mg != MAGIC){
+        if (mg != MAGIC) {
             throw new MotanServiceException("decode motan v2 header fail. magicnum not correct. magic:" + mg);
         }
         MotanV2Header header = new MotanV2Header();
         byte b = buf.get();
-        if((b & 0x10) ==0x10){
+        if ((b & 0x10) == 0x10) {
             header.setHeartbeat(true);
         }
-        if((b & 0x08) == 0x08){
+        if ((b & 0x08) == 0x08) {
             header.setGzip(true);
         }
-        if((b & 0x04) == 0x04){
+        if ((b & 0x04) == 0x04) {
             header.setOneway(true);
         }
-        if((b & 0x02) ==0x02){
+        if ((b & 0x02) == 0x02) {
             header.setProxy(true);
         }
-        if((b & 0x01) == 0x01){
+        if ((b & 0x01) == 0x01) {
             header.setRequest(false);
         }
 
@@ -197,5 +215,20 @@ public class MotanV2Header {
         result = 31 * result + serialize;
         result = 31 * result + (int) (requestId ^ (requestId >>> 32));
         return result;
+    }
+
+    public static enum MessageStatus {
+        NORMAL(0),
+        EXCEPTION(1);
+
+        private final int status;
+
+        private MessageStatus(int status) {
+            this.status = status;
+        }
+
+        public int getStatus() {
+            return status;
+        }
     }
 }

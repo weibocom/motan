@@ -21,6 +21,7 @@ import com.weibo.api.motan.core.extension.SpiMeta;
 import hprose.io.ByteBufferStream;
 import hprose.io.HproseReader;
 import hprose.io.HproseWriter;
+
 import java.io.IOException;
 
 /**
@@ -59,12 +60,30 @@ public class HproseSerialization implements Serialization {
 
     @Override
     public byte[] serializeMulti(Object[] data) throws IOException {
-        return new byte[0];
+        ByteBufferStream stream = null;
+        try {
+            stream = new ByteBufferStream();
+            HproseWriter writer = new HproseWriter(stream.getOutputStream());
+            for (Object o : data) {
+                writer.serialize(o);
+            }
+            byte[] result = stream.toArray();
+            return result;
+        } finally {
+            if (stream != null) {
+                stream.close();
+            }
+        }
     }
 
     @Override
     public Object[] deserializeMulti(byte[] data, Class<?>[] classes) throws IOException {
-        return new Object[0];
+        HproseReader reader = new HproseReader(data);
+        Object[] objects = new Object[classes.length];
+        for (int i = 0; i < classes.length; i++){
+            objects[i] = reader.unserialize(classes[i]);
+        }
+        return objects;
     }
 
     @Override

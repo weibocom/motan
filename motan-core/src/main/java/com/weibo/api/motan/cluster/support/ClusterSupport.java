@@ -68,7 +68,7 @@ public class ClusterSupport<T> implements NotifyListener {
     }
 
     public void init() {
-
+        long start = System.currentTimeMillis();
         prepareCluster();
 
         URL subUrl = toSubscribeUrl(url);
@@ -93,9 +93,12 @@ public class ClusterSupport<T> implements NotifyListener {
         boolean check = Boolean.parseBoolean(url.getParameter(URLParamType.check.getName(), URLParamType.check.getValue()));
         if (!CollectionUtil.isEmpty(cluster.getReferers()) || !check) {
             cluster.init();
+
             if (CollectionUtil.isEmpty(cluster.getReferers()) && !check) {
                 LoggerUtil.warn(String.format("refer:%s", this.url.getPath() + "/" + this.url.getVersion()), "No services");
             }
+            LoggerUtil.info("cluster init cost " + (System.currentTimeMillis() - start) + ", refer size:"
+                    + (cluster.getReferers() == null ? 0 : cluster.getReferers().size()) + ", cluster:" + cluster.getUrl().toSimpleString());
             return;
         }
 

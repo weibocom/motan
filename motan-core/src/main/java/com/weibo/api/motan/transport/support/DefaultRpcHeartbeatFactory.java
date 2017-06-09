@@ -21,6 +21,7 @@ import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.rpc.DefaultRequest;
 import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.HeartbeatFactory;
 import com.weibo.api.motan.transport.MessageHandler;
@@ -36,14 +37,7 @@ public class DefaultRpcHeartbeatFactory implements HeartbeatFactory {
 
     @Override
     public Request createRequest() {
-        DefaultRequest request = new DefaultRequest();
-
-        request.setRequestId(RequestIdGenerator.getRequestId());
-        request.setInterfaceName(MotanConstants.HEARTBEAT_INTERFACE_NAME);
-        request.setMethodName(MotanConstants.HEARTBEAT_METHOD_NAME);
-        request.setParamtersDesc(MotanConstants.HHEARTBEAT_PARAM);
-
-        return request;
+        return getDefaultHeartbeatRequest(RequestIdGenerator.getRequestId());
     }
 
     @Override
@@ -51,9 +45,23 @@ public class DefaultRpcHeartbeatFactory implements HeartbeatFactory {
         return new HeartMessageHandleWrapper(handler);
     }
 
+    public static Request getDefaultHeartbeatRequest(long requestId){
+        HeartbeatRequest request = new HeartbeatRequest();
+
+        request.setRequestId(requestId);
+        request.setInterfaceName(MotanConstants.HEARTBEAT_INTERFACE_NAME);
+        request.setMethodName(MotanConstants.HEARTBEAT_METHOD_NAME);
+        request.setParamtersDesc(MotanConstants.HHEARTBEAT_PARAM);
+
+        return request;
+    }
+
     public static boolean isHeartbeatRequest(Object message) {
         if (!(message instanceof Request)) {
             return false;
+        }
+        if(message instanceof HeartbeatRequest){
+            return true;
         }
 
         Request request = (Request) message;
@@ -61,6 +69,20 @@ public class DefaultRpcHeartbeatFactory implements HeartbeatFactory {
         return MotanConstants.HEARTBEAT_INTERFACE_NAME.equals(request.getInterfaceName())
                 && MotanConstants.HEARTBEAT_METHOD_NAME.equals(request.getMethodName())
                 && MotanConstants.HHEARTBEAT_PARAM.endsWith(request.getParamtersDesc());
+    }
+
+    public static Response getDefaultHeartbeatResponse(long requestId){
+        HeartbeatResponse response = new HeartbeatResponse();
+        response.setRequestId(requestId);
+        response.setValue("heartbeat");
+        return response;
+    }
+
+    public static boolean isHeartbeatResponse(Object message){
+        if(message instanceof HeartbeatResponse){
+            return true;
+        }
+        return false;
     }
 
 
@@ -74,14 +96,14 @@ public class DefaultRpcHeartbeatFactory implements HeartbeatFactory {
         @Override
         public Object handle(Channel channel, Object message) {
             if (isHeartbeatRequest(message)) {
-                DefaultResponse response = new DefaultResponse();
-                response.setValue("heartbeat");
-                return response;
+                return getDefaultHeartbeatResponse(((Request)message).getRequestId());
             }
-
             return messageHandler.handle(channel, message);
         }
 
 
     }
+
+    static class HeartbeatResponse extends DefaultResponse{}
+    static class HeartbeatRequest extends DefaultRequest{}
 }

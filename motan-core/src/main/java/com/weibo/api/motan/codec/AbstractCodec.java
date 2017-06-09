@@ -30,7 +30,6 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-24
- * 
  */
 public abstract class AbstractCodec implements Codec {
     protected static ConcurrentHashMap<Integer, String> serializations;
@@ -71,31 +70,35 @@ public abstract class AbstractCodec implements Codec {
         }
     }
 
-    protected static synchronized void initAllSerialziation(){
-        if (serializations == null){
+    protected static synchronized void initAllSerialziation() {
+        if (serializations == null) {
             serializations = new ConcurrentHashMap<Integer, String>();
             try {
                 ExtensionLoader<Serialization> loader = ExtensionLoader.getExtensionLoader(Serialization.class);
                 List<Serialization> exts = loader.getExtensions(null);
-                for(Serialization s : exts){
-                    serializations.put(s.getSerializationNumber(), loader.getSpiName(s.getClass()));
+                for (Serialization s : exts) {
+                    String old = serializations.put(s.getSerializationNumber(), loader.getSpiName(s.getClass()));
+                    if (old != null) {
+                        LoggerUtil.warn("conflict serialization spi! serialization num :" + s.getSerializationNumber() + ", old spi :" + old
+                                + ", new spi :" + serializations.get(s.getSerializationNumber()));
+                    }
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 LoggerUtil.warn("init all serialzaion fail!", e);
             }
         }
     }
 
-    protected Serialization getSerializaiontByNum(int serializationNum){
-        if(serializations == null){
+    protected Serialization getSerializaiontByNum(int serializationNum) {
+        if (serializations == null) {
             initAllSerialziation();
         }
         String name = serializations.get(serializationNum);
         Serialization s = null;
-        if(StringUtils.isNotBlank(name)){
+        if (StringUtils.isNotBlank(name)) {
             s = ExtensionLoader.getExtensionLoader(Serialization.class).getExtension(name);
         }
-        if(s == null){
+        if (s == null) {
             throw new MotanServiceException("can not found serialization extention by num " + serializationNum);
         }
         return s;

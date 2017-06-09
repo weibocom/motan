@@ -20,7 +20,6 @@ import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanBizException;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.serialize.DeserializableObject;
 import com.weibo.api.motan.util.LoggerUtil;
 
 import java.lang.reflect.Method;
@@ -43,7 +42,7 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
     public Response invoke(Request request) {
         DefaultResponse response = new DefaultResponse();
 
-        Method method = lookup(request);
+        Method method = lookupMethod(request.getMethodName(), request.getParamtersDesc());
 
         if (method == null) {
             MotanServiceException exception =
@@ -55,14 +54,7 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
         }
 
         try {
-            Object[] args = request.getArguments();
-            if(request.getArguments() != null && request.getArguments().length == 1 && request.getArguments()[0] instanceof DeserializableObject){
-                args = ((DeserializableObject)request.getArguments()[0]).deserializeMulti(method.getParameterTypes());
-                if(request instanceof DefaultRequest){
-                    ((DefaultRequest)request).setArguments(args);
-                }
-            }
-            Object value = method.invoke(proxyImpl, args);
+            Object value = method.invoke(proxyImpl, request.getArguments());
             response.setValue(value);
         } catch (Exception e) {
             if (e.getCause() != null) {

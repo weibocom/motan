@@ -14,12 +14,6 @@
 
 package com.weibo.api.motan.protocol.support;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.Activation;
@@ -31,13 +25,13 @@ import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.filter.AccessLogFilter;
 import com.weibo.api.motan.filter.Filter;
 import com.weibo.api.motan.filter.InitializableFilter;
-import com.weibo.api.motan.rpc.Exporter;
-import com.weibo.api.motan.rpc.Protocol;
-import com.weibo.api.motan.rpc.Provider;
-import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
+import org.apache.commons.lang3.StringUtils;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 
@@ -168,6 +162,11 @@ public class ProtocolFilterDecorator implements Protocol {
                 @Override
                 public Class<T> getInterface() {
                     return lp.getInterface();
+                }
+
+                @Override
+                public Method lookupMethod(String methodName, String methodDesc) {
+                    return lp.lookupMethod(methodName, methodDesc);
                 }
 
                 @Override

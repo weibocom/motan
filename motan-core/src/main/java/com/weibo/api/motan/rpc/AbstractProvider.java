@@ -21,14 +21,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-23
- * 
  */
 public abstract class AbstractProvider<T> implements Provider<T> {
     protected Class<T> clz;
@@ -89,13 +88,18 @@ public abstract class AbstractProvider<T> implements Provider<T> {
         return clz;
     }
 
-    protected Method lookup(Request request) {
+    @Override
+    public Method lookupMethod(String methodName, String methodDesc) {
         Method method = null;
-        String methodDesc = ReflectUtil.getMethodDesc(request.getMethodName(), request.getParamtersDesc());
-        method = methodMap.get(methodDesc);
-        if(method == null && StringUtils.isBlank(request.getParamtersDesc())){
-            method = methodMap.get(request.getMethodName());
+        String fullMethodName = ReflectUtil.getMethodDesc(methodName, methodDesc);
+        method = methodMap.get(fullMethodName);
+        if (method == null && StringUtils.isBlank(methodDesc)) {
+            method = methodMap.get(methodName);
+            if (method == null) {
+                method = methodMap.get(methodName.substring(0, 1).toLowerCase() + methodName.substring(1));
+            }
         }
+
         return method;
     }
 
@@ -106,14 +110,14 @@ public abstract class AbstractProvider<T> implements Provider<T> {
         for (Method method : methods) {
             String methodDesc = ReflectUtil.getMethodDesc(method);
             methodMap.put(methodDesc, method);
-            if(methodMap.get(method.getName()) == null){
+            if (methodMap.get(method.getName()) == null) {
                 methodMap.put(method.getName(), method);
-            }else{
+            } else {
                 dupList.add(method.getName());
             }
         }
-        if (!dupList.isEmpty()){
-            for(String removedName : dupList){
+        if (!dupList.isEmpty()) {
+            for (String removedName : dupList) {
                 methodMap.remove(removedName);
             }
         }

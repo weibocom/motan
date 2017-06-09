@@ -24,6 +24,7 @@ import com.weibo.api.motan.codec.Serialization;
 import com.weibo.api.motan.core.extension.SpiMeta;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * fastjson 序列化
@@ -55,12 +56,16 @@ public class FastJsonSerialization implements Serialization {
 
     @Override
     public byte[] serializeMulti(Object[] data) throws IOException {
-        return new byte[0];
+        return serialize(data);
     }
 
     @Override
     public Object[] deserializeMulti(byte[] data, Class<?>[] classes) throws IOException {
-        return new Object[0];
+         List<Object> list = JSON.parseArray(new String(data), classes);
+         if (list != null) {
+             return list.toArray();
+         }
+         return null;
     }
 
     @Override

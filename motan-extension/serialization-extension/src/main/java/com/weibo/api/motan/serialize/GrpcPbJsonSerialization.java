@@ -14,24 +14,19 @@
  *    limitations under the License.
  */
 
-package com.weibo.api.motan.rpc;
+package com.weibo.api.motan.serialize;
 
-import com.weibo.api.motan.core.extension.Scope;
-import com.weibo.api.motan.core.extension.Spi;
-
-import java.lang.reflect.Method;
+import com.weibo.api.motan.core.extension.SpiMeta;
 
 /**
- * 
- * Service provider.
- * 
- * @author fishermen
- * @version V1.0 created at: 2013-5-16
+ * Created by zhanglei28 on 2017/5/15.
+ * grpc pb json 仅作为不同序列化标识，序列化处理逻辑与grpc pb一致
  */
-@Spi(scope = Scope.PROTOTYPE)
-public interface Provider<T> extends Caller<T> {
+@SpiMeta(name = "grpc-pb-json")
+public class GrpcPbJsonSerialization extends GrpcPbSerialization {
 
-    Class<T> getInterface();
-
-    Method lookupMethod(String methodName, String methodDesc);
+    @Override
+    public int getSerializationNumber() {
+        return 7;
+    }
 }

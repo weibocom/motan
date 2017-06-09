@@ -27,6 +27,7 @@ import com.weibo.api.motan.serialize.DeserializableObject;
 import com.weibo.api.motan.switcher.Switcher;
 import com.weibo.api.motan.switcher.SwitcherService;
 import com.weibo.api.motan.util.*;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -34,7 +35,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * 
@@ -78,8 +78,7 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
             if("equals".equals(method.getName())){
                 return proxyEquals(args[0]);
             }
-            //TODO use proxy
-//            throw new MotanServiceException("can not invoke local method:" + method.getName());
+            throw new MotanServiceException("can not invoke local method:" + method.getName());
         }
         DefaultRequest request = new DefaultRequest();
 
@@ -88,7 +87,16 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
         request.setMethodName(method.getName());
         request.setParamtersDesc(ReflectUtil.getMethodParamDesc(method));
         request.setInterfaceName(clz.getName());
-        request.setAttachment(URLParamType.requestIdFromClient.getName(), String.valueOf(RequestIdGenerator.getRequestIdFromClient()));
+        RpcContext curContext = RpcContext.getContext();
+        Map<String, String> attachments = curContext.getRpcAttachments();
+        if (!attachments.isEmpty()) { // set rpccontext attachments to request
+            for (Map.Entry<String, String> entry : attachments.entrySet()) {
+                request.setAttachment(entry.getKey(), entry.getValue());
+            }
+        }
+        if (StringUtils.isNotBlank(curContext.getClientRequestId())) {// add to attachment if client request id is set
+            request.setAttachment(URLParamType.requestIdFromClient.getName(), curContext.getClientRequestId());
+        }
 
         // 当 referer配置多个protocol的时候，比如A,B,C，
         // 那么正常情况下只会使用A，如果A被开关降级，那么就会使用B，B也被降级，那么会使用C
@@ -106,12 +114,7 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
             // 带上client的application和module
             request.setAttachment(URLParamType.application.getName(), ApplicationInfo.getApplication(cluster.getUrl()).getApplication());
             request.setAttachment(URLParamType.module.getName(), ApplicationInfo.getApplication(cluster.getUrl()).getModule());
-            Map<String, String> attachments = RpcContext.getContext().getRpcAttachments();
-            if(attachments != null && !attachments.isEmpty()){
-                for(Entry<String, String> entry : attachments.entrySet()){
-                    request.setAttachment(entry.getKey(), entry.getValue());
-                }
-            }
+
             Response response = null;
             boolean throwException =
                     Boolean.parseBoolean(cluster.getUrl().getParameter(URLParamType.throwException.getName(),
@@ -131,7 +134,7 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
                         throw t;
                     } else {
                         String msg =
-                                t == null ? "biz exception cause is null" : ("biz exception cause is throwable error:" + t.getClass()
+                                t == null ? "biz exception cause is null. origin error msg : " + e.getMessage() : ("biz exception cause is throwable error:" + t.getClass()
                                         + ", errmsg:" + t.getMessage());
                         throw new MotanServiceException(msg, MotanErrorMsgConstant.SERVICE_DEFAULT_ERROR);
                     }
@@ -152,6 +155,7 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
                 + MotanFrameworkUtil.toString(request), MotanErrorMsgConstant.SERVICE_UNFOUND);
 
     }
+
     
     /**
      * tostring,equals,hashCode,finalize等接口未声明的方法不进行远程调用

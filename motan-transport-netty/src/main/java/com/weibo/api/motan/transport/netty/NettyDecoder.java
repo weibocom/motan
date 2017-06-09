@@ -52,18 +52,19 @@ public class NettyDecoder extends FrameDecoder {
     @Override
     protected Object decode(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
         //根据版本号决定走哪个分支
-        if (buffer.readableBytes() <= MotanConstants.NETTY_HEADER) {//TODO 先按处理v1版header大小处理
+        if (buffer.readableBytes() <= MotanConstants.NETTY_HEADER) {
             return null;
         }
         buffer.markReaderIndex();
 
-        short type = buffer.getShort(0);
+        short type = buffer.readShort();
 
         if (type != MotanConstants.NETTY_MAGIC_TYPE) {
             buffer.resetReaderIndex();
             throw new MotanFrameworkException("NettyDecoder transport header not support, type: " + type);
         }
-        int rpcversion = (buffer.getByte(3) & 0xff) >>> 3;
+        buffer.skipBytes(1);
+        int rpcversion = (buffer.readByte() & 0xff) >>> 3;
         switch (rpcversion) {
             case 0:
                 return decodev1(ctx, channel, buffer);
@@ -76,30 +77,41 @@ public class NettyDecoder extends FrameDecoder {
     }
 
     private Object decodev2(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
-        boolean isRequest = isV2Request(buffer.getByte(2));
-        long requestId = buffer.getLong(5);
+        buffer.resetReaderIndex();
+        if(buffer.readableBytes() < 21){
+            return null;
+        }
+        buffer.skipBytes(2);
+        boolean isRequest = isV2Request(buffer.readByte());
+        buffer.skipBytes(2);
+        long requestId = buffer.readLong();
         int size = 13;
-        int metasize = buffer.getInt(size);
+        int metasize = buffer.readInt();
         size += 4;
         if (metasize > 0) {
             size += metasize;
-            if (buffer.readableBytes() < size) {
+            if (buffer.readableBytes() < metasize) {
                 buffer.resetReaderIndex();
                 return null;
             }
+            buffer.skipBytes(metasize);
         }
-        int bodysize = buffer.getInt(size);
+        if(buffer.readableBytes() < 4){
+            buffer.resetReaderIndex();
+            return null;
+        }
+        int bodysize = buffer.readInt();
         checkMaxContext(bodysize, ctx, channel, isRequest, requestId);
         size += 4;
         if (bodysize > 0){
             size += bodysize;
-            if (buffer.readableBytes() < size) {
+            if (buffer.readableBytes() < bodysize) {
                 buffer.resetReaderIndex();
                 return null;
             }
         }
         byte[] data = new byte[size];
-
+        buffer.resetReaderIndex();
         buffer.readBytes(data);
         return decode(data, channel, isRequest, requestId);
     }
@@ -109,6 +121,7 @@ public class NettyDecoder extends FrameDecoder {
     }
 
     private Object decodev1(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
+        buffer.resetReaderIndex();
         buffer.skipBytes(2);// skip magic num
         byte messageType = (byte) buffer.readShort();
         long requestId = buffer.readLong();
@@ -151,6 +164,7 @@ public class NettyDecoder extends FrameDecoder {
             String remoteIp = getRemoteIp(channel);
             return codec.decode(client, remoteIp, data);
         } catch (Exception e) {
+            LoggerUtil.error("NettyDecoder decode fail! requestid" + requestId + ", size:" + data.length, e);
             if (isRequest) {
                 Response resonse = buildExceptionResponse(requestId, e);
                 channel.write(resonse);

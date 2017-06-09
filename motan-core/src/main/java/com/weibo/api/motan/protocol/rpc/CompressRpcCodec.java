@@ -736,12 +736,24 @@ public class CompressRpcCodec extends AbstractCodec {
      * @return
      */
     public static InputStream getInputStream(byte[] data) {
-        InputStream ret = new ByteArrayInputStream(data);
-        try {
-            GZIPInputStream gis = new GZIPInputStream(new ByteArrayInputStream(data));
-            return gis;
-        } catch (Exception ignore) {}
-        return ret;
+        if (isGzipData(data)) {// 判断 gzip魔数
+            try {
+                return new GZIPInputStream(new ByteArrayInputStream(data));
+            } catch (Exception ignore) {}
+        }
+        return  new ByteArrayInputStream(data);
+    }
+
+    // 简单判断是否为gzip压缩数据。
+    // 判断方法为检验gzip魔数
+    private static boolean isGzipData(byte[] data) {
+        if (data.length > 2) {
+            int header = (int) (((data[0] & 0xff)) | (data[1] & 0xff) << 8);
+            if (GZIPInputStream.GZIP_MAGIC == header) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // 对rpc body进行压缩。

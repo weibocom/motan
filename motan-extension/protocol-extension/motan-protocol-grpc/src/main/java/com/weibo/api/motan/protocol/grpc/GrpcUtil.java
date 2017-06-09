@@ -13,17 +13,21 @@
  */
 package com.weibo.api.motan.protocol.grpc;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageLite;
+import com.google.protobuf.util.JsonFormat;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.protocol.grpc.annotation.GrpcConfig;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.ServiceDescriptor;
-import io.grpc.protobuf.ProtoUtils;
+import io.grpc.Status;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.*;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 
 /**
@@ -36,7 +40,7 @@ import java.util.HashMap;
 public class GrpcUtil {
     @SuppressWarnings("rawtypes")
     private static HashMap<String, HashMap<String, MethodDescriptor>> serviceMap = new HashMap<String, HashMap<String, MethodDescriptor>>();
-    public static final String JSON_CODEC = "grpc-json";
+    public static final String JSON_CODEC = "grpc-pb-json";
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static ServerServiceDefinition getServiceDefByAnnotation(Class<?> clazz) throws Exception {
         ServiceDescriptor serviceDesc = getServiceDesc(getGrpcClassName(clazz));
@@ -61,7 +65,7 @@ public class GrpcUtil {
     }
 
     @SuppressWarnings("rawtypes")
-    public static HashMap<String, MethodDescriptor> getMethodDescriptorByAnnotation(Class<?> clazz, String codec) throws Exception {
+    public static HashMap<String, MethodDescriptor> getMethodDescriptorByAnnotation(Class<?> clazz, String serialization) throws Exception {
         String clazzName = getGrpcClassName(clazz);
         HashMap<String, MethodDescriptor> result = serviceMap.get(clazzName);
         if (result == null) {
@@ -71,7 +75,7 @@ public class GrpcUtil {
                     HashMap<String, MethodDescriptor> methodMap = new HashMap<String, MethodDescriptor>();
                     for (MethodDescriptor<?, ?> methodDesc : serviceDesc.getMethods()) {
                         Method interfaceMethod = getMethod(methodDesc.getFullMethodName(), clazz);
-                        if(JSON_CODEC.equals(codec)){
+                        if(JSON_CODEC.equals(serialization)){
                             methodDesc = convertJsonDescriptor(methodDesc, interfaceMethod.getParameterTypes()[0], interfaceMethod.getReturnType());
                         }
                         methodMap.put(interfaceMethod.getName(), methodDesc);
@@ -113,11 +117,53 @@ public class GrpcUtil {
             if (MessageLite.class.isAssignableFrom(clazz)) {
                 Method method = clazz.getDeclaredMethod("getDefaultInstance", null);
                 Message message = (Message) method.invoke(null, null);
-                return ProtoUtils.jsonMarshaller(message);
+                return jsonMarshaller(message);
             }
         } catch (Exception ignore) {
         }
         return null;
     }
+
+    public static <T extends Message> MethodDescriptor.Marshaller<T> jsonMarshaller(final T defaultInstance) {
+        final JsonFormat.Printer printer = JsonFormat.printer().preservingProtoFieldNames();
+        final JsonFormat.Parser parser = JsonFormat.parser();
+        final Charset charset = Charset.forName("UTF-8");
+
+        return new MethodDescriptor.Marshaller<T>() {
+            @Override
+            public InputStream stream(T value) {
+                try {
+                    return new ByteArrayInputStream(printer.print(value).getBytes(charset));
+                } catch (InvalidProtocolBufferException e) {
+                    throw Status.INTERNAL
+                            .withCause(e)
+                            .withDescription("Unable to print json proto")
+                            .asRuntimeException();
+                }
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public T parse(InputStream stream) {
+                Message.Builder builder = defaultInstance.newBuilderForType();
+                Reader reader = new InputStreamReader(stream, charset);
+                T proto;
+                try {
+                    parser.merge(reader, builder);
+                    proto = (T) builder.build();
+                    reader.close();
+                } catch (InvalidProtocolBufferException e) {
+                    throw Status.INTERNAL.withDescription("Invalid protobuf byte sequence")
+                            .withCause(e).asRuntimeException();
+                } catch (IOException e) {
+                    // Same for now, might be unavailable
+                    throw Status.INTERNAL.withDescription("Invalid protobuf byte sequence")
+                            .withCause(e).asRuntimeException();
+                }
+                return proto;
+            }
+        };
+    }
+
 
 }

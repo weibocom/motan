@@ -1,3 +1,19 @@
+/*
+ *  Copyright 2009-2016 Weibo, Inc.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package com.weibo.api.motan.serialize;
 
 import com.google.protobuf.MessageLite;
@@ -19,7 +35,7 @@ import java.lang.reflect.Method;
 public class GrpcPbSerialization implements Serialization {
     @Override
     public byte[] serialize(Object obj) throws IOException {
-        if(obj == null){
+        if (obj == null) {
             throw new IllegalArgumentException("can't serialize null.");
         }
         if (MessageLite.class.isAssignableFrom(obj.getClass())) {
@@ -51,15 +67,15 @@ public class GrpcPbSerialization implements Serialization {
 
     @Override
     public byte[] serializeMulti(Object[] data) throws IOException {
-        if (data.length != 1){
-            throw new MotanServiceException("only single value serialize was supported in GrpcPbSerialization");
+        if (data.length == 1) {
+            return serialize(data[0]);
         }
-        return serialize(data[0]);
+        throw new MotanServiceException("GrpcPbSerialization not support serialize multi Object");
     }
 
     @Override
     public Object[] deserializeMulti(byte[] data, Class<?>[] classes) throws IOException {
-        if (classes.length != 1){
+        if (classes.length != 1) {
             throw new MotanServiceException("only single value serialize was supported in GrpcPbSerialization");
         }
         Object[] objects = new Object[1];

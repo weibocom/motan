@@ -47,7 +47,7 @@ public class MotanHandlerRegistry extends HandlerRegistry {
                 method = method.withServerCallHandler(handler);
             }
             handler.init(provider, providerMethod);
-            if (GrpcUtil.JSON_CODEC.equals(provider.getUrl().getParameter(URLParamType.codec.getName()))) {
+            if (GrpcUtil.JSON_CODEC.equals(provider.getUrl().getParameter(URLParamType.serialize.getName()))) {
                 MethodDescriptor jsonDesc = GrpcUtil.convertJsonDescriptor(method.getMethodDescriptor(), providerMethod.getParameterTypes()[0], providerMethod.getReturnType());
                 if(jsonDesc != null){
                     method = ServerMethodDefinition.create(jsonDesc, method.getServerCallHandler());

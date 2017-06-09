@@ -112,7 +112,7 @@ public class GrpcClient {
     }
 
     public boolean init() throws Exception {
-        methodDescMap = GrpcUtil.getMethodDescriptorByAnnotation(interfaceClazz, url.getParameter(URLParamType.codec.getName()));
+        methodDescMap = GrpcUtil.getMethodDescriptorByAnnotation(interfaceClazz, url.getParameter(URLParamType.serialize.getName()));
         channel = ManagedChannelBuilder.forAddress(url.getHost(), url.getPort()).usePlaintext(true).build();
         return true;
     }

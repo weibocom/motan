@@ -17,3 +17,4 @@
 com.weibo.api.motan.serialize.HproseSerialization
 com.weibo.api.motan.serialize.ProtobufSerialization
 com.weibo.api.motan.serialize.GrpcPbSerialization
+com.weibo.api.motan.serialize.GrpcPbJsonSerialization
