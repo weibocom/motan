@@ -31,15 +31,12 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.resteasy.specimpl.BuiltResponse;
 import org.jboss.resteasy.util.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.StringTools;
 
 public class RestfulUtil {
-	private static final Logger logger = LoggerFactory.getLogger(RestfulUtil.class);
-
 	public static final String ATTACHMENT_HEADER = "X-Attach";
 	public static final String EXCEPTION_HEADER = "X-Exception";
 
@@ -87,7 +84,7 @@ public class RestfulUtil {
 			return Response.status(Status.EXPECTATION_FAILED).header(EXCEPTION_HEADER, ex.getClass()).entity(info)
 					.build();
 		} catch (IOException e) {
-			logger.error("serialize " + ex.getClass() + " error", e);
+			LoggerUtil.error("serialize " + ex.getClass() + " error", e);
 
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity("serialization " + ex.getClass() + " error")
 					.build();
@@ -109,7 +106,7 @@ public class RestfulUtil {
 				ObjectInputStream ois = new ObjectInputStream(bais);
 				return (Exception) ois.readObject();
 			} catch (Exception e) {
-				logger.error("deserialize " + exceptionClass + " error", e);
+				LoggerUtil.error("deserialize " + exceptionClass + " error", e);
 			}
 		}
 

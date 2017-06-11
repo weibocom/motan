@@ -19,8 +19,6 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
@@ -39,6 +37,7 @@ import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.ReflectUtil;
 
@@ -50,7 +49,6 @@ import com.weibo.api.motan.util.ReflectUtil;
  */
 @SpiMeta(name = "restful")
 public class RestfulProtocol extends AbstractProtocol {
-	private static final Logger logger = LoggerFactory.getLogger(RestfulProtocol.class);
 
 	@Override
 	protected <T> Exporter<T> createExporter(Provider<T> provider, URL url) {
@@ -87,14 +85,14 @@ public class RestfulProtocol extends AbstractProtocol {
 				exporter.destroy();
 			}
 
-			logger.info("RestfulExporter unexport Success: url={}", url);
+			LoggerUtil.info("RestfulExporter unexport Success: url={}", url);
 		}
 
 		@Override
 		public void destroy() {
 			endpointFactory.safeReleaseResource(server, url);
 
-			logger.info("RestfulExporter destory Success: url={}", url);
+			LoggerUtil.info("RestfulExporter destory Success: url={}", url);
 		}
 
 		@Override
@@ -122,7 +120,7 @@ public class RestfulProtocol extends AbstractProtocol {
 		public void destroy() {
 			endpointFactory.safeReleaseResource(target, url);
 
-			logger.info("RestfulReferer destory client: url={}" + url);
+			LoggerUtil.info("RestfulReferer destory client: url={}" + url);
 		}
 
 		@Override

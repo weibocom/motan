@@ -23,17 +23,15 @@ import java.util.Set;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.weibo.api.motan.protocol.restful.EmbedRestServer;
 import com.weibo.api.motan.protocol.restful.EndpointFactory;
 import com.weibo.api.motan.protocol.restful.RestServer;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 public abstract class AbstractEndpointFactory implements EndpointFactory {
-	private static final Logger logger = LoggerFactory.getLogger(AbstractEndpointFactory.class);
 	/** 维持share channel 的service列表 **/
 	protected Map<String, RestServer> ipPort2ServerShareChannel = new HashMap<String, RestServer>();
 	// 维持share channel 的client列表 <ip:port,client>
@@ -47,7 +45,7 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
 		String ipPort = url.getServerPortStr();
 		String protocolKey = MotanFrameworkUtil.getProtocolKey(url);
 
-		logger.info(this.getClass().getSimpleName() + " create share_channel server: url={}", url);
+		LoggerUtil.info(this.getClass().getSimpleName() + " create share_channel server: url={}", url);
 
 		synchronized (ipPort2ServerShareChannel) {
 			RestServer server = ipPort2ServerShareChannel.get(ipPort);
@@ -83,7 +81,7 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
 		String ipPort = url.getServerPortStr();
 		String protocolKey = MotanFrameworkUtil.getProtocolKey(url);
 
-		logger.info(this.getClass().getSimpleName() + " create share_channel client: url={}", url);
+		LoggerUtil.info(this.getClass().getSimpleName() + " create share_channel client: url={}", url);
 
 		synchronized (ipPort2ClientShareChannel) {
 			ResteasyWebTarget client = ipPort2ClientShareChannel.get(ipPort);
