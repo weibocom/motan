@@ -41,7 +41,7 @@ import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 
 /**
- * 
+ *
  * Decorate the protocol, to add more features.
  *
  * @author fishermen
@@ -135,7 +135,7 @@ public class ProtocolFilterDecorator implements Protocol {
         return lastRef;
     }
 
-    private <T> Provider<T> decorateWithFilter(Provider<T> provider, URL url) {
+    private <T> Provider<T> decorateWithFilter(final Provider<T> provider, URL url) {
         List<Filter> filters = getFilters(url, MotanConstants.NODE_TYPE_SERVICE);
         if (filters == null || filters.size() == 0) {
             return provider;
@@ -179,6 +179,11 @@ public class ProtocolFilterDecorator implements Protocol {
                 public boolean isAvailable() {
                     return lp.isAvailable();
                 }
+
+				@Override
+				public T getImpl() {
+					return provider.getImpl();
+				}
             };
         }
         return lastProvider;
@@ -191,7 +196,7 @@ public class ProtocolFilterDecorator implements Protocol {
 	 * 2）根据filter配置获取新的filters，并和默认的filter列表合并；
 	 * 3）再根据一些其他配置判断是否需要增加其他filter，如根据accessLog进行判断，是否需要增加accesslog
 	 * </pre>
-     * 
+     *
      * @param url
      * @param key
      * @return

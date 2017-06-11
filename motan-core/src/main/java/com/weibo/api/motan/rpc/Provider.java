@@ -20,9 +20,9 @@ import com.weibo.api.motan.core.extension.Scope;
 import com.weibo.api.motan.core.extension.Spi;
 
 /**
- * 
+ *
  * Service provider.
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-16
  */
@@ -30,4 +30,6 @@ import com.weibo.api.motan.core.extension.Spi;
 public interface Provider<T> extends Caller<T> {
 
     Class<T> getInterface();
+
+    T getImpl();
 }

@@ -27,7 +27,7 @@ import com.weibo.api.motan.util.LoggerUtil;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-23
- * 
+ *
  */
 @SpiMeta(name = "motan")
 public class DefaultProvider<T> extends AbstractProvider<T> {
@@ -36,6 +36,11 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
     public DefaultProvider(T proxyImpl, URL url, Class<T> clz) {
         super(url, clz);
         this.proxyImpl = proxyImpl;
+    }
+
+    @Override
+    public T getImpl(){
+    	return proxyImpl;
     }
 
     @Override
