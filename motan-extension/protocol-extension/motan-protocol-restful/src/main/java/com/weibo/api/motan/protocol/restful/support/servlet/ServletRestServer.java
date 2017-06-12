@@ -15,34 +15,22 @@
  */
 package com.weibo.api.motan.protocol.restful.support.servlet;
 
-import java.util.Map;
-
-import javax.servlet.ServletContext;
-
-import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
-import org.jboss.resteasy.plugins.server.servlet.ResteasyContextParameters;
 import org.jboss.resteasy.spi.ResteasyDeployment;
 
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.protocol.restful.RestServer;
 
-@SuppressWarnings("unchecked")
 public class ServletRestServer implements RestServer {
-	private static ServletContext servletContext;
+	private static ResteasyDeployment deployment;
 
-	public static void setServletContext(ServletContext servletContext) {
-		ServletRestServer.servletContext = servletContext;
+	public static void setResteasyDeployment(ResteasyDeployment deployment) {
+		ServletRestServer.deployment = deployment;
 	}
 
 	public void checkEnv() {
-		if (servletContext == null) {
+		if (deployment == null) {
 			throw new MotanFrameworkException("please config <listener-class>"
 					+ RestfulServletContainerListener.class.getName() + "</listener-class> in your web.xml file");
-		}
-
-		if (getDeployment() == null) {
-			throw new MotanFrameworkException("please config <servlet>" + HttpServletDispatcher.class.getName()
-					+ "</servlet> and <load-on-start>1</load-on-start> in your web.xml file");
 		}
 	}
 
@@ -52,17 +40,6 @@ public class ServletRestServer implements RestServer {
 
 	@Override
 	public ResteasyDeployment getDeployment() {
-		ResteasyDeployment deployment = (ResteasyDeployment) servletContext
-				.getAttribute(ResteasyDeployment.class.getName());
-		if (deployment == null) {
-			// 在ListenerBootstrap中创建，key为servletMappingPrefix
-			Map<String, ResteasyDeployment> deployments = (Map<String, ResteasyDeployment>) servletContext
-					.getAttribute(ResteasyContextParameters.RESTEASY_DEPLOYMENTS);
-			if (deployments != null && !deployments.isEmpty()) {
-				deployment = deployments.values().iterator().next();
-			}
-		}
-
 		return deployment;
 	}
 

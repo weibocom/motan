@@ -75,6 +75,7 @@ public class RestHelloResource implements HelloResource{
 
 ```xml
 
+<!-- 此filter必须在spring ContextLoaderFilter之前 -->
 <listener>
   <listener-class>com.weibo.api.motan.protocol.restful.support.servlet.RestfulServletContainerListener</listener-class>
 </listener>
@@ -96,4 +97,4 @@ public class RestHelloResource implements HelloResource{
 ```
 
 此时如果使用rpc客户端，则需要注意contextpath配置：`<motan:protocol name="restful" contextpath="/serverContextPath/dispatcherServletUrlPattern" />`,
-加入服务端部署的ContextPath为`/myserver`,servlet的url-pattern为`/servlet/*`,则客户端的contextpath则应配置为`/myserver/servlet`
+假如服务端部署的ContextPath为`/myserver`,servlet的url-pattern为`/servlet/*`,则客户端的contextpath则应配置为`/myserver/servlet`

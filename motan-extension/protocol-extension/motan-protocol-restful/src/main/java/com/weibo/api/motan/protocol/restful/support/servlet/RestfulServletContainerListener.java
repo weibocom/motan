@@ -19,12 +19,13 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap;
 import org.jboss.resteasy.plugins.server.servlet.ResteasyContextParameters;
 
 import com.weibo.api.motan.protocol.restful.support.RestfulInjectorFactory;
 import com.weibo.api.motan.protocol.restful.support.RpcExceptionMapper;
 
-public class RestfulServletContainerListener implements ServletContextListener {
+public class RestfulServletContainerListener extends ResteasyBootstrap implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
@@ -34,12 +35,14 @@ public class RestfulServletContainerListener implements ServletContextListener {
 		servletContext.setInitParameter(ResteasyContextParameters.RESTEASY_PROVIDERS,
 				RpcExceptionMapper.class.getName());
 
-		ServletRestServer.setServletContext(sce.getServletContext());
+		super.contextInitialized(sce);
+
+		ServletRestServer.setResteasyDeployment(deployment);
 	}
 
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
-
+		super.contextDestroyed(sce);
 	}
 
 }
