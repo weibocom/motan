@@ -33,17 +33,16 @@ import java.net.InetAddress;
 import java.util.*;
 
 /**
- * 
  * <pre>
  * Interface config，
- * 
+ *
  * 配置约定
  * 	  1 service 和 referer 端相同的参数的含义一定相同；
  *    2 service端参数的覆盖策略：protocol--basicConfig--service，前面的配置会被后面的config参数覆盖；
  *    3 registry 参数不进入service、referer端的参数列表；
  *    4 referer端从注册中心拿到参数后，先用referer端的参数覆盖，然后再使用该service
  * </pre>
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-27
  */
@@ -116,12 +115,11 @@ public class AbstractInterfaceConfig extends AbstractConfig {
     protected Integer mingzSize;
 
     protected String codec;
+    protected String localServiceAddress;
 
     public Integer getRetries() {
         return retries;
     }
-
-    protected String localServiceAddress;
 
     public void setRetries(Integer retries) {
         this.retries = retries;
@@ -231,13 +229,13 @@ public class AbstractInterfaceConfig extends AbstractConfig {
         return check;
     }
 
-    public void setCheck(String check) {
-        this.check = check;
-    }
-
     @Deprecated
     public void setCheck(Boolean check) {
         this.check = String.valueOf(check);
+    }
+
+    public void setCheck(String check) {
+        this.check = check;
     }
 
     public Boolean getShareChannel() {
@@ -339,8 +337,9 @@ public class AbstractInterfaceConfig extends AbstractConfig {
                 if (!map.containsKey(URLParamType.protocol.getName())) {
                     if (address.contains("://")) {
                         map.put(URLParamType.protocol.getName(), address.substring(0, address.indexOf("://")));
+                    } else {
+                        map.put(URLParamType.protocol.getName(), MotanConstants.REGISTRY_PROTOCOL_LOCAL);
                     }
-                    map.put(URLParamType.protocol.getName(), MotanConstants.REGISTRY_PROTOCOL_LOCAL);
                 }
                 // address内部可能包含多个注册中心地址
                 List<URL> urls = UrlUtils.parseURLs(address, map);
