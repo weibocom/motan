@@ -25,7 +25,8 @@ import org.springframework.context.annotation.ImportResource;
  * @since 2017-06-29
  */
 @SpringBootApplication
-@ImportResource(locations = {"classpath:spring-mybatis.xml", "classpath:spring-security.xml"})
+//@ImportResource(locations = {"classpath:spring-mybatis.xml", "classpath:spring-security.xml"})
+@ImportResource(locations = {"classpath:spring-security.xml"})
 public class MotanManagerApp {
     public static void main(String[] args) {
         SpringApplication.run(MotanManagerApp.class, args);
