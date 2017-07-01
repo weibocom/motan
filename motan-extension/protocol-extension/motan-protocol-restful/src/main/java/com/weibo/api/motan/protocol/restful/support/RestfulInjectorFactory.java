@@ -69,9 +69,8 @@ public class RestfulInjectorFactory extends InjectorFactoryImpl{
 
         return resp.getValue();
       }catch(Exception e){
-        Throwable cause = e.getCause();
-        if(cause != null && cause instanceof RuntimeException){
-          throw (RuntimeException) cause;
+        if(e != null && e instanceof RuntimeException){
+          throw (RuntimeException) e;
         }
 
         throw new InternalServerErrorException("provider call process error:" + e.getMessage(), e);

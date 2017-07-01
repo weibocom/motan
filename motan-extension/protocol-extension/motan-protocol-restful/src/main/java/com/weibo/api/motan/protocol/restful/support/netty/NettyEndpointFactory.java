@@ -23,6 +23,8 @@ import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.protocol.restful.EmbedRestServer;
 import com.weibo.api.motan.protocol.restful.RestServer;
 import com.weibo.api.motan.protocol.restful.support.AbstractEndpointFactory;
+import com.weibo.api.motan.protocol.restful.support.RestfulInjectorFactory;
+import com.weibo.api.motan.protocol.restful.support.RpcExceptionMapper;
 import com.weibo.api.motan.rpc.URL;
 
 @SpiMeta(name = "netty")
@@ -42,6 +44,9 @@ public class NettyEndpointFactory extends AbstractEndpointFactory {
 		server.setPort(url.getPort());
 		server.setRootResourcePath("");
 		server.setSecurityDomain(null);
+
+		deployment.setInjectorFactoryClass(RestfulInjectorFactory.class.getName());
+		deployment.getProviderClasses().add(RpcExceptionMapper.class.getName());
 
 		return new EmbedRestServer(server);
 	}

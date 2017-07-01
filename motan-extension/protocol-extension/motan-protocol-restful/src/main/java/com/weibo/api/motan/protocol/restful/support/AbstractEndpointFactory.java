@@ -24,7 +24,6 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
-import com.weibo.api.motan.protocol.restful.EmbedRestServer;
 import com.weibo.api.motan.protocol.restful.EndpointFactory;
 import com.weibo.api.motan.protocol.restful.RestServer;
 import com.weibo.api.motan.rpc.URL;
@@ -33,9 +32,9 @@ import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 public abstract class AbstractEndpointFactory implements EndpointFactory {
 	/** 维持share channel 的service列表 **/
-	protected Map<String, RestServer> ipPort2ServerShareChannel = new HashMap<String, RestServer>();
+	protected final Map<String, RestServer> ipPort2ServerShareChannel = new HashMap<String, RestServer>();
 	// 维持share channel 的client列表 <ip:port,client>
-	private final Map<String, ResteasyWebTarget> ipPort2ClientShareChannel = new HashMap<String, ResteasyWebTarget>();
+	protected final Map<String, ResteasyWebTarget> ipPort2ClientShareChannel = new HashMap<String, ResteasyWebTarget>();
 
 	protected Map<RestServer, Set<String>> server2UrlsShareChannel = new HashMap<RestServer, Set<String>>();
 	protected Map<ResteasyWebTarget, Set<String>> client2UrlsShareChannel = new HashMap<ResteasyWebTarget, Set<String>>();
@@ -60,12 +59,6 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
 			url.setPath(""); // 共享server端口，由于有多个interfaces存在，所以把path设置为空
 
 			server = innerCreateServer(url);
-
-			// 当rpc系统不是单独启动的进程，而是部署到了Java应用服务器中用，就用RestfulServletContainerListener来设置
-			if (server instanceof EmbedRestServer) {
-				server.getDeployment().setInjectorFactoryClass(RestfulInjectorFactory.class.getName());
-				server.getDeployment().getProviderClasses().add(RpcExceptionMapper.class.getName());
-			}
 
 			server.start();
 

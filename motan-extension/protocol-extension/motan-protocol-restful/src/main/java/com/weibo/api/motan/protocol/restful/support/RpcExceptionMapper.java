@@ -28,7 +28,7 @@ public class RpcExceptionMapper implements ExceptionMapper<Exception>{
   public Response toResponse(Exception exception){
     HttpRequest httpRequest = ResteasyProviderFactory.getContextData(HttpRequest.class);
     // 当为rpc调用时,序列化异常
-    if(httpRequest != null & !RestfulUtil.decodeAttachments(httpRequest.getMutableHeaders()).isEmpty()){
+    if(httpRequest != null & RestfulUtil.isRpcRequest(httpRequest.getMutableHeaders())){
       return RestfulUtil.serializeError(exception);
     }
 

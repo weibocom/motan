@@ -40,6 +40,10 @@ public class RestfulUtil {
 	public static final String ATTACHMENT_HEADER = "X-Attach";
 	public static final String EXCEPTION_HEADER = "X-Exception";
 
+	public static boolean isRpcRequest(MultivaluedMap<String, String> headers) {
+		return headers != null && headers.containsKey(ATTACHMENT_HEADER);
+	}
+
 	public static void encodeAttachments(MultivaluedMap<String, Object> headers, Map<String, String> attachments) {
 		if (attachments == null || attachments.isEmpty())
 			return;
