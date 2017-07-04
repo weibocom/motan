@@ -30,25 +30,25 @@ import com.weibo.api.motan.rpc.URL;
 @SpiMeta(name = "netty")
 public class NettyEndpointFactory extends AbstractEndpointFactory {
 
-	@Override
-	protected RestServer innerCreateServer(URL url) {
-		NettyJaxrsServer server = new NettyJaxrsServer();
-		server.setMaxRequestSize(url.getIntParameter(URLParamType.maxContentLength.getName(),
-				URLParamType.maxContentLength.getIntValue()));
+    @Override
+    protected RestServer innerCreateServer(URL url) {
+        NettyJaxrsServer server = new NettyJaxrsServer();
+        server.setMaxRequestSize(url.getIntParameter(URLParamType.maxContentLength.getName(),
+                URLParamType.maxContentLength.getIntValue()));
 
-		ResteasyDeployment deployment = new ResteasyDeployment();
+        ResteasyDeployment deployment = new ResteasyDeployment();
 
-		server.setDeployment(deployment);
-		server.setExecutorThreadCount(
-				url.getIntParameter(URLParamType.maxWorkerThread.getName(), URLParamType.maxWorkerThread.getIntValue()));
-		server.setPort(url.getPort());
-		server.setRootResourcePath("");
-		server.setSecurityDomain(null);
+        server.setDeployment(deployment);
+        server.setExecutorThreadCount(url.getIntParameter(URLParamType.maxWorkerThread.getName(),
+                URLParamType.maxWorkerThread.getIntValue()));
+        server.setPort(url.getPort());
+        server.setRootResourcePath("");
+        server.setSecurityDomain(null);
 
-		deployment.setInjectorFactoryClass(RestfulInjectorFactory.class.getName());
-		deployment.getProviderClasses().add(RpcExceptionMapper.class.getName());
+        deployment.setInjectorFactoryClass(RestfulInjectorFactory.class.getName());
+        deployment.getProviderClasses().add(RpcExceptionMapper.class.getName());
 
-		return new EmbedRestServer(server);
-	}
+        return new EmbedRestServer(server);
+    }
 
 }

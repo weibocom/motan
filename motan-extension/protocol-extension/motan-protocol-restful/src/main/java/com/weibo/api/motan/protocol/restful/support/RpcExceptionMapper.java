@@ -22,17 +22,17 @@ import javax.ws.rs.ext.ExceptionMapper;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 
-public class RpcExceptionMapper implements ExceptionMapper<Exception>{
+public class RpcExceptionMapper implements ExceptionMapper<Exception> {
 
-  @Override
-  public Response toResponse(Exception exception){
-    HttpRequest httpRequest = ResteasyProviderFactory.getContextData(HttpRequest.class);
-    // 当为rpc调用时,序列化异常
-    if(httpRequest != null & RestfulUtil.isRpcRequest(httpRequest.getMutableHeaders())){
-      return RestfulUtil.serializeError(exception);
+    @Override
+    public Response toResponse(Exception exception) {
+        HttpRequest httpRequest = ResteasyProviderFactory.getContextData(HttpRequest.class);
+        // 当为rpc调用时,序列化异常
+        if (httpRequest != null && RestfulUtil.isRpcRequest(httpRequest.getMutableHeaders())) {
+            return RestfulUtil.serializeError(exception);
+        }
+
+        return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exception.getMessage()).build();
     }
-
-    return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exception.getMessage()).build();
-  }
 
 }

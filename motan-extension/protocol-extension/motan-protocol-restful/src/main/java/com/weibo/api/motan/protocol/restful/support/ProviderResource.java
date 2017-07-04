@@ -32,30 +32,30 @@ import com.weibo.api.motan.rpc.Provider;
  * @param <T>
  */
 public class ProviderResource<T> implements ResourceFactory {
-	private final Provider<T> provider;
-	private final ResourceClass resourceClass;
+    private final Provider<T> provider;
+    private final ResourceClass resourceClass;
 
-	public ProviderResource(Provider<T> provider) {
-		this.provider = provider;
-		this.resourceClass = ResourceBuilder.rootResourceFromAnnotations(provider.getImpl().getClass());
-	}
+    public ProviderResource(Provider<T> provider) {
+        this.provider = provider;
+        this.resourceClass = ResourceBuilder.rootResourceFromAnnotations(provider.getImpl().getClass());
+    }
 
-	public void registered(ResteasyProviderFactory factory) {
-		factory.getInjectorFactory().createPropertyInjector(resourceClass, factory).inject(provider.getImpl());
-	}
+    public void registered(ResteasyProviderFactory factory) {
+        factory.getInjectorFactory().createPropertyInjector(resourceClass, factory).inject(provider.getImpl());
+    }
 
-	public Object createResource(HttpRequest request, HttpResponse response, ResteasyProviderFactory factory) {
-		return provider;
-	}
+    public Object createResource(HttpRequest request, HttpResponse response, ResteasyProviderFactory factory) {
+        return provider;
+    }
 
-	public void unregistered() {
-	}
+    public void unregistered() {
+    }
 
-	public Class<?> getScannableClass() {
-		return provider.getImpl().getClass();
-	}
+    public Class<?> getScannableClass() {
+        return provider.getImpl().getClass();
+    }
 
-	public void requestFinished(HttpRequest request, HttpResponse response, Object resource) {
-	}
+    public void requestFinished(HttpRequest request, HttpResponse response, Object resource) {
+    }
 
 }

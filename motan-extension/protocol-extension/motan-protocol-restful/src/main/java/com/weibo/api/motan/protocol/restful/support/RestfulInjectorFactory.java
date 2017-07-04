@@ -31,52 +31,52 @@ import com.weibo.api.motan.rpc.Provider;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.util.ReflectUtil;
 
-public class RestfulInjectorFactory extends InjectorFactoryImpl{
-
-  @Override
-  public MethodInjector createMethodInjector(ResourceLocator method, ResteasyProviderFactory factory){
-    return new RestfulMethodInjector(method, factory);
-  }
-
-  private static class RestfulMethodInjector extends MethodInjectorImpl{
-
-    public RestfulMethodInjector(ResourceLocator resourceMethod, ResteasyProviderFactory factory){
-      super(resourceMethod, factory);
-    }
+public class RestfulInjectorFactory extends InjectorFactoryImpl {
 
     @Override
-    public Object invoke(HttpRequest request, HttpResponse httpResponse, Object resource)
-        throws Failure, ApplicationException{
-      if(!Provider.class.isInstance(resource)){
-        return super.invoke(request, httpResponse, resource);
-      }
-
-      Object[] args = injectArguments(request, httpResponse);
-
-      RestfulContainerRequest req = new RestfulContainerRequest();
-      req.setInterfaceName(method.getResourceClass().getClazz().getName());
-      req.setMethodName(method.getMethod().getName());
-      req.setParamtersDesc(ReflectUtil.getMethodParamDesc(method.getMethod()));
-      req.setArguments(args);
-
-      req.setHttpRequest(request);
-      req.setAttachments(RestfulUtil.decodeAttachments(request.getMutableHeaders()));
-
-      try{
-        Response resp = Provider.class.cast(resource).call(req);
-
-        RestfulUtil.encodeAttachments(httpResponse.getOutputHeaders(), resp.getAttachments());
-
-        return resp.getValue();
-      }catch(Exception e){
-        if(e != null && e instanceof RuntimeException){
-          throw (RuntimeException) e;
-        }
-
-        throw new InternalServerErrorException("provider call process error:" + e.getMessage(), e);
-      }
+    public MethodInjector createMethodInjector(ResourceLocator method, ResteasyProviderFactory factory) {
+        return new RestfulMethodInjector(method, factory);
     }
 
-  }
+    private static class RestfulMethodInjector extends MethodInjectorImpl {
+
+        public RestfulMethodInjector(ResourceLocator resourceMethod, ResteasyProviderFactory factory) {
+            super(resourceMethod, factory);
+        }
+
+        @Override
+        public Object invoke(HttpRequest request, HttpResponse httpResponse, Object resource)
+                throws Failure, ApplicationException {
+            if (!Provider.class.isInstance(resource)) {
+                return super.invoke(request, httpResponse, resource);
+            }
+
+            Object[] args = injectArguments(request, httpResponse);
+
+            RestfulContainerRequest req = new RestfulContainerRequest();
+            req.setInterfaceName(method.getResourceClass().getClazz().getName());
+            req.setMethodName(method.getMethod().getName());
+            req.setParamtersDesc(ReflectUtil.getMethodParamDesc(method.getMethod()));
+            req.setArguments(args);
+
+            req.setHttpRequest(request);
+            req.setAttachments(RestfulUtil.decodeAttachments(request.getMutableHeaders()));
+
+            try {
+                Response resp = Provider.class.cast(resource).call(req);
+
+                RestfulUtil.encodeAttachments(httpResponse.getOutputHeaders(), resp.getAttachments());
+
+                return resp.getValue();
+            } catch (Exception e) {
+                if (e != null && e instanceof RuntimeException) {
+                    throw (RuntimeException) e;
+                }
+
+                throw new InternalServerErrorException("provider call process error:" + e.getMessage(), e);
+            }
+        }
+
+    }
 
 }

@@ -20,23 +20,23 @@ import org.jboss.resteasy.specimpl.BuiltResponse;
 import com.weibo.api.motan.rpc.DefaultResponse;
 
 public class RestfulClientResponse extends DefaultResponse {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -2780120101690526109L;
 
-	private BuiltResponse httpResponse;
+    private BuiltResponse httpResponse;
 
-	public RestfulClientResponse() {
-	}
+    public RestfulClientResponse() {
+    }
 
-	public RestfulClientResponse(long requestId) {
-		super(requestId);
-	}
+    public RestfulClientResponse(long requestId) {
+        super(requestId);
+    }
 
-	public void setHttpResponse(BuiltResponse httpResponse) {
-		this.httpResponse = httpResponse;
-	}
+    public void setHttpResponse(BuiltResponse httpResponse) {
+        this.httpResponse = httpResponse;
+    }
 
-	public BuiltResponse getHttpResponse() {
-		return httpResponse;
-	}
+    public BuiltResponse getHttpResponse() {
+        return httpResponse;
+    }
 
 }

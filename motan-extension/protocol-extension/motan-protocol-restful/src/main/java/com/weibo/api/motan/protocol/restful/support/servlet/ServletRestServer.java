@@ -21,30 +21,30 @@ import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.protocol.restful.RestServer;
 
 public class ServletRestServer implements RestServer {
-	private static ResteasyDeployment deployment;
+    private static ResteasyDeployment deployment;
 
-	public static void setResteasyDeployment(ResteasyDeployment deployment) {
-		ServletRestServer.deployment = deployment;
-	}
+    public static void setResteasyDeployment(ResteasyDeployment deployment) {
+        ServletRestServer.deployment = deployment;
+    }
 
-	public void checkEnv() {
-		if (deployment == null) {
-			throw new MotanFrameworkException("please config <listener-class>"
-					+ RestfulServletContainerListener.class.getName() + "</listener-class> in your web.xml file");
-		}
-	}
+    public void checkEnv() {
+        if (deployment == null) {
+            throw new MotanFrameworkException("please config <listener-class>"
+                    + RestfulServletContainerListener.class.getName() + "</listener-class> in your web.xml file");
+        }
+    }
 
-	@Override
-	public void start() {
-	}
+    @Override
+    public void start() {
+    }
 
-	@Override
-	public ResteasyDeployment getDeployment() {
-		return deployment;
-	}
+    @Override
+    public ResteasyDeployment getDeployment() {
+        return deployment;
+    }
 
-	@Override
-	public void stop() {
-	}
+    @Override
+    public void stop() {
+    }
 
 }

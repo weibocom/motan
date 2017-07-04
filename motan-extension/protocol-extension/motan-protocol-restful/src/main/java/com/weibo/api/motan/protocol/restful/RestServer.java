@@ -17,12 +17,12 @@ package com.weibo.api.motan.protocol.restful;
 
 import org.jboss.resteasy.spi.ResteasyDeployment;
 
-public interface RestServer{
+public interface RestServer {
 
-  void start();
+    void start();
 
-  ResteasyDeployment getDeployment();
+    ResteasyDeployment getDeployment();
 
-  void stop();
+    void stop();
 
 }

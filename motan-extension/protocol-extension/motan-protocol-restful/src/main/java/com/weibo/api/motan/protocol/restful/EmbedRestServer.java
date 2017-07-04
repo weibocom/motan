@@ -25,24 +25,24 @@ import org.jboss.resteasy.spi.ResteasyDeployment;
  *
  */
 public class EmbedRestServer implements RestServer {
-	private EmbeddedJaxrsServer server;
+    private EmbeddedJaxrsServer server;
 
-	public EmbedRestServer(EmbeddedJaxrsServer server) {
-		this.server = server;
-	}
+    public EmbedRestServer(EmbeddedJaxrsServer server) {
+        this.server = server;
+    }
 
-	@Override
-	public ResteasyDeployment getDeployment() {
-		return server.getDeployment();
-	}
+    @Override
+    public ResteasyDeployment getDeployment() {
+        return server.getDeployment();
+    }
 
-	@Override
-	public void start() {
-		server.start();
-	}
+    @Override
+    public void start() {
+        server.start();
+    }
 
-	public void stop() {
-		server.stop();
-	}
+    public void stop() {
+        server.stop();
+    }
 
 }

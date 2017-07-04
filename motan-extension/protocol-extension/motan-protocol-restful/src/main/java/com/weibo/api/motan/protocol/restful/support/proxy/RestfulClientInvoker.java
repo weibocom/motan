@@ -30,24 +30,24 @@ import com.weibo.api.motan.rpc.Request;
 
 public class RestfulClientInvoker extends ClientInvoker {
 
-	public RestfulClientInvoker(ResteasyWebTarget parent, Class<?> declaring, Method method, ProxyConfig config) {
-		super(parent, declaring, method, config);
-	}
+    public RestfulClientInvoker(ResteasyWebTarget parent, Class<?> declaring, Method method, ProxyConfig config) {
+        super(parent, declaring, method, config);
+    }
 
-	public Object invoke(Object[] args, Request req, RestfulClientResponse resp) {
-		ClientInvocation request = createRequest(args, req);
-		ClientResponse response = (ClientResponse) request.invoke();
-		resp.setAttachments(RestfulUtil.decodeAttachments(response.getStringHeaders()));
-		resp.setHttpResponse(response);
+    public Object invoke(Object[] args, Request req, RestfulClientResponse resp) {
+        ClientInvocation request = createRequest(args, req);
+        ClientResponse response = (ClientResponse) request.invoke();
+        resp.setAttachments(RestfulUtil.decodeAttachments(response.getStringHeaders()));
+        resp.setHttpResponse(response);
 
-		ClientContext context = new ClientContext(request, response, entityExtractorFactory);
-		return extractor.extractEntity(context);
-	}
+        ClientContext context = new ClientContext(request, response, entityExtractorFactory);
+        return extractor.extractEntity(context);
+    }
 
-	protected ClientInvocation createRequest(Object[] args, Request request) {
-		ClientInvocation inv = super.createRequest(args);
-		RestfulUtil.encodeAttachments(inv.getHeaders().getHeaders(), request.getAttachments());
-		return inv;
-	}
+    protected ClientInvocation createRequest(Object[] args, Request request) {
+        ClientInvocation inv = super.createRequest(args);
+        RestfulUtil.encodeAttachments(inv.getHeaders().getHeaders(), request.getAttachments());
+        return inv;
+    }
 
 }

@@ -24,27 +24,27 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 
 @SpiMeta(name = "serverf")
-public class ServerFilter implements Filter{
+public class ServerFilter implements Filter {
 
-  @Override
-  public Response filter(Caller<?> caller, Request request){
-    assert request instanceof RestfulContainerRequest;
+    @Override
+    public Response filter(Caller<?> caller, Request request) {
+        assert request instanceof RestfulContainerRequest;
 
-    RestfulContainerRequest req = (RestfulContainerRequest) request;
-    if(!"testName".equals(req.getAttachments().get("testName"))){
-      DefaultResponse resp = new DefaultResponse(request.getRequestId());
-      resp.setException(new IllegalStateException("must contain testName attachment"));
-      return resp;
+        RestfulContainerRequest req = (RestfulContainerRequest) request;
+        if (!"testName".equals(req.getAttachments().get("testName"))) {
+            DefaultResponse resp = new DefaultResponse(request.getRequestId());
+            resp.setException(new IllegalStateException("must contain testName attachment"));
+            return resp;
+        }
+
+        assert request.getInterfaceName() != null;
+        assert request.getMethodName() != null;
+        assert request.getParamtersDesc() != null;
+
+        // obtain httpRequest、 requestUri、httpMethod and so on
+        req.getHttpRequest();
+
+        return caller.call(request);
     }
-
-    assert request.getInterfaceName() != null;
-    assert request.getMethodName() != null;
-    assert request.getParamtersDesc() != null;
-
-    // obtain httpRequest、 requestUri、httpMethod and so on
-    req.getHttpRequest();
-
-    return caller.call(request);
-  }
 
 }

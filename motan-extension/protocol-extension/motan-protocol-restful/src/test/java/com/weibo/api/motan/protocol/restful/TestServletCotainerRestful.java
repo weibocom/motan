@@ -47,140 +47,140 @@ import com.weibo.api.motan.protocol.restful.support.servlet.RestfulServletContai
  *
  */
 public class TestServletCotainerRestful {
-	private Tomcat tomcat;
+    private Tomcat tomcat;
 
-	private ServiceConfig<HelloResource> serviceConfig;
-	private RefererConfig<HelloResource> refererConfig;
-	private HelloResource resource;
+    private ServiceConfig<HelloResource> serviceConfig;
+    private RefererConfig<HelloResource> refererConfig;
+    private HelloResource resource;
 
-	@Before
-	public void setUp() throws Exception {
-		tomcat = new Tomcat();
-		String baseDir = new File(System.getProperty("java.io.tmpdir")).getAbsolutePath();
-		tomcat.setBaseDir(baseDir);
-		tomcat.setPort(8002);
+    @Before
+    public void setUp() throws Exception {
+        tomcat = new Tomcat();
+        String baseDir = new File(System.getProperty("java.io.tmpdir")).getAbsolutePath();
+        tomcat.setBaseDir(baseDir);
+        tomcat.setPort(8002);
 
-		tomcat.getConnector().setProperty("URIEncoding", "UTF-8");
-		tomcat.getConnector().setProperty("socket.soReuseAddress", "true");
-		tomcat.getConnector().setProperty("connectionTimeout", "20000");
+        tomcat.getConnector().setProperty("URIEncoding", "UTF-8");
+        tomcat.getConnector().setProperty("socket.soReuseAddress", "true");
+        tomcat.getConnector().setProperty("connectionTimeout", "20000");
 
-		String contextpath = "/cp";
+        String contextpath = "/cp";
 
-		String servletPrefix = "/servlet";
+        String servletPrefix = "/servlet";
 
-		/**
-		 * <pre>
-		 *
-		 * <servlet>
-		 *  <servlet-name>dispatcher</servlet-name>
-		 *  <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
-		 *  <load-on-startup>1</load-on-startup>
-		 *  <init-param>
-		 *    <param-name>resteasy.servlet.mapping.prefix</param-name>
-		 *    <param-value>/servlet</param-value>  <!-- 此处实际为servlet-mapping的url-pattern，具体配置见resteasy文档-->
-		 *  </init-param>
-		 * </servlet>
-		 *
-		 * <servlet-mapping>
-		 *   <servlet-name>dispatcher</servlet-name>
-		 *   <url-pattern>/servlet/*</url-pattern>
-		 * </servlet-mapping>
-		 *
-		 * </pre>
-		 */
-		Context context = tomcat.addContext(contextpath, baseDir);
-		Wrapper wrapper = Tomcat.addServlet(context, "dispatcher", HttpServletDispatcher.class.getName());
-		wrapper.addInitParameter(ResteasyContextParameters.RESTEASY_SERVLET_MAPPING_PREFIX, servletPrefix);
-		wrapper.setLoadOnStartup(1);
-		context.addServletMapping(servletPrefix + "/*", "dispatcher");
+        /**
+         * <pre>
+         *
+         * <servlet>
+         *  <servlet-name>dispatcher</servlet-name>
+         *  <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
+         *  <load-on-startup>1</load-on-startup>
+         *  <init-param>
+         *    <param-name>resteasy.servlet.mapping.prefix</param-name>
+         *    <param-value>/servlet</param-value>  <!-- 此处实际为servlet-mapping的url-pattern，具体配置见resteasy文档-->
+         *  </init-param>
+         * </servlet>
+         *
+         * <servlet-mapping>
+         *   <servlet-name>dispatcher</servlet-name>
+         *   <url-pattern>/servlet/*</url-pattern>
+         * </servlet-mapping>
+         *
+         * </pre>
+         */
+        Context context = tomcat.addContext(contextpath, baseDir);
+        Wrapper wrapper = Tomcat.addServlet(context, "dispatcher", HttpServletDispatcher.class.getName());
+        wrapper.addInitParameter(ResteasyContextParameters.RESTEASY_SERVLET_MAPPING_PREFIX, servletPrefix);
+        wrapper.setLoadOnStartup(1);
+        context.addServletMapping(servletPrefix + "/*", "dispatcher");
 
-		/**
-		 * <listener>
-		 * <listener-class>com.weibo.api.motan.protocol.restful.support.servlet.RestfulServletContainerListener</listener-class>
-		 * </listener>
-		 */
-		context.addApplicationListener(RestfulServletContainerListener.class.getName());
+        /**
+         * <listener>
+         * <listener-class>com.weibo.api.motan.protocol.restful.support.servlet.RestfulServletContainerListener</listener-class>
+         * </listener>
+         */
+        context.addApplicationListener(RestfulServletContainerListener.class.getName());
 
-		tomcat.start();
+        tomcat.start();
 
-		ProtocolConfig protocolConfig = new ProtocolConfig();
-		protocolConfig.setId("testRpc");
-		protocolConfig.setName("restful");
-		protocolConfig.setEndpointFactory("servlet");
+        ProtocolConfig protocolConfig = new ProtocolConfig();
+        protocolConfig.setId("testRpc");
+        protocolConfig.setName("restful");
+        protocolConfig.setEndpointFactory("servlet");
 
-		Map<String, String> ext = new HashMap<String, String>();
-		ext.put("contextpath", contextpath + servletPrefix);
-		protocolConfig.setParameters(ext);
+        Map<String, String> ext = new HashMap<String, String>();
+        ext.put("contextpath", contextpath + servletPrefix);
+        protocolConfig.setParameters(ext);
 
-		RegistryConfig registryConfig = new RegistryConfig();
-		registryConfig.setName("local");
-		registryConfig.setAddress("127.0.0.1");
-		registryConfig.setPort(0);
+        RegistryConfig registryConfig = new RegistryConfig();
+        registryConfig.setName("local");
+        registryConfig.setAddress("127.0.0.1");
+        registryConfig.setPort(0);
 
-		serviceConfig = new ServiceConfig<HelloResource>();
-		serviceConfig.setRef(new RestHelloResource());
-		serviceConfig.setInterface(HelloResource.class);
-		serviceConfig.setProtocol(protocolConfig);
-		// 注意此处配置的端口并不会被使用，建议配置servlet服务器端口
-		serviceConfig.setExport("testRpc:8003");
-		serviceConfig.setFilter("serverf");
-		serviceConfig.setGroup("test-group");
-		serviceConfig.setVersion("0.0.3");
-		serviceConfig.setRegistry(registryConfig);
+        serviceConfig = new ServiceConfig<HelloResource>();
+        serviceConfig.setRef(new RestHelloResource());
+        serviceConfig.setInterface(HelloResource.class);
+        serviceConfig.setProtocol(protocolConfig);
+        // 注意此处配置的端口并不会被使用，建议配置servlet服务器端口
+        serviceConfig.setExport("testRpc:8003");
+        serviceConfig.setFilter("serverf");
+        serviceConfig.setGroup("test-group");
+        serviceConfig.setVersion("0.0.3");
+        serviceConfig.setRegistry(registryConfig);
 
-		serviceConfig.export();
+        serviceConfig.export();
 
-		refererConfig = new RefererConfig<HelloResource>();
-		refererConfig.setDirectUrl("127.0.0.1:8002");
-		refererConfig.setGroup("test-group");
-		refererConfig.setVersion("0.0.3");
-		refererConfig.setFilter("clientf");
-		refererConfig.setProtocol(protocolConfig);
-		refererConfig.setInterface(HelloResource.class);
+        refererConfig = new RefererConfig<HelloResource>();
+        refererConfig.setDirectUrl("127.0.0.1:8002");
+        refererConfig.setGroup("test-group");
+        refererConfig.setVersion("0.0.3");
+        refererConfig.setFilter("clientf");
+        refererConfig.setProtocol(protocolConfig);
+        refererConfig.setInterface(HelloResource.class);
 
-		resource = refererConfig.getRef();
-	}
+        resource = refererConfig.getRef();
+    }
 
-	@Test
-	public void testPrimitiveType() {
-		Assert.assertEquals("helloworld", resource.testPrimitiveType());
-	}
+    @Test
+    public void testPrimitiveType() {
+        Assert.assertEquals("helloworld", resource.testPrimitiveType());
+    }
 
-	@Test
-	public void testCookie() {
-		List<User> users = resource.hello(23);
-		Assert.assertEquals(users.size(), 1);
-		Assert.assertEquals(users.get(0).getId(), 23);
-		Assert.assertEquals(users.get(0).getName(), "de");
-	}
+    @Test
+    public void testCookie() {
+        List<User> users = resource.hello(23);
+        Assert.assertEquals(users.size(), 1);
+        Assert.assertEquals(users.get(0).getId(), 23);
+        Assert.assertEquals(users.get(0).getName(), "de");
+    }
 
-	@Test
-	public void testReturnResponse() {
-		Response resp = resource.add(2, "de");
-		Assert.assertEquals(resp.getStatus(), Status.OK.getStatusCode());
-		Assert.assertEquals(resp.getCookies().size(), 1);
-		Assert.assertEquals(resp.getCookies().get("ck").getName(), "ck");
-		Assert.assertEquals(resp.getCookies().get("ck").getValue(), "2");
+    @Test
+    public void testReturnResponse() {
+        Response resp = resource.add(2, "de");
+        Assert.assertEquals(resp.getStatus(), Status.OK.getStatusCode());
+        Assert.assertEquals(resp.getCookies().size(), 1);
+        Assert.assertEquals(resp.getCookies().get("ck").getName(), "ck");
+        Assert.assertEquals(resp.getCookies().get("ck").getValue(), "2");
 
-		User user = resp.readEntity(User.class);
-		resp.close();
+        User user = resp.readEntity(User.class);
+        resp.close();
 
-		Assert.assertEquals(user.getId(), 2);
-		Assert.assertEquals(user.getName(), "de");
-	}
+        Assert.assertEquals(user.getId(), 2);
+        Assert.assertEquals(user.getName(), "de");
+    }
 
-	@Test(expected = UnsupportedOperationException.class)
-	public void testException() {
-		resource.testException();
-	}
+    @Test(expected = UnsupportedOperationException.class)
+    public void testException() {
+        resource.testException();
+    }
 
-	@After
-	public void tearDown() throws Exception {
-		serviceConfig.unexport();
-		refererConfig.destroy();
+    @After
+    public void tearDown() throws Exception {
+        serviceConfig.unexport();
+        refererConfig.destroy();
 
-		tomcat.stop();
-		tomcat.destroy();
-	}
+        tomcat.stop();
+        tomcat.destroy();
+    }
 
 }

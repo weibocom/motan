@@ -27,22 +27,22 @@ import com.weibo.api.motan.protocol.restful.support.RpcExceptionMapper;
 
 public class RestfulServletContainerListener extends ResteasyBootstrap implements ServletContextListener {
 
-	@Override
-	public void contextInitialized(ServletContextEvent sce) {
-		ServletContext servletContext = sce.getServletContext();
+    @Override
+    public void contextInitialized(ServletContextEvent sce) {
+        ServletContext servletContext = sce.getServletContext();
 
-		servletContext.setInitParameter("resteasy.injector.factory", RestfulInjectorFactory.class.getName());
-		servletContext.setInitParameter(ResteasyContextParameters.RESTEASY_PROVIDERS,
-				RpcExceptionMapper.class.getName());
+        servletContext.setInitParameter("resteasy.injector.factory", RestfulInjectorFactory.class.getName());
+        servletContext.setInitParameter(ResteasyContextParameters.RESTEASY_PROVIDERS,
+                RpcExceptionMapper.class.getName());
 
-		super.contextInitialized(sce);
+        super.contextInitialized(sce);
 
-		ServletRestServer.setResteasyDeployment(deployment);
-	}
+        ServletRestServer.setResteasyDeployment(deployment);
+    }
 
-	@Override
-	public void contextDestroyed(ServletContextEvent sce) {
-		super.contextDestroyed(sce);
-	}
+    @Override
+    public void contextDestroyed(ServletContextEvent sce) {
+        super.contextDestroyed(sce);
+    }
 
 }

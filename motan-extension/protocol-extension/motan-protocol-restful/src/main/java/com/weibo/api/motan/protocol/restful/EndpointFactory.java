@@ -24,12 +24,12 @@ import com.weibo.api.motan.rpc.URL;
 @Spi(scope = Scope.SINGLETON)
 public interface EndpointFactory {
 
-	RestServer createServer(URL url);
+    RestServer createServer(URL url);
 
-	ResteasyWebTarget createClient(URL url);
+    ResteasyWebTarget createClient(URL url);
 
-	void safeReleaseResource(RestServer server, URL url);
+    void safeReleaseResource(RestServer server, URL url);
 
-	void safeReleaseResource(ResteasyWebTarget client, URL url);
+    void safeReleaseResource(ResteasyWebTarget client, URL url);
 
 }

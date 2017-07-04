@@ -26,16 +26,16 @@ import com.weibo.api.motan.rpc.DefaultRequest;
  *
  */
 public class RestfulContainerRequest extends DefaultRequest {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 5226548801729702089L;
 
-	private HttpRequest httpRequest;
+    private HttpRequest httpRequest;
 
-	public void setHttpRequest(HttpRequest httpRequest) {
-		this.httpRequest = httpRequest;
-	}
+    public void setHttpRequest(HttpRequest httpRequest) {
+        this.httpRequest = httpRequest;
+    }
 
-	public HttpRequest getHttpRequest() {
-		return httpRequest;
-	}
+    public HttpRequest getHttpRequest() {
+        return httpRequest;
+    }
 
 }

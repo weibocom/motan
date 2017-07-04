@@ -37,84 +37,84 @@ import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.StringTools;
 
 public class RestfulUtil {
-	public static final String ATTACHMENT_HEADER = "X-Attach";
-	public static final String EXCEPTION_HEADER = "X-Exception";
+    public static final String ATTACHMENT_HEADER = "X-Attach";
+    public static final String EXCEPTION_HEADER = "X-Exception";
 
-	public static boolean isRpcRequest(MultivaluedMap<String, String> headers) {
-		return headers != null && headers.containsKey(ATTACHMENT_HEADER);
-	}
+    public static boolean isRpcRequest(MultivaluedMap<String, String> headers) {
+        return headers != null && headers.containsKey(ATTACHMENT_HEADER);
+    }
 
-	public static void encodeAttachments(MultivaluedMap<String, Object> headers, Map<String, String> attachments) {
-		if (attachments == null || attachments.isEmpty())
-			return;
+    public static void encodeAttachments(MultivaluedMap<String, Object> headers, Map<String, String> attachments) {
+        if (attachments == null || attachments.isEmpty())
+            return;
 
-		StringBuilder value = new StringBuilder();
-		for (Map.Entry<String, String> entry : attachments.entrySet()) {
-			value.append(StringTools.urlEncode(entry.getKey())).append("=")
-					.append(StringTools.urlEncode(entry.getValue())).append(";");
-		}
+        StringBuilder value = new StringBuilder();
+        for (Map.Entry<String, String> entry : attachments.entrySet()) {
+            value.append(StringTools.urlEncode(entry.getKey())).append("=")
+                    .append(StringTools.urlEncode(entry.getValue())).append(";");
+        }
 
-		if (value.length() > 1)
-			value.deleteCharAt(value.length() - 1);
+        if (value.length() > 1)
+            value.deleteCharAt(value.length() - 1);
 
-		headers.add(ATTACHMENT_HEADER, value.toString());
-	}
+        headers.add(ATTACHMENT_HEADER, value.toString());
+    }
 
-	public static Map<String, String> decodeAttachments(MultivaluedMap<String, String> headers) {
-		String value = headers.getFirst(ATTACHMENT_HEADER);
+    public static Map<String, String> decodeAttachments(MultivaluedMap<String, String> headers) {
+        String value = headers.getFirst(ATTACHMENT_HEADER);
 
-		Map<String, String> result = Collections.emptyMap();
-		if (value != null && !value.isEmpty()) {
-			result = new HashMap<String, String>();
-			for (String kv : value.split(";")) {
-				String[] pair = kv.split("=");
-				if (pair.length == 2) {
-					result.put(StringTools.urlDecode(pair[0]), StringTools.urlDecode(pair[1]));
-				}
-			}
-		}
+        Map<String, String> result = Collections.emptyMap();
+        if (value != null && !value.isEmpty()) {
+            result = new HashMap<String, String>();
+            for (String kv : value.split(";")) {
+                String[] pair = kv.split("=");
+                if (pair.length == 2) {
+                    result.put(StringTools.urlDecode(pair[0]), StringTools.urlDecode(pair[1]));
+                }
+            }
+        }
 
-		return result;
-	}
+        return result;
+    }
 
-	public static Response serializeError(Exception ex) {
-		try {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			ObjectOutputStream oos = new ObjectOutputStream(baos);
-			oos.writeObject(ex);
-			oos.flush();
+    public static Response serializeError(Exception ex) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(ex);
+            oos.flush();
 
-			String info = new String(Base64.encodeBytesToBytes(baos.toByteArray()), MotanConstants.DEFAULT_CHARACTER);
-			return Response.status(Status.EXPECTATION_FAILED).header(EXCEPTION_HEADER, ex.getClass()).entity(info)
-					.build();
-		} catch (IOException e) {
-			LoggerUtil.error("serialize " + ex.getClass() + " error", e);
+            String info = new String(Base64.encodeBytesToBytes(baos.toByteArray()), MotanConstants.DEFAULT_CHARACTER);
+            return Response.status(Status.EXPECTATION_FAILED).header(EXCEPTION_HEADER, ex.getClass()).entity(info)
+                    .build();
+        } catch (IOException e) {
+            LoggerUtil.error("serialize " + ex.getClass() + " error", e);
 
-			return Response.status(Status.INTERNAL_SERVER_ERROR).entity("serialization " + ex.getClass() + " error")
-					.build();
-		}
-	}
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("serialization " + ex.getClass() + " error")
+                    .build();
+        }
+    }
 
-	public static Exception getCause(BuiltResponse resp) {
-		if (resp == null || resp.getStatus() != Status.EXPECTATION_FAILED.getStatusCode())
-			return null;
+    public static Exception getCause(BuiltResponse resp) {
+        if (resp == null || resp.getStatus() != Status.EXPECTATION_FAILED.getStatusCode())
+            return null;
 
-		String exceptionClass = resp.getHeaderString(EXCEPTION_HEADER);
-		if (!StringUtils.isBlank(exceptionClass)) {
-			String body = resp.readEntity(String.class);
-			resp.close();
+        String exceptionClass = resp.getHeaderString(EXCEPTION_HEADER);
+        if (!StringUtils.isBlank(exceptionClass)) {
+            String body = resp.readEntity(String.class);
+            resp.close();
 
-			try {
-				ByteArrayInputStream bais = new ByteArrayInputStream(
-						Base64.decode(body.getBytes(MotanConstants.DEFAULT_CHARACTER)));
-				ObjectInputStream ois = new ObjectInputStream(bais);
-				return (Exception) ois.readObject();
-			} catch (Exception e) {
-				LoggerUtil.error("deserialize " + exceptionClass + " error", e);
-			}
-		}
+            try {
+                ByteArrayInputStream bais = new ByteArrayInputStream(
+                        Base64.decode(body.getBytes(MotanConstants.DEFAULT_CHARACTER)));
+                ObjectInputStream ois = new ObjectInputStream(bais);
+                return (Exception) ois.readObject();
+            } catch (Exception e) {
+                LoggerUtil.error("deserialize " + exceptionClass + " error", e);
+            }
+        }
 
-		return null;
-	}
+        return null;
+    }
 
 }

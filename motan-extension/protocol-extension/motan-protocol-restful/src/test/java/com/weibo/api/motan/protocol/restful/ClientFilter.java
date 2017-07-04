@@ -23,22 +23,22 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 
 @SpiMeta(name = "clientf")
-public class ClientFilter implements Filter{
+public class ClientFilter implements Filter {
 
-  @Override
-  public Response filter(Caller<?> caller, Request request){
-    // pass attachment
-    request.setAttachment("testName", "testName");
+    @Override
+    public Response filter(Caller<?> caller, Request request) {
+        // pass attachment
+        request.setAttachment("testName", "testName");
 
-    Response response = caller.call(request);
+        Response response = caller.call(request);
 
-    assert response instanceof RestfulClientResponse;
+        assert response instanceof RestfulClientResponse;
 
-    RestfulClientResponse rfr = (RestfulClientResponse) response;
-    // obtain httpResponse 、 responseStatus、responseHeader and so on
-    rfr.getHttpResponse();
+        RestfulClientResponse rfr = (RestfulClientResponse) response;
+        // obtain httpResponse 、 responseStatus、responseHeader and so on
+        rfr.getHttpResponse();
 
-    return response;
-  }
+        return response;
+    }
 
 }

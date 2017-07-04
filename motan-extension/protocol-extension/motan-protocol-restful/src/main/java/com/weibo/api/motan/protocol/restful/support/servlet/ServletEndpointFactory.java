@@ -23,11 +23,11 @@ import com.weibo.api.motan.rpc.URL;
 @SpiMeta(name = "servlet")
 public class ServletEndpointFactory extends AbstractEndpointFactory {
 
-	@Override
-	protected RestServer innerCreateServer(URL url) {
-		ServletRestServer server = new ServletRestServer();
-		server.checkEnv();
-		return server;
-	}
+    @Override
+    protected RestServer innerCreateServer(URL url) {
+        ServletRestServer server = new ServletRestServer();
+        server.checkEnv();
+        return server;
+    }
 
 }

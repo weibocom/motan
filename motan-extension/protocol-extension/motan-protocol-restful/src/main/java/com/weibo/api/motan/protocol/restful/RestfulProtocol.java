@@ -50,105 +50,105 @@ import com.weibo.api.motan.util.ReflectUtil;
 @SpiMeta(name = "restful")
 public class RestfulProtocol extends AbstractProtocol {
 
-	@Override
-	protected <T> Exporter<T> createExporter(Provider<T> provider, URL url) {
-		return new RestfulExporter<T>(provider, url);
-	}
+    @Override
+    protected <T> Exporter<T> createExporter(Provider<T> provider, URL url) {
+        return new RestfulExporter<T>(provider, url);
+    }
 
-	@Override
-	protected <T> Referer<T> createReferer(Class<T> clz, URL url, URL serviceUrl) {
-		return new RestfulReferer<T>(clz, serviceUrl);
-	}
+    @Override
+    protected <T> Referer<T> createReferer(Class<T> clz, URL url, URL serviceUrl) {
+        return new RestfulReferer<T>(clz, serviceUrl);
+    }
 
-	private class RestfulExporter<T> extends AbstractExporter<T> {
-		private RestServer server;
-		private EndpointFactory endpointFactory;
+    private class RestfulExporter<T> extends AbstractExporter<T> {
+        private RestServer server;
+        private EndpointFactory endpointFactory;
 
-		public RestfulExporter(Provider<T> provider, URL url) {
-			super(provider, url);
+        public RestfulExporter(Provider<T> provider, URL url) {
+            super(provider, url);
 
-			endpointFactory = ExtensionLoader.getExtensionLoader(EndpointFactory.class).getExtension(
-					url.getParameter(URLParamType.endpointFactory.getName(), URLParamType.endpointFactory.getValue()));
-			server = endpointFactory.createServer(url);
-		}
+            endpointFactory = ExtensionLoader.getExtensionLoader(EndpointFactory.class).getExtension(
+                    url.getParameter(URLParamType.endpointFactory.getName(), URLParamType.endpointFactory.getValue()));
+            server = endpointFactory.createServer(url);
+        }
 
-		@Override
-		public void unexport() {
-			server.getDeployment().getRegistry().removeRegistrations(provider.getInterface());
+        @Override
+        public void unexport() {
+            server.getDeployment().getRegistry().removeRegistrations(provider.getInterface());
 
-			String protocolKey = MotanFrameworkUtil.getProtocolKey(url);
+            String protocolKey = MotanFrameworkUtil.getProtocolKey(url);
 
-			@SuppressWarnings("unchecked")
-			Exporter<T> exporter = (Exporter<T>) exporterMap.remove(protocolKey);
+            @SuppressWarnings("unchecked")
+            Exporter<T> exporter = (Exporter<T>) exporterMap.remove(protocolKey);
 
-			if (exporter != null) {
-				exporter.destroy();
-			}
+            if (exporter != null) {
+                exporter.destroy();
+            }
 
-			LoggerUtil.info("RestfulExporter unexport Success: url={}", url);
-		}
+            LoggerUtil.info("RestfulExporter unexport Success: url={}", url);
+        }
 
-		@Override
-		public void destroy() {
-			endpointFactory.safeReleaseResource(server, url);
+        @Override
+        public void destroy() {
+            endpointFactory.safeReleaseResource(server, url);
 
-			LoggerUtil.info("RestfulExporter destory Success: url={}", url);
-		}
+            LoggerUtil.info("RestfulExporter destory Success: url={}", url);
+        }
 
-		@Override
-		protected boolean doInit() {
-			server.getDeployment().getRegistry().addResourceFactory(new ProviderResource<T>(provider));
-			return true;
-		}
-	}
+        @Override
+        protected boolean doInit() {
+            server.getDeployment().getRegistry().addResourceFactory(new ProviderResource<T>(provider));
+            return true;
+        }
+    }
 
-	private static class RestfulReferer<T> extends AbstractReferer<T> {
-		private ResteasyWebTarget target;
-		private EndpointFactory endpointFactory;
+    private static class RestfulReferer<T> extends AbstractReferer<T> {
+        private ResteasyWebTarget target;
+        private EndpointFactory endpointFactory;
 
-		private Map<Method, RestfulClientInvoker> delegate;
+        private Map<Method, RestfulClientInvoker> delegate;
 
-		public RestfulReferer(Class<T> clz, URL url) {
-			super(clz, url);
+        public RestfulReferer(Class<T> clz, URL url) {
+            super(clz, url);
 
-			endpointFactory = ExtensionLoader.getExtensionLoader(EndpointFactory.class).getExtension(
-					url.getParameter(URLParamType.endpointFactory.getName(), URLParamType.endpointFactory.getValue()));
-			target = endpointFactory.createClient(url);
-		}
+            endpointFactory = ExtensionLoader.getExtensionLoader(EndpointFactory.class).getExtension(
+                    url.getParameter(URLParamType.endpointFactory.getName(), URLParamType.endpointFactory.getValue()));
+            target = endpointFactory.createClient(url);
+        }
 
-		@Override
-		public void destroy() {
-			endpointFactory.safeReleaseResource(target, url);
+        @Override
+        public void destroy() {
+            endpointFactory.safeReleaseResource(target, url);
 
-			LoggerUtil.info("RestfulReferer destory client: url={}" + url);
-		}
+            LoggerUtil.info("RestfulReferer destory client: url={}" + url);
+        }
 
-		@Override
-		protected Response doCall(Request request) {
-			RestfulClientResponse response = new RestfulClientResponse(request.getRequestId());
-			try {
-				Method method = getInterface().getMethod(request.getMethodName(),
-						ReflectUtil.forNames(request.getParamtersDesc()));
+        @Override
+        protected Response doCall(Request request) {
+            RestfulClientResponse response = new RestfulClientResponse(request.getRequestId());
+            try {
+                Method method = getInterface().getMethod(request.getMethodName(),
+                        ReflectUtil.forNames(request.getParamtersDesc()));
 
-				Object value = delegate.get(method).invoke(request.getArguments(), request, response);
+                Object value = delegate.get(method).invoke(request.getArguments(), request, response);
 
-				response.setValue(value);
-			} catch (Exception e) {
-				Exception cause = RestfulUtil.getCause(response.getHttpResponse());
-				response.setException(cause != null ? cause : e);
-			}
+                response.setValue(value);
+            } catch (Exception e) {
+                Exception cause = RestfulUtil.getCause(response.getHttpResponse());
+                response.setException(cause != null ? cause : e);
+            }
 
-			return response;
-		}
+            return response;
+        }
 
-		@Override
-		protected boolean doInit() {
-			// 此处不使用target.proxy(getInterface()),否则须使用filter方式来完成request/response中attachment的传递
-			delegate = RestfulProxyBuilder.builder(getInterface(), target).build();
+        @Override
+        protected boolean doInit() {
+            // 此处不使用target.proxy(getInterface()),否则须使用filter方式来完成request/response中attachment的传递
+            delegate = RestfulProxyBuilder.builder(getInterface(), target).build();
 
-			return true;
-		}
+            return true;
+        }
 
-	}
+    }
 
 }
