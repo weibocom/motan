@@ -7,7 +7,7 @@ import com.weibo.api.motan.rpc.URL;
 import junit.framework.Assert;
 import org.I0Itec.zkclient.ZkClient;
 import org.junit.After;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.InputStream;
@@ -15,14 +15,14 @@ import java.util.List;
 import java.util.Properties;
 
 public class ZookeeperRegistryTest {
-    private ZookeeperRegistry registry;
-    private URL serviceUrl, clientUrl;
-    private EmbeddedZookeeper zookeeper;
-    private ZkClient zkClient;
-    private String service = "com.weibo.motan.demoService";
+    private static ZookeeperRegistry registry;
+    private static URL serviceUrl, clientUrl;
+    private static EmbeddedZookeeper zookeeper;
+    private static ZkClient zkClient;
+    private static String service = "com.weibo.motan.demoService";
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeClass
+    public static void setUp() throws Exception {
         Properties properties = new Properties();
         InputStream in = EmbeddedZookeeper.class.getResourceAsStream("/zoo.cfg");
         properties.load(in);
@@ -38,15 +38,15 @@ public class ZookeeperRegistryTest {
 
         zookeeper = new EmbeddedZookeeper();
         zookeeper.start();
+        Thread.sleep(300);
 
         zkClient = new ZkClient("127.0.0.1:" + port, 5000);
         registry = new ZookeeperRegistry(zkUrl, zkClient);
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         zkClient.deleteRecursive(MotanConstants.ZOOKEEPER_REGISTRY_NAMESPACE);
-        zookeeper = null;
     }
 
     @Test
