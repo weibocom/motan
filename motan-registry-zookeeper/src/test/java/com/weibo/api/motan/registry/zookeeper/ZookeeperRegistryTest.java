@@ -38,6 +38,7 @@ public class ZookeeperRegistryTest {
 
         zookeeper = new EmbeddedZookeeper();
         zookeeper.start();
+        Thread.sleep(300);
 
         zkClient = new ZkClient("127.0.0.1:" + port, 5000);
         registry = new ZookeeperRegistry(zkUrl, zkClient);
