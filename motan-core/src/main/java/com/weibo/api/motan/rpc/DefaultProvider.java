@@ -63,7 +63,8 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
             response.setValue(value);
         } catch (Exception e) {
             if (e.getCause() != null) {
-                LoggerUtil.error("Exception caught when method invoke: " + e.getCause());
+                //服务发生错误时，有机会显示stack trace
+                LoggerUtil.error("Exception caught when method invoke: " + e.getCause(), e);
                 response.setException(new MotanBizException("provider call process error", e.getCause()));
             } else {
                 response.setException(new MotanBizException("provider call process error", e));
