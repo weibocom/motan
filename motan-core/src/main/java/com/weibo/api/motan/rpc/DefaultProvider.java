@@ -63,12 +63,12 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
             response.setValue(value);
         } catch (Exception e) {
             if (e.getCause() != null) {
-                //服务发生错误时，有机会显示stack trace
-                LoggerUtil.error("Exception caught when method invoke: " + e.getCause(), e);
                 response.setException(new MotanBizException("provider call process error", e.getCause()));
             } else {
                 response.setException(new MotanBizException("provider call process error", e));
             }
+            //服务发生错误时，显示详细日志
+            LoggerUtil.error("Exception caught when during method invocation. request:" + request.toString(), e);
         } catch (Throwable t) {
             // 如果服务发生Error，将Error转化为Exception，防止拖垮调用方
             if (t.getCause() != null) {
@@ -76,7 +76,8 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
             } else {
                 response.setException(new MotanServiceException("provider has encountered a fatal error!", t));
             }
-
+            //对于Throwable,也记录日志
+            LoggerUtil.error("Exception caught when during method invocation. request:" + request.toString(), e);
         }
         // 传递rpc版本和attachment信息方便不同rpc版本的codec使用。
         response.setRpcProtocolVersion(request.getRpcProtocolVersion());
