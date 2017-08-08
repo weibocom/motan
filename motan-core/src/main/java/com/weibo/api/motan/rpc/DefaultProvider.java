@@ -77,7 +77,7 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
                 response.setException(new MotanServiceException("provider has encountered a fatal error!", t));
             }
             //对于Throwable,也记录日志
-            LoggerUtil.error("Exception caught when during method invocation. request:" + request.toString(), e);
+            LoggerUtil.error("Exception caught when during method invocation. request:" + request.toString(), t);
         }
         // 传递rpc版本和attachment信息方便不同rpc版本的codec使用。
         response.setRpcProtocolVersion(request.getRpcProtocolVersion());
