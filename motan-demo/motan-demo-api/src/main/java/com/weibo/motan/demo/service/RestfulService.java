@@ -30,7 +30,7 @@ import java.util.List;
 public interface RestfulService {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    List<User> hello(@QueryParam("uid") int uid);
+    List<User> getUsers(@QueryParam("uid") int uid);
 
     @GET
     @Path("/primitive")

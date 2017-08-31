@@ -29,11 +29,11 @@ public class RestfulClient {
 
         // use restful
         RestfulService service1 = (RestfulService) ctx.getBean("restfulReferer");
-        System.out.println(service1.hello(345).get(0).getName());
+        System.out.println(service1.getUsers(345).get(0).getName());
 
         // use motan
         RestfulService service2 = (RestfulService) ctx.getBean("motanReferer");
-        System.out.println(service2.hello(789).get(0).getName());
+        System.out.println(service2.getUsers(789).get(0).getName());
     }
 
 }

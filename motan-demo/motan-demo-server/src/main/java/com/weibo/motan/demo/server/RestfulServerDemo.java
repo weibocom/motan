@@ -39,7 +39,7 @@ public class RestfulServerDemo implements RestfulService {
     }
 
     @Override
-    public List<User> hello(@CookieParam("uid") int uid) {
+    public List<User> getUsers(@CookieParam("uid") int uid) {
         return Arrays.asList(new User(uid, "name" + uid));
     }
 
