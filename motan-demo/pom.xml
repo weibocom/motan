@@ -22,7 +22,7 @@
     <parent>
         <groupId>com.weibo</groupId>
         <artifactId>motan</artifactId>
-        <version>0.2.4-SNAPSHOT</version>
+        <version>0.3.2-SNAPSHOT</version>
     </parent>
     <artifactId>motan-demo</artifactId>
     <name>motan-demo</name>
@@ -83,6 +83,11 @@
             <artifactId>protobuf-java</artifactId>
             <groupId>com.google.protobuf</groupId>
             <version>3.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.weibo</groupId>
+            <artifactId>motan-protocol-restful</artifactId>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

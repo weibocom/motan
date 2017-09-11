@@ -19,6 +19,8 @@ package com.weibo.api.motan.util;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Snapshot;
+import com.weibo.api.motan.closable.Closable;
+import com.weibo.api.motan.closable.ShutDownHook;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.rpc.Application;
@@ -57,6 +59,14 @@ public class StatsUtil {
                 logStatisticCallback();
             }
         }, MotanConstants.STATISTIC_PEROID, MotanConstants.STATISTIC_PEROID, TimeUnit.SECONDS);
+        ShutDownHook.registerShutdownHook(new Closable() {
+            @Override
+            public void close() {
+                if(!executorService.isShutdown()){
+                    executorService.shutdown();
+                }
+            }
+        });
     }
 
     public static void registryStatisticCallback(StatisticCallback callback) {

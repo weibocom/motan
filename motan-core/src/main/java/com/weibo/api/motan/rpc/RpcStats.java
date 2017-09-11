@@ -16,6 +16,9 @@
 
 package com.weibo.api.motan.rpc;
 
+import com.weibo.api.motan.closable.Closable;
+import com.weibo.api.motan.closable.ShutDownHook;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -39,7 +42,16 @@ public class RpcStats {
             new ConcurrentHashMap<String, ConcurrentHashMap<String, StatInfo>>();
 
     private static ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(1);
-
+    static{
+        ShutDownHook.registerShutdownHook(new Closable() {
+            @Override
+            public void close() {
+                if(!scheduledExecutor.isShutdown()){
+                    scheduledExecutor.shutdown();
+                }
+            }
+        });
+    }
     /**
      * call before invoke the request
      * 

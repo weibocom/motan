@@ -13,13 +13,12 @@
  */
 package com.weibo.api.motan.protocol.grpc;
 
+import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.rpc.DefaultResponseFuture;
+import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.URL;
 import io.grpc.ClientCall;
 import io.grpc.stub.StreamObserver;
-
-import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.ResponseFuture;
-import com.weibo.api.motan.rpc.URL;
 
 /**
  * 
@@ -29,7 +28,7 @@ import com.weibo.api.motan.rpc.URL;
  *
  * @param <RespT>
  */
-public class GrpcResponseFuture<RespT> extends ResponseFuture implements StreamObserver<RespT> {
+public class GrpcResponseFuture<RespT> extends DefaultResponseFuture implements StreamObserver<RespT> {
     private final ClientCall<?, RespT> call;
 
     public GrpcResponseFuture(Request requestObj, int timeout, URL serverUrl, ClientCall<?, RespT> call) {

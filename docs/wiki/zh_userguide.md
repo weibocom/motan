@@ -365,23 +365,26 @@ MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, f
 
 管理后台独立于Motan其他部分，可单独部署
 ### 管理后台安装
+
 1. 配置
     
-    修改配置文件config.properties，配置注册中心类型（zookeeper, consul）及注册中心地址，默认不使用数据库
-    
-    默认的登录用户及权限如下：
-        管理员：用户名admin 密码admin
-        访客：用户名guest 密码guest
-    
-    若需使用历史操作查询功能，则需配置数据库：
-        数据库表结构位于motan-manager.sql，可直接导入
-        数据库配置地址位于config.properties
-        在WEB-INF/web.xml的contextConfigLocation中添加classpath*:spring-mybaits.xml
+修改配置文件 application.properties，配置注册中心类型（zookeeper, consul）及注册中心地址，默认不使用数据库
+
+默认的登录用户及权限如下：
+
+管理员：用户名admin 密码admin  
+访客：用户名guest 密码guest
+
+若需使用历史操作查询功能，则需配置数据库：
+
+- 数据库表结构位于 motan-manager.sql，可直接导入
+- 数据库配置地址位于 application.properties
+- 修改 `MotanManagerApp` 注解 `@ImportResource(locations = {"classpath:spring-security.xml"})` 为
+`@ImportResource(locations = {"classpath:spring-mybatis.xml", "classpath:spring-security.xml"})`
 
 2. 启动
     
-    在motan-open/motan-manager/下执行mvn install
-    将motan-open/motan-manager/target/motan-manager.war部署到任意web容器中（如：tomcat的webapps目录下），运行web容器即可
+在 `motan/motan-manager/` 下执行 `mvn package`, 然后 `java -jar target/motan-manager.jar` 。
     
 ### 管理后台使用
 #### RPC服务查询

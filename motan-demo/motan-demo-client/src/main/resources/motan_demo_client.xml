@@ -24,7 +24,9 @@
     <!--<motan:registry regProtocol="local" name="registry"/>-->
     <!--<motan:registry regProtocol="consul" name="registry" address="127.0.0.1:8500"/>-->
     <!--<motan:registry regProtocol="zookeeper" name="registry" address="127.0.0.1:2181" connectTimeout="2000"/>-->
+
     <motan:registry regProtocol="direct" name="registry" address="127.0.0.1:8001"/>
+
 
     <!-- motan协议配置 -->
     <motan:protocol default="true" name="motan" haStrategy="failover"

@@ -21,7 +21,7 @@
     <parent>
         <groupId>com.weibo</groupId>
         <artifactId>motan</artifactId>
-        <version>0.2.4-SNAPSHOT</version>
+        <version>0.3.2-SNAPSHOT</version>
     </parent>
     <artifactId>motan-registry-consul</artifactId>
     <name>motan-registry-consul</name>
@@ -37,7 +37,7 @@
         <dependency>
             <groupId>com.ecwid.consul</groupId>
             <artifactId>consul-api</artifactId>
-            <version>1.1.4</version>
+            <version>1.2.1</version>
         </dependency>
     </dependencies>
 </project>

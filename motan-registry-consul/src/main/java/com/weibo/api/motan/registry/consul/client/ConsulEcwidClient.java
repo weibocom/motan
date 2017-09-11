@@ -12,7 +12,6 @@ import com.weibo.api.motan.registry.consul.ConsulResponse;
 import com.weibo.api.motan.registry.consul.ConsulService;
 import com.weibo.api.motan.registry.consul.ConsulUtils;
 import com.weibo.api.motan.util.LoggerUtil;
-import org.apache.commons.codec.binary.Base64;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,13 +53,13 @@ public class ConsulEcwidClient extends MotanConsulClient {
 		if (orgResponse != null && orgResponse.getValue() != null
 				&& !orgResponse.getValue().isEmpty()) {
 			List<HealthService> HealthServices = orgResponse.getValue();
-			List<ConsulService> ConsulServcies = new ArrayList<ConsulService>(
+			List<ConsulService> ConsulServices = new ArrayList<ConsulService>(
 					HealthServices.size());
 
 			for (HealthService orgService : HealthServices) {
 				try {
 					ConsulService newService = convertToConsulService(orgService);
-					ConsulServcies.add(newService);
+					ConsulServices.add(newService);
 				} catch (Exception e) {
 					String servcieid = "null";
 					if (orgService.getService() != null) {
@@ -71,9 +70,9 @@ public class ConsulEcwidClient extends MotanConsulClient {
 									+ servcieid, e);
 				}
 			}
-			if (!ConsulServcies.isEmpty()) {
+			if (!ConsulServices.isEmpty()) {
 				newResponse = new ConsulResponse<List<ConsulService>>();
-				newResponse.setValue(ConsulServcies);
+				newResponse.setValue(ConsulServices);
 				newResponse.setConsulIndex(orgResponse.getConsulIndex());
 				newResponse.setConsulLastContact(orgResponse
 						.getConsulLastContact());
@@ -93,7 +92,7 @@ public class ConsulEcwidClient extends MotanConsulClient {
         if (value == null) {
             LoggerUtil.info("no command in group: " + group);
         } else if (value.getValue() != null) {
-            command = new String(Base64.decodeBase64(value.getValue()));
+            command = value.getDecodedValue();
         }
         return command;
     }

@@ -65,9 +65,9 @@ public class DefaultRpcProtocolTest {
         }
 
         defaultRpcProtocol.export(new Provider<IHello>() {
+        	private IHello hello = new Hello();
             @Override
             public Response call(Request request) {
-                IHello hello = new Hello();
                 hello.hello();
                 return new DefaultResponse("hello");
             }
@@ -104,6 +104,11 @@ public class DefaultRpcProtocolTest {
             public Method lookupMethod(String methodName, String methodDesc) {
                 return null;
             }
+
+			@Override
+			public IHello getImpl() {
+				return hello;
+			}
 
         }, url);
 

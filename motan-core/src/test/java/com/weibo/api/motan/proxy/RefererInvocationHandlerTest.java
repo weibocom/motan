@@ -16,22 +16,19 @@
 
 package com.weibo.api.motan.proxy;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jmock.Expectations;
-import org.junit.Test;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanBizException;
 import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
+import org.jmock.Expectations;
+import org.junit.Test;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RefererInvocationHandlerTest extends BaseTestCase {
 
@@ -107,18 +104,59 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
         
         
     }
+    
+    @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void testAsync() {
+        final Cluster cluster = mockery.mock(Cluster.class);
+        final URL u = new URL("motan", "local", 80, "test");
+        u.addParameter(URLParamType.nodeType.getName(), MotanConstants.NODE_TYPE_REFERER);
+        final ResponseFuture response = mockery.mock(ResponseFuture.class);
+        mockery.checking(new Expectations() {
+            {
+                one(cluster).call(with(any(Request.class)));
+                will(returnValue(response));
+                allowing(cluster).getUrl();
+                will(returnValue(u));
+                allowing(response).setReturnType(with(any(Class.class)));
+            }
+        });
 
-    interface TestService{
+        List<Cluster> clus = new ArrayList<Cluster>();
+        clus.add(cluster);
+        RefererInvocationHandler handler = new RefererInvocationHandler(String.class, clus);
+        Method method;
+        try {
+            method = TestService.class.getMethod("helloAsync", new Class<?>[] {});
+            ResponseFuture res = (ResponseFuture) handler.invoke(null, method, null);
+            assertEquals(response, res);
+            assertTrue((Boolean) RpcContext.getContext().getAttribute(MotanConstants.ASYNC_SUFFIX));
+        } catch (Throwable e) {
+            e.printStackTrace();
+            assertTrue(false);
+        }
+
+    }
+
+    interface TestService {
         String hello();
+
+        ResponseFuture helloAsync();
+
         boolean equals(Object o);
     }
-    
-    class TestServiceImpl implements TestService{
+
+    class TestServiceImpl implements TestService {
         @Override
         public String hello() {
             return "hello";
         }
-        
+
+        @Override
+        public ResponseFuture helloAsync() {
+            return null;
+        }
+
     }
 
 }

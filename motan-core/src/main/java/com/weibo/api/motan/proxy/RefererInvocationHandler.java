@@ -21,6 +21,7 @@ import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
+import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.serialize.DeserializableObject;
@@ -29,6 +30,7 @@ import com.weibo.api.motan.switcher.SwitcherService;
 import com.weibo.api.motan.util.*;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -47,6 +49,7 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
     private List<Cluster<T>> clusters;
     private Class<T> clz;
     private SwitcherService switcherService = null;
+    private String interfaceName;
 
     public RefererInvocationHandler(Class<T> clz, Cluster<T> cluster) {
         this.clz = clz;
@@ -68,11 +71,12 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
         String switchName =
                 this.clusters.get(0).getUrl().getParameter(URLParamType.switcherService.getName(), URLParamType.switcherService.getValue());
         switcherService = ExtensionLoader.getExtensionLoader(SwitcherService.class).getExtension(switchName);
+        interfaceName = MotanFrameworkUtil.removeAsyncSuffix(clz.getName());
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        if(isLocalMethod(method)){
-            if("toString".equals(method.getName())){
+        if (isLocalMethod(method)) {
+            if ("toString".equals(method.getName())) {
                 return clustersToString();
             }
             if("equals".equals(method.getName())){
@@ -81,12 +85,18 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
             throw new MotanServiceException("can not invoke local method:" + method.getName());
         }
         DefaultRequest request = new DefaultRequest();
-
         request.setRequestId(RequestIdGenerator.getRequestId());
         request.setArguments(args);
-        request.setMethodName(method.getName());
+        String methodName = method.getName();
+        boolean async = false;
+        if (methodName.endsWith(MotanConstants.ASYNC_SUFFIX) && method.getReturnType().equals(ResponseFuture.class)) {
+            methodName = MotanFrameworkUtil.removeAsyncSuffix(methodName);
+            async = true;
+        }
+        RpcContext.getContext().putAttribute(MotanConstants.ASYNC_SUFFIX, async);
+        request.setMethodName(methodName);
         request.setParamtersDesc(ReflectUtil.getMethodParamDesc(method));
-        request.setInterfaceName(clz.getName());
+        request.setInterfaceName(interfaceName);
         RpcContext curContext = RpcContext.getContext();
         Map<String, String> attachments = curContext.getRpcAttachments();
         if (!attachments.isEmpty()) { // set rpccontext attachments to request
@@ -121,11 +131,21 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
                             URLParamType.throwException.getValue()));
             try {
                 response = cluster.call(request);
-                Object value = response.getValue();
-                if(value != null && value instanceof DeserializableObject){
-                    value = ((DeserializableObject)value).deserialize(method.getReturnType());
+                if (async && response instanceof ResponseFuture) {
+                    ((ResponseFuture) response).setReturnType(method.getReturnType());
+                    return response;
+                } else {
+                    Object value = response.getValue();
+                    if(value != null && value instanceof DeserializableObject){
+                        try {
+                            value = ((DeserializableObject)value).deserialize(method.getReturnType());
+                        } catch (IOException e) {
+                            LoggerUtil.error("deserialize response value fail! deserialize type:" + method.getReturnType(), e);
+                            throw new MotanFrameworkException("deserialize return value fail! deserialize type:" + method.getReturnType(), e);
+                        }
+                    }
+                    return value;
                 }
-                return value;
             } catch (RuntimeException e) {
                 if (ExceptionUtil.isBizException(e)) {
                     Throwable t = e.getCause();

@@ -27,7 +27,7 @@ import java.lang.reflect.Method;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-23
- * 
+ *
  */
 @SpiMeta(name = "motan")
 public class DefaultProvider<T> extends AbstractProvider<T> {
@@ -36,6 +36,11 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
     public DefaultProvider(T proxyImpl, URL url, Class<T> clz) {
         super(url, clz);
         this.proxyImpl = proxyImpl;
+    }
+
+    @Override
+    public T getImpl(){
+    	return proxyImpl;
     }
 
     @Override
@@ -58,11 +63,12 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
             response.setValue(value);
         } catch (Exception e) {
             if (e.getCause() != null) {
-                LoggerUtil.error("Exception caught when method invoke: " + e.getCause());
                 response.setException(new MotanBizException("provider call process error", e.getCause()));
             } else {
                 response.setException(new MotanBizException("provider call process error", e));
             }
+            //服务发生错误时，显示详细日志
+            LoggerUtil.error("Exception caught when during method invocation. request:" + request.toString(), e);
         } catch (Throwable t) {
             // 如果服务发生Error，将Error转化为Exception，防止拖垮调用方
             if (t.getCause() != null) {
@@ -70,7 +76,8 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
             } else {
                 response.setException(new MotanServiceException("provider has encountered a fatal error!", t));
             }
-
+            //对于Throwable,也记录日志
+            LoggerUtil.error("Exception caught when during method invocation. request:" + request.toString(), t);
         }
         // 传递rpc版本和attachment信息方便不同rpc版本的codec使用。
         response.setRpcProtocolVersion(request.getRpcProtocolVersion());

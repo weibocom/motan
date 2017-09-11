@@ -202,7 +202,7 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                 serviceConfig.setBeanFactory(beanFactory);
 
                 if (service.basicService() != null && service.basicService().length() > 0) {
-                    serviceConfig.setBasicServiceConfig(beanFactory.getBean(service.basicService(), BasicServiceInterfaceConfig.class));
+                    serviceConfig.setBasicService(beanFactory.getBean(service.basicService(), BasicServiceInterfaceConfig.class));
                 }
 
                 if (service.export() != null && service.export().length() > 0) {

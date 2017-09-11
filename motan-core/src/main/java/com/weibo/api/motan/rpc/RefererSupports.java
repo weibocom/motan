@@ -21,6 +21,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.weibo.api.motan.closable.Closable;
+import com.weibo.api.motan.closable.ShutDownHook;
 import com.weibo.api.motan.util.LoggerUtil;
 
 /**
@@ -34,7 +36,16 @@ public class RefererSupports {
 
     // 正常情况下请求超过1s已经是能够忍耐的极限值了，delay 1s进行destroy
     private static final int DELAY_TIME = 1000;
-
+    static{
+        ShutDownHook.registerShutdownHook(new Closable() {
+            @Override
+            public void close() {
+                if(!scheduledExecutor.isShutdown()){
+                    scheduledExecutor.shutdown();
+                }
+            }
+        });
+    }
     public static <T> void delayDestroy(final List<Referer<T>> referers) {
         if (referers == null || referers.isEmpty()) {
             return;
