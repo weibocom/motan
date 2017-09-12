@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~
+  ~   Copyright 2009-2016 Weibo, Inc.
+  ~
+  ~     Licensed under the Apache License, Version 2.0 (the "License");
+  ~     you may not use this file except in compliance with the License.
+  ~     You may obtain a copy of the License at
+  ~
+  ~         http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~     Unless required by applicable law or agreed to in writing, software
+  ~     distributed under the License is distributed on an "AS IS" BASIS,
+  ~     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~     See the License for the specific language governing permissions and
+  ~     limitations under the License.
+  ~
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:motan="http://api.weibo.com/schema/motan"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://api.weibo.com/schema/motan http://api.weibo.com/schema/motan.xsd">
+
+    <!-- 注册中心配置 使用不同注册中心需要依赖对应的jar包。-->
+    <!--<motan:registry regProtocol="local" name="registry"/>-->
+    <!--<motan:registry regProtocol="consul" name="registry" address="127.0.0.1:8500"/>-->
+    <!--<motan:registry regProtocol="zookeeper" name="registry" address="127.0.0.1:2181" connectTimeout="2000"/>-->
+
+    <motan:registry regProtocol="direct" name="registry" address="127.0.0.1:8001"/>
+    <motan:registry regProtocol="direct" name="registry2" address="127.0.0.1:8002"/>
+    <motan:registry regProtocol="direct" name="registry3" address="127.0.0.1:8003"/>
+
+
+    <!-- motan2 with hessian serialization -->
+    <motan:protocol id="motan2" name="motan2" haStrategy="failover"
+                    loadbalance="roundrobin" maxClientConnection="10" minClientConnection="2"/>
+
+    <!-- motan2 with simple serialization -->
+    <motan:protocol id="motan2-simple" name="motan2" haStrategy="failover" serialization="simple"
+                    loadbalance="roundrobin" maxClientConnection="10" minClientConnection="2"/>
+    <!-- motan2 with pb serialization -->
+    <motan:protocol id="motan2-pb" name="motan2" haStrategy="failover" serialization="protobuf"
+                    loadbalance="roundrobin" maxClientConnection="10" minClientConnection="2"/>
+
+    <!-- 通用referer基础配置 -->
+    <motan:basicReferer requestTimeout="200" accessLog="false"
+                        retries="2" group="motan-demo-rpc" module="motan-demo-rpc"
+                        application="myMotanDemo" protocol="motan2" registry="registry"
+                        id="motantestClientBasicConfig" throwException="true" check="true"/>
+
+    <!-- 具体referer配置。使用方通过beanid使用服务接口类 -->
+    <motan:referer id="motanDemoReferer"
+                   interface="com.weibo.motan.demo.service.MotanDemoService"
+                   connectTimeout="1000" requestTimeout="1000" basicReferer="motantestClientBasicConfig"/>
+    <motan:referer id="motanDemoReferer-simple" registry="registry2"
+                   interface="com.weibo.motan.demo.service.MotanDemoService" protocol="motan2-simple"
+                   connectTimeout="1000" requestTimeout="1000" basicReferer="motantestClientBasicConfig"/>
+    <motan:referer id="motanDemoReferer-pb" registry="registry3"
+                   interface="com.weibo.motan.demo.service.PbParamService" protocol="motan2-pb"
+                   connectTimeout="1000" requestTimeout="1000" basicReferer="motantestClientBasicConfig"/>
+</beans>

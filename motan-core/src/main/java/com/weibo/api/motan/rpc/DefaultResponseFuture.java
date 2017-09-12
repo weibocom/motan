@@ -266,7 +266,7 @@ public class DefaultResponseFuture implements ResponseFuture {
             throw (exception instanceof RuntimeException) ? (RuntimeException) exception : new MotanServiceException(
                     exception.getMessage(), exception);
         }
-        if (result != null && result instanceof DeserializableObject) {
+        if (result != null && returnType != null && result instanceof DeserializableObject) {
             try {
                 result = ((DeserializableObject) result).deserialize(returnType);
             } catch (IOException e) {

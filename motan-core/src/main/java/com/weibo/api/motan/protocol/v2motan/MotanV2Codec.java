@@ -49,7 +49,6 @@ import static com.weibo.api.motan.common.MotanConstants.*;
 @SpiMeta(name = "motan2")
 public class MotanV2Codec extends AbstractCodec {
 
-    private static final String defaultV2Serialization = "grpc-pb";
     private static final byte MASK = 0x07;
     private static final int HEADER_SIZE = 13;
 
@@ -63,7 +62,7 @@ public class MotanV2Codec extends AbstractCodec {
         try {
             MotanV2Header header = new MotanV2Header();
             byte[] body = null;
-            String serialName = channel.getUrl().getParameter(URLParamType.serialize.getName(), defaultV2Serialization);
+            String serialName = channel.getUrl().getParameter(URLParamType.serialize.getName(), URLParamType.serialize.getValue());
             Serialization serialization = ExtensionLoader.getExtensionLoader(Serialization.class).getExtension(serialName);
             if (serialization == null) {
                 throw new MotanServiceException("can not found serialization " + serialName);

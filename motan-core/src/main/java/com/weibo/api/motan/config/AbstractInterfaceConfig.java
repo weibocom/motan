@@ -22,7 +22,6 @@ import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.registry.RegistryService;
-import com.weibo.api.motan.rpc.ApplicationInfo;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.ReflectUtil;
@@ -115,7 +114,17 @@ public class AbstractInterfaceConfig extends AbstractConfig {
     protected Integer mingzSize;
 
     protected String codec;
+
     protected String localServiceAddress;
+
+    protected Integer backupRequstDelayTime;
+
+    protected String backupRequstDelayRatio;
+
+    protected String backupRequstSwitcherName;
+
+    protected String backupRequstMaxRetryRatio;
+
 
     public Integer getRetries() {
         return retries;
@@ -318,6 +327,38 @@ public class AbstractInterfaceConfig extends AbstractConfig {
         this.codec = codec;
     }
 
+    public Integer getBackupRequstDelayTime() {
+        return backupRequstDelayTime;
+    }
+
+    public void setBackupRequstDelayTime(Integer backupRequstDelayTime) {
+        this.backupRequstDelayTime = backupRequstDelayTime;
+    }
+
+    public String getBackupRequstDelayRatio() {
+        return backupRequstDelayRatio;
+    }
+
+    public void setBackupRequstDelayRatio(String backupRequstDelayRatio) {
+        this.backupRequstDelayRatio = backupRequstDelayRatio;
+    }
+
+    public String getBackupRequstSwitcherName() {
+        return backupRequstSwitcherName;
+    }
+
+    public void setBackupRequstSwitcherName(String backupRequstSwitcherName) {
+        this.backupRequstSwitcherName = backupRequstSwitcherName;
+    }
+
+    public String getBackupRequstMaxRetryRatio() {
+        return backupRequstMaxRetryRatio;
+    }
+
+    public void setBackupRequstMaxRetryRatio(String backupRequstMaxRetryRatio) {
+        this.backupRequstMaxRetryRatio = backupRequstMaxRetryRatio;
+    }
+
     protected List<URL> loadRegistryUrls() {
         List<URL> registryList = new ArrayList<URL>();
         if (registries != null && !registries.isEmpty()) {
@@ -419,7 +460,4 @@ public class AbstractInterfaceConfig extends AbstractConfig {
                 MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
     }
 
-    protected void initLocalAppInfo(URL localUrl) {
-        ApplicationInfo.addService(localUrl);
-    }
 }

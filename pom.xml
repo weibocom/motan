@@ -35,7 +35,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.source.jdk>1.6</java.source.jdk>
+        <java.source.jdk>1.7</java.source.jdk>
         <spring-framework.version>4.2.4.RELEASE</spring-framework.version>
     </properties>
 

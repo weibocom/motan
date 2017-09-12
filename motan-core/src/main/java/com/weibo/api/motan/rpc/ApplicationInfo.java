@@ -16,9 +16,6 @@
 
 package com.weibo.api.motan.rpc;
 
-import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.common.URLParamType;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -28,35 +25,29 @@ import java.util.concurrent.ConcurrentMap;
  * @author fishermen
  * @version V1.0 created at: 2013-6-20
  */
-
+@Deprecated()
 public class ApplicationInfo {
 
     public static final String STATISTIC = "statisitic";
     public static final ConcurrentMap<String, Application> applications = new ConcurrentHashMap<String, Application>();
-    private static String CLIENT = "-client";
 
     public static Application getApplication(URL url) {
-        Application application = applications.get(url.getPath());
-        if (application == null && MotanConstants.NODE_TYPE_REFERER.equals(url.getParameter(URLParamType.nodeType.getName()))) {
-            application = applications.get(url.getPath() + CLIENT);
-            if(application == null){
-                String app = url.getParameter(URLParamType.application.getName(), URLParamType.application.getValue()) + CLIENT;
-                String module = url.getParameter(URLParamType.module.getName(), URLParamType.module.getValue()) + CLIENT;
-
-                applications.putIfAbsent(url.getPath() + CLIENT, new Application(app, module));
-                application = applications.get(url.getPath() + CLIENT);
-            }
+        String app = url.getApplication();
+        String module = url.getModule();
+        Application application = applications.get(app + "_" + module);
+        if (application == null) {
+            applications.putIfAbsent(app + "_" + module, new Application(app, module));
+            application = applications.get(app + "_" + module);
         }
         return application;
     }
 
     public static void addService(URL url) {
-        Application application = applications.get(url.getPath());
+        String app = url.getApplication();
+        String module = url.getModule();
+        Application application = applications.get(app + "_" + module);
         if (application == null) {
-            String app = url.getParameter(URLParamType.application.getName(), URLParamType.application.getValue());
-            String module = url.getParameter(URLParamType.module.getName(), URLParamType.module.getValue());
-
-            applications.putIfAbsent(url.getPath(), new Application(app, module));
+            applications.putIfAbsent(app + "_" + module, new Application(app, module));
         }
     }
 }

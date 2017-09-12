@@ -122,8 +122,8 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
             request.setAttachment(URLParamType.version.getName(), cluster.getUrl().getVersion());
             request.setAttachment(URLParamType.clientGroup.getName(), cluster.getUrl().getGroup());
             // 带上client的application和module
-            request.setAttachment(URLParamType.application.getName(), ApplicationInfo.getApplication(cluster.getUrl()).getApplication());
-            request.setAttachment(URLParamType.module.getName(), ApplicationInfo.getApplication(cluster.getUrl()).getModule());
+            request.setAttachment(URLParamType.application.getName(), cluster.getUrl().getApplication());
+            request.setAttachment(URLParamType.module.getName(), cluster.getUrl().getModule());
 
             Response response = null;
             boolean throwException =

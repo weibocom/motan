@@ -59,6 +59,7 @@ public abstract class AbstractPoolClient extends AbstractClient {
         boolean lazyInit = url.getBooleanParameter(URLParamType.lazyInit.getName(), URLParamType.lazyInit.getBooleanValue());
 
         if (!lazyInit) {
+            //TODO async connect
             for (int i = 0; i < poolConfig.minIdle; i++) {
                 try {
                     pool.addObject();

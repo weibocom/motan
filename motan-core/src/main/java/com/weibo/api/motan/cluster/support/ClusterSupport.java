@@ -299,6 +299,7 @@ public class ClusterSupport<T> implements NotifyListener {
         cluster = ExtensionLoader.getExtensionLoader(Cluster.class).getExtension(clusterName);
         LoadBalance<T> loadBalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(loadbalanceName);
         HaStrategy<T> ha = ExtensionLoader.getExtensionLoader(HaStrategy.class).getExtension(haStrategyName);
+        ha.setUrl(url);
         cluster.setLoadBalance(loadBalance);
         cluster.setHaStrategy(ha);
         cluster.setUrl(url);

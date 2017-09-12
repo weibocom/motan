@@ -209,8 +209,6 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         ConfigHandler configHandler = ExtensionLoader.getExtensionLoader(ConfigHandler.class).getExtension(MotanConstants.DEFAULT_VALUE);
 
         exporters.add(configHandler.export(interfaceClass, ref, urls));
-
-        initLocalAppInfo(serviceUrl);
     }
 
     private void afterExport() {

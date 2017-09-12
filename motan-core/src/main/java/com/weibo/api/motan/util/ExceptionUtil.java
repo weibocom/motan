@@ -23,75 +23,84 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-14
- * 
  */
 public class ExceptionUtil {
 
     /**
      * 判定是否是业务方的逻辑抛出的异常
-     * 
+     * <p>
      * <pre>
-	 * 		true: 来自业务方的异常
-	 * 		false: 来自框架本身的异常
-	 * </pre>
-     * 
+     * 		true: 来自业务方的异常
+     * 		false: 来自框架本身的异常
+     * </pre>
+     *
      * @param e
      * @return
      */
+    @Deprecated
     public static boolean isBizException(Exception e) {
         return e instanceof MotanBizException;
+    }
+
+    public static boolean isBizException(Throwable t) {
+        return t instanceof MotanBizException;
     }
 
 
     /**
      * 是否框架包装过的异常
-     * 
+     *
      * @param e
      * @return
      */
+    @Deprecated
     public static boolean isMotanException(Exception e) {
         return e instanceof MotanAbstractException;
     }
 
-    public static String toMessage(Exception e){
+    public static boolean isMotanException(Throwable t) {
+        return t instanceof MotanAbstractException;
+    }
+
+    public static String toMessage(Exception e) {
         JSONObject jsonObject = new JSONObject();
         int type = 1;
         int code = 500;
         String errmsg = null;
 
-        if(e instanceof MotanFrameworkException){
-            MotanFrameworkException mfe = (MotanFrameworkException)e;
+        if (e instanceof MotanFrameworkException) {
+            MotanFrameworkException mfe = (MotanFrameworkException) e;
             type = 0;
             code = mfe.getErrorCode();
             errmsg = mfe.getOriginMessage();
-        } else if(e instanceof MotanServiceException){
+        } else if (e instanceof MotanServiceException) {
             MotanServiceException mse = (MotanServiceException) e;
             type = 1;
             code = mse.getErrorCode();
             errmsg = mse.getOriginMessage();
-        } else if(e instanceof MotanBizException){
+        } else if (e instanceof MotanBizException) {
             MotanBizException mbe = (MotanBizException) e;
             type = 2;
             code = mbe.getErrorCode();
             errmsg = mbe.getOriginMessage();
-        } else{
+        } else {
             errmsg = e.getMessage();
         }
-        jsonObject.put("errcode",code);
+        jsonObject.put("errcode", code);
         jsonObject.put("errmsg", errmsg);
         jsonObject.put("errtype", type);
         return jsonObject.toString();
     }
 
-    public static MotanAbstractException fromMessage(String msg){
-        if(StringUtils.isNotBlank(msg)){
-            try{
+    public static MotanAbstractException fromMessage(String msg) {
+        if (StringUtils.isNotBlank(msg)) {
+            try {
                 JSONObject jsonObject = JSONObject.parseObject(msg);
                 int type = jsonObject.getIntValue("errtype");
                 int errcode = jsonObject.getIntValue("errcode");
                 String errmsg = jsonObject.getString("errmsg");
                 MotanAbstractException e = null;
-                switch(type){
+                switch (type) {
                     case 1:
                         e = new MotanServiceException(errmsg, new MotanErrorMsg(errcode, errcode, errmsg));
                         break;
@@ -99,10 +108,10 @@ public class ExceptionUtil {
                         e = new MotanBizException(errmsg, new MotanErrorMsg(errcode, errcode, errmsg));
                         break;
                     default:
-                        e =  new MotanFrameworkException(errmsg, new MotanErrorMsg(errcode, errcode, errmsg));
+                        e = new MotanFrameworkException(errmsg, new MotanErrorMsg(errcode, errcode, errmsg));
                 }
                 return e;
-            }catch(Exception e){
+            } catch (Exception e) {
                 LoggerUtil.warn("build exception from msg fail. msg:" + msg);
             }
         }

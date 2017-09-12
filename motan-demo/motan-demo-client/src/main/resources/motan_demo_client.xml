@@ -36,7 +36,7 @@
     <motan:basicReferer requestTimeout="200" accessLog="false"
                         retries="2" group="motan-demo-rpc" module="motan-demo-rpc"
                         application="myMotanDemo" protocol="motan" registry="registry"
-                        id="motantestClientBasicConfig" throwException="false" check="true"/>
+                        id="motantestClientBasicConfig" throwException="true" check="true"/>
 
     <!-- 具体referer配置。使用方通过beanid使用服务接口类 -->
     <motan:referer id="motanDemoReferer"

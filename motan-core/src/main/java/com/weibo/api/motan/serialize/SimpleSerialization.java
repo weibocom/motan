@@ -32,6 +32,7 @@ import java.util.Map.Entry;
 
 /**
  * Created by zhanglei28 on 2017/6/8.
+ * olny support Null, String, Map<String,String>
  */
 @SpiMeta(name = "simple")
 public class SimpleSerialization implements Serialization {
