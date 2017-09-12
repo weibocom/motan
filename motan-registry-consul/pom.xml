@@ -21,7 +21,7 @@
     <parent>
         <groupId>com.weibo</groupId>
         <artifactId>motan</artifactId>
-        <version>0.3.2-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>motan-registry-consul</artifactId>
     <name>motan-registry-consul</name>

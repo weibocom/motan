@@ -21,7 +21,7 @@
     <parent>
         <groupId>com.weibo</groupId>
         <artifactId>protocol-extension</artifactId>
-        <version>0.3.2-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>motan-protocol-yar</artifactId>
     <name>motan-protocol-yar</name>

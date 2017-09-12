@@ -12,7 +12,7 @@
     <parent>
         <groupId>com.weibo</groupId>
         <artifactId>motan-extension</artifactId>
-        <version>0.3.2-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>protocol-extension</artifactId>
     <name>protocol-extension</name>
