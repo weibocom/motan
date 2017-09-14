@@ -121,10 +121,10 @@ public enum URLParamType {
 
     localServiceAddress("localServiceAddress", ""),
     // backupRequest
-    backupRequstDelayTime("backupRequstDelayTime", 0),
-    backupRequstDelayRatio("backupRequstDelayRatio", "0.4"),
-    backupRequstSwitcherName("backupRequstSwitcherName", ""),
-    backupRequstMaxRetryRatio("backupRequstMaxRetryRatio", "0.15"),
+    backupRequestDelayTime("backupRequestDelayTime", 0),
+    backupRequestDelayRatio("backupRequestDelayRatio", "0.4"),
+    backupRequestSwitcherName("backupRequestSwitcherName", ""),
+    backupRequestMaxRetryRatio("backupRequestMaxRetryRatio", "0.15"),
 
     // 切换group时，各个group的权重比。默认无权重
     weights("weights", "");

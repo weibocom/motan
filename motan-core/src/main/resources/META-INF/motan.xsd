@@ -256,22 +256,22 @@
                         <xsd:documentation><![CDATA[ 协议编码. ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
-                <xsd:attribute name="backupRequstDelayTime" type="xsd:integer" use="optional">
+                <xsd:attribute name="backupRequestDelayTime" type="xsd:integer" use="optional">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[ The backup request delay time. ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
-                <xsd:attribute name="backupRequstDelayRatio" type="xsd:string" use="optional">
+                <xsd:attribute name="backupRequestDelayRatio" type="xsd:string" use="optional">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[ The backup request delay ratio of request. ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
-                <xsd:attribute name="backupRequstSwitcherName" type="xsd:string" use="optional">
+                <xsd:attribute name="backupRequestSwitcherName" type="xsd:string" use="optional">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[ The backup request switch name on refer. ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
-                <xsd:attribute name="backupRequstMaxRetryRatio" type="xsd:string" use="optional">
+                <xsd:attribute name="backupRequestMaxRetryRatio" type="xsd:string" use="optional">
                     <xsd:annotation>
                         <xsd:documentation>
                             <![CDATA[ The backup request max retry ratio of request. ]]></xsd:documentation>

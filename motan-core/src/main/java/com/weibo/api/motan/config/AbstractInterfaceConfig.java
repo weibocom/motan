@@ -117,13 +117,13 @@ public class AbstractInterfaceConfig extends AbstractConfig {
 
     protected String localServiceAddress;
 
-    protected Integer backupRequstDelayTime;
+    protected Integer backupRequestDelayTime;
 
-    protected String backupRequstDelayRatio;
+    protected String backupRequestDelayRatio;
 
-    protected String backupRequstSwitcherName;
+    protected String backupRequestSwitcherName;
 
-    protected String backupRequstMaxRetryRatio;
+    protected String backupRequestMaxRetryRatio;
 
 
     public Integer getRetries() {
@@ -327,36 +327,36 @@ public class AbstractInterfaceConfig extends AbstractConfig {
         this.codec = codec;
     }
 
-    public Integer getBackupRequstDelayTime() {
-        return backupRequstDelayTime;
+    public Integer getBackupRequestDelayTime() {
+        return backupRequestDelayTime;
     }
 
-    public void setBackupRequstDelayTime(Integer backupRequstDelayTime) {
-        this.backupRequstDelayTime = backupRequstDelayTime;
+    public void setBackupRequestDelayTime(Integer backupRequestDelayTime) {
+        this.backupRequestDelayTime = backupRequestDelayTime;
     }
 
-    public String getBackupRequstDelayRatio() {
-        return backupRequstDelayRatio;
+    public String getBackupRequestDelayRatio() {
+        return backupRequestDelayRatio;
     }
 
-    public void setBackupRequstDelayRatio(String backupRequstDelayRatio) {
-        this.backupRequstDelayRatio = backupRequstDelayRatio;
+    public void setBackupRequestDelayRatio(String backupRequestDelayRatio) {
+        this.backupRequestDelayRatio = backupRequestDelayRatio;
     }
 
-    public String getBackupRequstSwitcherName() {
-        return backupRequstSwitcherName;
+    public String getBackupRequestSwitcherName() {
+        return backupRequestSwitcherName;
     }
 
-    public void setBackupRequstSwitcherName(String backupRequstSwitcherName) {
-        this.backupRequstSwitcherName = backupRequstSwitcherName;
+    public void setBackupRequestSwitcherName(String backupRequestSwitcherName) {
+        this.backupRequestSwitcherName = backupRequestSwitcherName;
     }
 
-    public String getBackupRequstMaxRetryRatio() {
-        return backupRequstMaxRetryRatio;
+    public String getBackupRequestMaxRetryRatio() {
+        return backupRequestMaxRetryRatio;
     }
 
-    public void setBackupRequstMaxRetryRatio(String backupRequstMaxRetryRatio) {
-        this.backupRequstMaxRetryRatio = backupRequstMaxRetryRatio;
+    public void setBackupRequestMaxRetryRatio(String backupRequestMaxRetryRatio) {
+        this.backupRequestMaxRetryRatio = backupRequestMaxRetryRatio;
     }
 
     protected List<URL> loadRegistryUrls() {
