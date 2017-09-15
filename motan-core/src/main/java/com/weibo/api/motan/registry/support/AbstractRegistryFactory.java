@@ -17,7 +17,6 @@
 package com.weibo.api.motan.registry.support;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
 
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
@@ -48,7 +47,6 @@ public abstract class AbstractRegistryFactory implements RegistryFactory {
     public Registry getRegistry(URL url) {
         String registryUri = getRegistryUri(url);
         try {
-            lock.lock();
             Registry registry = registries.get(registryUri);
             if (registry != null) {
                 return registry;
@@ -57,12 +55,10 @@ public abstract class AbstractRegistryFactory implements RegistryFactory {
             if (registry == null) {
                 throw new MotanFrameworkException("Create registry false for url:" + url, MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
             }
-            registries.put(registryUri, registry);
+            registries.putIfAbsent(registryUri, registry);
             return registry;
         } catch (Exception e) {
             throw new MotanFrameworkException("Create registry false for url:" + url, e, MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
-        } finally {
-            lock.unlock();
         }
     }
 
