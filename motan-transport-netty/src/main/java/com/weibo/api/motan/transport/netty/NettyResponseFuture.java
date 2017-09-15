@@ -95,11 +95,12 @@ public class NettyResponseFuture implements ResponseFuture {
 
 	@Override
 	public Object getValue() {
-		synchronized (lock) {
-			if (!isDoing()) {
-				return getValueOrThrowable();
-			}
+		if (!isDoing()) {
+			return getValueOrThrowable();
+		}
 
+		boolean interrupted = false;
+		synchronized (lock) {
 			if (timeout <= 0) {
 				try {
 					lock.wait();
@@ -111,7 +112,6 @@ public class NettyResponseFuture implements ResponseFuture {
 
 				// don't need to notifylisteners, because onSuccess or
 				// onFailure or cancel method already call notifylisteners
-				return getValueOrThrowable();
 			} else {
 				long waitTime = timeout - (System.currentTimeMillis() - createTime);
 
@@ -120,6 +120,8 @@ public class NettyResponseFuture implements ResponseFuture {
 						try {
 							lock.wait(waitTime);
 						} catch (InterruptedException e) {
+							// Interrupted while waiting.
+							interrupted = true;
 						}
 
 						if (!isDoing()) {
@@ -137,8 +139,13 @@ public class NettyResponseFuture implements ResponseFuture {
 					timeoutSoCancel();
 				}
 			}
-			return getValueOrThrowable();
 		}
+
+		if (interrupted) {
+			Thread.currentThread().interrupt();
+		}
+
+		return getValueOrThrowable();
 	}
 
 	@Override
