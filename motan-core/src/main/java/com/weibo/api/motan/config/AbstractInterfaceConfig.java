@@ -125,6 +125,9 @@ public class AbstractInterfaceConfig extends AbstractConfig {
 
     protected String backupRequestMaxRetryRatio;
 
+    // 是否需要传输rpc server 端业务异常栈。默认true
+    protected Boolean transExceptionStack;
+
 
     public Integer getRetries() {
         return retries;
@@ -357,6 +360,14 @@ public class AbstractInterfaceConfig extends AbstractConfig {
 
     public void setBackupRequestMaxRetryRatio(String backupRequestMaxRetryRatio) {
         this.backupRequestMaxRetryRatio = backupRequestMaxRetryRatio;
+    }
+
+    public Boolean getTransExceptionStack() {
+        return transExceptionStack;
+    }
+
+    public void setTransExceptionStack(Boolean transExceptionStack) {
+        this.transExceptionStack = transExceptionStack;
     }
 
     protected List<URL> loadRegistryUrls() {

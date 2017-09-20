@@ -125,7 +125,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 			// available，那么将会自动把该client设置成可用
 			request(request, true);
 		} catch (Exception e) {
-			LoggerUtil.error("NettyClient heartbeat Error: url=" + url.getUri(), e);
+			LoggerUtil.error("NettyClient heartbeat Error: url=" + url.getUri() + ", " + e.getMessage());
 		}
 	}
 
@@ -165,7 +165,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 			returnObject(channel);
 		} catch (Exception e) {
 			LoggerUtil.error(
-					"NettyClient request Error: url=" + url.getUri() + " " + MotanFrameworkUtil.toString(request), e);
+					"NettyClient request Error: url=" + url.getUri() + " " + MotanFrameworkUtil.toString(request) + ", " + e.getMessage());
 			//TODO 对特定的异常回收channel
 			invalidateObject(channel);
 

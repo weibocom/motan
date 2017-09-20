@@ -144,6 +144,11 @@
                         <xsd:documentation><![CDATA[ throwException. ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
+                <xsd:attribute name="transExceptionStack" type="xsd:string" use="optional">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[ server 端是否传输业务异常栈. ]]></xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
                 <xsd:attribute name="requestTimeout" type="xsd:string" use="optional">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[ requestTimeout. ]]></xsd:documentation>

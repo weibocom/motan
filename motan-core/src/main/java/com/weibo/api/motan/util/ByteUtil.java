@@ -156,7 +156,7 @@ public class ByteUtil {
     public static byte[] unGzip(byte[] data) throws IOException {
         GZIPInputStream gzip = null;
         try {
-            new GZIPInputStream(new ByteArrayInputStream(data));
+            gzip = new GZIPInputStream(new ByteArrayInputStream(data));
             byte[] buf = new byte[2048];
             int size = -1;
             ByteArrayOutputStream bos = new ByteArrayOutputStream(data.length + 1024);

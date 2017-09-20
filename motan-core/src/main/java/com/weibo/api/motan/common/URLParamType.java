@@ -118,6 +118,7 @@ public enum URLParamType {
     register("register", true), 
     subscribe("subscribe", true), 
     throwException("throwException", "true"),
+    transExceptionStack("transExceptionStack", true),
 
     localServiceAddress("localServiceAddress", ""),
     // backupRequest

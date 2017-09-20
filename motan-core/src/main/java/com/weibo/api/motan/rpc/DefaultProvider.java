@@ -16,10 +16,12 @@
 
 package com.weibo.api.motan.rpc;
 
+import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanBizException;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.util.ExceptionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
 
 import java.lang.reflect.Method;
@@ -78,6 +80,14 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
             }
             //对于Throwable,也记录日志
             LoggerUtil.error("Exception caught when during method invocation. request:" + request.toString(), t);
+        }
+
+        if (response.getException() != null) {
+            //是否传输业务异常栈
+            boolean transExceptionStack = this.url.getBooleanParameter(URLParamType.transExceptionStack.getName(), URLParamType.transExceptionStack.getBooleanValue());
+            if (!transExceptionStack) {//不传输业务异常栈
+                ExceptionUtil.setMockStackTrace(response.getException().getCause());
+            }
         }
         // 传递rpc版本和attachment信息方便不同rpc版本的codec使用。
         response.setRpcProtocolVersion(request.getRpcProtocolVersion());
