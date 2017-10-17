@@ -31,7 +31,6 @@ import com.weibo.api.motan.transport.Server;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -41,10 +40,10 @@ public class DefaultRpcExporter<T> extends AbstractExporter<T> {
 
     protected Server server;
     protected EndpointFactory endpointFactory;
-    protected final Map<String, ProviderMessageRouter> ipPort2RequestRouter;
+    protected final ConcurrentHashMap<String, ProviderMessageRouter> ipPort2RequestRouter;
     protected final ConcurrentHashMap<String, Exporter<?>> exporterMap;
 
-    public DefaultRpcExporter(Provider<T> provider, URL url, Map<String, ProviderMessageRouter> ipPort2RequestRouter,
+    public DefaultRpcExporter(Provider<T> provider, URL url, ConcurrentHashMap<String, ProviderMessageRouter> ipPort2RequestRouter,
                               ConcurrentHashMap<String, Exporter<?>> exporterMap) {
         super(provider, url);
         this.exporterMap = exporterMap;
@@ -68,13 +67,10 @@ public class DefaultRpcExporter<T> extends AbstractExporter<T> {
         if (exporter != null) {
             exporter.destroy();
         }
+        ProviderMessageRouter requestRouter = ipPort2RequestRouter.get(ipPort);
 
-        synchronized (ipPort2RequestRouter) {
-            ProviderMessageRouter requestRouter = ipPort2RequestRouter.get(ipPort);
-
-            if (requestRouter != null) {
-                requestRouter.removeProvider(provider);
-            }
+        if (requestRouter != null) {
+            requestRouter.removeProvider(provider);
         }
 
         LoggerUtil.info("DefaultRpcExporter unexport Success: url={}", url);
@@ -98,20 +94,15 @@ public class DefaultRpcExporter<T> extends AbstractExporter<T> {
         LoggerUtil.info("DefaultRpcExporter destory Success: url={}", url);
     }
 
-    private ProviderMessageRouter initRequestRouter(URL url) {
-        ProviderMessageRouter requestRouter = null;
+    protected ProviderMessageRouter initRequestRouter(URL url) {
         String ipPort = url.getServerPortStr();
+        ProviderMessageRouter requestRouter = ipPort2RequestRouter.get(ipPort);
 
-        synchronized (ipPort2RequestRouter) {
+        if (requestRouter == null) {
+            ipPort2RequestRouter.putIfAbsent(ipPort, new ProviderProtectedMessageRouter());
             requestRouter = ipPort2RequestRouter.get(ipPort);
-
-            if (requestRouter == null) {
-                requestRouter = new ProviderProtectedMessageRouter(provider);
-                ipPort2RequestRouter.put(ipPort, requestRouter);
-            } else {
-                requestRouter.addProvider(provider);
-            }
         }
+        requestRouter.addProvider(provider);
 
         return requestRouter;
     }

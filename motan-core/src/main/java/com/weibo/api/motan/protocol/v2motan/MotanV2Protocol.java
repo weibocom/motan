@@ -29,8 +29,7 @@ import com.weibo.api.motan.transport.ProviderMessageRouter;
 import com.weibo.api.motan.transport.TransportException;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.weibo.api.motan.common.MotanConstants.M2_PROXY_PROTOCOL;
 
@@ -42,7 +41,7 @@ import static com.weibo.api.motan.common.MotanConstants.M2_PROXY_PROTOCOL;
 public class MotanV2Protocol extends AbstractProtocol {
 
     public static final String DEFAULT_CODEC = "motan2";
-    private Map<String, ProviderMessageRouter> ipPort2RequestRouter = new HashMap<String, ProviderMessageRouter>();
+    private ConcurrentHashMap<String, ProviderMessageRouter> ipPort2RequestRouter = new ConcurrentHashMap<String, ProviderMessageRouter>();
 
     @Override
     protected <T> Exporter<T> createExporter(Provider<T> provider, URL url) {

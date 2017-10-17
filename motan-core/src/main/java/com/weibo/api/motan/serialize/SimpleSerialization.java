@@ -80,14 +80,14 @@ public class SimpleSerialization implements Serialization {
             case 0:
                 return null;
             case 1:
-                if (clz == String.class) {
+                if (clz == String.class || clz == Object.class) {
                     String str = getString(buffer);
                     return (T) str;
                 } else {
                     throw new MotanServiceException("SimpleSerialization not support type:" + clz);
                 }
             case 2:
-                if (clz == Map.class) {
+                if (clz == Map.class || clz == Object.class) {
                     Map<String, String> map = new HashMap<String, String>();
                     int size = buffer.getInt();
                     if (size > 0) {

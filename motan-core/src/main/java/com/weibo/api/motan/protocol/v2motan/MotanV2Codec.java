@@ -96,7 +96,9 @@ public class MotanV2Codec extends AbstractCodec {
                 putMap(buf, request.getAttachments());
 
                 header.setRequestId(request.getRequestId());
-                body = serialization.serializeMulti(request.getArguments());
+                if(request.getArguments() != null){
+                    body = serialization.serializeMulti(request.getArguments());
+                }
 
             } else if (message instanceof Response) {
                 Response response = (Response) message;

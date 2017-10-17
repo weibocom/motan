@@ -24,8 +24,7 @@ import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.ProviderMessageRouter;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author maijunsheng
@@ -35,7 +34,7 @@ import java.util.Map;
 public class DefaultRpcProtocol extends AbstractProtocol {
 
     // 多个service可能在相同端口进行服务暴露，因此来自同个端口的请求需要进行路由以找到相应的服务，同时不在该端口暴露的服务不应该被找到
-    private Map<String, ProviderMessageRouter> ipPort2RequestRouter = new HashMap<String, ProviderMessageRouter>();
+    private ConcurrentHashMap<String, ProviderMessageRouter> ipPort2RequestRouter = new ConcurrentHashMap<String, ProviderMessageRouter>();
 
     @Override
     protected <T> Exporter<T> createExporter(Provider<T> provider, URL url) {

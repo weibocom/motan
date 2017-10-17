@@ -16,27 +16,16 @@
 
 package com.weibo.api.motan.registry.support.command;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.registry.NotifyListener;
 import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.util.CollectionUtil;
-import com.weibo.api.motan.util.ConcurrentHashSet;
-import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.MotanSwitcherUtil;
-import com.weibo.api.motan.util.NetUtils;
+import com.weibo.api.motan.util.*;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 
 
@@ -110,7 +99,7 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
             commandCache = RpcCommandUtil.stringToCommand(commandStringCache);
             Map<String, Integer> weights = new HashMap<String, Integer>();
 
-            if (commandCache != null) {
+            if (commandCache != null && commandCache.getClientCommandList() != null && !commandCache.getClientCommandList().isEmpty()) {
                 commandCache.sort();
                 finalResult = discoverServiceWithCommand(refUrl, weights, commandCache);
             } else {
@@ -134,6 +123,11 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
                     registry.unsubscribeService(urlTemp, this);
                 }
             }
+            // 当指令从有改到无时，或者没有流量切换指令时，会触发取消订阅所有的group，需要重新订阅本组的service
+            if ("".equals(commandString) || weights.isEmpty()) {
+                LoggerUtil.info("reSub service" + refUrl.toSimpleString());
+                registry.subscribeService(refUrl, this);
+            }
         } else {
             LoggerUtil.info("command not change. url:" + serviceUrl.toSimpleString());
             // 指令没有变化，什么也不做
@@ -142,12 +136,6 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
 
         for (NotifyListener notifyListener : notifySet) {
             notifyListener.notify(registry.getUrl(), finalResult);
-        }
-
-        // 当指令从有改到无时，会触发取消订阅所有的group，需要重新订阅本组的service
-        if ("".equals(commandString)) {
-            LoggerUtil.info("reSub service" + refUrl.toSimpleString());
-            registry.subscribeService(refUrl, this);
         }
     }
 

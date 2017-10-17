@@ -16,6 +16,8 @@
 
 package com.weibo.api.motan.util;
 
+import com.weibo.api.motan.rpc.DefaultResponse;
+import com.weibo.api.motan.rpc.Response;
 import org.apache.commons.lang3.StringUtils;
 
 import com.weibo.api.motan.common.MotanConstants;
@@ -262,6 +264,10 @@ public class MotanFrameworkUtil {
         }
         return path;
     }
-    
-    
+
+    public static Response buildErrorResponse(long requestId, Exception e) {
+        DefaultResponse response = new DefaultResponse(requestId);
+        response.setException(e);
+        return response;
+    }
 }

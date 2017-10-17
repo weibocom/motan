@@ -129,19 +129,21 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
             boolean throwException =
                     Boolean.parseBoolean(cluster.getUrl().getParameter(URLParamType.throwException.getName(),
                             URLParamType.throwException.getValue()));
+            Class returnType = getRealReturnType(async, this.clz, method, methodName);
             try {
                 response = cluster.call(request);
                 if (async && response instanceof ResponseFuture) {
-                    ((ResponseFuture) response).setReturnType(method.getReturnType());
+
+                    ((ResponseFuture) response).setReturnType(returnType);
                     return response;
                 } else {
                     Object value = response.getValue();
                     if(value != null && value instanceof DeserializableObject){
                         try {
-                            value = ((DeserializableObject)value).deserialize(method.getReturnType());
+                            value = ((DeserializableObject)value).deserialize(returnType);
                         } catch (IOException e) {
-                            LoggerUtil.error("deserialize response value fail! deserialize type:" + method.getReturnType(), e);
-                            throw new MotanFrameworkException("deserialize return value fail! deserialize type:" + method.getReturnType(), e);
+                            LoggerUtil.error("deserialize response value fail! deserialize type:" + returnType, e);
+                            throw new MotanFrameworkException("deserialize return value fail! deserialize type:" + returnType, e);
                         }
                     }
                     return value;
@@ -161,7 +163,7 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
                 } else if (!throwException) {
                     LoggerUtil.warn("RefererInvocationHandler invoke false, so return default value: uri=" + cluster.getUrl().getUri()
                             + " " + MotanFrameworkUtil.toString(request), e);
-                    return getDefaultReturnValue(method.getReturnType());
+                    return getDefaultReturnValue(returnType);
                 } else {
                     LoggerUtil.error(
                             "RefererInvocationHandler invoke Error: uri=" + cluster.getUrl().getUri() + " "
@@ -204,6 +206,20 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
             sb.append("}");
         }
         return sb.toString();
+    }
+
+    private Class<?> getRealReturnType(boolean asyncCall, Class<?> clazz, Method method, String methodName) {
+        if (asyncCall) {
+            try {
+                Method m = clazz.getMethod(methodName, method.getParameterTypes());
+                return m.getReturnType();
+            } catch (Exception e) {
+                LoggerUtil.warn("RefererInvocationHandler get real return type fail. err:" + e.getMessage());
+                return method.getReturnType();
+            }
+        } else {
+            return method.getReturnType();
+        }
     }
 
     private Object getDefaultReturnValue(Class<?> returnType) {
