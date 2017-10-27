@@ -35,7 +35,7 @@ import static com.weibo.api.motan.common.MotanConstants.M2_PROXY_PROTOCOL;
 
 /**
  * Created by zhanglei28 on 2017/4/27.
- * 协议默认配置codec和serialize
+ * 协议默认配置codec
  */
 @SpiMeta(name = "motan2")
 public class MotanV2Protocol extends AbstractProtocol {

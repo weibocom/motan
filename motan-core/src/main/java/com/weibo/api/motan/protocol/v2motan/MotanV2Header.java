@@ -34,7 +34,7 @@ public class MotanV2Header {
     private boolean proxy = false;// 是否需要代理请求。motan agent使用。
     private boolean request = true; //消息类型是否是request
     private int status = 0; //消息状态。最大能表示8种状态，最大值为7。 0表示正常消息，1表示异常消息。其他待扩展
-    private int serialize = 1;// 消息body序列化方式，最大支持32种方式，最大值31。0 hessian、1 pb、2 json、3 msgpack、4 hprose
+    private int serialize = 1;// 消息body序列化方式，最大支持32种方式，最大值31。0 hessian、1 grpc-pb、2 json、3 msgpack、4 hprose、5 pb、6 simple、7 grpc-pb-json
     private long requestId;
 
     public int getVersion() {

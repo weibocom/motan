@@ -53,6 +53,18 @@ public class SimpleSerializationTest {
         for (Map.Entry entry : map.entrySet()) {
             assertEquals(entry.getValue(), m2.get(entry.getKey()));
         }
+
+        byte[] bytes = new byte[]{2,34,12,24};
+        b = serialization.serialize(bytes);
+        assertNotNull(b);
+        assertTrue(b.length > 0);
+        assertTrue(b[0] == 3);
+        byte[] nbytes = serialization.deserialize(b, byte[].class);
+        assertEquals(bytes.length, nbytes.length);
+
+        for (int i = 0; i < nbytes.length; i++) {
+            assertEquals(nbytes[i], bytes[i]);
+        }
     }
 
 

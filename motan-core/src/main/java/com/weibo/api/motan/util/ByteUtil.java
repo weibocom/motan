@@ -143,7 +143,6 @@ public class ByteUtil {
             gzip = new GZIPOutputStream(bos);
             gzip.write(data);
             gzip.finish();
-            gzip.close();
             return bos.toByteArray();
         } finally {
             if (gzip != null) {
@@ -163,7 +162,6 @@ public class ByteUtil {
             while ((size = gzip.read(buf, 0, buf.length)) != -1) {
                 bos.write(buf, 0, size);
             }
-            gzip.close();
             return bos.toByteArray();
         } finally {
             if (gzip != null) {

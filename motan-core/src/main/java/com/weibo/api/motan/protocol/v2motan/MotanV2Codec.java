@@ -60,6 +60,12 @@ public class MotanV2Codec extends AbstractCodec {
     @Override
     public byte[] encode(Channel channel, Object message) throws IOException {
         try {
+            if (DefaultRpcHeartbeatFactory.isHeartbeatRequest(message)) {
+                return encodeHeartbeat(((Request) message).getRequestId(), true);
+            }
+            if (DefaultRpcHeartbeatFactory.isHeartbeatResponse(message)) {
+                return encodeHeartbeat(((Response) message).getRequestId(), false);
+            }
             MotanV2Header header = new MotanV2Header();
             byte[] body = null;
             String serialName = channel.getUrl().getParameter(URLParamType.serialize.getName(), URLParamType.serialize.getValue());
@@ -77,10 +83,6 @@ public class MotanV2Codec extends AbstractCodec {
 
             if (message instanceof Request) {
                 Request request = (Request) message;
-                if (DefaultRpcHeartbeatFactory.isHeartbeatRequest(message)) {
-                    return encodeHeartbeat(request.getRequestId(), true);
-                }
-
                 putString(buf, M2_PATH);
                 putString(buf, request.getInterfaceName());
                 putString(buf, M2_METHOD);
@@ -102,9 +104,6 @@ public class MotanV2Codec extends AbstractCodec {
 
             } else if (message instanceof Response) {
                 Response response = (Response) message;
-                if (DefaultRpcHeartbeatFactory.isHeartbeatResponse(message)) {
-                    return encodeHeartbeat(response.getRequestId(), false);
-                }
                 putString(buf, M2_PROCESS_TIME);
                 putString(buf, String.valueOf(response.getProcessTime()));
                 if (response.getException() != null) {

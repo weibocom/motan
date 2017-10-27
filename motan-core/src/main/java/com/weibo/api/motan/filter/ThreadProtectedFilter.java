@@ -13,21 +13,16 @@
  */
 package com.weibo.api.motan.filter;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.filter.InitializableFilter;
-import com.weibo.api.motan.rpc.Caller;
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.rpc.Provider;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 
@@ -53,7 +48,7 @@ public class ThreadProtectedFilter implements InitializableFilter {
             String requestKey = MotanFrameworkUtil.getFullMethodString(request);
             AtomicInteger methodCount = methodMap.get(requestKey);
             if (methodCount == null) {
-                methodMap.put(requestKey, new AtomicInteger());
+                methodMap.putIfAbsent(requestKey, new AtomicInteger());
                 methodCount = methodMap.get(requestKey);
             }
             try {

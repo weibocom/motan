@@ -32,7 +32,7 @@ import java.util.Map.Entry;
 
 /**
  * Created by zhanglei28 on 2017/6/8.
- * olny support Null, String, Map<String,String>
+ * olny support Null, String, Map<String,String>, byte[]
  */
 @SpiMeta(name = "simple")
 public class SimpleSerialization implements Serialization {
@@ -60,6 +60,11 @@ public class SimpleSerialization implements Serialization {
                 buffer.position(1);
                 buffer.putInt(size);
                 buffer.position(5 + size);
+            } else if(obj instanceof byte[]){
+                buffer.put((byte) 3);
+                byte[] b = (byte[]) obj;
+                buffer.putInt(b.length);
+                buffer.put(b);
             } else {
                 throw new MotanServiceException("SimpleSerialization not support type:" + obj.getClass());
             }
@@ -110,6 +115,10 @@ public class SimpleSerialization implements Serialization {
                 } else {
                     throw new MotanServiceException("SimpleSerialization not support type:" + clz);
                 }
+            case 3:
+                if (clz == byte[].class || clz == Object.class) {
+                    return (T) getBytes(buffer);
+                }
         }
         return null;
     }
@@ -155,17 +164,26 @@ public class SimpleSerialization implements Serialization {
     }
 
     private String getString(ByteBuffer buffer) throws UnsupportedEncodingException {
+        byte[] bytes = getBytes(buffer);
+        if (bytes == null) {
+            return null;
+        } else {
+            return new String(bytes, "UTF-8");
+        }
+    }
+
+    private byte[] getBytes(ByteBuffer buffer) throws UnsupportedEncodingException {
         if (buffer.remaining() >= 4) {
             int size = buffer.getInt();
             if (size > buffer.remaining()) {
                 throw new MotanServiceException("SimpleSerialization deserialize fail! buffer not enough!need size:" + size);
             }
             if (size == 0) {
-                return "";
+                return new byte[]{};
             } else {
                 byte[] b = new byte[size];
                 buffer.get(b);
-                return new String(b, "UTF-8");
+                return b;
             }
         } else {
             return null;
