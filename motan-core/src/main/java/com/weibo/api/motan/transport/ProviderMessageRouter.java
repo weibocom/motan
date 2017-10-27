@@ -119,7 +119,9 @@ public class ProviderMessageRouter implements MessageHandler {
     private void fillParamDesc(Request request, Method method){
         if(method != null && StringUtils.isBlank(request.getParamtersDesc())
                 && request instanceof DefaultRequest){
-            ((DefaultRequest)request).setParamtersDesc(ReflectUtil.getMethodParamDesc(method));
+            DefaultRequest dr = (DefaultRequest)request;
+            dr.setParamtersDesc(ReflectUtil.getMethodParamDesc(method));
+            dr.setMethodName(method.getName());
         }
     }
 
