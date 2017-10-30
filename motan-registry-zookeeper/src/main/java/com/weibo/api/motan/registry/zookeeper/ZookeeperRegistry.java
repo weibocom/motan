@@ -288,28 +288,34 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
         if (currentChilds != null) {
             for (String node : currentChilds) {
                 String nodePath = parentPath + MotanConstants.PATH_SEPARATOR + node;
-                String data = zkClient.readData(nodePath, true);
+                String data = null;
+                try{
+                    data = zkClient.readData(nodePath, true);
+                } catch (Exception e){
+                    LoggerUtil.warn("get zkdata fail!" + e.getMessage());
+                }
                 URL newurl = null;
-                if (StringUtils.isNotBlank(data)){
+                if (StringUtils.isNotBlank(data)) {
                     try {
                         newurl = URL.valueOf(data);
                     } catch (Exception e) {
                         LoggerUtil.warn(String.format("Found malformed urls from ZookeeperRegistry, path=%s", nodePath), e);
                     }
                 }
-                if (newurl == null){
+                if (newurl == null) {
                     newurl = url.createCopy();
                     String host = "";
                     int port = 80;
                     if (node.indexOf(":") > -1) {
                         String[] hp = node.split(":");
-                        if(hp.length > 1){
+                        if (hp.length > 1) {
                             host = hp[0];
-                            try{
+                            try {
                                 port = Integer.parseInt(hp[1]);
-                            }catch (Exception ignore){}
+                            } catch (Exception ignore) {
+                            }
                         }
-                    }else{
+                    } else {
                         host = node;
                     }
                     newurl.setHost(host);
