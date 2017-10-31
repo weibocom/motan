@@ -28,7 +28,7 @@
     <name>motan-demo</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.source.jdk>1.8</java.source.jdk>
+        <java.source.jdk>1.7</java.source.jdk>
     </properties>
     <dependencies>
         <!-- motan -->
