@@ -1,5 +1,24 @@
 # Change Log
 
+## [1.0.0](https://github.com/weibocom/motan/tree/1.0.0) (2017-10-31)
+[Full Changelog](https://github.com/weibocom/motan/compare/0.3.1...1.0.0)
+
+**Implemented enhancements:**
+
+- add motan2 protocol for cross-language transport [\#561](https://github.com/weibocom/motan/pull/561) ([Ray](https://github.com/rayzhang0603))
+- add gRPC protocol support [\#561](https://github.com/weibocom/motan/pull/561) ([Ray](https://github.com/rayzhang0603))
+- add simple serialization [\#561](https://github.com/weibocom/motan/pull/561) ([Ray](https://github.com/rayzhang0603))
+- add RpcContext for pass custom params [\#561](https://github.com/weibocom/motan/pull/561) ([Ray](https://github.com/rayzhang0603))
+- add InitializableFilter interface [\#561](https://github.com/weibocom/motan/pull/561) ([Ray](https://github.com/rayzhang0603))
+- add transExceptionStack in motan config to avoid transport java exception stack [\#561](https://github.com/weibocom/motan/pull/561) ([Ray](https://github.com/rayzhang0603))
+
+**Fixed bugs:**
+
+**Merged pull requests:**
+
+- refine DefaultProvider log [\#501](https://github.com/weibocom/motan/pull/501) ([yeluoguigen009](https://github.com/yeluoguigen009)) 
+
+
 ## [0.3.1](https://github.com/weibocom/motan/tree/0.3.1) (2017-07-11)
 [Full Changelog](https://github.com/weibocom/motan/compare/0.3.0...0.3.1)
 

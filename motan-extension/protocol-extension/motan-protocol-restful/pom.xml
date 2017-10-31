@@ -21,7 +21,7 @@
   <parent>
     <groupId>com.weibo</groupId>
     <artifactId>protocol-extension</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>motan-protocol-restful</artifactId>
   <properties>
