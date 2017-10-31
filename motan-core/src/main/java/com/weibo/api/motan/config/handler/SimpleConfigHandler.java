@@ -72,14 +72,24 @@ public class SimpleConfigHandler implements ConfigHandler {
         // export service
         // 利用protocol decorator来增加filter特性
         String protocolName = serviceUrl.getParameter(URLParamType.protocol.getName(), URLParamType.protocol.getValue());
-        Protocol protocol = new ProtocolFilterDecorator(ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(protocolName));
-        Provider<T> provider = new DefaultProvider<T>(ref, serviceUrl, interfaceClass);
+        Protocol orgProtocol = ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(protocolName);
+        Provider<T> provider = getProvider(orgProtocol, ref, serviceUrl, interfaceClass);
+
+        Protocol protocol = new ProtocolFilterDecorator(orgProtocol);
         Exporter<T> exporter = protocol.export(provider, serviceUrl);
 
         // register service
         register(registryUrls, serviceUrl);
 
         return exporter;
+    }
+
+    protected <T> Provider<T> getProvider(Protocol protocol, T proxyImpl, URL url, Class<T> clz){
+        if (protocol instanceof ProviderFactory){
+            return ((ProviderFactory)protocol).newProvider(proxyImpl, url, clz);
+        } else{
+            return new DefaultProvider<T>(proxyImpl, url, clz);
+        }
     }
 
     @Override

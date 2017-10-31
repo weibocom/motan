@@ -16,23 +16,25 @@
 
 package com.weibo.api.motan.codec;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-
+import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.util.LoggerUtil;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.*;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-24
- * 
  */
 public abstract class AbstractCodec implements Codec {
+    protected static ConcurrentHashMap<Integer, String> serializations;
+
+
     protected void serialize(ObjectOutput output, Object message, Serialization serialize) throws IOException {
         if (message == null) {
             output.writeObject(null);
@@ -66,6 +68,40 @@ public abstract class AbstractCodec implements Codec {
             throw new MotanFrameworkException(this.getClass().getSimpleName() + " createInput error", e,
                     MotanErrorMsgConstant.FRAMEWORK_DECODE_ERROR);
         }
+    }
+
+    protected static synchronized void initAllSerialziation() {
+        if (serializations == null) {
+            serializations = new ConcurrentHashMap<Integer, String>();
+            try {
+                ExtensionLoader<Serialization> loader = ExtensionLoader.getExtensionLoader(Serialization.class);
+                List<Serialization> exts = loader.getExtensions(null);
+                for (Serialization s : exts) {
+                    String old = serializations.put(s.getSerializationNumber(), loader.getSpiName(s.getClass()));
+                    if (old != null) {
+                        LoggerUtil.warn("conflict serialization spi! serialization num :" + s.getSerializationNumber() + ", old spi :" + old
+                                + ", new spi :" + serializations.get(s.getSerializationNumber()));
+                    }
+                }
+            } catch (Exception e) {
+                LoggerUtil.warn("init all serialzaion fail!", e);
+            }
+        }
+    }
+
+    protected Serialization getSerializaiontByNum(int serializationNum) {
+        if (serializations == null) {
+            initAllSerialziation();
+        }
+        String name = serializations.get(serializationNum);
+        Serialization s = null;
+        if (StringUtils.isNotBlank(name)) {
+            s = ExtensionLoader.getExtensionLoader(Serialization.class).getExtension(name);
+        }
+        if (s == null) {
+            throw new MotanServiceException("can not found serialization extention by num " + serializationNum);
+        }
+        return s;
     }
 
 }

@@ -23,15 +23,16 @@ import com.weibo.api.motan.closable.Closable;
 import com.weibo.api.motan.closable.ShutDownHook;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
-import com.weibo.api.motan.rpc.Application;
-import com.weibo.api.motan.rpc.ApplicationInfo;
 import com.weibo.api.motan.util.StatsUtil.AccessStatus;
+import org.apache.commons.lang3.StringUtils;
 
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.weibo.api.motan.common.MotanConstants.APPLICATION_STATISTIC;
 
 /**
  * 
@@ -45,6 +46,7 @@ public class StatsUtil {
     protected static List<StatisticCallback> statisticCallbacks = new CopyOnWriteArrayList<StatisticCallback>();
     public static String SEPARATE = "\\|";
     protected static ScheduledFuture<?> scheduledFuture;
+    public static final String HISTOGRAM_NAME = MetricRegistry.name(AccessStatisticItem.class, "costTimeMillis");
 
     static {
         scheduledFuture = executorService.scheduleAtFixedRate(new Runnable() {
@@ -99,22 +101,23 @@ public class StatsUtil {
     @Deprecated
     public static void accessStatistic(String name, long currentTimeMillis, long costTimeMillis, long bizProcessTime,
                                        AccessStatus accessStatus) {
-        Application application = new Application(URLParamType.application.getValue(), URLParamType.module.getValue());
-
-        accessStatistic(name, application, currentTimeMillis, costTimeMillis, bizProcessTime, accessStatus);
+        accessStatistic(name, URLParamType.application.getValue(), URLParamType.module.getValue(), currentTimeMillis, costTimeMillis, bizProcessTime, accessStatus);
     }
 
-    public static void accessStatistic(String name, Application application, long currentTimeMillis, long costTimeMillis,
+    public static void accessStatistic(String name, String application, String module, long currentTimeMillis, long costTimeMillis,
                                        long bizProcessTime, AccessStatus accessStatus) {
         if (name == null || name.isEmpty()) {
             return;
         }
 
-        if (application == null) {
-            application = new Application(URLParamType.application.getValue(), URLParamType.module.getValue());
+        if (StringUtils.isBlank(application)) {
+            application = URLParamType.application.getValue();
+        }
+        if (StringUtils.isBlank(module)){
+            module = URLParamType.module.getValue();
         }
 
-        name = name + "|" + application.getApplication() + "|" + application.getModule();
+        name = name + "|" + application + "|" + module;
 
         try {
             AccessStatisticItem item = getStatisticItem(name, currentTimeMillis);
@@ -220,9 +223,9 @@ public class StatsUtil {
 
             Snapshot snapshot =
                     InternalMetricsFactory.getRegistryInstance(entry.getKey())
-                            .histogram(MetricRegistry.name(AccessStatisticItem.class, "costTimeMillis")).getSnapshot();
+                            .histogram(HISTOGRAM_NAME).getSnapshot();
 
-            if (application.equals(ApplicationInfo.STATISTIC)) {
+            if (application.equals(APPLICATION_STATISTIC)) {
                 continue;
             }
             if (result.totalCount == 0) {
@@ -255,7 +258,7 @@ public class StatsUtil {
                 AccessStatisticResult totalResult = entry.getValue();
                 Snapshot snapshot =
                         InternalMetricsFactory.getRegistryInstance(entry.getKey())
-                                .histogram(MetricRegistry.name(AccessStatisticItem.class, "costTimeMillis")).getSnapshot();
+                                .histogram(HISTOGRAM_NAME).getSnapshot();
                 if (totalResult.totalCount > 0) {
                     LoggerUtil
                             .accessStatsLog(
@@ -322,6 +325,7 @@ public class StatsUtil {
     public enum AccessStatus {
         NORMAL, BIZ_EXCEPTION, OTHER_EXCEPTION
     }
+
 }
 
 
@@ -356,7 +360,7 @@ class AccessStatisticItem {
         this.currentIndex = getIndex(currentTimeMillis, length);
         this.histogram =
                 InternalMetricsFactory.getRegistryInstance(name)
-                        .histogram(MetricRegistry.name(AccessStatisticItem.class, "costTimeMillis"));
+                        .histogram(StatsUtil.HISTOGRAM_NAME);
     }
 
     private AtomicInteger[] initAtomicIntegerArr(int size) {
@@ -405,7 +409,7 @@ class AccessStatisticItem {
         histogram.update(costTimeMillis);
         String[] names = name.split("\\|");
         String appName = names[1] + "|" + names[2];
-        InternalMetricsFactory.getRegistryInstance(appName).histogram(MetricRegistry.name(AccessStatisticItem.class, "costTimeMillis"))
+        InternalMetricsFactory.getRegistryInstance(appName).histogram(StatsUtil.HISTOGRAM_NAME)
                 .update(costTimeMillis);
     }
 
@@ -462,4 +466,5 @@ class AccessStatisticItem {
             reset(currentIndex);
         }
     }
+
 }

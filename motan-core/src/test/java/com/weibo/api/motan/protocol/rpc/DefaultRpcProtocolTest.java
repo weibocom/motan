@@ -25,6 +25,8 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Method;
+
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-23
@@ -96,6 +98,11 @@ public class DefaultRpcProtocolTest {
             @Override
             public Class<IHello> getInterface() {
                 return IHello.class;
+            }
+
+            @Override
+            public Method lookupMethod(String methodName, String methodDesc) {
+                return null;
             }
 
 			@Override

@@ -16,11 +16,6 @@
 
 package com.weibo.api.motan.config;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.cluster.support.ClusterSupport;
 import com.weibo.api.motan.common.MotanConstants;
@@ -35,6 +30,10 @@ import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.StringTools;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 
@@ -229,6 +228,5 @@ public class RefererConfig<T> extends AbstractRefererConfig {
     public AtomicBoolean getInitialized() {
         return initialized;
     }
-
 
 }

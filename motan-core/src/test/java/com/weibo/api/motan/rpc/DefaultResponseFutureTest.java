@@ -1,43 +1,33 @@
 /*
- *  Copyright 2009-2016 Weibo, Inc.
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ *   Copyright 2009-2016 Weibo, Inc.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ *
  */
 
-package com.weibo.api.motan.transport.netty;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import junit.framework.TestCase;
+package com.weibo.api.motan.rpc;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.weibo.api.motan.rpc.DefaultRequest;
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.rpc.Future;
-import com.weibo.api.motan.rpc.FutureListener;
-import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.transport.Server;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * @author maijunsheng
- * @version 创建时间：2013-6-14
- * 
+ * Created by zhanglei28 on 2017/9/11.
  */
-public class NettyResponseFutureTest extends TestCase {
-    private static NettyClient client = new NettyClient(new URL("motan", "localhost", 18080, Server.class.getName()));
-
+public class DefaultResponseFutureTest {
+    static URL url = new URL("motan", "localhost", 18080, "testurl");
     @Test
     public void testNormal() {
         DefaultRequest request = new DefaultRequest();
@@ -45,7 +35,7 @@ public class NettyResponseFutureTest extends TestCase {
         DefaultResponse defaultResponse = new DefaultResponse();
         defaultResponse.setValue("success");
 
-        NettyResponseFuture response = new NettyResponseFuture(request, 100, client);
+        DefaultResponseFuture response = new DefaultResponseFuture(request, 100, url);
 
         response.onSuccess(defaultResponse);
 
@@ -58,7 +48,7 @@ public class NettyResponseFutureTest extends TestCase {
     public void testException() {
         DefaultRequest request = new DefaultRequest();
 
-        NettyResponseFuture response = new NettyResponseFuture(request, 100, client);
+        DefaultResponseFuture response = new DefaultResponseFuture(request, 100, url);
         Exception exception = new Exception("hello");
         DefaultResponse defaultResponse = new DefaultResponse();
         defaultResponse.setException(exception);
@@ -79,7 +69,7 @@ public class NettyResponseFutureTest extends TestCase {
     public void testTimeout() {
         DefaultRequest request = new DefaultRequest();
 
-        NettyResponseFuture response = new NettyResponseFuture(request, 10, client);
+        DefaultResponseFuture response = new DefaultResponseFuture(request, 10, url);
 
         try {
             response.getValue();
@@ -95,7 +85,7 @@ public class NettyResponseFutureTest extends TestCase {
     public void testCancel() {
         DefaultRequest request = new DefaultRequest();
 
-        NettyResponseFuture response = new NettyResponseFuture(request, 10, client);
+        DefaultResponseFuture response = new DefaultResponseFuture(request, 10, url);
         response.cancel();
 
         try {
@@ -112,7 +102,7 @@ public class NettyResponseFutureTest extends TestCase {
     public void testListener() {
         DefaultRequest request = new DefaultRequest();
 
-        NettyResponseFuture response = new NettyResponseFuture(request, 100, client);
+        DefaultResponseFuture response = new DefaultResponseFuture(request, 100, url);
 
         final AtomicBoolean result = new AtomicBoolean(false);
 
@@ -133,7 +123,7 @@ public class NettyResponseFutureTest extends TestCase {
 
         Assert.assertTrue(result.get());
 
-        response = new NettyResponseFuture(request, 100, client);
+        response = new DefaultResponseFuture(request, 100, url);
 
         response.addListener(new FutureListener() {
             @Override
@@ -163,37 +153,5 @@ public class NettyResponseFutureTest extends TestCase {
 
         Assert.assertFalse(result.get());
 
-    }
-
-    public static void main(String[] args) throws Exception {
-        final NettyResponseFuture future = new NettyResponseFuture(null, 1100, client);
-
-        new Thread() {
-            public void run() {
-                try {
-                    System.out.println("start get value");
-                    Object result = future.getValue();
-                    System.out.println("finish get value: " + result);
-                } catch (Exception e) {
-                    System.out.println("throwable get value: " + e.getMessage());
-                    e.printStackTrace();
-                }
-            }
-        }.start();
-
-        Thread.sleep(1000);
-
-        System.out.println("onComplete:" + future.getState());
-        //
-        // future.onComplete("hello");
-        // System.out.println("onComplete:" + future.state);
-        DefaultResponse defaultResponse = new DefaultResponse();
-        defaultResponse.setException(new Exception("exception ~~~~"));
-
-        future.onFailure(defaultResponse);
-        System.out.println("onError:" + future.getState());
-
-        Thread.sleep(1000);
-        System.out.println("finish");
     }
 }

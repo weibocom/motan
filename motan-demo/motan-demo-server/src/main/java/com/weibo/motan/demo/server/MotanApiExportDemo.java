@@ -37,16 +37,17 @@ public class MotanApiExportDemo {
         motanDemoService.setVersion("1.0");
 
         // 配置注册中心直连调用
-        // RegistryConfig directRegistry = new RegistryConfig();
-        // directRegistry.setRegProtocol("local");
-        // directRegistry.setCheck("false"); //不检查是否注册成功
-        // motanDemoService.setRegistry(directRegistry);
+        RegistryConfig registry = new RegistryConfig();
 
-        // 配置ZooKeeper注册中心
-        RegistryConfig zookeeperRegistry = new RegistryConfig();
-        zookeeperRegistry.setRegProtocol("zookeeper");
-        zookeeperRegistry.setAddress("127.0.0.1:2181");
-        motanDemoService.setRegistry(zookeeperRegistry);
+        //use local registry
+        registry.setRegProtocol("local");
+
+        // use ZooKeeper registry
+//        registry.setRegProtocol("zookeeper");
+//        registry.setAddress("127.0.0.1:2181");
+
+        // registry.setCheck("false"); //是否检查是否注册成功
+        motanDemoService.setRegistry(registry);
 
         // 配置RPC协议
         ProtocolConfig protocol = new ProtocolConfig();

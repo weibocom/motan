@@ -16,20 +16,15 @@
 
 package com.weibo.api.motan.protocol;
 
+import com.weibo.api.motan.exception.MotanErrorMsgConstant;
+import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MotanFrameworkUtil;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import com.weibo.api.motan.exception.MotanErrorMsgConstant;
-import com.weibo.api.motan.exception.MotanFrameworkException;
-import com.weibo.api.motan.rpc.Exporter;
-import com.weibo.api.motan.rpc.Node;
-import com.weibo.api.motan.rpc.Protocol;
-import com.weibo.api.motan.rpc.Provider;
-import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 /**
  * abstract protocol
@@ -95,11 +90,11 @@ public abstract class AbstractProtocol implements Protocol {
             throw new MotanFrameworkException(this.getClass().getSimpleName() + " refer Error: class is null, url=" + url,
                     MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
         }
-
+        long start = System.currentTimeMillis();
         Referer<T> referer = createReferer(clz, url, serviceUrl);
         referer.init();
 
-        LoggerUtil.info(this.getClass().getSimpleName() + " refer Success: url=" + url);
+        LoggerUtil.info(this.getClass().getSimpleName() + " refer Success: url=" + url + ", cost:" + (System.currentTimeMillis() - start));
 
         return referer;
     }

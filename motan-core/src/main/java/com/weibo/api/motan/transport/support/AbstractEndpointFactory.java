@@ -16,28 +16,18 @@
 
 package com.weibo.api.motan.transport.support;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.transport.Client;
-import com.weibo.api.motan.transport.Endpoint;
-import com.weibo.api.motan.transport.EndpointFactory;
-import com.weibo.api.motan.transport.EndpointManager;
-import com.weibo.api.motan.transport.HeartbeatFactory;
-import com.weibo.api.motan.transport.MessageHandler;
-import com.weibo.api.motan.transport.Server;
+import com.weibo.api.motan.transport.*;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * 
@@ -83,8 +73,7 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
 
     @Override
     public Server createServer(URL url, MessageHandler messageHandler) {
-        HeartbeatFactory heartbeatFactory = getHeartbeatFactory(url);
-        messageHandler = heartbeatFactory.wrapMessageHandler(messageHandler);
+        messageHandler = getHeartbeatFactory(url).wrapMessageHandler(messageHandler);
 
         synchronized (ipPort2ServerShareChannel) {
             String ipPort = url.getServerPortStr();
@@ -189,7 +178,10 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
 
     private HeartbeatFactory getHeartbeatFactory(URL url) {
         String heartbeatFactoryName = url.getParameter(URLParamType.heartbeatFactory.getName(), URLParamType.heartbeatFactory.getValue());
+        return getHeartbeatFactory(heartbeatFactoryName);
+    }
 
+    private HeartbeatFactory getHeartbeatFactory(String heartbeatFactoryName) {
         HeartbeatFactory heartbeatFactory = ExtensionLoader.getExtensionLoader(HeartbeatFactory.class).getExtension(heartbeatFactoryName);
 
         if (heartbeatFactory == null) {

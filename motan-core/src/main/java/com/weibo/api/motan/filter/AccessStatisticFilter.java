@@ -18,11 +18,16 @@ package com.weibo.api.motan.filter;
 
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.core.extension.SpiMeta;
-import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.rpc.Caller;
+import com.weibo.api.motan.rpc.Provider;
+import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.util.ExceptionUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.StatsUtil;
 import com.weibo.api.motan.util.StatsUtil.AccessStatus;
+
+import static com.weibo.api.motan.common.MotanConstants.APPLICATION_STATISTIC;
 
 /**
  * @author maijunsheng
@@ -30,7 +35,7 @@ import com.weibo.api.motan.util.StatsUtil.AccessStatus;
  */
 @SpiMeta(name = "statistic")
 public class AccessStatisticFilter implements Filter {
-    protected static Application RPC_SERVICES = new Application(ApplicationInfo.STATISTIC, "rpc_service");
+    private static final String RPC_SERVICE = "rpc_service";
 
     @Override
     public Response filter(Caller<?> caller, Request request) {
@@ -66,15 +71,12 @@ public class AccessStatisticFilter implements Filter {
                 bizProcessTime = end - start;
             }
 
-            Application application;
             String statName =
                     caller.getUrl().getProtocol() + MotanConstants.PROTOCOL_SEPARATOR + MotanFrameworkUtil.getGroupMethodString(request);
             if (caller instanceof Provider) {
-                application = RPC_SERVICES;
-                StatsUtil.accessStatistic(statName, application, end, end - start, bizProcessTime, accessStatus);
+                StatsUtil.accessStatistic(statName, APPLICATION_STATISTIC, RPC_SERVICE, end, end - start, bizProcessTime, accessStatus);
             }
-            application = ApplicationInfo.getApplication(caller.getUrl());
-            StatsUtil.accessStatistic(statName, application, end, end - start, bizProcessTime, accessStatus);
+            StatsUtil.accessStatistic(statName, caller.getUrl().getApplication(), caller.getUrl().getModule(), end, end - start, bizProcessTime, accessStatus);
 
         }
     }

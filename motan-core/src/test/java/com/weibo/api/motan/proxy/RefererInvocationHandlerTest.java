@@ -16,24 +16,19 @@
 
 package com.weibo.api.motan.proxy;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jmock.Expectations;
-import org.junit.Test;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanBizException;
 import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.ResponseFuture;
-import com.weibo.api.motan.rpc.RpcContext;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
+import org.jmock.Expectations;
+import org.junit.Test;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RefererInvocationHandlerTest extends BaseTestCase {
 
@@ -123,6 +118,7 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
                 will(returnValue(response));
                 allowing(cluster).getUrl();
                 will(returnValue(u));
+                allowing(response).setReturnType(with(any(Class.class)));
             }
         });
 
@@ -136,6 +132,7 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
             assertEquals(response, res);
             assertTrue((Boolean) RpcContext.getContext().getAttribute(MotanConstants.ASYNC_SUFFIX));
         } catch (Throwable e) {
+            e.printStackTrace();
             assertTrue(false);
         }
 
