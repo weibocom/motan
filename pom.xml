@@ -31,6 +31,7 @@
         <module>motan-registry-zookeeper</module>
         <module>motan-benchmark</module>
         <module>motan-extension</module>
+        <module>motan-transport-netty4</module>
     </modules>
 
     <properties>
