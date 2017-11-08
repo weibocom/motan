@@ -33,7 +33,7 @@ The quick start gives very basic example of running client and server on the sam
 
 1. Add dependencies to pom.
 
-   ```xml
+```xml
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-core</artifactId>
@@ -56,7 +56,7 @@ The quick start gives very basic example of running client and server on the sam
         <artifactId>spring-context</artifactId>
         <version>4.2.4.RELEASE</version>
     </dependency>
-   ```
+```
 
 2. Create an interface for both service provider and consumer.
 
