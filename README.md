@@ -11,7 +11,7 @@ Motan is a cross-language remote procedure call(RPC) framework for rapid develop
 
 [Motan-PHP](https://github.com/weibocom/motan-php) is PHP client can interactive with Motan server directly or through Motan-go agent.
 
-[Motan-openresty](https://github.com/weibocom/motan-openresty) is a Lua(Luajit) implementation based on [Openrestry](http://openresty.org)
+[Motan-openresty](https://github.com/weibocom/motan-openresty) is a Lua(Luajit) implementation based on [Openresty](http://openresty.org)
 
 # Features
 - Create distributed services without writing extra code.
