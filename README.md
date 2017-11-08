@@ -37,19 +37,19 @@ The quick start gives very basic example of running client and server on the sam
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-core</artifactId>
-        <version>0.3.0</version>
+        <version>1.0.0</version>
     </dependency>
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-transport-netty</artifactId>
-        <version>0.3.0</version>
+        <version>1.0.0</version>
     </dependency>
     
     <!-- dependencies blow were only needed for spring-based features -->
     <dependency>
         <groupId>com.weibo</groupId>
         <artifactId>motan-springsupport</artifactId>
-        <version>0.3.0</version>
+        <version>1.0.0</version>
     </dependency>
     <dependency>
         <groupId>org.springframework</groupId>
