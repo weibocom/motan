@@ -200,11 +200,10 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
         for (Cluster<T> cluster : clusters) {
             sb.append("{protocol:").append(cluster.getUrl().getProtocol());
             List<Referer<T>> referers = cluster.getReferers();
-            if (referers == null) {
-                continue;
-            }
-            for (Referer<T> refer : referers) {
-                sb.append("[").append(refer.getUrl().toSimpleString()).append(", available:").append(refer.isAvailable()).append("]");
+            if (referers != null) {
+                for (Referer<T> refer : referers) {
+                    sb.append("[").append(refer.getUrl().toSimpleString()).append(", available:").append(refer.isAvailable()).append("]");
+                }
             }
             sb.append("}");
         }
