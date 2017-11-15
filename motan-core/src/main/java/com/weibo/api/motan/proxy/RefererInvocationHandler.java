@@ -39,10 +39,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 
- * @author maijunsheng
- * 
  * @param <T>
+ * @author maijunsheng
  */
 public class RefererInvocationHandler<T> implements InvocationHandler {
 
@@ -79,7 +77,7 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
             if ("toString".equals(method.getName())) {
                 return clustersToString();
             }
-            if("equals".equals(method.getName())){
+            if ("equals".equals(method.getName())) {
                 return proxyEquals(args[0]);
             }
             throw new MotanServiceException("can not invoke local method:" + method.getName());
@@ -138,9 +136,9 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
                     return response;
                 } else {
                     Object value = response.getValue();
-                    if(value != null && value instanceof DeserializableObject){
+                    if (value != null && value instanceof DeserializableObject) {
                         try {
-                            value = ((DeserializableObject)value).deserialize(returnType);
+                            value = ((DeserializableObject) value).deserialize(returnType);
                         } catch (IOException e) {
                             LoggerUtil.error("deserialize response value fail! deserialize type:" + returnType, e);
                             throw new MotanFrameworkException("deserialize return value fail! deserialize type:" + returnType, e);
@@ -178,29 +176,34 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
 
     }
 
-    
+
     /**
      * tostring,equals,hashCode,finalize等接口未声明的方法不进行远程调用
+     *
      * @param method
      * @return
      */
-    public boolean isLocalMethod(Method method){
-        if(method.getDeclaringClass().equals(Object.class)){
-            try{
+    public boolean isLocalMethod(Method method) {
+        if (method.getDeclaringClass().equals(Object.class)) {
+            try {
                 Method interfaceMethod = clz.getDeclaredMethod(method.getName(), method.getParameterTypes());
                 return false;
-            }catch(Exception e){
+            } catch (Exception e) {
                 return true;
             }
         }
         return false;
     }
-    
-    private String clustersToString(){
+
+    private String clustersToString() {
         StringBuilder sb = new StringBuilder();
-        for(Cluster<T> cluster: clusters){
+        for (Cluster<T> cluster : clusters) {
             sb.append("{protocol:").append(cluster.getUrl().getProtocol());
-            for(Referer<T> refer : (List<Referer<T>>)cluster.getReferers()){
+            List<Referer<T>> referers = cluster.getReferers();
+            if (referers == null) {
+                continue;
+            }
+            for (Referer<T> refer : referers) {
                 sb.append("[").append(refer.getUrl().toSimpleString()).append(", available:").append(refer.isAvailable()).append("]");
             }
             sb.append("}");
@@ -229,13 +232,13 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
         return null;
     }
 
-    private boolean proxyEquals(Object o){
-        if(o == null || this.clusters == null){
+    private boolean proxyEquals(Object o) {
+        if (o == null || this.clusters == null) {
             return false;
         }
-        if (o instanceof List){
+        if (o instanceof List) {
             return this.clusters == o;
-        } else{
+        } else {
             return o.equals(this.clusters);
         }
     }
