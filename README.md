@@ -274,6 +274,8 @@ The quick start gives very basic example of running client and server on the sam
 * xiaoqing.yuanfang([@xiaoqing-yuanfang](https://github.com/xiaoqing-yuanfang))
 * 东方上人([@dongfangshangren](https://github.com/dongfangshangren))
 * Voyager3([@xxxxzr](https://github.com/xxxxzr))
+* yeluoguigen009([@yeluoguigen009](https://github.com/yeluoguigen009))
+* Michael Yang([@yangfuhai](https://github.com/yangfuhai))
 
 # License
 
