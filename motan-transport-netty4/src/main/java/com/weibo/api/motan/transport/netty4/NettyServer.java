@@ -55,7 +55,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
             return state.isAliveState();
         }
         if (bossGroup == null) {
-            bossGroup = new NioEventLoopGroup();
+            bossGroup = new NioEventLoopGroup(1);
             workerGroup = new NioEventLoopGroup();
         }
 

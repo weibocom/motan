@@ -15,6 +15,7 @@ import io.netty.channel.ChannelFuture;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author sunnights
@@ -22,9 +23,10 @@ import java.util.concurrent.TimeUnit;
 public class NettyChannel implements Channel {
     private volatile ChannelState state = ChannelState.UNINIT;
     private NettyClient nettyClient;
-    private io.netty.channel.Channel nettyChannel = null;
+    private io.netty.channel.Channel channel = null;
     private InetSocketAddress remoteAddress = null;
     private InetSocketAddress localAddress = null;
+    private ReentrantLock lock = new ReentrantLock();
 
     public NettyChannel(NettyClient nettyClient) {
         this.nettyClient = nettyClient;
@@ -50,7 +52,7 @@ public class NettyChannel implements Channel {
         ResponseFuture response = new DefaultResponseFuture(request, timeout, this.nettyClient.getUrl());
         this.nettyClient.registerCallback(request.getRequestId(), response);
 
-        ChannelFuture writeFuture = this.nettyChannel.writeAndFlush(request);
+        ChannelFuture writeFuture = this.channel.writeAndFlush(request);
         boolean result = writeFuture.awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
 
         if (result && writeFuture.isSuccess()) {
@@ -89,9 +91,9 @@ public class NettyChannel implements Channel {
     }
 
     @Override
-    public boolean open() {
+    public synchronized boolean open() {
         if (isAvailable()) {
-            LoggerUtil.warn("the nettyChannel already open, local: " + localAddress + " remote: " + remoteAddress + " url: " + nettyClient.getUrl().getUri());
+            LoggerUtil.warn("the channel already open, local: " + localAddress + " remote: " + remoteAddress + " url: " + nettyClient.getUrl().getUri());
             return true;
         }
 
@@ -108,9 +110,9 @@ public class NettyChannel implements Channel {
             boolean success = channelFuture.isSuccess();
 
             if (result && success) {
-                nettyChannel = channelFuture.channel();
-                if (nettyChannel.localAddress() != null && nettyChannel.localAddress() instanceof InetSocketAddress) {
-                    localAddress = (InetSocketAddress) nettyChannel.localAddress();
+                channel = channelFuture.channel();
+                if (channel.localAddress() != null && channel.localAddress() instanceof InetSocketAddress) {
+                    localAddress = (InetSocketAddress) channel.localAddress();
                 }
                 state = ChannelState.ALIVE;
                 return true;
@@ -139,17 +141,17 @@ public class NettyChannel implements Channel {
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
         close(0);
     }
 
     @Override
-    public void close(int timeout) {
+    public synchronized void close(int timeout) {
         try {
             state = ChannelState.CLOSE;
 
-            if (nettyChannel != null) {
-                nettyChannel.close();
+            if (channel != null) {
+                channel.close();
             }
         } catch (Exception e) {
             LoggerUtil.error("NettyChannel close Error: " + nettyClient.getUrl().getUri() + " local=" + localAddress, e);
@@ -163,11 +165,15 @@ public class NettyChannel implements Channel {
 
     @Override
     public boolean isAvailable() {
-        return state.isAliveState();
+        return state.isAliveState() && channel != null && channel.isActive();
     }
 
     @Override
     public URL getUrl() {
         return nettyClient.getUrl();
+    }
+
+    public ReentrantLock getLock() {
+        return lock;
     }
 }

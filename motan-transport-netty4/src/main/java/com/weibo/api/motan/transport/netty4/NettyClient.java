@@ -8,10 +8,7 @@ import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.*;
-import com.weibo.api.motan.transport.AbstractPoolClient;
-import com.weibo.api.motan.transport.Channel;
-import com.weibo.api.motan.transport.MessageHandler;
-import com.weibo.api.motan.transport.TransportException;
+import com.weibo.api.motan.transport.*;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.StatisticCallback;
@@ -24,7 +21,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import org.apache.commons.pool.BasePoolableObjectFactory;
 
 import java.util.Map;
 import java.util.concurrent.*;
@@ -33,7 +29,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * @author sunnights
  */
-public class NettyClient extends AbstractPoolClient implements StatisticCallback {
+public class NettyClient extends AbstractSharedPoolClient implements StatisticCallback {
     /**
      * 回收过期任务
      */
@@ -69,7 +65,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
     }
 
     @Override
-    protected BasePoolableObjectFactory createChannelFactory() {
+    protected SharedObjectFactory createChannelFactory() {
         return new NettyChannelFactory(this);
     }
 
@@ -110,7 +106,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
         Response response;
         try {
             // return channel or throw exception(timeout or connection_fail)
-            channel = borrowObject();
+            channel = getObject();
             if (channel == null) {
                 LoggerUtil.error("NettyClient borrowObject null: url=" + url.getUri() + " " + MotanFrameworkUtil.toString(request));
                 return null;
@@ -118,12 +114,8 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
             // async request
             response = channel.request(request);
-            // return channel to pool
-            returnObject(channel);
         } catch (Exception e) {
             LoggerUtil.error("NettyClient request Error: url=" + url.getUri() + " " + MotanFrameworkUtil.toString(request), e);
-            //TODO 对特定的异常回收channel
-            invalidateObject(channel);
 
             if (e instanceof MotanAbstractException) {
                 throw (MotanAbstractException) e;
@@ -235,8 +227,6 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
         try {
             // 取消定期的回收任务
             timeMonitorFuture.cancel(true);
-            // 关闭连接池
-            pool.close();
             // 清空callback
             callbackMap.clear();
             // 设置close状态
