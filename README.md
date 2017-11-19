@@ -3,6 +3,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.weibo/motan.svg?label=Maven%20Central)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.weibo%22%20AND%20motan)
 [![Build Status](https://img.shields.io/travis/weibocom/motan/master.svg?label=Build)](https://travis-ci.org/weibocom/motan)
 [![OpenTracing-1.0 Badge](https://img.shields.io/badge/OpenTracing--1.0-enabled-blue.svg)](http://opentracing.io)
+[![Skywalking Tracing](https://img.shields.io/badge/Skywalking%20Tracing-enable-brightgreen.svg)](https://github.com/OpenSkywalking/skywalking)
 
 # Overview
 Motan is a cross-language remote procedure call(RPC) framework for rapid development of high performance distributed services. 
@@ -273,6 +274,8 @@ The quick start gives very basic example of running client and server on the sam
 * xiaoqing.yuanfang([@xiaoqing-yuanfang](https://github.com/xiaoqing-yuanfang))
 * 东方上人([@dongfangshangren](https://github.com/dongfangshangren))
 * Voyager3([@xxxxzr](https://github.com/xxxxzr))
+* yeluoguigen009([@yeluoguigen009](https://github.com/yeluoguigen009))
+* Michael Yang([@yangfuhai](https://github.com/yangfuhai))
 
 # License
 
