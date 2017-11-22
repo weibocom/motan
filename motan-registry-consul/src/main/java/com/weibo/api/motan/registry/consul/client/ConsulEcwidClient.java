@@ -21,7 +21,7 @@ public class ConsulEcwidClient extends MotanConsulClient {
 
     public ConsulEcwidClient(String host, int port) {
         super(host, port);
-        client = new MotanEcwidConsulClient(host, port);
+        client = new ConsulClient(host, port);
         LoggerUtil.info("ConsulEcwidClient init finish. client host:" + host
                 + ", port:" + port);
     }
