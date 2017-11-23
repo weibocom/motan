@@ -18,27 +18,26 @@ package com.weibo.api.motan.transport;
 
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.DefaultThreadFactory;
+import com.weibo.api.motan.core.StandardThreadExecutor;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MathUtil;
 
 import java.util.ArrayList;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author sunnights
  */
 public abstract class AbstractSharedPoolClient extends AbstractClient {
-    private static ExecutorService rebuildExecutorService;
+    private static final ThreadPoolExecutor executor = new StandardThreadExecutor(1, 300, 20000,
+            new DefaultThreadFactory("AbstractPoolClient-initPool-", true));
     private final AtomicInteger idx = new AtomicInteger();
     protected SharedObjectFactory factory;
-    protected Object[] objects;
-    private int size = 0;
+    protected ArrayList<Object> objects;
+    private int connections;
 
     public AbstractSharedPoolClient(URL url) {
         super(url);
@@ -46,67 +45,62 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
 
     protected void initPool() {
         factory = createChannelFactory();
-        int max = url.getIntParameter(URLParamType.maxClientConnection.getName(), URLParamType.maxClientConnection.getIntValue());
-        ArrayList<Object> list = new ArrayList<>();
+        connections = url.getIntParameter(URLParamType.maxClientConnection.getName(), URLParamType.maxClientConnection.getIntValue());
 
-        try {
-            for (int i = 0; i < max; i++) {
-                list.add(factory.makeObject());
-                size++;
-            }
-        } catch (Exception e) {
-            throw new MotanServiceException("NettyClient init pool create connect Error: " + factory.toString(), e);
+        objects = new ArrayList<>(connections);
+        for (int i = 0; i < connections; i++) {
+            objects.add(factory.makeObject());
         }
-        if (size == 0) {
-            throw new MotanServiceException("NettyClient init pool create connect Error: " + factory.toString());
-        }
-        objects = list.toArray();
-        rebuildExecutorService = new ThreadPoolExecutor(1, 3, 10L, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<Runnable>(size),
-                new DefaultThreadFactory("RebuildExecutorService", true),
-                new ThreadPoolExecutor.CallerRunsPolicy());
+
+        initConnections(false);
     }
 
     protected abstract SharedObjectFactory createChannelFactory();
 
+    protected void initConnections(boolean async) {
+        if (async) {
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    createConnections();
+                }
+            });
+        } else {
+            createConnections();
+        }
+    }
+
+    private void createConnections() {
+        for (Object object : objects) {
+            try {
+                factory.initObject(object);
+            } catch (Exception e) {
+                LoggerUtil.error("NettyClient init pool create connect Error: url=" + url.getUri(), e);
+            }
+        }
+    }
+
     protected Channel getObject() throws MotanServiceException {
-        int index = MathUtil.getPositive(idx.getAndIncrement()) % size;
-        Channel channel = (Channel) objects[index];
+        int index = MathUtil.getPositive(idx.getAndIncrement()) % connections;
+        Channel channel = (Channel) objects.get(index);
 
         if (channel.isAvailable()) {
             return channel;
         } else {
-            rebuildExecutorService.submit(new RebuildTask(channel));
+            factory.rebuildObject(channel);
         }
 
-        for (int i = index + 1; i < size + index; i++) {
-            channel = (Channel) objects[i % size];
+        for (int i = index + 1; i < connections + index; i++) {
+            channel = (Channel) objects.get(i % connections);
             if (channel.isAvailable()) {
                 return channel;
             } else {
-                rebuildExecutorService.submit(new RebuildTask(channel));
+                factory.rebuildObject(channel);
             }
         }
 
         String errorMsg = this.getClass().getSimpleName() + " getObject Error: url=" + url.getUri();
         LoggerUtil.error(errorMsg);
         throw new MotanServiceException(errorMsg);
-    }
-
-    class RebuildTask implements Runnable {
-        private Channel channel;
-
-        public RebuildTask(Channel channel) {
-            this.channel = channel;
-        }
-
-        @Override
-        public void run() {
-            try {
-                factory.rebuildObject(channel);
-            } catch (Exception e) {
-                LoggerUtil.error("rebuild error: " + factory.toString() + ", " + channel.getUrl(), e);
-            }
-        }
     }
 }

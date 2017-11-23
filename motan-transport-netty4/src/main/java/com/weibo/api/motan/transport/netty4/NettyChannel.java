@@ -168,6 +168,14 @@ public class NettyChannel implements Channel {
         return state.isAliveState() && channel != null && channel.isActive();
     }
 
+    public void reconnect() {
+        state = ChannelState.INIT;
+    }
+
+    public boolean isReconnect() {
+        return state.isInitState();
+    }
+
     @Override
     public URL getUrl() {
         return nettyClient.getUrl();

@@ -5,8 +5,10 @@ package com.weibo.api.motan.transport;
  */
 public interface SharedObjectFactory<T> {
 
-    T makeObject() throws Exception;
+    T makeObject();
 
-    boolean rebuildObject(T obj) throws Exception;
+    boolean initObject(T obj) throws Exception;
+
+    boolean rebuildObject(T obj);
 
 }

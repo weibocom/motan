@@ -94,7 +94,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             response.setRequestId(request.getRequestId());
             response.setException(new MotanServiceException("process thread pool is full, reject", MotanErrorMsgConstant.SERVICE_REJECT));
             response.setProcessTime(System.currentTimeMillis() - processStartTime);
-            ctx.channel().write(response);
+            ctx.channel().writeAndFlush(response);
             LoggerUtil.debug("process thread pool is full, reject, active={} poolSize={} corePoolSize={} maxPoolSize={} taskCount={} requestId={}",
                     threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(),
                     threadPoolExecutor.getCorePoolSize(), threadPoolExecutor.getMaximumPoolSize(),
@@ -132,7 +132,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        LoggerUtil.error("NettyChannelHandler exceptionCaught: remote={} local={} event={}", ctx.channel().remoteAddress(), ctx.channel().localAddress(), cause, cause);
+        LoggerUtil.error("NettyChannelHandler exceptionCaught: remote={} local={} event={}", ctx.channel().remoteAddress(), ctx.channel().localAddress(), cause.getMessage(), cause);
         ctx.fireExceptionCaught(cause);
     }
 }

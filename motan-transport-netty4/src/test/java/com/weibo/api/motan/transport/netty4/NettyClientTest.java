@@ -29,10 +29,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
 
 import static org.junit.Assert.*;
 
@@ -46,7 +45,7 @@ public class NettyClientTest {
     private NettyClient nettyClient;
     private DefaultRequest request;
     private URL url;
-    private String interfaceName = "com.weibo.api.motan.procotol.example.IHello";
+    private String interfaceName = "com.weibo.api.motan.protocol.example.IHello";
 
     @Before
     public void setUp() {
@@ -85,7 +84,7 @@ public class NettyClientTest {
     }
 
     @Test
-    public void testNormal() {
+    public void testNormal() throws InterruptedException {
         nettyClient = new NettyClient(url);
         nettyClient.open();
 
@@ -141,38 +140,51 @@ public class NettyClientTest {
         }
 
         // 模拟失败连接的次数大于或者等于设置的次数，client期望为不可用
-        url.addParameter(URLParamType.maxClientConnection.getName(), "10");
+        url.addParameter(URLParamType.maxClientConnection.getName(), "1");
         url.addParameter(URLParamType.requestTimeout.getName(), "1");
         nettyClient = new NettyClient(url);
         nettyClient.open();
 
-        int concurrent = 10;
-        final CountDownLatch countDownLatch = new CountDownLatch(concurrent);
-        final CyclicBarrier cyclicBarrier = new CyclicBarrier(concurrent);
-        for (int i = 0; i < concurrent; i++) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        cyclicBarrier.await();
-                        nettyClient.request(request);
-                    } catch (Exception e) {
-                    }
-                    countDownLatch.countDown();
-                }
-            }).start();
+        try {
+            nettyClient.request(request);
+        } catch (MotanServiceException e) {
+            assertFalse(nettyClient.isAvailable());
+            nettyClient.resetErrorCount();
+            assertTrue(nettyClient.isAvailable());
+        } catch (Exception e) {
         }
-        countDownLatch.await();
+    }
 
-        assertFalse(nettyClient.isAvailable());
-        nettyClient.resetErrorCount();
-        assertTrue(nettyClient.isAvailable());
+    @Test
+    public void testClient() throws InterruptedException {
+        nettyServer.close();
+
+        NettyTestClient nettyClient = new NettyTestClient(url);
+        this.nettyClient = nettyClient;
+        nettyClient.open();
+
+        for (Object o : nettyClient.getObjects()) {
+            Channel channel = (Channel) o;
+            assertFalse(channel.isAvailable());
+        }
+
+        nettyServer.open();
+
+        try {
+            nettyClient.request(request);
+        } catch (Exception e) {
+        }
+
+        Thread.sleep(1000);
+        for (Object o : nettyClient.getObjects()) {
+            Channel channel = (Channel) o;
+            assertTrue(channel.isAvailable());
+        }
     }
 
     @Test
     public void testGetChannel() throws InterruptedException {
-        int connections = 3;
-        url.addParameter(URLParamType.maxClientConnection.getName(), String.valueOf(connections));
+        url.addParameter(URLParamType.maxClientConnection.getName(), "2");
         NettyTestClient nettyClient = new NettyTestClient(url);
         this.nettyClient = nettyClient;
         nettyClient.open();
@@ -190,7 +202,7 @@ public class NettyClientTest {
         }
         assertTrue(channel == null);
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         for (Object o : nettyClient.getObjects()) {
             channel = (Channel) o;
             assertTrue(channel.isAvailable());
@@ -203,7 +215,7 @@ public class NettyClientTest {
             super(url);
         }
 
-        public Object[] getObjects() {
+        public ArrayList<Object> getObjects() {
             return super.objects;
         }
 

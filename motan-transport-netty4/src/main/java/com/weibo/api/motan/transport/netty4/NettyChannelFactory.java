@@ -1,14 +1,23 @@
 package com.weibo.api.motan.transport.netty4;
 
+import com.weibo.api.motan.core.DefaultThreadFactory;
+import com.weibo.api.motan.core.StandardThreadExecutor;
+import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.SharedObjectFactory;
 import com.weibo.api.motan.util.LoggerUtil;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author sunnights
  */
 public class NettyChannelFactory implements SharedObjectFactory<NettyChannel> {
+    private static final ExecutorService rebuildExecutorService = new StandardThreadExecutor(5, 30, 10L, TimeUnit.SECONDS, 100,
+            new DefaultThreadFactory("RebuildExecutorService", true),
+            new ThreadPoolExecutor.CallerRunsPolicy());
     private NettyClient nettyClient;
     private String factoryName;
 
@@ -18,21 +27,23 @@ public class NettyChannelFactory implements SharedObjectFactory<NettyChannel> {
     }
 
     @Override
-    public NettyChannel makeObject() throws Exception {
-        NettyChannel nettyChannel = new NettyChannel(nettyClient);
-        nettyChannel.open();
-        return nettyChannel;
+    public NettyChannel makeObject() {
+        return new NettyChannel(nettyClient);
     }
 
     @Override
-    public boolean rebuildObject(NettyChannel nettyChannel) throws Exception {
+    public boolean initObject(NettyChannel nettyChannel) throws Exception {
+        return nettyChannel.open();
+    }
+
+    @Override
+    public boolean rebuildObject(NettyChannel nettyChannel) {
         ReentrantLock lock = nettyChannel.getLock();
         if (lock.tryLock()) {
             try {
-                if (!nettyChannel.isAvailable()) {
-                    nettyChannel.close();
-                    nettyChannel.open();
-                    LoggerUtil.info("rebuild channel success: " + nettyChannel.getUrl());
+                if (!nettyChannel.isAvailable() && !nettyChannel.isReconnect()) {
+                    nettyChannel.reconnect();
+                    rebuildExecutorService.submit(new RebuildTask(nettyChannel));
                 }
             } finally {
                 lock.unlock();
@@ -45,5 +56,24 @@ public class NettyChannelFactory implements SharedObjectFactory<NettyChannel> {
     @Override
     public String toString() {
         return factoryName;
+    }
+
+    class RebuildTask implements Runnable {
+        private Channel channel;
+
+        public RebuildTask(Channel channel) {
+            this.channel = channel;
+        }
+
+        @Override
+        public void run() {
+            try {
+                channel.close();
+                channel.open();
+                LoggerUtil.info("rebuild channel success: " + channel.getUrl());
+            } catch (Exception e) {
+                LoggerUtil.error("rebuild error: " + this.toString() + ", " + channel.getUrl(), e);
+            }
+        }
     }
 }

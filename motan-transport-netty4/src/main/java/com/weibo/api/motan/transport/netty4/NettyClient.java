@@ -17,7 +17,6 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -30,6 +29,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author sunnights
  */
 public class NettyClient extends AbstractSharedPoolClient implements StatisticCallback {
+    private static final NioEventLoopGroup nioEventLoopGroup = new NioEventLoopGroup();
     /**
      * 回收过期任务
      */
@@ -40,7 +40,6 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
      */
     protected ConcurrentMap<Long, ResponseFuture> callbackMap = new ConcurrentHashMap<>();
     private ScheduledFuture<?> timeMonitorFuture = null;
-    private EventLoopGroup bossGroup;
     private Bootstrap bootstrap;
     /**
      * 连续失败次数
@@ -150,10 +149,6 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
             return true;
         }
 
-        if (bossGroup == null) {
-            bossGroup = new NioEventLoopGroup();
-        }
-
         bootstrap = new Bootstrap();
         int timeout = getUrl().getIntParameter(URLParamType.connectTimeout.getName(), URLParamType.connectTimeout.getIntValue());
         if (timeout <= 0) {
@@ -164,7 +159,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
         bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
         // 最大响应包限制
         final int maxContentLength = url.getIntParameter(URLParamType.maxContentLength.getName(), URLParamType.maxContentLength.getIntValue());
-        bootstrap.group(bossGroup)
+        bootstrap.group(nioEventLoopGroup)
                 .channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
