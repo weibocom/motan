@@ -98,7 +98,7 @@ public class MotanV2Codec extends AbstractCodec {
                 putMap(buf, request.getAttachments());
 
                 header.setRequestId(request.getRequestId());
-                if(request.getArguments() != null){
+                if (request.getArguments() != null) {
                     body = serialization.serializeMulti(request.getArguments());
                 }
 
@@ -246,7 +246,9 @@ public class MotanV2Codec extends AbstractCodec {
                 request.setMethodName(metaMap.remove(M2_METHOD));
                 request.setParamtersDesc(metaMap.remove(M2_METHOD_DESC));
                 request.setAttachments(metaMap);
-                request.setArguments(new Object[]{obj});
+                if (obj != null) {
+                    request.setArguments(new Object[]{obj});
+                }
                 if (metaMap.get(M2_GROUP) != null) {
                     request.setAttachment(URLParamType.group.getName(), metaMap.get(M2_GROUP));
                 }
