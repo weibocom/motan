@@ -138,13 +138,23 @@ public class NettyClientTest {
         } catch (Exception e) {
             assertTrue(false);
         }
+    }
 
+    @Test
+    public void testAbNormal2() throws InterruptedException {
         // 模拟失败连接的次数大于或者等于设置的次数，client期望为不可用
         url.addParameter(URLParamType.maxClientConnection.getName(), "1");
         url.addParameter(URLParamType.requestTimeout.getName(), "1");
-        nettyClient = new NettyClient(url);
+        NettyTestClient nettyClient = new NettyTestClient(url);
+        this.nettyClient = nettyClient;
         nettyClient.open();
 
+        try {
+            nettyClient.getChannel0();
+        } catch (Exception e) {
+        }
+
+        Thread.sleep(3000);
         try {
             nettyClient.request(request);
         } catch (MotanServiceException e) {
@@ -163,8 +173,7 @@ public class NettyClientTest {
         this.nettyClient = nettyClient;
         nettyClient.open();
 
-        for (Object o : nettyClient.getObjects()) {
-            Channel channel = (Channel) o;
+        for (Channel channel : nettyClient.getChannels()) {
             assertFalse(channel.isAvailable());
         }
 
@@ -175,36 +184,8 @@ public class NettyClientTest {
         } catch (Exception e) {
         }
 
-        Thread.sleep(1000);
-        for (Object o : nettyClient.getObjects()) {
-            Channel channel = (Channel) o;
-            assertTrue(channel.isAvailable());
-        }
-    }
-
-    @Test
-    public void testGetChannel() throws InterruptedException {
-        url.addParameter(URLParamType.maxClientConnection.getName(), "2");
-        NettyTestClient nettyClient = new NettyTestClient(url);
-        this.nettyClient = nettyClient;
-        nettyClient.open();
-
-        for (Object o : nettyClient.getObjects()) {
-            Channel channel = (Channel) o;
-            channel.close();
-            assertFalse(channel.isAvailable());
-        }
-
-        Channel channel = null;
-        try {
-            channel = nettyClient.getChannel();
-        } catch (Exception e) {
-        }
-        assertTrue(channel == null);
-
-        Thread.sleep(2000);
-        for (Object o : nettyClient.getObjects()) {
-            channel = (Channel) o;
+        Thread.sleep(3000);
+        for (Channel channel : nettyClient.getChannels()) {
             assertTrue(channel.isAvailable());
         }
     }
@@ -215,12 +196,12 @@ public class NettyClientTest {
             super(url);
         }
 
-        public ArrayList<Object> getObjects() {
-            return super.objects;
+        public ArrayList<Channel> getChannels() {
+            return super.channels;
         }
 
-        public Channel getChannel() {
-            return super.getObject();
+        public Channel getChannel0() {
+            return super.getChannel();
         }
     }
 }

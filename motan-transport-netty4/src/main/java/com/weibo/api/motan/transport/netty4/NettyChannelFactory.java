@@ -2,7 +2,6 @@ package com.weibo.api.motan.transport.netty4;
 
 import com.weibo.api.motan.core.DefaultThreadFactory;
 import com.weibo.api.motan.core.StandardThreadExecutor;
-import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.SharedObjectFactory;
 import com.weibo.api.motan.util.LoggerUtil;
 
@@ -32,11 +31,6 @@ public class NettyChannelFactory implements SharedObjectFactory<NettyChannel> {
     }
 
     @Override
-    public boolean initObject(NettyChannel nettyChannel) throws Exception {
-        return nettyChannel.open();
-    }
-
-    @Override
     public boolean rebuildObject(NettyChannel nettyChannel) {
         ReentrantLock lock = nettyChannel.getLock();
         if (lock.tryLock()) {
@@ -59,20 +53,23 @@ public class NettyChannelFactory implements SharedObjectFactory<NettyChannel> {
     }
 
     class RebuildTask implements Runnable {
-        private Channel channel;
+        private NettyChannel channel;
 
-        public RebuildTask(Channel channel) {
+        public RebuildTask(NettyChannel channel) {
             this.channel = channel;
         }
 
         @Override
         public void run() {
             try {
+                channel.getLock().lock();
                 channel.close();
                 channel.open();
                 LoggerUtil.info("rebuild channel success: " + channel.getUrl());
             } catch (Exception e) {
                 LoggerUtil.error("rebuild error: " + this.toString() + ", " + channel.getUrl(), e);
+            } finally {
+                channel.getLock().unlock();
             }
         }
     }

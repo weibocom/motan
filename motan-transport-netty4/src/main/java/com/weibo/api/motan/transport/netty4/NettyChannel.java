@@ -1,7 +1,9 @@
 package com.weibo.api.motan.transport.netty4;
 
+import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.common.ChannelState;
 import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
@@ -27,10 +29,13 @@ public class NettyChannel implements Channel {
     private InetSocketAddress remoteAddress = null;
     private InetSocketAddress localAddress = null;
     private ReentrantLock lock = new ReentrantLock();
+    private Codec codec;
 
     public NettyChannel(NettyClient nettyClient) {
         this.nettyClient = nettyClient;
         this.remoteAddress = new InetSocketAddress(nettyClient.getUrl().getHost(), nettyClient.getUrl().getPort());
+
+        codec = ExtensionLoader.getExtensionLoader(Codec.class).getExtension(nettyClient.getUrl().getParameter(URLParamType.codec.getName(), URLParamType.codec.getValue()));
     }
 
     @Override
@@ -51,8 +56,8 @@ public class NettyChannel implements Channel {
         }
         ResponseFuture response = new DefaultResponseFuture(request, timeout, this.nettyClient.getUrl());
         this.nettyClient.registerCallback(request.getRequestId(), response);
-
-        ChannelFuture writeFuture = this.channel.writeAndFlush(request);
+        byte[] msg = CodecUtil.encodeObjectToBytes(this, codec, request);
+        ChannelFuture writeFuture = this.channel.writeAndFlush(msg);
         boolean result = writeFuture.awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
 
         if (result && writeFuture.isSuccess()) {
@@ -98,9 +103,8 @@ public class NettyChannel implements Channel {
         }
 
         try {
-            ChannelFuture channelFuture = nettyClient.getBootstrap().connect(new InetSocketAddress(nettyClient.getUrl().getHost(), nettyClient.getUrl().getPort()));
-
             long start = System.currentTimeMillis();
+            ChannelFuture channelFuture = nettyClient.getBootstrap().connect(remoteAddress);
             int timeout = nettyClient.getUrl().getIntParameter(URLParamType.connectTimeout.getName(), URLParamType.connectTimeout.getIntValue());
             if (timeout <= 0) {
                 throw new MotanFrameworkException("NettyClient init Error: timeout(" + timeout + ") <= 0 is forbid.", MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);

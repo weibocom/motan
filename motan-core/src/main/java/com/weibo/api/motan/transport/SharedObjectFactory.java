@@ -5,10 +5,18 @@ package com.weibo.api.motan.transport;
  */
 public interface SharedObjectFactory<T> {
 
+    /**
+     * 创建对象
+     *
+     * @return
+     */
     T makeObject();
 
-    boolean initObject(T obj) throws Exception;
-
+    /**
+     * 重建对象
+     * @param obj
+     * @return
+     */
     boolean rebuildObject(T obj);
 
 }

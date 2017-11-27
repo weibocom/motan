@@ -66,7 +66,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
         int maxServerConnection = url.getIntParameter(URLParamType.maxServerConnection.getName(), URLParamType.maxServerConnection.getIntValue());
         int workerQueueSize = url.getIntParameter(URLParamType.workerQueueSize.getName(), URLParamType.workerQueueSize.getIntValue());
 
-        int minWorkerThread = 0, maxWorkerThread = 0;
+        int minWorkerThread, maxWorkerThread;
 
         if (shareChannel) {
             minWorkerThread = url.getIntParameter(URLParamType.minWorkerThread.getName(), MotanConstants.NETTY_SHARECHANNEL_MIN_WORKDER);
@@ -90,13 +90,14 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
                     protected void initChannel(SocketChannel ch) throws Exception {
                         ChannelPipeline pipeline = ch.pipeline();
                         pipeline.addLast("decoder", new NettyDecoder(codec, NettyServer.this, maxContentLength));
-                        pipeline.addLast("encoder", new NettyEncoder(codec, NettyServer.this));
+                        pipeline.addLast("encoder", new NettyEncoder());
                         pipeline.addLast("handler", new NettyChannelHandler(NettyServer.this, messageHandler, standardThreadExecutor));
                     }
                 });
         serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);
         serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
         ChannelFuture channelFuture = serverBootstrap.bind(new InetSocketAddress(url.getPort()));
+        channelFuture.syncUninterruptibly();
         serverChannel = channelFuture.channel();
         state = ChannelState.ALIVE;
         StatsUtil.registryStatisticCallback(this);

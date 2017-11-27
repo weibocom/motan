@@ -45,14 +45,9 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
      * 连续失败次数
      */
     private AtomicLong errorCount = new AtomicLong(0);
-    /**
-     * 最大连接数
-     */
-    private int maxClientConnection = 0;
 
     public NettyClient(URL url) {
         super(url);
-        maxClientConnection = url.getIntParameter(URLParamType.maxClientConnection.getName(), URLParamType.maxClientConnection.getIntValue());
         timeMonitorFuture = scheduledExecutor.scheduleWithFixedDelay(
                 new TimeoutMonitor("timeout_monitor_" + url.getHost() + "_" + url.getPort()),
                 MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD, MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD,
@@ -101,11 +96,11 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
     }
 
     private Response request(Request request, boolean async) throws TransportException {
-        Channel channel = null;
+        Channel channel;
         Response response;
         try {
             // return channel or throw exception(timeout or connection_fail)
-            channel = getObject();
+            channel = getChannel();
             if (channel == null) {
                 LoggerUtil.error("NettyClient borrowObject null: url=" + url.getUri() + " " + MotanFrameworkUtil.toString(request));
                 return null;
@@ -149,6 +144,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
             return true;
         }
 
+
         bootstrap = new Bootstrap();
         int timeout = getUrl().getIntParameter(URLParamType.connectTimeout.getName(), URLParamType.connectTimeout.getIntValue());
         if (timeout <= 0) {
@@ -166,7 +162,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
                     protected void initChannel(SocketChannel ch) throws Exception {
                         ChannelPipeline pipeline = ch.pipeline();
                         pipeline.addLast("decoder", new NettyDecoder(codec, NettyClient.this, maxContentLength));
-                        pipeline.addLast("encoder", new NettyEncoder(codec, NettyClient.this));
+                        pipeline.addLast("encoder", new NettyEncoder());
                         pipeline.addLast("handler", new NettyChannelHandler(NettyClient.this, new MessageHandler() {
                             @Override
                             public Object handle(Channel channel, Object message) {
@@ -198,7 +194,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
 
         // 设置可用状态
         state = ChannelState.ALIVE;
-        return state.isAliveState();
+        return true;
     }
 
     @Override
@@ -273,12 +269,12 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
     void incrErrorCount() {
         long count = errorCount.incrementAndGet();
 
-        // 如果节点是可用状态，同时当前连续失败的次数超过限制maxClientConnection次，那么把该节点标示为不可用
-        if (count >= maxClientConnection && state.isAliveState()) {
+        // 如果节点是可用状态，同时当前连续失败的次数超过连接数，那么把该节点标示为不可用
+        if (count >= connections && state.isAliveState()) {
             synchronized (this) {
                 count = errorCount.longValue();
 
-                if (count >= maxClientConnection && state.isAliveState()) {
+                if (count >= connections && state.isAliveState()) {
                     LoggerUtil.error("NettyClient unavailable Error: url=" + url.getIdentity() + " "
                             + url.getServerPortStr());
                     state = ChannelState.UNALIVE;
@@ -310,7 +306,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
                 long count = errorCount.longValue();
 
                 // 过程中有其他并发更新errorCount的，因此这里需要进行一次判断
-                if (count < maxClientConnection) {
+                if (count < connections) {
                     state = ChannelState.ALIVE;
                     LoggerUtil.info("NettyClient recover available: url=" + url.getIdentity() + " "
                             + url.getServerPortStr());

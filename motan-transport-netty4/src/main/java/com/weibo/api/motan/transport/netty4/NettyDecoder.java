@@ -12,8 +12,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.List;
 
 /**
@@ -21,12 +19,12 @@ import java.util.List;
  */
 public class NettyDecoder extends ByteToMessageDecoder {
     private Codec codec;
-    private Channel motanChannel;
+    private Channel channel;
     private int maxContentLength = 0;
 
-    public NettyDecoder(Codec codec, Channel motanChannel, int maxContentLength) {
+    public NettyDecoder(Codec codec, Channel channel, int maxContentLength) {
         this.codec = codec;
-        this.motanChannel = motanChannel;
+        this.channel = channel;
         this.maxContentLength = maxContentLength;
     }
 
@@ -81,7 +79,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
             return;
         }
         int bodySize = in.readInt();
-        checkMaxContext(bodySize, ctx, out, isRequest, requestId);
+        checkMaxContext(bodySize, ctx, isRequest, requestId);
         size += 4;
         if (bodySize > 0) {
             size += bodySize;
@@ -93,7 +91,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
         byte[] data = new byte[size];
         in.resetReaderIndex();
         in.readBytes(data);
-        decode(data, ctx, out, isRequest, requestId);
+        decode(data, out, isRequest, requestId);
     }
 
     private boolean isV2Request(byte b) {
@@ -112,19 +110,21 @@ public class NettyDecoder extends ByteToMessageDecoder {
             in.resetReaderIndex();
             return;
         }
-        checkMaxContext(dataLength, ctx, out, messageType == MotanConstants.FLAG_REQUEST, requestId);
+        checkMaxContext(dataLength, ctx, messageType == MotanConstants.FLAG_REQUEST, requestId);
         byte[] data = new byte[dataLength];
         in.readBytes(data);
-        decode(data, ctx, out, messageType == MotanConstants.FLAG_REQUEST, requestId);
+        decode(data, out, messageType == MotanConstants.FLAG_REQUEST, requestId);
     }
 
-    private void checkMaxContext(int dataLength, ChannelHandlerContext ctx, List<Object> out, boolean isRequest, long requestId) throws Exception {
+    private void checkMaxContext(int dataLength, ChannelHandlerContext ctx, boolean isRequest, long requestId) throws Exception {
         if (maxContentLength > 0 && dataLength > maxContentLength) {
             LoggerUtil.warn("NettyDecoder transport data content length over of limit, size: {}  > {}. remote={} local={}",
                     dataLength, maxContentLength, ctx.channel().remoteAddress(), ctx.channel().localAddress());
             Exception e = new MotanServiceException("NettyDecoder transport data content length over of limit, size: " + dataLength + " > " + maxContentLength);
             if (isRequest) {
-                ctx.channel().writeAndFlush(buildExceptionResponse(requestId, e));
+                Response response = buildExceptionResponse(requestId, e);
+                byte[] msg = CodecUtil.encodeObjectToBytes(channel, codec, response);
+                ctx.channel().writeAndFlush(msg);
                 throw e;
             } else {
                 throw e;
@@ -132,20 +132,8 @@ public class NettyDecoder extends ByteToMessageDecoder {
         }
     }
 
-    private void decode(byte[] data, ChannelHandlerContext ctx, List<Object> out, boolean isRequest, long requestId) {
-        try {
-            String remoteIp = getRemoteIp(ctx);
-            out.add(codec.decode(motanChannel, remoteIp, data));
-        } catch (Exception e) {
-            LoggerUtil.error("NettyDecoder decode fail! requestid" + requestId + ", size:" + data.length, e);
-            if (isRequest) {
-                Response response = buildExceptionResponse(requestId, e);
-                ctx.channel().writeAndFlush(response);
-            } else {
-                Response response = buildExceptionResponse(requestId, e);
-                out.add(response);
-            }
-        }
+    private void decode(byte[] data, List<Object> out, boolean isRequest, long requestId) {
+        out.add(new NettyMessage(isRequest, requestId, data));
     }
 
     private Response buildExceptionResponse(long requestId, Exception e) {
@@ -155,16 +143,4 @@ public class NettyDecoder extends ByteToMessageDecoder {
         return response;
     }
 
-    private String getRemoteIp(ChannelHandlerContext ctx) {
-        String ip = "";
-        SocketAddress remote = ctx.channel().remoteAddress();
-        if (remote != null) {
-            try {
-                ip = ((InetSocketAddress) remote).getAddress().getHostAddress();
-            } catch (Exception e) {
-                LoggerUtil.warn("get remoteIp error! default will use. msg:{}, remote:{}", e.getMessage(), remote.toString());
-            }
-        }
-        return ip;
-    }
 }

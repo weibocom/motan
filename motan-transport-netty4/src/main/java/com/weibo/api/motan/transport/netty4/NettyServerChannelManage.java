@@ -43,7 +43,7 @@ public class NettyServerChannelManage extends ChannelInboundHandlerAdapter {
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         Channel channel = ctx.channel();
         String channelKey = getChannelKey((InetSocketAddress) channel.localAddress(), (InetSocketAddress) channel.remoteAddress());
-        if (channels.size() > maxChannel) {
+        if (channels.size() >= maxChannel) {
             // 超过最大连接数限制，直接close连接
             LoggerUtil.warn("NettyServerChannelManage channelConnected channel size out of limit: limit={} current={}", maxChannel, channels.size());
             channel.close();

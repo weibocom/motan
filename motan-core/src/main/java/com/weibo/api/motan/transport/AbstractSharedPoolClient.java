@@ -36,20 +36,23 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
             new DefaultThreadFactory("AbstractPoolClient-initPool-", true));
     private final AtomicInteger idx = new AtomicInteger();
     protected SharedObjectFactory factory;
-    protected ArrayList<Object> objects;
-    private int connections;
+    protected ArrayList<Channel> channels;
+    protected int connections;
 
     public AbstractSharedPoolClient(URL url) {
         super(url);
+        connections = url.getIntParameter(URLParamType.maxClientConnection.getName(), URLParamType.maxClientConnection.getIntValue());
+        if (connections <= 0) {
+            connections = URLParamType.maxClientConnection.getIntValue();
+        }
     }
 
     protected void initPool() {
         factory = createChannelFactory();
-        connections = url.getIntParameter(URLParamType.maxClientConnection.getName(), URLParamType.maxClientConnection.getIntValue());
 
-        objects = new ArrayList<>(connections);
+        channels = new ArrayList<>(connections);
         for (int i = 0; i < connections; i++) {
-            objects.add(factory.makeObject());
+            channels.add((Channel) factory.makeObject());
         }
 
         initConnections(false);
@@ -71,27 +74,21 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
     }
 
     private void createConnections() {
-        for (Object object : objects) {
+        for (Channel channel : channels) {
             try {
-                factory.initObject(object);
+                channel.open();
             } catch (Exception e) {
                 LoggerUtil.error("NettyClient init pool create connect Error: url=" + url.getUri(), e);
             }
         }
     }
 
-    protected Channel getObject() throws MotanServiceException {
-        int index = MathUtil.getPositive(idx.getAndIncrement()) % connections;
-        Channel channel = (Channel) objects.get(index);
+    protected Channel getChannel() throws MotanServiceException {
+        int index = MathUtil.getPositive(idx.getAndIncrement());
+        Channel channel;
 
-        if (channel.isAvailable()) {
-            return channel;
-        } else {
-            factory.rebuildObject(channel);
-        }
-
-        for (int i = index + 1; i < connections + index; i++) {
-            channel = (Channel) objects.get(i % connections);
+        for (int i = index; i < connections + index; i++) {
+            channel = channels.get(i % connections);
             if (channel.isAvailable()) {
                 return channel;
             } else {
@@ -99,7 +96,7 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
             }
         }
 
-        String errorMsg = this.getClass().getSimpleName() + " getObject Error: url=" + url.getUri();
+        String errorMsg = this.getClass().getSimpleName() + " getChannel Error: url=" + url.getUri();
         LoggerUtil.error(errorMsg);
         throw new MotanServiceException(errorMsg);
     }
