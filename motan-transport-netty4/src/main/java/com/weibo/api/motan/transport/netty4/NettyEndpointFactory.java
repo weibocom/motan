@@ -10,7 +10,7 @@ import com.weibo.api.motan.transport.support.AbstractEndpointFactory;
 /**
  * @author sunnights
  */
-@SpiMeta(name = "netty4")
+@SpiMeta(name = "motan")
 public class NettyEndpointFactory extends AbstractEndpointFactory {
     @Override
     protected Server innerCreateServer(URL url, MessageHandler messageHandler) {

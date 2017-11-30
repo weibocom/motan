@@ -623,6 +623,11 @@
                             <xsd:documentation><![CDATA[ 扩展配置. ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
+                    <xsd:attribute name="asyncInitConnection" type="xsd:string" use="optional">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[ 异步建立连接 ]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:attribute>
                 </xsd:extension>
             </xsd:complexContent>
         </xsd:complexType>
@@ -681,6 +686,11 @@
                     <xsd:attribute name="errorRate" type="xsd:string" use="optional">
                         <xsd:annotation>
                             <xsd:documentation><![CDATA[ SLA错误率 ]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:attribute>
+                    <xsd:attribute name="asyncInitConnection" type="xsd:string" use="optional">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[ 异步建立连接 ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
                 </xsd:extension>

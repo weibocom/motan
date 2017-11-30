@@ -41,9 +41,9 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
 
     public AbstractSharedPoolClient(URL url) {
         super(url);
-        connections = url.getIntParameter(URLParamType.maxClientConnection.getName(), URLParamType.maxClientConnection.getIntValue());
+        connections = url.getIntParameter(URLParamType.minClientConnection.getName(), URLParamType.minClientConnection.getIntValue());
         if (connections <= 0) {
-            connections = URLParamType.maxClientConnection.getIntValue();
+            connections = URLParamType.minClientConnection.getIntValue();
         }
     }
 
@@ -55,7 +55,7 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
             channels.add((Channel) factory.makeObject());
         }
 
-        initConnections(false);
+        initConnections(url.getBooleanParameter(URLParamType.asyncInitConnection.getName(), URLParamType.asyncInitConnection.getBooleanValue()));
     }
 
     protected abstract SharedObjectFactory createChannelFactory();
