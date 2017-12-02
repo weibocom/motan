@@ -16,6 +16,7 @@ package com.weibo.api.motan.transport.async;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -47,15 +48,11 @@ import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.rpc.ResponseFuture;
 
 /**
- * 
- * @Description create a {interfaceName}Async class with all method add a 'Async' suffix. TODO
- *              support methods inherited from superinterfaces
  * @author zhanglei
+ * @Description create a {interfaceName}Async class with all method add a 'Async' suffix. TODO
+ * support methods inherited from superinterfaces
  * @date Feb 24, 2017
- *
  */
-@SupportedSourceVersion(SourceVersion.RELEASE_6)
-@SupportedAnnotationTypes({"com.weibo.api.motan.transport.async.MotanAsync"})
 public class MotanAsyncProcessor extends AbstractProcessor {
     protected static String ASYNC = MotanConstants.ASYNC_SUFFIX;
     protected static String GENERATE_PATH_KEY = "motanGeneratePath";
@@ -64,12 +61,24 @@ public class MotanAsyncProcessor extends AbstractProcessor {
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         String path = processingEnv.getOptions().get(GENERATE_PATH_KEY);// use javac complie options -AmotanGeneratePath=xxx
-        if(path != null){
+        if (path != null) {
             TARGET_DIR = path;
-        } else{ //use jvm option -DmotanGeneratePath=xxx
+        } else { //use jvm option -DmotanGeneratePath=xxx
             TARGET_DIR = System.getProperty(GENERATE_PATH_KEY, "target/generated-sources/annotations/");
         }
-        
+
+    }
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latestSupported();
+    }
+
+    @Override
+    public Set<String> getSupportedAnnotationTypes() {
+        HashSet<String> types = new HashSet<>();
+        types.add(MotanAsync.class.getName());
+        return types;
     }
 
     @Override
