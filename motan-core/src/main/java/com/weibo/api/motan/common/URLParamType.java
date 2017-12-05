@@ -50,6 +50,7 @@ public enum URLParamType {
     lazyInit("lazyInit", false),
     /** multi referer share the same channel **/
     shareChannel("shareChannel", false),
+    asyncInitConnection("asyncInitConnection", false),
 
     /************************** SPI start ******************************/
 

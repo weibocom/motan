@@ -219,7 +219,7 @@ public class MotanV2Codec extends AbstractCodec {
             byte[] meta = new byte[metaSize];
             buf.position(index);
             buf.get(meta);
-            metaMap = deocdeMeta(meta);
+            metaMap = decodeMeta(meta);
             index += metaSize;
         }
         int bodySize = buf.getInt(index);
@@ -283,7 +283,7 @@ public class MotanV2Codec extends AbstractCodec {
 
     }
 
-    private Map<String, String> deocdeMeta(byte[] meta) {
+    private Map<String, String> decodeMeta(byte[] meta) {
         Map<String, String> map = new HashMap<String, String>();
         if (meta != null && meta.length > 0) {
             String[] s = new String(meta).split("\n");
