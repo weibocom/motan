@@ -57,8 +57,10 @@ public class NettyServerChannelManage extends SimpleChannelHandler {
 
 			channel.close();
 		} else {
-			channels.put(channelKey, channel);
-			ctx.sendUpstream(e);
+			if(channel.isOpen()){
+				channels.put(channelKey, channel);
+				ctx.sendUpstream(e);
+			}
 		}
 	}
 
