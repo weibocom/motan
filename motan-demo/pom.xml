@@ -44,7 +44,7 @@
         </dependency>
         <dependency>
             <groupId>com.weibo</groupId>
-            <artifactId>motan-transport-netty</artifactId>
+            <artifactId>motan-transport-netty4</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
@@ -99,6 +99,12 @@
             <groupId>com.weibo</groupId>
             <artifactId>serialization-extension</artifactId>
             <version>${project.parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.16.Final</version>
         </dependency>
         
         <!-- spring web -->

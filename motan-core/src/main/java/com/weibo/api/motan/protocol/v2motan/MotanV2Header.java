@@ -114,19 +114,19 @@ public class MotanV2Header {
         buf.putShort(MAGIC);
         byte msgType = (byte) 0x00;
         if (heartbeat) {
-            msgType = (byte) ((msgType & 0xff) | 0x10);
+            msgType = (byte) (msgType | 0x10);
         }
         if (gzip) {
-            msgType = (byte) ((msgType & 0xff) | 0x08);
+            msgType = (byte) (msgType | 0x08);
         }
         if (oneway) {
-            msgType = (byte) ((msgType & 0xff) | 0x04);
+            msgType = (byte) (msgType | 0x04);
         }
         if (proxy) {
-            msgType = (byte) ((msgType & 0xff) | 0x02);
+            msgType = (byte) (msgType | 0x02);
         }
         if (!request) {
-            msgType = (byte) ((msgType & 0xff) | 0x01);
+            msgType = (byte) (msgType | 0x01);
         }
 
         buf.put(msgType);
