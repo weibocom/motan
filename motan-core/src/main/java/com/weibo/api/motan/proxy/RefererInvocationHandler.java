@@ -141,6 +141,7 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
                         } else {
                             responseFuture.onSuccess(response);
                         }
+                        responseFuture.setReturnType(returnType);
                         return responseFuture;
                     }
                 } else {
