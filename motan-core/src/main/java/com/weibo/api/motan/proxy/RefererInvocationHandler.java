@@ -130,10 +130,19 @@ public class RefererInvocationHandler<T> implements InvocationHandler {
             Class returnType = getRealReturnType(async, this.clz, method, methodName);
             try {
                 response = cluster.call(request);
-                if (async && response instanceof ResponseFuture) {
-
-                    ((ResponseFuture) response).setReturnType(returnType);
-                    return response;
+                if (async) {
+                    if (response instanceof ResponseFuture) {
+                        ((ResponseFuture) response).setReturnType(returnType);
+                        return response;
+                    } else {
+                        ResponseFuture responseFuture = new DefaultResponseFuture(request, 0, cluster.getUrl());
+                        if (response.getException() != null) {
+                            responseFuture.onFailure(response);
+                        } else {
+                            responseFuture.onSuccess(response);
+                        }
+                        return responseFuture;
+                    }
                 } else {
                     Object value = response.getValue();
                     if (value != null && value instanceof DeserializableObject) {
