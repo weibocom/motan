@@ -3,6 +3,7 @@ package com.weibo.api.motan.transport.netty4;
 import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
+import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.DefaultResponse;
@@ -74,7 +75,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
                             threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(),
                             threadPoolExecutor.getCorePoolSize(), threadPoolExecutor.getMaximumPoolSize(),
                             threadPoolExecutor.getTaskCount());
-                    processMessage(ctx, (NettyMessage) msg);
+                    processRejectedMessage(ctx, (NettyMessage) msg);
                 }
             } else {
                 processMessage(ctx, ((NettyMessage) msg));
@@ -85,7 +86,15 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         }
     }
 
+    private void processRejectedMessage(ChannelHandlerContext ctx, NettyMessage msg) {
+        processMessage(ctx, msg, true);
+    }
+
     private void processMessage(ChannelHandlerContext ctx, NettyMessage msg) {
+        processMessage(ctx, msg, false);
+    }
+
+    private void processMessage(ChannelHandlerContext ctx, NettyMessage msg, boolean isRejected) {
         String remoteIp = getRemoteIp(ctx);
         Object result;
         try {
@@ -102,7 +111,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             return;
         }
         if (result instanceof Request) {
-            processRequest(ctx, (Request) result);
+            processRequest(ctx, (Request) result, isRejected);
         } else if (result instanceof Response) {
             processResponse(result);
         }
@@ -115,7 +124,19 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         return response;
     }
 
-    private void processRequest(final ChannelHandlerContext ctx, Request request) {
+    private void processRequest(final ChannelHandlerContext ctx, Request request, boolean isRejected) {
+        if (isRejected) {
+            DefaultResponse response = new DefaultResponse();
+            response.setRequestId(request.getRequestId());
+            response.setException(new MotanServiceException("process thread pool is full, reject", MotanErrorMsgConstant.SERVICE_REJECT));
+            sendResponse(ctx, response);
+
+            LoggerUtil.warn("process thread pool is full, reject, active={} poolSize={} corePoolSize={} maxPoolSize={} taskCount={} requestId={}",
+                    threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(),
+                    threadPoolExecutor.getCorePoolSize(), threadPoolExecutor.getMaximumPoolSize(),
+                    threadPoolExecutor.getTaskCount(), request.getRequestId());
+            return;
+        }
         request.setAttachment(URLParamType.host.getName(), NetUtils.getHostName(ctx.channel().remoteAddress()));
         final long processStartTime = System.currentTimeMillis();
         try {
