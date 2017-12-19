@@ -71,14 +71,17 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
                         }
                     });
                 } catch (RejectedExecutionException rejectException) {
-                    LoggerUtil.debug("process thread pool is full, run in io thread, active={} poolSize={} corePoolSize={} maxPoolSize={} taskCount={}",
-                            threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(),
-                            threadPoolExecutor.getCorePoolSize(), threadPoolExecutor.getMaximumPoolSize(),
-                            threadPoolExecutor.getTaskCount());
-                    processRejectedMessage(ctx, (NettyMessage) msg);
+                    if (((NettyMessage) msg).isRequest()) {
+                        rejectMessage(ctx, (NettyMessage) msg);
+                    } else {
+                        LoggerUtil.warn("process thread pool is full, run in io thread, active={} poolSize={} corePoolSize={} maxPoolSize={} taskCount={} requestId={}",
+                                threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(), threadPoolExecutor.getCorePoolSize(),
+                                threadPoolExecutor.getMaximumPoolSize(), threadPoolExecutor.getTaskCount(), ((NettyMessage) msg).getRequestId());
+                        processMessage(ctx, (NettyMessage) msg);
+                    }
                 }
             } else {
-                processMessage(ctx, ((NettyMessage) msg));
+                processMessage(ctx, (NettyMessage) msg);
             }
         } else {
             LoggerUtil.error("NettyChannelHandler messageReceived type not support: class=" + msg.getClass());
@@ -86,15 +89,20 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         }
     }
 
-    private void processRejectedMessage(ChannelHandlerContext ctx, NettyMessage msg) {
-        processMessage(ctx, msg, true);
+    private void rejectMessage(ChannelHandlerContext ctx, NettyMessage msg) {
+        if (msg.isRequest()) {
+            DefaultResponse response = new DefaultResponse();
+            response.setRequestId(msg.getRequestId());
+            response.setException(new MotanServiceException("process thread pool is full, reject", MotanErrorMsgConstant.SERVICE_REJECT));
+            sendResponse(ctx, response);
+
+            LoggerUtil.error("process thread pool is full, reject, active={} poolSize={} corePoolSize={} maxPoolSize={} taskCount={} requestId={}",
+                    threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(), threadPoolExecutor.getCorePoolSize(),
+                    threadPoolExecutor.getMaximumPoolSize(), threadPoolExecutor.getTaskCount(), msg.getRequestId());
+        }
     }
 
     private void processMessage(ChannelHandlerContext ctx, NettyMessage msg) {
-        processMessage(ctx, msg, false);
-    }
-
-    private void processMessage(ChannelHandlerContext ctx, NettyMessage msg, boolean isRejected) {
         String remoteIp = getRemoteIp(ctx);
         Object result;
         try {
@@ -111,7 +119,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             return;
         }
         if (result instanceof Request) {
-            processRequest(ctx, (Request) result, isRejected);
+            processRequest(ctx, (Request) result);
         } else if (result instanceof Response) {
             processResponse(result);
         }
@@ -124,19 +132,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         return response;
     }
 
-    private void processRequest(final ChannelHandlerContext ctx, Request request, boolean isRejected) {
-        if (isRejected) {
-            DefaultResponse response = new DefaultResponse();
-            response.setRequestId(request.getRequestId());
-            response.setException(new MotanServiceException("process thread pool is full, reject", MotanErrorMsgConstant.SERVICE_REJECT));
-            sendResponse(ctx, response);
-
-            LoggerUtil.warn("process thread pool is full, reject, active={} poolSize={} corePoolSize={} maxPoolSize={} taskCount={} requestId={}",
-                    threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(),
-                    threadPoolExecutor.getCorePoolSize(), threadPoolExecutor.getMaximumPoolSize(),
-                    threadPoolExecutor.getTaskCount(), request.getRequestId());
-            return;
-        }
+    private void processRequest(final ChannelHandlerContext ctx, Request request) {
         request.setAttachment(URLParamType.host.getName(), NetUtils.getHostName(ctx.channel().remoteAddress()));
         final long processStartTime = System.currentTimeMillis();
         try {
