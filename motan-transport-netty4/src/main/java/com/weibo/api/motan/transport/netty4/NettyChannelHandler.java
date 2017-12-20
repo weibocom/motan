@@ -3,6 +3,7 @@ package com.weibo.api.motan.transport.netty4;
 import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
+import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.DefaultResponse;
@@ -70,18 +71,34 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
                         }
                     });
                 } catch (RejectedExecutionException rejectException) {
-                    LoggerUtil.debug("process thread pool is full, run in io thread, active={} poolSize={} corePoolSize={} maxPoolSize={} taskCount={}",
-                            threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(),
-                            threadPoolExecutor.getCorePoolSize(), threadPoolExecutor.getMaximumPoolSize(),
-                            threadPoolExecutor.getTaskCount());
-                    processMessage(ctx, (NettyMessage) msg);
+                    if (((NettyMessage) msg).isRequest()) {
+                        rejectMessage(ctx, (NettyMessage) msg);
+                    } else {
+                        LoggerUtil.warn("process thread pool is full, run in io thread, active={} poolSize={} corePoolSize={} maxPoolSize={} taskCount={} requestId={}",
+                                threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(), threadPoolExecutor.getCorePoolSize(),
+                                threadPoolExecutor.getMaximumPoolSize(), threadPoolExecutor.getTaskCount(), ((NettyMessage) msg).getRequestId());
+                        processMessage(ctx, (NettyMessage) msg);
+                    }
                 }
             } else {
-                processMessage(ctx, ((NettyMessage) msg));
+                processMessage(ctx, (NettyMessage) msg);
             }
         } else {
             LoggerUtil.error("NettyChannelHandler messageReceived type not support: class=" + msg.getClass());
             throw new MotanFrameworkException("NettyChannelHandler messageReceived type not support: class=" + msg.getClass());
+        }
+    }
+
+    private void rejectMessage(ChannelHandlerContext ctx, NettyMessage msg) {
+        if (msg.isRequest()) {
+            DefaultResponse response = new DefaultResponse();
+            response.setRequestId(msg.getRequestId());
+            response.setException(new MotanServiceException("process thread pool is full, reject by server: " + ctx.channel().localAddress(), MotanErrorMsgConstant.SERVICE_REJECT));
+            sendResponse(ctx, response);
+
+            LoggerUtil.error("process thread pool is full, reject, active={} poolSize={} corePoolSize={} maxPoolSize={} taskCount={} requestId={}",
+                    threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(), threadPoolExecutor.getCorePoolSize(),
+                    threadPoolExecutor.getMaximumPoolSize(), threadPoolExecutor.getTaskCount(), msg.getRequestId());
         }
     }
 
