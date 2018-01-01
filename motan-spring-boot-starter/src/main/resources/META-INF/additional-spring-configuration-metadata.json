@@ -1,0 +1,116 @@
+{
+  "properties": [
+    {
+      "name": "spring.motan.scan.package",
+      "type": "java.lang.String"
+    },
+    {
+      "name": "spring.motan.protocol.name",
+      "type": "java.lang.String",
+      "values": [
+        {
+          "value": "motan"
+        },
+        {
+          "value": "motan2"
+        }
+      ]
+    },
+    {
+      "name": "spring.motan.protocol.haStrategy",
+      "type": "java.lang.String",
+      "values": [
+        {
+          "value": "failfast"
+        },
+        {
+          "value": "failover"
+        }
+      ],
+      "defaultValue": "failfast"
+    },
+    {
+      "name": "spring.motan.protocol.loadBalance",
+      "type": "java.lang.String",
+      "values": [
+        {
+          "value": "roundrobin"
+        },
+        {
+          "value": "random"
+        },
+        {
+          "value": "localFirst"
+        },
+        {
+          "value": "consistent"
+        },
+        {
+          "value": "configurableWeight"
+        },
+        {
+          "value": "activeWeight"
+        }
+      ],
+      "defaultValue": "roundrobin"
+    },
+    {
+      "name": "spring.motan.registry.protocol",
+      "type": "java.lang.String",
+      "values": [
+        {
+          "value": "zookeeper"
+        },
+        {
+          "value": "consul"
+        },
+        {
+          "value": "direct"
+        }
+      ],
+      "defaultValue": "zookeeper"
+    },
+    {
+      "name": "spring.motan.registry.address",
+      "type": "java.lang.String",
+      "description": "motan registry address.",
+      "defaultValue": "127.0.0.1:2181"
+    },
+    {
+      "name": "spring.motan.server.group",
+      "type": "java.lang.String",
+      "description": "motan server group.",
+      "defaultValue": "default"
+    },
+    {
+      "name": "spring.motan.server.accessLog",
+      "type": "java.lang.Boolean",
+      "description": "motan server print access log.",
+      "defaultValue": false
+    },
+    {
+      "name": "spring.motan.server.shareChannel",
+      "type": "java.lang.Boolean",
+      "description": "motan server share channel.",
+      "defaultValue": true
+    },
+    {
+      "name": "spring.motan.server.module",
+      "type": "java.lang.String",
+      "description": "motan server module.",
+      "defaultValue": "default"
+    },
+    {
+      "name": "spring.motan.server.application",
+      "type": "java.lang.String",
+      "description": "motan server application name.",
+      "defaultValue": "default-server"
+    },
+    {
+      "name": "spring.motan.server.export",
+      "type": "java.lang.String",
+      "description": "motan server service export.",
+      "defaultValue": "motanProtocol:8002"
+    }
+  ]
+}
