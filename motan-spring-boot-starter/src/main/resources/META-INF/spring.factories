@@ -1,7 +1,6 @@
-org.springframework.context.ApplicationContextInitializer=\
-com.weibo.api.motan.spring.boot.autoconfigure.MotanApplicationContextInitializer
+#org.springframework.context.ApplicationContextInitializer=\
+#com.weibo.api.motan.spring.boot.autoconfigure.MotanApplicationContextInitializer
 org.springframework.context.ApplicationListener=\
 com.weibo.api.motan.spring.boot.autoconfigure.MotanHolderListener
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.weibo.api.motan.spring.boot.autoconfigure.MotanAutoConfiguration\
-com.weibo.api.motan.spring.boot.autoconfigure.actuate.ActuatorAutoConfiguration
+com.weibo.api.motan.spring.boot.autoconfigure.MotanAutoConfiguration

@@ -1,0 +1,19 @@
+spring:
+  motan:
+    scan:
+      package: com.weibo.api.motan.spring.boot.autoconfigure
+    protocol:
+      name: motan2
+    registry:
+      regProtocol: zookeeper
+      address: 127.0.0.1:2181
+    service:
+      group: wsd-java
+      application: motan-demo-server
+    referer:
+      group: wsd-java
+      application: motan-demo-client
+
+logging:
+  level:
+    root: debug

@@ -2,7 +2,8 @@
   "properties": [
     {
       "name": "spring.motan.scan.package",
-      "type": "java.lang.String"
+      "type": "java.lang.String",
+      "sourceType": "com.weibo.api.motan.config.springsupport.AnnotationBean"
     },
     {
       "name": "spring.motan.protocol.name",
@@ -14,12 +15,14 @@
         {
           "value": "motan2"
         }
-      ]
+      ],
+      "sourceType": "com.weibo.api.motan.config.springsupport.ProtocolConfigBean"
     },
     {
       "name": "spring.motan.protocol.maxContentLength",
       "type": "java.lang.Integer",
-      "defaultValue": 1048576
+      "defaultValue": 1048576,
+      "sourceType": "com.weibo.api.motan.config.springsupport.ProtocolConfigBean"
     },
     {
       "name": "spring.motan.protocol.haStrategy",
@@ -32,7 +35,8 @@
           "value": "failover"
         }
       ],
-      "defaultValue": "failfast"
+      "defaultValue": "failfast",
+      "sourceType": "com.weibo.api.motan.config.springsupport.ProtocolConfigBean"
     },
     {
       "name": "spring.motan.protocol.loadbalance",
@@ -57,7 +61,8 @@
           "value": "activeWeight"
         }
       ],
-      "defaultValue": "roundrobin"
+      "defaultValue": "roundrobin",
+      "sourceType": "com.weibo.api.motan.config.springsupport.ProtocolConfigBean"
     },
     {
       "name": "spring.motan.registry.regProtocol",
@@ -73,103 +78,120 @@
           "value": "direct"
         }
       ],
-      "defaultValue": "zookeeper"
+      "defaultValue": "zookeeper",
+      "sourceType": "com.weibo.api.motan.config.springsupport.RegistryConfigBean"
     },
     {
       "name": "spring.motan.registry.address",
       "type": "java.lang.String",
       "description": "motan registry address.",
-      "defaultValue": "127.0.0.1:2181"
+      "defaultValue": "127.0.0.1:2181",
+      "sourceType": "com.weibo.api.motan.config.springsupport.RegistryConfigBean"
     },
     {
       "name": "spring.motan.service.group",
       "type": "java.lang.String",
       "description": "motan service group.",
-      "defaultValue": "default"
+      "defaultValue": "default",
+      "sourceType": "com.weibo.api.motan.config.springsupport.BasicServiceConfigBean"
     },
     {
       "name": "spring.motan.service.check",
       "type": "java.lang.Boolean",
       "description": "motan service check exists.",
-      "defaultValue": false
+      "defaultValue": false,
+      "sourceType": "com.weibo.api.motan.config.springsupport.BasicServiceConfigBean"
     },
     {
       "name": "spring.motan.service.accessLog",
       "type": "java.lang.Boolean",
       "description": "motan service print access log.",
-      "defaultValue": false
+      "defaultValue": false,
+      "sourceType": "com.weibo.api.motan.config.springsupport.BasicServiceConfigBean"
     },
     {
       "name": "spring.motan.service.shareChannel",
       "type": "java.lang.Boolean",
       "description": "motan service share channel.",
-      "defaultValue": true
+      "defaultValue": true,
+      "sourceType": "com.weibo.api.motan.config.springsupport.BasicServiceConfigBean"
     },
     {
       "name": "spring.motan.service.module",
       "type": "java.lang.String",
       "description": "motan service module.",
-      "defaultValue": "default"
+      "defaultValue": "default",
+      "sourceType": "com.weibo.api.motan.config.springsupport.BasicServiceConfigBean"
     },
     {
       "name": "spring.motan.service.application",
       "type": "java.lang.String",
       "description": "motan service application name.",
-      "defaultValue": "default-server"
+      "defaultValue": "default-server",
+      "sourceType": "com.weibo.api.motan.config.springsupport.BasicServiceConfigBean"
     },
     {
       "name": "spring.motan.service.export",
       "type": "java.lang.String",
       "description": "motan service export.",
-      "defaultValue": "motanProtocol:8002"
+      "defaultValue": "motanProtocol:8002",
+      "sourceType": "com.weibo.api.motan.config.springsupport.BasicServiceConfigBean"
     },
     {
       "name": "spring.motan.referer.group",
       "type": "java.lang.String",
       "description": "motan referer group.",
-      "defaultValue": "default"
+      "defaultValue": "default",
+      "sourceType": "com.weibo.api.motan.config.springsupport.BasicRefererConfigBean"
     },
     {
       "name": "spring.motan.referer.check",
       "type": "java.lang.Boolean",
       "description": "motan referer check exists.",
-      "defaultValue": false
+      "defaultValue": false,
+      "sourceType": "com.weibo.api.motan.config.springsupport.BasicRefererConfigBean"
     },
     {
       "name": "spring.motan.referer.accessLog",
       "type": "java.lang.Boolean",
       "description": "motan referer print access log.",
-      "defaultValue": false
+      "defaultValue": false,
+      "sourceType": "com.weibo.api.motan.config.springsupport.BasicRefererConfigBean"
     },
     {
       "name": "spring.motan.referer.shareChannel",
       "type": "java.lang.Boolean",
       "description": "motan referer share channel.",
-      "defaultValue": true
+      "defaultValue": true,
+      "sourceType": "com.weibo.api.motan.config.springsupport.BasicRefererConfigBean"
     },
     {
       "name": "spring.motan.referer.module",
       "type": "java.lang.String",
       "description": "motan referer module.",
-      "defaultValue": "default"
+      "defaultValue": "default",
+      "sourceType": "com.weibo.api.motan.config.springsupport.BasicRefererConfigBean"
     },
     {
       "name": "spring.motan.referer.application",
       "type": "java.lang.String",
       "description": "motan referer application name.",
-      "defaultValue": "default-client"
+      "defaultValue": "default-client",
+      "sourceType": "com.weibo.api.motan.config.springsupport.BasicRefererConfigBean"
     },
     {
       "name": "spring.motan.referer.retries",
       "type": "java.lang.Integer",
       "description": "motan referer retries.",
-      "defaultValue": 2
+      "defaultValue": 2,
+      "sourceType": "com.weibo.api.motan.config.springsupport.BasicRefererConfigBean"
     },
     {
       "name": "spring.motan.referer.throwException",
       "type": "java.lang.Boolean",
       "description": "motan server service throw exception.",
-      "defaultValue": true
+      "defaultValue": true,
+      "sourceType": "com.weibo.api.motan.config.springsupport.BasicRefererConfigBean"
     }
   ]
 }
