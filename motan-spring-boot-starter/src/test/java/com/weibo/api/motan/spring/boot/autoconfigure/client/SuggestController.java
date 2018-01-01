@@ -6,6 +6,7 @@ import com.weibo.api.motan.spring.boot.autoconfigure.api.suggest.Condition;
 import com.weibo.api.motan.spring.boot.autoconfigure.api.suggest.ContentWrapper;
 import com.weibo.api.motan.spring.boot.autoconfigure.api.suggest.SuggestService;
 import com.weibo.api.motan.config.springsupport.annotation.MotanReferer;
+import com.weibo.api.motan.spring.boot.autoconfigure.properties.MotanProperties;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class SuggestController {
 
-    @MotanReferer(basicReferer = "motanBasicReferer")
+    @MotanReferer(basicReferer = MotanProperties.DEFAULT_REFERER_CONFIG_NAME)
     private SuggestService suggestService;
 
     @GetMapping(value = "/search")

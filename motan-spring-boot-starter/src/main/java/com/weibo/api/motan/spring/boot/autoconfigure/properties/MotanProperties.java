@@ -6,6 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "spring.motan")
 public class MotanProperties {
 
+    public static final String DEFAULT_REFERER_CONFIG_NAME = "refererConfig";
+
     private AnnotationBean scan;
 
     private ProtocolConfigBean protocol;
