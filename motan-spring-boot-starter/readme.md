@@ -16,90 +16,126 @@
     compile 'com.weibo:motan-spring-boot-starter:1.1.0'
     ```
 2. 添加配置
+
+    服务端配置
+    
     ```xml
-    motan.xx.url= 
-    motan.xx.url= 
-    motan.xx.url= 
-    # ...其他配置（可选，不是必须的，使用内嵌数据库的话上述三项也可省略不填）
+    spring.motan.scan.package=${你的包名，包括consumer和provider}
+    spring.motan.protocol.name=motan2
+    spring.motan.registry.regProtocol=zookeeper
+    spring.motan.registry.address=127.0.0.1:2181
+    spring.motan.service.export=8002
+    spring.motan.service.group=wsd-java
+    spring.motan.service.application=motan-demo-server
+
+    # ...其他配置（可选，不是必须的）
+    spring.motan.protocol.haStrategy=failover
+    spring.motan.protocol.loadbalance=roundrobin
+    spring.motan.service.check=true
     ```
+    
+    客户端端配置
+    ```xml
+    spring.motan.scan.package=${你的包名，包括consumer和provider}
+    spring.motan.protocol.name=motan2
+    spring.motan.registry.regProtocol=zookeeper
+    spring.motan.registry.address=127.0.0.1:2181
+    spring.motan.referer.group=wsd-java
+    spring.motan.referer.application=motan-demo-client
 
-## 配置属性
-Motan Spring Boot Starter 配置属性的名称完全遵照 Motan，你可以通过 Spring Boot 配置文件来配置Motan RPC，如果没有配置则使用默认值。
+    # ...其他配置（可选，不是必须的）
+    spring.motan.referer.retries=3
+    spring.motan.referer.throwException=true
+ 
+ 3. 导出和消费
+ 
+    服务端
+    ```java
+    package com.douyu.motan.demo.rpc;
 
-- 注册中心 配置
-```xml
-spring.datasource.druid.url= # 或spring.datasource.url= 
-spring.datasource.druid.username= # 或spring.datasource.username=
-spring.datasource.druid.password= # 或spring.datasource.password=
-spring.datasource.druid.driver-class-name= #或 spring.datasource.driver-class-name=
-```
-- 服务端 配置
-```
-spring.datasource.druid.initial-size=
-spring.datasource.druid.max-active=
-spring.datasource.druid.min-idle=
-spring.datasource.druid.max-wait=
-spring.datasource.druid.pool-prepared-statements=
-spring.datasource.druid.max-pool-prepared-statement-per-connection-size= 
-spring.datasource.druid.max-open-prepared-statements= #和上面的等价
-spring.datasource.druid.validation-query=
-spring.datasource.druid.validation-query-timeout=
-spring.datasource.druid.test-on-borrow=
-spring.datasource.druid.test-on-return=
-spring.datasource.druid.test-while-idle=
-spring.datasource.druid.time-between-eviction-runs-millis=
-spring.datasource.druid.min-evictable-idle-time-millis=
-spring.datasource.druid.max-evictable-idle-time-millis=
-spring.datasource.druid.filters= #配置多个英文逗号分隔
-....//more
-```
-- 客户端 配置
-```
-spring.datasource.druid.initial-size=
-spring.datasource.druid.max-active=
-spring.datasource.druid.min-idle=
-spring.datasource.druid.max-wait=
-spring.datasource.druid.pool-prepared-statements=
-spring.datasource.druid.max-pool-prepared-statement-per-connection-size= 
-spring.datasource.druid.max-open-prepared-statements= #和上面的等价
-spring.datasource.druid.validation-query=
-spring.datasource.druid.validation-query-timeout=
-spring.datasource.druid.test-on-borrow=
-spring.datasource.druid.test-on-return=
-spring.datasource.druid.test-while-idle=
-spring.datasource.druid.time-between-eviction-runs-millis=
-spring.datasource.druid.min-evictable-idle-time-millis=
-spring.datasource.druid.max-evictable-idle-time-millis=
-spring.datasource.druid.filters= #配置多个英文逗号分隔
-....//more
-```
-- 监控配置
-```
-# WebStatFilter配置，说明请参考Druid Wiki，配置_配置WebStatFilter
-spring.datasource.druid.web-stat-filter.enabled= #是否启用StatFilter默认值true
-spring.datasource.druid.web-stat-filter.url-pattern=
-spring.datasource.druid.web-stat-filter.exclusions=
-spring.datasource.druid.web-stat-filter.session-stat-enable=
-spring.datasource.druid.web-stat-filter.session-stat-max-count=
-spring.datasource.druid.web-stat-filter.principal-session-name=
-spring.datasource.druid.web-stat-filter.principal-cookie-name=
-spring.datasource.druid.web-stat-filter.profile-enable=
+    import com.douyu.motan.demo.api.std.StdResponse;
+    import com.douyu.motan.demo.api.suggest.ContentWrapper;
+    import com.douyu.motan.demo.api.suggest.SuggestService;
+    import com.douyu.motan.demo.utils.JsonUtils;
 
-# StatViewServlet配置，说明请参考Druid Wiki，配置_StatViewServlet配置
-spring.datasource.druid.stat-view-servlet.enabled= #是否启用StatViewServlet默认值true
-spring.datasource.druid.stat-view-servlet.url-pattern=
-spring.datasource.druid.stat-view-servlet.reset-enable=
-spring.datasource.druid.stat-view-servlet.login-username=
-spring.datasource.druid.stat-view-servlet.login-password=
-spring.datasource.druid.stat-view-servlet.allow=
-spring.datasource.druid.stat-view-servlet.deny=
+    import java.net.URLEncoder;
+    import javax.annotation.Resource;
 
-# Spring监控配置，说明请参考Druid Github Wiki，配置_Druid和Spring关联监控配置
-spring.datasource.druid.aop-patterns= # Spring监控AOP切入点，如x.y.z.service.*,配置多个英文逗号分隔
-# 如果spring.datasource.druid.aop-patterns要代理的类没有定义interface请设置spring.aop.proxy-target-class=true
-```
-Druid Spring Boot Starter 不仅限于对以上配置属性提供支持，[```DruidDataSource```](https://github.com/alibaba/druid/blob/master/src/main/java/com/alibaba/druid/pool/DruidDataSource.java) 内提供```setter```方法的可配置属性都将被支持。你可以参考WIKI文档或通过IDE输入提示来进行配置。配置文件的格式你可以选择```.properties```或```.yml```，效果是一样的，在配置较多的情况下推荐使用```.yml```。
+    import com.weibo.api.motan.config.springsupport.annotation.MotanService;
+    import lombok.Setter;
+    import lombok.extern.slf4j.Slf4j;
+    import org.jsoup.Jsoup;
+    import org.springframework.web.client.RestTemplate;
 
+    @MotanService
+    @Setter
+    @Slf4j
+    public class SuggestServiceImpl implements SuggestService {
+
+        @Resource
+        private RestTemplate restTemplate;
+
+        @Override
+        public StdResponse<ContentWrapper> query(String keyword) {
+            if (keyword == null) {
+                return StdResponse.asError(StdResponse.CODE_BAD_REQUEST, "参数不合法", "参数不合法: " + keyword);
+            }
+
+            log.info("收到rpc请求: keyword={}", keyword);
+
+            try {
+                String url = "http://www.ximalaya.com/search/suggest?scope=all&kw=" + URLEncoder.encode(keyword, "UTF-8");
+
+                String json = Jsoup.connect(url).ignoreContentType(true).execute().body();
+                ContentWrapper res = JsonUtils.toObject(json, ContentWrapper.class);
+
+                return StdResponse.asSuccess(res);
+            } catch (Exception e) {
+                log.error("服务器内部错误: keyword={}", keyword, e);
+                return StdResponse.asError(StdResponse.CODE_INTERNAL_SERVER_ERROR, "服务器内部错误", "服务器内部错误: " + e.getMessage());
+            }
+        }
+    }
+    ```
+ 
+    客户端
+    ```java
+    package com.douyu.motan.demo.controller;
+
+    import com.douyu.motan.demo.api.std.StdRequest;
+    import com.douyu.motan.demo.api.std.StdResponse;
+    import com.douyu.motan.demo.api.suggest.Condition;
+    import com.douyu.motan.demo.api.suggest.ContentWrapper;
+    import com.douyu.motan.demo.api.suggest.SuggestService;
+
+    import com.weibo.api.motan.config.springsupport.annotation.MotanReferer;
+    import org.springframework.beans.BeanUtils;
+    import org.springframework.web.bind.annotation.GetMapping;
+    import org.springframework.web.bind.annotation.RestController;
+
+    @RestController
+    public class SuggestController {
+
+        @MotanReferer(basicReferer = "motanBasicReferer")
+        private SuggestService suggestService;
+
+        @GetMapping(value = "/search")
+        public SearchRes search(String kw) {
+            long timestamp = System.currentTimeMillis();
+            Condition cond = new Condition();
+            cond.setKeyword(kw);
+            cond.setScope("all");
+            StdRequest<Condition> req = new StdRequest<Condition>(timestamp, "", cond);
+            StdResponse<ContentWrapper> response = suggestService.query(kw);
+            ContentWrapper wrapper = response.getData();
+            SearchRes searchRes = new SearchRes();
+            if (wrapper != null) {
+                BeanUtils.copyProperties(wrapper, searchRes);
+            }
+            return searchRes;
+        }
+    }
+    ```
 
 ## 设计目的
 
@@ -109,13 +145,9 @@ Druid Spring Boot Starter 不仅限于对以上配置属性提供支持，[```Dr
 
 * 将motan与spring boot监控体系打通
 
-## IDE 提示支持
-![](https://raw.githubusercontent.com/lihengming/java-codes/master/shared-resources/github-images/druid-spring-boot-starter-ide-hint.jpg)
-
 ## 演示
 克隆项目，运行```test```包内的```DemoApplication```。
 
 ## 参考
-[Druid Wiki](https://github.com/alibaba/druid/wiki/%E9%A6%96%E9%A1%B5)
 
 [Spring Boot Reference](http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/)

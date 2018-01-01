@@ -17,6 +17,11 @@
       ]
     },
     {
+      "name": "spring.motan.protocol.maxContentLength",
+      "type": "java.lang.Integer",
+      "defaultValue": 1048576
+    },
+    {
       "name": "spring.motan.protocol.haStrategy",
       "type": "java.lang.String",
       "values": [
@@ -30,7 +35,7 @@
       "defaultValue": "failfast"
     },
     {
-      "name": "spring.motan.protocol.loadBalance",
+      "name": "spring.motan.protocol.loadbalance",
       "type": "java.lang.String",
       "values": [
         {
@@ -55,7 +60,7 @@
       "defaultValue": "roundrobin"
     },
     {
-      "name": "spring.motan.registry.protocol",
+      "name": "spring.motan.registry.regProtocol",
       "type": "java.lang.String",
       "values": [
         {
@@ -77,40 +82,94 @@
       "defaultValue": "127.0.0.1:2181"
     },
     {
-      "name": "spring.motan.server.group",
+      "name": "spring.motan.service.group",
       "type": "java.lang.String",
-      "description": "motan server group.",
+      "description": "motan service group.",
       "defaultValue": "default"
     },
     {
-      "name": "spring.motan.server.accessLog",
+      "name": "spring.motan.service.check",
       "type": "java.lang.Boolean",
-      "description": "motan server print access log.",
+      "description": "motan service check exists.",
       "defaultValue": false
     },
     {
-      "name": "spring.motan.server.shareChannel",
+      "name": "spring.motan.service.accessLog",
       "type": "java.lang.Boolean",
-      "description": "motan server share channel.",
+      "description": "motan service print access log.",
+      "defaultValue": false
+    },
+    {
+      "name": "spring.motan.service.shareChannel",
+      "type": "java.lang.Boolean",
+      "description": "motan service share channel.",
       "defaultValue": true
     },
     {
-      "name": "spring.motan.server.module",
+      "name": "spring.motan.service.module",
       "type": "java.lang.String",
-      "description": "motan server module.",
+      "description": "motan service module.",
       "defaultValue": "default"
     },
     {
-      "name": "spring.motan.server.application",
+      "name": "spring.motan.service.application",
       "type": "java.lang.String",
-      "description": "motan server application name.",
+      "description": "motan service application name.",
       "defaultValue": "default-server"
     },
     {
-      "name": "spring.motan.server.export",
+      "name": "spring.motan.service.export",
       "type": "java.lang.String",
-      "description": "motan server service export.",
+      "description": "motan service export.",
       "defaultValue": "motanProtocol:8002"
+    },
+    {
+      "name": "spring.motan.referer.group",
+      "type": "java.lang.String",
+      "description": "motan referer group.",
+      "defaultValue": "default"
+    },
+    {
+      "name": "spring.motan.referer.check",
+      "type": "java.lang.Boolean",
+      "description": "motan referer check exists.",
+      "defaultValue": false
+    },
+    {
+      "name": "spring.motan.referer.accessLog",
+      "type": "java.lang.Boolean",
+      "description": "motan referer print access log.",
+      "defaultValue": false
+    },
+    {
+      "name": "spring.motan.referer.shareChannel",
+      "type": "java.lang.Boolean",
+      "description": "motan referer share channel.",
+      "defaultValue": true
+    },
+    {
+      "name": "spring.motan.referer.module",
+      "type": "java.lang.String",
+      "description": "motan referer module.",
+      "defaultValue": "default"
+    },
+    {
+      "name": "spring.motan.referer.application",
+      "type": "java.lang.String",
+      "description": "motan referer application name.",
+      "defaultValue": "default-client"
+    },
+    {
+      "name": "spring.motan.referer.retries",
+      "type": "java.lang.Integer",
+      "description": "motan referer retries.",
+      "defaultValue": 2
+    },
+    {
+      "name": "spring.motan.referer.throwException",
+      "type": "java.lang.Boolean",
+      "description": "motan server service throw exception.",
+      "defaultValue": true
     }
   ]
 }
