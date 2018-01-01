@@ -1,4 +1,4 @@
-package com.weibo.api.motan.spring.boot.autoconfigure.api.std;
+package com.weibo.api.motan.demo.api.std;
 
 import java.io.Serializable;
 

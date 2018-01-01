@@ -1,10 +1,10 @@
-package com.weibo.api.motan.spring.boot.autoconfigure.server;
+package com.weibo.api.motan.demo.server;
 
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
-import com.weibo.api.motan.spring.boot.autoconfigure.api.std.StdResponse;
-import com.weibo.api.motan.spring.boot.autoconfigure.api.suggest.ContentWrapper;
-import com.weibo.api.motan.spring.boot.autoconfigure.api.suggest.SuggestService;
-import com.weibo.api.motan.spring.boot.autoconfigure.utils.JsonUtils;
+import com.weibo.api.motan.demo.api.std.StdResponse;
+import com.weibo.api.motan.demo.api.suggest.ContentWrapper;
+import com.weibo.api.motan.demo.api.suggest.SuggestService;
+import com.weibo.api.motan.demo.utils.JsonUtils;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;

@@ -1,14 +1,16 @@
 package com.weibo.api.motan.spring.boot.autoconfigure.properties;
 
-import com.weibo.api.motan.config.springsupport.*;
+import com.weibo.api.motan.config.springsupport.BasicRefererConfigBean;
+import com.weibo.api.motan.config.springsupport.BasicServiceConfigBean;
+import com.weibo.api.motan.config.springsupport.ProtocolConfigBean;
+import com.weibo.api.motan.config.springsupport.RegistryConfigBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "spring.motan")
-public class MotanProperties {
+public class MotanProperties implements InitializingBean {
 
-    public static final String DEFAULT_REFERER_CONFIG_NAME = "refererConfig";
-
-    private AnnotationBean scan;
+    private String scanPackage;
 
     private ProtocolConfigBean protocol;
 
@@ -18,12 +20,12 @@ public class MotanProperties {
 
     private BasicRefererConfigBean referer;
 
-    public AnnotationBean getScan() {
-        return scan;
+    public String getScanPackage() {
+        return scanPackage;
     }
 
-    public void setScan(AnnotationBean scan) {
-        this.scan = scan;
+    public void setScanPackage(String scanPackage) {
+        this.scanPackage = scanPackage;
     }
 
     public ProtocolConfigBean getProtocol() {
@@ -61,11 +63,16 @@ public class MotanProperties {
     @Override
     public String toString() {
         return "MotanProperties{" +
-                "scan=" + scan +
+                "scanPackage='" + scanPackage + '\'' +
                 ", protocol=" + protocol +
                 ", registry=" + registry +
                 ", service=" + service +
                 ", referer=" + referer +
                 '}';
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        System.out.println("sdfdsf");
     }
 }

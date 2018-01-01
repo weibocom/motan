@@ -1,9 +1,9 @@
 {
   "properties": [
     {
-      "name": "spring.motan.scan.package",
+      "name": "spring.motan.scanPackage",
       "type": "java.lang.String",
-      "sourceType": "com.weibo.api.motan.config.springsupport.AnnotationBean"
+      "sourceType": "com.weibo.api.motan.spring.boot.autoconfigure.properties.MotanProperties"
     },
     {
       "name": "spring.motan.protocol.name",

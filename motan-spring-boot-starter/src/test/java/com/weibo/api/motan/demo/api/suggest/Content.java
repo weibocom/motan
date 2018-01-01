@@ -1,4 +1,4 @@
-package com.weibo.api.motan.spring.boot.autoconfigure.api.suggest;
+package com.weibo.api.motan.demo.api.suggest;
 
 import lombok.Getter;
 import lombok.Setter;

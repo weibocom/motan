@@ -1,11 +1,10 @@
 package com.weibo.api.motan.spring.boot.autoconfigure;
 
-import com.weibo.api.motan.config.springsupport.BasicRefererConfigBean;
-import com.weibo.api.motan.config.springsupport.BasicServiceConfigBean;
-import com.weibo.api.motan.config.springsupport.ProtocolConfigBean;
-import com.weibo.api.motan.config.springsupport.RegistryConfigBean;
+import com.weibo.api.motan.config.springsupport.*;
 import com.weibo.api.motan.spring.boot.autoconfigure.actuator.ActuatorAutoConfiguration;
+import com.weibo.api.motan.spring.boot.autoconfigure.properties.MotanBeanNames;
 import com.weibo.api.motan.spring.boot.autoconfigure.properties.MotanProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -13,42 +12,49 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import javax.annotation.Resource;
-
 @Configuration
 @EnableConfigurationProperties(MotanProperties.class)
 @ConditionalOnClass(com.weibo.api.motan.rpc.Exporter.class)
 @Import(ActuatorAutoConfiguration.class)
 public class MotanAutoConfiguration {
 
-    @Resource
-    private MotanProperties motanProperties;
-
-    @Bean
+    @Bean(name = MotanBeanNames.ANNOTATION_BEAN_NAME)
     @ConditionalOnMissingBean
-    public RegistryConfigBean registryConfig() {
-        return motanProperties.getRegistry();
+    public static AnnotationBean annotationBean(@Value("${spring.motan.scanPackage}") String scanPackage) {
+        AnnotationBean scan = new AnnotationBean();
+        scan.setPackage(scanPackage);
+        return scan;
     }
 
-    @Bean
+    @Bean(name = MotanBeanNames.REGISTRY_CONFIG_BEAN_NAME)
     @ConditionalOnMissingBean
-    public ProtocolConfigBean protocolConfig() {
-        return motanProperties.getProtocol();
+    public static RegistryConfigBean registryConfigBean(MotanProperties properties) {
+        return properties.getRegistry();
     }
 
-    @Bean
+    @Bean(name = MotanBeanNames.PROTOCOL_CONFIG_BEAN_NAME)
     @ConditionalOnMissingBean
-    public BasicServiceConfigBean serviceConfig(RegistryConfigBean registryConfig) {
-        BasicServiceConfigBean serviceConfig = motanProperties.getService();
-        serviceConfig.setRegistry(registryConfig);
-        return serviceConfig;
+    public static ProtocolConfigBean protocolConfigBean(MotanProperties properties) {
+        return properties.getProtocol();
     }
 
-    @Bean
+    @Bean(name = MotanBeanNames.SERVICE_CONFIG_BEAN_NAME)
     @ConditionalOnMissingBean
-    public BasicRefererConfigBean refererConfig(RegistryConfigBean registryConfig) {
-        BasicRefererConfigBean refererConfig = motanProperties.getReferer();
-        refererConfig.setRegistry(registryConfig);
-        return refererConfig;
+    public static BasicServiceConfigBean serviceConfigBean(RegistryConfigBean registryConfigBean,
+            MotanProperties properties, ProtocolConfigBean protocolConfigBean) {
+        BasicServiceConfigBean bean = properties.getService();
+        bean.setProtocol(protocolConfigBean);
+        bean.setRegistry(registryConfigBean);
+        return bean;
+    }
+
+    @Bean(name = MotanBeanNames.REFERER_CONFIG_BEAN_NAME)
+    @ConditionalOnMissingBean
+    public static BasicRefererConfigBean refererConfigBean(RegistryConfigBean registryConfigBean,
+            MotanProperties properties, ProtocolConfigBean protocolConfigBean) {
+        BasicRefererConfigBean bean = properties.getReferer();
+        bean.setProtocol(protocolConfigBean);
+        bean.setRegistry(registryConfigBean);
+        return bean;
     }
 }

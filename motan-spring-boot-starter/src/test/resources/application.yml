@@ -1,7 +1,6 @@
 spring:
   motan:
-    scan:
-      package: com.weibo.api.motan.spring.boot.autoconfigure
+    scanPackage: com.weibo.api.motan.demo
     protocol:
       name: motan2
     registry:
@@ -9,10 +8,15 @@ spring:
       address: 127.0.0.1:2181
     service:
       group: wsd-java
+      module: wsd-java
       application: motan-demo-server
+      export: motanProtocolConfig:8003
     referer:
       group: wsd-java
+      module: wsd-java
       application: motan-demo-client
+      check: false
+
 
 logging:
   level:

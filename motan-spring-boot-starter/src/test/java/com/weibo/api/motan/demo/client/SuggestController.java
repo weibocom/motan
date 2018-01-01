@@ -1,12 +1,12 @@
-package com.weibo.api.motan.spring.boot.autoconfigure.client;
+package com.weibo.api.motan.demo.client;
 
-import com.weibo.api.motan.spring.boot.autoconfigure.api.std.StdRequest;
-import com.weibo.api.motan.spring.boot.autoconfigure.api.std.StdResponse;
-import com.weibo.api.motan.spring.boot.autoconfigure.api.suggest.Condition;
-import com.weibo.api.motan.spring.boot.autoconfigure.api.suggest.ContentWrapper;
-import com.weibo.api.motan.spring.boot.autoconfigure.api.suggest.SuggestService;
+import com.weibo.api.motan.demo.api.std.StdRequest;
+import com.weibo.api.motan.demo.api.std.StdResponse;
+import com.weibo.api.motan.demo.api.suggest.Condition;
+import com.weibo.api.motan.demo.api.suggest.ContentWrapper;
+import com.weibo.api.motan.demo.api.suggest.SuggestService;
 import com.weibo.api.motan.config.springsupport.annotation.MotanReferer;
-import com.weibo.api.motan.spring.boot.autoconfigure.properties.MotanProperties;
+import com.weibo.api.motan.spring.boot.autoconfigure.properties.MotanBeanNames;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class SuggestController {
 
-    @MotanReferer(basicReferer = MotanProperties.DEFAULT_REFERER_CONFIG_NAME)
+    @MotanReferer(basicReferer = MotanBeanNames.REFERER_CONFIG_BEAN_NAME)
     private SuggestService suggestService;
 
     @GetMapping(value = "/search")

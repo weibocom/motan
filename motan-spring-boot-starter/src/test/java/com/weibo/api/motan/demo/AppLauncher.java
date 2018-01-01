@@ -1,4 +1,4 @@
-package com.weibo.api.motan.spring.boot.autoconfigure;
+package com.weibo.api.motan.demo;
 
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
 public class AppLauncher {
 
     public static void main(String[] args) {
-        System.setProperty("server.port", "8080");
+        System.setProperty("server.port", "9090");
         ConfigurableApplicationContext context = SpringApplication.run(AppLauncher.class, args);
 
         MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
