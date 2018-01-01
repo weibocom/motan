@@ -146,7 +146,7 @@
 * 将motan与spring boot监控体系打通
 
 ## 演示
-克隆项目，运行```test```包内的```DemoApplication```。
+克隆项目，运行```test```包内的```AppLauncher```。
 
 ## 参考
 
