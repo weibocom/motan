@@ -8,12 +8,12 @@
     <dependency>
        <groupId>com.weibo</groupId>
        <artifactId>motan-spring-boot-starter</artifactId>
-       <version>1.1.0</version>
+       <version>1.1.1-SNAPSHOT</version>
     </dependency>
     ```
     ```Gradle```
     ```xml
-    compile 'com.weibo:motan-spring-boot-starter:1.1.0'
+    compile 'com.weibo:motan-spring-boot-starter:1.1.1-SNAPSHOT'
     ```
 2. 添加配置
 
