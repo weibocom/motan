@@ -33,8 +33,8 @@ public class MotanAutoConfiguration {
         AnnotationBean scan = new AnnotationBean();
         scan.setPackage(scanPackage);
 
-        log.info("construct AnnotationBean complete bean name: {} scanPackage: {} bean: {}",
-                MotanBeanNames.ANNOTATION_BEAN_NAME, scanPackage, scan);
+        log.info("construct {} complete bean name: {} scanPackage: {} bean: {}",
+                AnnotationBean.class.getSimpleName(), MotanBeanNames.ANNOTATION_BEAN_NAME, scanPackage, scan);
         return scan;
     }
 
@@ -43,8 +43,8 @@ public class MotanAutoConfiguration {
     public static RegistryConfigBean registryConfigBean(MotanProperties properties) {
         RegistryConfigBean bean = properties.getRegistry();
 
-        log.info("construct RegistryConfigBean complete bean name: {} bean: {}",
-                MotanBeanNames.REGISTRY_CONFIG_BEAN_NAME, bean);
+        log.info("construct {} complete bean name: {} bean: {}",
+                RegistryConfigBean.class.getSimpleName(), MotanBeanNames.REGISTRY_CONFIG_BEAN_NAME, bean);
 
         return bean;
     }
@@ -54,8 +54,8 @@ public class MotanAutoConfiguration {
     public static ProtocolConfigBean protocolConfigBean(MotanProperties properties) {
         ProtocolConfigBean bean = properties.getProtocol();
 
-        log.info("construct ProtocolConfigBean complete bean name: {} bean: {}",
-                MotanBeanNames.PROTOCOL_CONFIG_BEAN_NAME, bean);
+        log.info("construct {} complete bean name: {} bean: {}",
+                ProtocolConfigBean.class.getSimpleName(), MotanBeanNames.PROTOCOL_CONFIG_BEAN_NAME, bean);
 
         return bean;
     }
@@ -68,8 +68,8 @@ public class MotanAutoConfiguration {
         bean.setProtocol(protocolConfigBean);
         bean.setRegistry(registryConfigBean);
 
-        log.info("construct BasicServiceConfigBean complete bean name: {} bean: {}",
-                MotanBeanNames.SERVICE_CONFIG_BEAN_NAME, bean);
+        log.info("construct {} complete bean name: {} bean: {}",
+                BasicServiceConfigBean.class.getSimpleName(), MotanBeanNames.SERVICE_CONFIG_BEAN_NAME, bean);
 
         return bean;
     }
@@ -82,8 +82,8 @@ public class MotanAutoConfiguration {
         bean.setProtocol(protocolConfigBean);
         bean.setRegistry(registryConfigBean);
 
-        log.info("construct BasicRefererConfigBean complete bean name: {} bean: {}",
-                MotanBeanNames.REFERER_CONFIG_BEAN_NAME, bean);
+        log.info("construct {} complete bean name: {} bean: {}",
+                BasicRefererConfigBean.class.getSimpleName(), MotanBeanNames.REFERER_CONFIG_BEAN_NAME, bean);
 
         return bean;
     }
@@ -94,8 +94,8 @@ public class MotanAutoConfiguration {
     public static MotanCommandLineRunner motanCommandLineRunner(MotanProperties properties) {
         MotanCommandLineRunner bean = new MotanCommandLineRunner(properties);
 
-        log.info("construct MotanCommandLineRunner complete bean name: {} bean: {}",
-                MotanBeanNames.COMMAND_LINE_RUNNER_BEAN_NAME, bean);
+        log.info("construct {} complete bean name: {} bean: {}",
+                MotanCommandLineRunner.class.getSimpleName(), MotanBeanNames.COMMAND_LINE_RUNNER_BEAN_NAME, bean);
 
         return bean;
     }
