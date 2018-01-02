@@ -11,4 +11,6 @@ public interface MotanBeanNames {
     String SERVICE_CONFIG_BEAN_NAME = "motanServiceConfig";
 
     String REFERER_CONFIG_BEAN_NAME = "motanRefererConfig";
+
+    String COMMAND_LINE_RUNNER_BEAN_NAME = "motanCommandLineRunner";
 }
