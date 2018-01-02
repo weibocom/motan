@@ -9,12 +9,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.util.Assert;
 
 @Configuration
 @EnableConfigurationProperties(MotanProperties.class)
@@ -27,12 +29,10 @@ public class MotanAutoConfiguration {
     @Bean(name = MotanBeanNames.ANNOTATION_BEAN_NAME)
     @ConditionalOnMissingBean
     public static AnnotationBean annotationBean(@Value("${spring.motan.scanPackage}") String scanPackage) {
+        Assert.hasText(scanPackage, "scanPackage can not be empty: [" + scanPackage + "]");
+
         AnnotationBean scan = new AnnotationBean();
-        if (scanPackage != null && !scanPackage.isEmpty() && !scanPackage.trim().isEmpty()) {
-            scan.setPackage(scanPackage);
-        } else {
-            log.warn("scanPackage is empty, nothing to load");
-        }
+        scan.setPackage(scanPackage);
         return scan;
     }
 
