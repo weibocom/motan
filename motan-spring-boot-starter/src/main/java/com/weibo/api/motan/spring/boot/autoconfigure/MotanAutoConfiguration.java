@@ -28,7 +28,7 @@ public class MotanAutoConfiguration {
     @ConditionalOnMissingBean
     public static AnnotationBean annotationBean(@Value("${spring.motan.scanPackage}") String scanPackage) {
         AnnotationBean scan = new AnnotationBean();
-        if (scanPackage != null && !scanPackage.isEmpty()) {
+        if (scanPackage != null && !scanPackage.isEmpty() && !scanPackage.trim().isEmpty()) {
             scan.setPackage(scanPackage);
         } else {
             log.warn("scanPackage is empty, nothing to load");
