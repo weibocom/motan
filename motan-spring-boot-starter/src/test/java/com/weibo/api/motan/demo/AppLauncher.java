@@ -16,8 +16,6 @@ public class AppLauncher {
     public static void main(String[] args) {
         System.setProperty("server.port", "9090");
         ConfigurableApplicationContext context = SpringApplication.run(AppLauncher.class, args);
-
-        MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
         System.out.println("server start...");
     }
 
