@@ -20,122 +20,30 @@
     服务端配置
     
     ```xml
-    spring.motan.scan.package=${你的包名，包括consumer和provider}
-    spring.motan.protocol.name=motan2
-    spring.motan.registry.regProtocol=zookeeper
-    spring.motan.registry.address=127.0.0.1:2181
-    spring.motan.service.export=8002
-    spring.motan.service.group=wsd-java
-    spring.motan.service.application=motan-demo-server
-
-    # ...其他配置（可选，不是必须的）
-    spring.motan.protocol.haStrategy=failover
-    spring.motan.protocol.loadbalance=roundrobin
-    spring.motan.service.check=true
-    ```
-    
-    客户端端配置
-    ```xml
-    spring.motan.scanPackage=${你的包名，包括consumer和provider}
-    spring.motan.protocol.name=motan2
-    spring.motan.registry.regProtocol=zookeeper
-    spring.motan.registry.address=127.0.0.1:2181
-    spring.motan.referer.group=wsd-java
-    spring.motan.referer.application=motan-demo-client
-
-    # ...其他配置（可选，不是必须的）
-    spring.motan.referer.retries=3
-    spring.motan.referer.throwException=true
+    spring:
+        motan:
+            scanPackage: com.weibo.api.motan.demo
+        protocol:
+            name: motan2
+        registry:
+            regProtocol: zookeeper
+            address: 127.0.0.1:2181
+        service:
+            group: wsd-java
+            module: wsd-java
+            application: motan-demo-server
+            export: motanProtocolConfig:8003
+        referer:
+            group: wsd-java
+            module: wsd-java
+            application: motan-demo-client
+            check: false
  
  3. 导出和消费
  
-    服务端
-    ```java
-    package com.weibo.api.motan.demo.rpc;
-
-    import com.weibo.api.motan.demo.api.std.StdResponse;
-    import com.weibo.api.motan.api.suggest.ContentWrapper;
-    import com.weibo.api.motan.api.suggest.SuggestService;
-    import com.weibo.api.motan.utils.JsonUtils;
-
-    import java.net.URLEncoder;
-    import javax.annotation.Resource;
-
-    import com.weibo.api.motan.config.springsupport.annotation.MotanService;
-    import lombok.Setter;
-    import lombok.extern.slf4j.Slf4j;
-    import org.jsoup.Jsoup;
-    import org.springframework.web.client.RestTemplate;
-
-    @MotanService
-    @Setter
-    @Slf4j
-    public class SuggestServiceImpl implements SuggestService {
-
-        @Resource
-        private RestTemplate restTemplate;
-
-        @Override
-        public StdResponse<ContentWrapper> query(String keyword) {
-            if (keyword == null) {
-                return StdResponse.asError(StdResponse.CODE_BAD_REQUEST, "参数不合法", "参数不合法: " + keyword);
-            }
-
-            log.info("收到rpc请求: keyword={}", keyword);
-
-            try {
-                String url = "http://www.ximalaya.com/search/suggest?scope=all&kw=" + URLEncoder.encode(keyword, "UTF-8");
-
-                String json = Jsoup.connect(url).ignoreContentType(true).execute().body();
-                ContentWrapper res = JsonUtils.toObject(json, ContentWrapper.class);
-
-                return StdResponse.asSuccess(res);
-            } catch (Exception e) {
-                log.error("服务器内部错误: keyword={}", keyword, e);
-                return StdResponse.asError(StdResponse.CODE_INTERNAL_SERVER_ERROR, "服务器内部错误", "服务器内部错误: " + e.getMessage());
-            }
-        }
-    }
-    ```
+    服务端：参照测试包下面的[SuggestServiceImpl.java](https://github.com/konglz/motan/blob/master/motan-spring-boot-starter/src/test/java/com/weibo/api/motan/demo/server/SuggestServiceImpl.java)
  
-    客户端
-    ```java
-    package com.weibo.api.motan.demo.controller;
-
-    import com.weibo.api.motan.demo.api.std.StdRequest;
-    import com.weibo.api.motan.demo.api.std.StdResponse;
-    import com.weibo.api.motan.demo.api.suggest.Condition;
-    import com.weibo.api.motan.demo.api.suggest.ContentWrapper;
-    import com.weibo.api.motan.demo.api.suggest.SuggestService;
-
-    import com.weibo.api.motan.config.springsupport.annotation.MotanReferer;
-    import org.springframework.beans.BeanUtils;
-    import org.springframework.web.bind.annotation.GetMapping;
-    import org.springframework.web.bind.annotation.RestController;
-
-    @RestController
-    public class SuggestController {
-
-        @MotanReferer(basicReferer = "motanBasicReferer")
-        private SuggestService suggestService;
-
-        @GetMapping(value = "/search")
-        public SearchRes search(String kw) {
-            long timestamp = System.currentTimeMillis();
-            Condition cond = new Condition();
-            cond.setKeyword(kw);
-            cond.setScope("all");
-            StdRequest<Condition> req = new StdRequest<Condition>(timestamp, "", cond);
-            StdResponse<ContentWrapper> response = suggestService.query(kw);
-            ContentWrapper wrapper = response.getData();
-            SearchRes searchRes = new SearchRes();
-            if (wrapper != null) {
-                BeanUtils.copyProperties(wrapper, searchRes);
-            }
-            return searchRes;
-        }
-    }
-    ```
+    客户端: 参照测试包下面的[SuggestController.java](https://github.com/konglz/motan/blob/master/motan-spring-boot-starter/src/test/java/com/weibo/api/motan/demo/client/SuggestController.java)
 
 ## 设计目的
 
