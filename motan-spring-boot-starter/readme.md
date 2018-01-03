@@ -16,8 +16,6 @@
     compile 'com.weibo:motan-spring-boot-starter:1.1.1-SNAPSHOT'
     ```
 2. 添加配置
-
-    服务端配置
     
     ```xml
     spring:
