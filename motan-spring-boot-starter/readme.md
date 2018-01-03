@@ -36,7 +36,7 @@
     
     客户端端配置
     ```xml
-    spring.motan.scan.package=${你的包名，包括consumer和provider}
+    spring.motan.scanPackage=${你的包名，包括consumer和provider}
     spring.motan.protocol.name=motan2
     spring.motan.registry.regProtocol=zookeeper
     spring.motan.registry.address=127.0.0.1:2181
@@ -51,12 +51,12 @@
  
     服务端
     ```java
-    package com.douyu.motan.demo.rpc;
+    package com.weibo.api.motan.demo.rpc;
 
-    import com.douyu.motan.demo.api.std.StdResponse;
-    import com.douyu.motan.demo.api.suggest.ContentWrapper;
-    import com.douyu.motan.demo.api.suggest.SuggestService;
-    import com.douyu.motan.demo.utils.JsonUtils;
+    import com.weibo.api.motan.demo.api.std.StdResponse;
+    import com.weibo.api.motan.api.suggest.ContentWrapper;
+    import com.weibo.api.motan.api.suggest.SuggestService;
+    import com.weibo.api.motan.utils.JsonUtils;
 
     import java.net.URLEncoder;
     import javax.annotation.Resource;
@@ -100,13 +100,13 @@
  
     客户端
     ```java
-    package com.douyu.motan.demo.controller;
+    package com.weibo.api.motan.demo.controller;
 
-    import com.douyu.motan.demo.api.std.StdRequest;
-    import com.douyu.motan.demo.api.std.StdResponse;
-    import com.douyu.motan.demo.api.suggest.Condition;
-    import com.douyu.motan.demo.api.suggest.ContentWrapper;
-    import com.douyu.motan.demo.api.suggest.SuggestService;
+    import com.weibo.api.motan.demo.api.std.StdRequest;
+    import com.weibo.api.motan.demo.api.std.StdResponse;
+    import com.weibo.api.motan.demo.api.suggest.Condition;
+    import com.weibo.api.motan.demo.api.suggest.ContentWrapper;
+    import com.weibo.api.motan.demo.api.suggest.SuggestService;
 
     import com.weibo.api.motan.config.springsupport.annotation.MotanReferer;
     import org.springframework.beans.BeanUtils;
