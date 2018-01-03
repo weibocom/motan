@@ -39,9 +39,9 @@
  
  3. 导出和消费
  
-    服务端：参照测试包下面的[SuggestServiceImpl.java](https://github.com/konglz/motan/blob/master/motan-spring-boot-starter/src/test/java/com/weibo/api/motan/demo/server/SuggestServiceImpl.java)
+    服务端：参照测试包下面的 [SuggestServiceImpl.java](https://github.com/konglz/motan/blob/master/motan-spring-boot-starter/src/test/java/com/weibo/api/motan/demo/server/SuggestServiceImpl.java)
  
-    客户端: 参照测试包下面的[SuggestController.java](https://github.com/konglz/motan/blob/master/motan-spring-boot-starter/src/test/java/com/weibo/api/motan/demo/client/SuggestController.java)
+    客户端: 参照测试包下面的 [SuggestController.java](https://github.com/konglz/motan/blob/master/motan-spring-boot-starter/src/test/java/com/weibo/api/motan/demo/client/SuggestController.java)
 
 ## 设计目的
 
