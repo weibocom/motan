@@ -16,13 +16,6 @@
 
 package com.weibo.api.motan.cluster.ha;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jmock.Expectations;
-import org.junit.Assert;
-import org.junit.Before;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.cluster.LoadBalance;
 import com.weibo.api.motan.common.MotanConstants;
@@ -30,15 +23,16 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.protocol.example.IHello;
 import com.weibo.api.motan.protocol.example.IWorld;
-import com.weibo.api.motan.rpc.DefaultRequest;
-import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.NetUtils;
+import org.jmock.Expectations;
+import org.junit.Assert;
+import org.junit.Before;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 
  * Failover ha strategy test.
  *
  * @author fishermen
@@ -78,7 +72,7 @@ public class FailoverHaStrategyTest extends BaseTestCase {
     public void testCall() {
         final DefaultRequest request = new DefaultRequest();
         request.setMethodName(IWorld.class.getMethods()[0].getName());
-        request.setArguments(new Object[] {});
+        request.setArguments(new Object[]{});
         request.setInterfaceName(IHello.class.getSimpleName());
         request.setParamtersDesc("void");
         final Response response = mockery.mock(Response.class);
@@ -109,7 +103,7 @@ public class FailoverHaStrategyTest extends BaseTestCase {
     public void testCallWithOneError() {
         final DefaultRequest request = new DefaultRequest();
         request.setMethodName(IWorld.class.getMethods()[0].getName());
-        request.setArguments(new Object[] {});
+        request.setArguments(new Object[]{});
         request.setInterfaceName(IHello.class.getSimpleName());
         request.setParamtersDesc("void");
         final Response response = mockery.mock(Response.class);
@@ -140,7 +134,7 @@ public class FailoverHaStrategyTest extends BaseTestCase {
     public void testCallWithFalse() {
         final DefaultRequest request = new DefaultRequest();
         request.setMethodName(IWorld.class.getMethods()[0].getName());
-        request.setArguments(new Object[] {});
+        request.setArguments(new Object[]{});
         request.setInterfaceName(IHello.class.getSimpleName());
         request.setParamtersDesc("void");
         final Response response = mockery.mock(Response.class);
@@ -168,6 +162,7 @@ public class FailoverHaStrategyTest extends BaseTestCase {
             failoverHaStrategy.call(request, loadBalance);
             fail("Should throw exception before!");
             Assert.assertTrue(false); // should not run to here
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
 }

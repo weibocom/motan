@@ -16,12 +16,11 @@
 
 package com.weibo.api.motan.rpc;
 
-import java.lang.reflect.Method;
-
 import junit.framework.TestCase;
 
+import java.lang.reflect.Method;
+
 /**
- * 
  * URL test
  *
  * @author fishermen

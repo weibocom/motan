@@ -16,12 +16,6 @@
 
 package com.weibo.api.motan.transport.netty;
 
-import junit.framework.TestCase;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
@@ -32,11 +26,14 @@ import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.RequestIdGenerator;
+import junit.framework.TestCase;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-3
- * 
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class NettyExampleTest extends TestCase {
@@ -79,7 +76,7 @@ public class NettyExampleTest extends TestCase {
         request.setInterfaceName(url.getPath());
         request.setMethodName("helloSerializable");
         request.setParamtersDesc("com.weibo.api.motan.procotol.example.UnSerializableClass");
-        request.setArguments(new Object[] {new UnSerializableClass()});
+        request.setArguments(new Object[]{new UnSerializableClass()});
 
         try {
             nettyClient.request(request);

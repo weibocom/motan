@@ -16,24 +16,17 @@
 
 package com.weibo.api.motan.transport.netty;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
-import org.junit.Test;
-
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.transport.Client;
-import com.weibo.api.motan.transport.Endpoint;
-import com.weibo.api.motan.transport.MessageHandler;
-import com.weibo.api.motan.transport.ProviderMessageRouter;
-import com.weibo.api.motan.transport.Server;
+import com.weibo.api.motan.transport.*;
 import com.weibo.api.motan.transport.support.HeartbeatClientEndpointManager;
+import junit.framework.Assert;
+import junit.framework.TestCase;
+import org.junit.Test;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-19
- * 
  */
 public class NettyEndpointFactoryTest extends TestCase {
 

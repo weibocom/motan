@@ -16,24 +16,17 @@
 
 package com.weibo.api.motan.transport;
 
-import junit.framework.TestCase;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.weibo.api.motan.TestConstants;
 import com.weibo.api.motan.mock.MockChannel;
-import com.weibo.api.motan.rpc.DefaultProvider;
-import com.weibo.api.motan.rpc.DefaultRequest;
-import com.weibo.api.motan.rpc.Provider;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.ReflectUtil;
+import junit.framework.TestCase;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-18
- * 
  */
 public class ProviderMessageRouterTest extends TestCase {
     private static final int PUBLIC_METHOD_COUNT_ALL = 3;

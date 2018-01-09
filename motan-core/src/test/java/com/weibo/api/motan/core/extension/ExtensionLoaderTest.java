@@ -18,13 +18,11 @@ package com.weibo.api.motan.core.extension;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
-
 import org.junit.Test;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-29
- * 
  */
 public class ExtensionLoaderTest extends TestCase {
 
@@ -74,9 +72,11 @@ public class ExtensionLoaderTest extends TestCase {
     }
 
     // not spi
-    public interface NotSpiInterface {}
+    public interface NotSpiInterface {
+    }
 
     // not impl
     @Spi
-    public interface SpiWithoutImpl {}
+    public interface SpiWithoutImpl {
+    }
 }

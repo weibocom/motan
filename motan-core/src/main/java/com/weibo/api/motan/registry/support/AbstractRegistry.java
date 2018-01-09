@@ -43,12 +43,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractRegistry implements Registry {
 
+    protected String registryClassName = this.getClass().getSimpleName();
     private ConcurrentHashMap<URL, Map<String, List<URL>>> subscribedCategoryResponses =
             new ConcurrentHashMap<URL, Map<String, List<URL>>>();
-
     private URL registryUrl;
     private Set<URL> registeredServiceUrls = new ConcurrentHashSet<URL>();
-    protected String registryClassName = this.getClass().getSimpleName();
 
     public AbstractRegistry(URL url) {
         this.registryUrl = url.createCopy();

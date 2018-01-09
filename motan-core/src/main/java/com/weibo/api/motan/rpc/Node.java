@@ -18,9 +18,8 @@ package com.weibo.api.motan.rpc;
 
 /**
  * node manage interface
- * 
+ *
  * @author maijunsheng
- * 
  */
 public interface Node {
 

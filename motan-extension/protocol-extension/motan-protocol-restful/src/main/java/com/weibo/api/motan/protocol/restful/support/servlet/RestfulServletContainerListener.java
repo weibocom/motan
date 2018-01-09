@@ -15,15 +15,14 @@
  */
 package com.weibo.api.motan.protocol.restful.support.servlet;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-
+import com.weibo.api.motan.protocol.restful.support.RestfulInjectorFactory;
+import com.weibo.api.motan.protocol.restful.support.RpcExceptionMapper;
 import org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap;
 import org.jboss.resteasy.plugins.server.servlet.ResteasyContextParameters;
 
-import com.weibo.api.motan.protocol.restful.support.RestfulInjectorFactory;
-import com.weibo.api.motan.protocol.restful.support.RpcExceptionMapper;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 
 public class RestfulServletContainerListener extends ResteasyBootstrap implements ServletContextListener {
 

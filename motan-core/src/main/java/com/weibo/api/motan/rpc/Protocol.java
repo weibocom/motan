@@ -20,13 +20,12 @@ import com.weibo.api.motan.core.extension.Scope;
 import com.weibo.api.motan.core.extension.Spi;
 
 /**
- * 
  * protocol
- * 
+ * <p>
  * <pre>
  * 只负责点到点的通讯
  * </pre>
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-16
  */
@@ -34,7 +33,7 @@ import com.weibo.api.motan.core.extension.Spi;
 public interface Protocol {
     /**
      * 暴露服务
-     * 
+     *
      * @param <T>
      * @param provider
      * @param url
@@ -44,7 +43,7 @@ public interface Protocol {
 
     /**
      * 引用服务
-     * 
+     *
      * @param <T>
      * @param clz
      * @param url
@@ -55,10 +54,9 @@ public interface Protocol {
 
     /**
      * <pre>
-	 * 		1） exporter destroy
-	 * 		2） referer destroy
-	 * </pre>
-     * 
+     * 		1） exporter destroy
+     * 		2） referer destroy
+     * </pre>
      */
     void destroy();
 }

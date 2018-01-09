@@ -1,11 +1,11 @@
 /*
  * Copyright 2009-2016 Weibo, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -33,23 +33,21 @@ import java.lang.reflect.Method;
 import java.util.Set;
 
 /**
- * 
- * @Description MotanServerCallHandler
- * @author zhanglei
- * @date Oct 13, 2016
- *
  * @param <Req>
  * @param <Resp>
+ * @author zhanglei
+ * @Description MotanServerCallHandler
+ * @date Oct 13, 2016
  */
 public class MotanServerCallHandler<Req, Resp> implements ServerCallHandler<Req, Resp> {
 
+    private static Metadata.Key<String> REQUEST_ID = Metadata.Key.of("rid", Metadata.ASCII_STRING_MARSHALLER);
     private boolean inited = false;
     private Provider<?> provider;
     private String methodName;
     private String paramsDesc;
     private boolean requestStream = false;
     private boolean responseStream = false;
-    private static Metadata.Key<String> REQUEST_ID = Metadata.Key.of("rid", Metadata.ASCII_STRING_MARSHALLER);
 
     public void init(Provider<?> provider, Method method) {
         checkMethod(method);
@@ -82,7 +80,7 @@ public class MotanServerCallHandler<Req, Resp> implements ServerCallHandler<Req,
             throw new MotanFrameworkException("grpc ServerCallHandler not inited!");
         }
         // TODO check header
-        if (provider.getUrl().getBooleanParameter(URLParamType.usegz.getName(), URLParamType.usegz.getBooleanValue())){
+        if (provider.getUrl().getBooleanParameter(URLParamType.usegz.getName(), URLParamType.usegz.getBooleanValue())) {
             call.setCompression("gzip");
         }
         return requestStream ? streamCall(call, headers) : unaryCall(call, headers);
@@ -111,9 +109,9 @@ public class MotanServerCallHandler<Req, Resp> implements ServerCallHandler<Req,
                         motanRequest.setAttachment(URLParamType.host.getName(), ip);
                     }
                     if (responseStream) {
-                        motanRequest.setArguments(new Object[] {request, responseObserver});
+                        motanRequest.setArguments(new Object[]{request, responseObserver});
                     } else {
-                        motanRequest.setArguments(new Object[] {request});
+                        motanRequest.setArguments(new Object[]{request});
                     }
                     Response response = null;
                     try {
@@ -157,7 +155,7 @@ public class MotanServerCallHandler<Req, Resp> implements ServerCallHandler<Req,
     private <ReqT, RespT> Listener<ReqT> streamCall(final ServerCall<ReqT, RespT> call, Metadata headers) {
         final ServerCallStreamObserverImpl<ReqT, RespT> responseObserver = new ServerCallStreamObserverImpl<ReqT, RespT>(call);
         DefaultRequest request = getBaseMotanRequest(headers);
-        request.setArguments(new Object[] {responseObserver});
+        request.setArguments(new Object[]{responseObserver});
         Response response = provider.call(request);
         final StreamObserver<ReqT> requestObserver = (StreamObserver<ReqT>) response.getValue();
         responseObserver.freeze();

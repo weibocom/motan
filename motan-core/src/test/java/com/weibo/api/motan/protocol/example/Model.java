@@ -21,7 +21,6 @@ import java.io.Serializable;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-26
- * 
  */
 public class Model implements Serializable {
     private static final long serialVersionUID = -6642850886054518156L;
@@ -31,7 +30,8 @@ public class Model implements Serializable {
     private Class<?> type;
     private long[] addTimes = null; // add attention/fan/filter times
 
-    public Model() {}
+    public Model() {
+    }
 
     public Model(String name, int age, Class<?> type) {
         this.name = name;

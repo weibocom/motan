@@ -16,28 +16,24 @@
 
 package com.weibo.api.motan.transport.netty;
 
-import java.util.concurrent.RejectedExecutionException;
-
 import junit.framework.Assert;
 import junit.framework.TestCase;
-
 import org.junit.Test;
+
+import java.util.concurrent.RejectedExecutionException;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-20
- * 
  */
 public class StandardThreadExecutorTest extends TestCase {
+    public static Object obj = new Object();
     private int minThread = 2;
     private int maxThread = 10;
     private int queueSize = 10;
-
     StandardThreadExecutor executor = new StandardThreadExecutor(minThread, maxThread, queueSize);
-
     // 如果该case有问题，有可能是否因为是在执行这个case的环境负载比较高等导致的问题，可以考虑把sleepTime调高成1s或者2s
     private int sleepTime = 100;
-    public static Object obj = new Object();
 
     @Test
     public void testWaitRunnable() {
@@ -68,7 +64,8 @@ public class StandardThreadExecutorTest extends TestCase {
         try {
             executor.execute(new WaitRunnable());
             Assert.assertTrue(false);
-        } catch (RejectedExecutionException e) {} catch (Exception e) {
+        } catch (RejectedExecutionException e) {
+        } catch (Exception e) {
             Assert.assertTrue(false);
         }
 
@@ -111,7 +108,8 @@ public class StandardThreadExecutorTest extends TestCase {
     private void sleep(int time) {
         try {
             Thread.sleep(time);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
 }
 
@@ -122,7 +120,8 @@ class WaitRunnable implements Runnable {
         synchronized (StandardThreadExecutorTest.obj) {
             try {
                 StandardThreadExecutorTest.obj.wait();
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
     }
 

@@ -16,10 +16,6 @@
 
 package com.weibo.api.motan.transport;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
@@ -30,29 +26,31 @@ import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * TODO 可配置化策略
- * 
+ * <p>
  * provider 消息处理分发：支持一定程度的自我防护
- * 
+ * <p>
  * <pre>
- * 
- * 
- * 		1) 如果接口只有一个方法，那么直接return true 
+ *
+ *
+ * 		1) 如果接口只有一个方法，那么直接return true
  * 		2) 如果接口有多个方法，那么如果单个method超过 maxThread / 2 && totalCount >  (maxThread * 3 / 4)，那么return false;
  * 		3) 如果接口有多个方法(4个)，同时总的请求数超过 maxThread * 3 / 4，同时该method的请求数超过 maxThead * 1 / 4， 那么return false
  * 		4) 其他场景return true
- * 
+ *
  * </pre>
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-6-7
- * 
  */
 public class ProviderProtectedMessageRouter extends ProviderMessageRouter {
     protected ConcurrentMap<String, AtomicInteger> requestCounters = new ConcurrentHashMap<String, AtomicInteger>();
     protected AtomicInteger totalCounter = new AtomicInteger(0);
-
 
 
     public ProviderProtectedMessageRouter() {

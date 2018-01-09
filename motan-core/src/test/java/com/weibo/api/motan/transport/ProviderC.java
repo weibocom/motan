@@ -19,7 +19,6 @@ package com.weibo.api.motan.transport;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-18
- * 
  */
 public interface ProviderC extends ProviderB {
     String providerC();

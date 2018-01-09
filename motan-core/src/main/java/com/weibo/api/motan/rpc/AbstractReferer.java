@@ -16,17 +16,16 @@
 
 package com.weibo.api.motan.rpc;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * abstract referer
- * 
- * @author maijunsheng
- * 
+ *
  * @param <T>
+ * @author maijunsheng
  */
 public abstract class AbstractReferer<T> extends AbstractNode implements Referer<T> {
 

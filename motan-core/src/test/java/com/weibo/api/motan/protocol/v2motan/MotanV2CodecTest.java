@@ -65,7 +65,7 @@ public class MotanV2CodecTest {
         newReq = (Request) codec.decode(channel, "localhost", bytes);
         checkRequest(request, newReq);
 
-        request.setArguments(new Object[]{"123", 456, true });
+        request.setArguments(new Object[]{"123", 456, true});
         bytes = codec.encode(channel, request);
         newReq = (Request) codec.decode(channel, "localhost", bytes);
         checkRequest(request, newReq);
@@ -77,7 +77,7 @@ public class MotanV2CodecTest {
         response.setValue("xxede");
         Map<String, String> resAttachs = new HashMap<String, String>();
         resAttachs.put("res", "testres");
-        resAttachs.put("xxx","eee");
+        resAttachs.put("xxx", "eee");
         response.setAttachments(resAttachs);
 
         bytes = codec.encode(channel, response);
@@ -95,30 +95,30 @@ public class MotanV2CodecTest {
             classes[i] = expect.getArguments()[i].getClass();
         }
         Object[] result = ((DeserializableObject) real.getArguments()[0]).deserializeMulti(classes);
-        for(int i = 0; i < expect.getArguments().length; i++){
+        for (int i = 0; i < expect.getArguments().length; i++) {
             assertEquals(expect.getArguments()[i], result[i]);
         }
         checkMap(expect.getAttachments(), real.getAttachments());
 
     }
 
-    private void checkResponse(Response expect, Response real)throws  Exception{
+    private void checkResponse(Response expect, Response real) throws Exception {
         assertTrue(real.getValue() instanceof DeserializableObject);
-        assertEquals(expect.getValue(), ((DeserializableObject)real.getValue()).deserialize(String.class));
+        assertEquals(expect.getValue(), ((DeserializableObject) real.getValue()).deserialize(String.class));
         checkMap(expect.getAttachments(), real.getAttachments());
     }
 
-    private void checkMap(Map<String, String> map1, Map<String, String> map2){
-        if(map1 == null || map2 == null){
-            if(map1 == null && map2 == null){
+    private void checkMap(Map<String, String> map1, Map<String, String> map2) {
+        if (map1 == null || map2 == null) {
+            if (map1 == null && map2 == null) {
                 return;
             }
             throw new RuntimeException("map not both null! ");
         }
-        if(map1.size() != map2.size()){
+        if (map1.size() != map2.size()) {
             throw new RuntimeException("map size not equals!");
         }
-        for(Map.Entry<String, String> entry : map1.entrySet()){
+        for (Map.Entry<String, String> entry : map1.entrySet()) {
             assertEquals(entry.getValue(), map2.get(entry.getKey()));
         }
     }

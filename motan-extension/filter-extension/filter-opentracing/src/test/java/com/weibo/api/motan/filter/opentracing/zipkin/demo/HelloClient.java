@@ -15,25 +15,24 @@
  */
 package com.weibo.api.motan.filter.opentracing.zipkin.demo;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
 import com.weibo.api.motan.filter.opentracing.HelloService;
 import com.weibo.api.motan.filter.opentracing.OpenTracingContext;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class HelloClient {
     public static void main(String[] args) {
         ApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:motan_client.xml");
-        
+
         // set tracer implementation
         OpenTracingContext.tracerFactory = new MyTracerFactory();
-        
+
         // use motan
         HelloService service = (HelloService) ctx.getBean("helloService");
-        for(int i = 0; i< 10; i++){
-            try{
+        for (int i = 0; i < 10; i++) {
+            try {
                 System.out.println(service.sayHello("motan"));
-            }catch(Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

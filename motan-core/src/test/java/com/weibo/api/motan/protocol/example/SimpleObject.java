@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.weibo.api.motan.protocol.example;
 
@@ -23,7 +23,6 @@ import java.io.Serializable;
 
 /**
  * @author bozheng
- * 
  */
 public class SimpleObject implements Serializable {
 

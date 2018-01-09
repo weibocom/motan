@@ -16,14 +16,6 @@
 
 package com.weibo.api.motan.cluster;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import junit.framework.Assert;
-
-import org.jmock.Expectations;
-import org.junit.Test;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.cluster.ha.FailoverHaStrategy;
 import com.weibo.api.motan.cluster.loadbalance.RandomLoadBalance;
@@ -36,11 +28,16 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.NetUtils;
+import junit.framework.Assert;
+import org.jmock.Expectations;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 
  * Cluster test。
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-23
  */

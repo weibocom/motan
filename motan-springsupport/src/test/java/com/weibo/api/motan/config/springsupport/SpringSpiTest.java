@@ -16,14 +16,11 @@
 
 package com.weibo.api.motan.config.springsupport;
 
-import junit.framework.TestCase;
-
-import static org.junit.Assert.*;
-import org.junit.Test;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.core.extension.SpiMeta;
+import junit.framework.TestCase;
+import org.junit.Test;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class SpringSpiTest extends TestCase {
 

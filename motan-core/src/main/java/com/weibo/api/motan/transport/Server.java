@@ -20,7 +20,6 @@ import java.net.InetSocketAddress;
 import java.util.Collection;
 
 /**
- * 
  * @author fishermen
  * @version V1.0 created at: 2013-5-21
  */
@@ -29,21 +28,21 @@ public interface Server extends Endpoint {
 
     /**
      * is server bound
-     * 
+     *
      * @return
      */
     boolean isBound();
 
     /**
      * get channels.
-     * 
+     *
      * @return channels
      */
     Collection<Channel> getChannels();
 
     /**
      * get channel.
-     * 
+     *
      * @param remoteAddress
      * @return channel
      */

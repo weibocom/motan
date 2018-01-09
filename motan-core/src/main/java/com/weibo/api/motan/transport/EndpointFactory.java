@@ -23,14 +23,13 @@ import com.weibo.api.motan.rpc.URL;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-5
- * 
  */
 @Spi(scope = Scope.SINGLETON)
 public interface EndpointFactory {
 
     /**
      * create remote server
-     * 
+     *
      * @param url
      * @param messageHandler
      * @return
@@ -39,7 +38,7 @@ public interface EndpointFactory {
 
     /**
      * create remote client
-     * 
+     *
      * @param url
      * @return
      */
@@ -47,7 +46,7 @@ public interface EndpointFactory {
 
     /**
      * safe release server
-     * 
+     *
      * @param server
      * @param url
      */
@@ -55,7 +54,7 @@ public interface EndpointFactory {
 
     /**
      * safe release client
-     * 
+     *
      * @param client
      * @param url
      */

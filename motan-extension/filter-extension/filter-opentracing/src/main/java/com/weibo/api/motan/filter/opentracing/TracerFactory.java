@@ -15,19 +15,17 @@
  */
 package com.weibo.api.motan.filter.opentracing;
 
+import com.weibo.api.motan.util.LoggerUtil;
 import io.opentracing.NoopTracerFactory;
 import io.opentracing.Tracer;
 
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
-import com.weibo.api.motan.util.LoggerUtil;
 /**
- * 
- * @Description TracerFactory
  * @author zhanglei
+ * @Description TracerFactory
  * @date Dec 8, 2016
- *
  */
 public interface TracerFactory {
     public static final TracerFactory DEFAULT = new DefaultTracerFactory();
@@ -35,13 +33,13 @@ public interface TracerFactory {
     /**
      * get a Tracer implementation. this method may called every request, consider whether singleton
      * pattern is needed
-     * 
+     *
      * @return
      */
     Tracer getTracer();
 
     class DefaultTracerFactory implements TracerFactory {
-        private static Tracer tracer =  NoopTracerFactory.create();
+        private static Tracer tracer = NoopTracerFactory.create();
 
         static {
             loadDefaultTracer();
@@ -55,15 +53,15 @@ public interface TracerFactory {
                 Iterator<Tracer> implementations = ServiceLoader.load(Tracer.class, Tracer.class.getClassLoader()).iterator();
                 if (implementations.hasNext()) {
                     Tracer firstTracer = implementations.next();
-                    if(!implementations.hasNext()){
+                    if (!implementations.hasNext()) {
                         // only one tracer is found.
                         tracer = firstTracer;
                         LoggerUtil.info("io.opentracing.Tracer load in DefaultTracerFactory, " + tracer.getClass().getSimpleName()
-                            + " is used as default tracer.");
+                                + " is used as default tracer.");
                     } else {
                         LoggerUtil.info("io.opentracing.Tracer load in DefaultTracerFactory, NoopTracer is used as default tracer since more than one tracer is found.");
                     }
-                    
+
                 }
             } catch (Exception e) {
                 LoggerUtil.warn("DefaultTracerFactory load Tracer fail.", e);

@@ -17,7 +17,6 @@
 package com.weibo.api.motan.rpc;
 
 /**
- * 
  * Export service providers.
  *
  * @author fishermen

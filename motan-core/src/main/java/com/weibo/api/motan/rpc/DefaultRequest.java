@@ -16,17 +16,16 @@
 
 package com.weibo.api.motan.rpc;
 
+import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
-
 /**
- * 
  * Rpc Request
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-16
  */
@@ -82,6 +81,10 @@ public class DefaultRequest implements Serializable, Request {
         return attachments != null ? attachments : Collections.EMPTY_MAP;
     }
 
+    public void setAttachments(Map<String, String> attachments) {
+        this.attachments = attachments;
+    }
+
     @Override
     public void setAttachment(String key, String value) {
         if (this.attachments == null) {
@@ -89,10 +92,6 @@ public class DefaultRequest implements Serializable, Request {
         }
 
         this.attachments.put(key, value);
-    }
-
-    public void setAttachments(Map<String, String> attachments) {
-        this.attachments = attachments;
     }
 
     public long getRequestId() {

@@ -15,6 +15,13 @@
  */
 package com.weibo.api.motan.protocol.grpc;
 
+import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.protocol.grpc.http.HttpProtocolNegotiator;
+import com.weibo.api.motan.protocol.grpc.http.NettyHttpRequestHandler;
+import com.weibo.api.motan.rpc.Exporter;
+import com.weibo.api.motan.rpc.Provider;
+import com.weibo.api.motan.rpc.URL;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerServiceDefinition;
@@ -24,21 +31,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-import com.weibo.api.motan.common.URLParamType;
-import com.weibo.api.motan.exception.MotanFrameworkException;
-import com.weibo.api.motan.protocol.grpc.http.HttpProtocolNegotiator;
-import com.weibo.api.motan.protocol.grpc.http.NettyHttpRequestHandler;
-import com.weibo.api.motan.rpc.Exporter;
-import com.weibo.api.motan.rpc.Provider;
-import com.weibo.api.motan.rpc.URL;
 /**
- * 
- * @Description GrpcServer
  * @author zhanglei
+ * @Description GrpcServer
  * @date Oct 13, 2016
- *
  */
-public class GrpcServer{
+public class GrpcServer {
     private int port;
     private MotanHandlerRegistry registry;
     private Server server;
@@ -47,7 +45,7 @@ public class GrpcServer{
     private boolean shareChannel;
     private ExecutorService executor;
     private NettyHttpRequestHandler httpHandler;
-    
+
     public GrpcServer(int port) {
         super();
         this.port = port;
@@ -58,7 +56,7 @@ public class GrpcServer{
         this.port = port;
         this.shareChannel = shareChannel;
     }
-    
+
     public GrpcServer(int port, boolean shareChannel, ExecutorService executor) {
         super();
         this.port = port;
@@ -67,20 +65,20 @@ public class GrpcServer{
     }
 
     @SuppressWarnings("rawtypes")
-    public void init() throws Exception{
-        if(!init){
+    public void init() throws Exception {
+        if (!init) {
             synchronized (this) {
-                if(!init){
+                if (!init) {
                     registry = new MotanHandlerRegistry();
                     serviceDefinetions = new HashMap<URL, ServerServiceDefinition>();
                     io.grpc.ServerBuilder builder = ServerBuilder.forPort(port);
                     builder.fallbackHandlerRegistry(registry);
-                    if(executor != null){
+                    if (executor != null) {
                         builder.executor(executor);
                     }
-                    if(builder instanceof NettyServerBuilder){
+                    if (builder instanceof NettyServerBuilder) {
                         httpHandler = new NettyHttpRequestHandler(executor);
-                        ((NettyServerBuilder)builder).protocolNegotiator(new HttpProtocolNegotiator(httpHandler));
+                        ((NettyServerBuilder) builder).protocolNegotiator(new HttpProtocolNegotiator(httpHandler));
                     }
                     server = builder.build();
                     server.start();
@@ -89,40 +87,41 @@ public class GrpcServer{
             }
         }
     }
-    
+
     @SuppressWarnings("rawtypes")
-    public void addExporter(Exporter<?> exporter) throws Exception{
-        Provider provider = exporter.getProvider();        
+    public void addExporter(Exporter<?> exporter) throws Exception {
+        Provider provider = exporter.getProvider();
         ServerServiceDefinition serviceDefine = GrpcUtil.getServiceDefByAnnotation(provider.getInterface());
         boolean urlShareChannel = exporter.getUrl().getBooleanParameter(URLParamType.shareChannel.getName(),
-          URLParamType.shareChannel.getBooleanValue());
+                URLParamType.shareChannel.getBooleanValue());
         synchronized (serviceDefinetions) {
-            if(!(shareChannel && urlShareChannel) && !serviceDefinetions.isEmpty()){
+            if (!(shareChannel && urlShareChannel) && !serviceDefinetions.isEmpty()) {
                 URL url = serviceDefinetions.keySet().iterator().next();
                 throw new MotanFrameworkException("url:" + exporter.getUrl() + " cannot share channel with url:" + url);
             }
             registry.addService(serviceDefine, provider);
-            if(httpHandler != null){
+            if (httpHandler != null) {
                 httpHandler.addProvider(provider);
             }
             serviceDefinetions.put(exporter.getUrl(), serviceDefine);
-        }        
+        }
     }
-  
+
     /**
      * remove service specified by url.
-     * the server will be closed if all service is remove 
+     * the server will be closed if all service is remove
+     *
      * @param url
      */
-    public void safeRelease(URL url){
+    public void safeRelease(URL url) {
         synchronized (serviceDefinetions) {
             registry.removeService(serviceDefinetions.remove(url));
-            if(httpHandler != null){
+            if (httpHandler != null) {
                 httpHandler.removeProvider(url);
             }
-            if(serviceDefinetions.isEmpty()){
+            if (serviceDefinetions.isEmpty()) {
                 server.shutdown();
-                if(executor != null){
+                if (executor != null) {
                     executor.shutdownNow();
                 }
             }

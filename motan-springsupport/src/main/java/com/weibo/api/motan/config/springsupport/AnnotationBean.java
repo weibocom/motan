@@ -1,12 +1,7 @@
 package com.weibo.api.motan.config.springsupport;
 
 import com.weibo.api.motan.cluster.support.ClusterSupport;
-import com.weibo.api.motan.config.BasicRefererInterfaceConfig;
-import com.weibo.api.motan.config.BasicServiceInterfaceConfig;
-import com.weibo.api.motan.config.ConfigUtil;
-import com.weibo.api.motan.config.ExtConfig;
-import com.weibo.api.motan.config.ProtocolConfig;
-import com.weibo.api.motan.config.RegistryConfig;
+import com.weibo.api.motan.config.*;
 import com.weibo.api.motan.config.springsupport.annotation.MotanReferer;
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import com.weibo.api.motan.config.springsupport.util.SpringBeanUtil;
@@ -14,7 +9,6 @@ import com.weibo.api.motan.rpc.init.Initializable;
 import com.weibo.api.motan.rpc.init.InitializationFactory;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -40,7 +34,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author fld
- *
+ * <p>
  * Annotation bean for motan
  * <p>
  * <p>
@@ -49,27 +43,21 @@ import java.util.concurrent.ConcurrentMap;
 public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor, BeanPostProcessor, BeanFactoryAware, Ordered {
 
 
-    private String id;
-
-    private String annotationPackage;
-
-    private String[] annotationPackages;
-
-
-    private BeanFactory beanFactory;
-
-    List<ClusterSupport<?>> clusterSupportList = new ArrayList<ClusterSupport<?>>();
-
-    public AnnotationBean() {
-    }
-
-    private final Set<ServiceConfigBean<?>> serviceConfigs = new ConcurrentHashSet<ServiceConfigBean<?>>();
-
-    private final ConcurrentMap<String, RefererConfigBean> referenceConfigs = new ConcurrentHashMap<String, RefererConfigBean>();
-    static{
+    static {
         //custom Initializable before motan beans inited
         Initializable initialization = InitializationFactory.getInitialization();
         initialization.init();
+    }
+
+    private final Set<ServiceConfigBean<?>> serviceConfigs = new ConcurrentHashSet<ServiceConfigBean<?>>();
+    private final ConcurrentMap<String, RefererConfigBean> referenceConfigs = new ConcurrentHashMap<String, RefererConfigBean>();
+    List<ClusterSupport<?>> clusterSupportList = new ArrayList<ClusterSupport<?>>();
+    private String id;
+    private String annotationPackage;
+    private String[] annotationPackages;
+    private BeanFactory beanFactory;
+
+    public AnnotationBean() {
     }
 
     /**
@@ -265,7 +253,7 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                     serviceConfig.setActives(service.actives());
                 }
 
-                if(service.async()) {
+                if (service.async()) {
                     serviceConfig.setAsync(service.async());
                 }
 
@@ -283,7 +271,7 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                 if (service.throwException()) {
                     serviceConfig.setThrowException(service.throwException());
                 }
-                if(service.requestTimeout()>0) {
+                if (service.requestTimeout() > 0) {
                     serviceConfig.setRequestTimeout(service.requestTimeout());
                 }
                 if (service.register()) {
@@ -299,11 +287,11 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                     serviceConfig.setUsegz(service.usegz());
                 }
 
-                if(service.retries()>0) {
+                if (service.retries() > 0) {
                     serviceConfig.setRetries(service.retries());
                 }
 
-                if(service.mingzSize()>0) {
+                if (service.mingzSize() > 0) {
                     serviceConfig.setMingzSize(service.mingzSize());
                 }
 
@@ -459,7 +447,7 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                 if (reference.throwException()) {
                     referenceConfig.setThrowException(reference.throwException());
                 }
-                if(reference.requestTimeout()>0) {
+                if (reference.requestTimeout() > 0) {
                     referenceConfig.setRequestTimeout(reference.requestTimeout());
                 }
                 if (reference.register()) {
@@ -471,13 +459,13 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                 if (reference.check()) {
                     referenceConfig.setCheck("true");
                 }
-                if(reference.retries()>0) {
+                if (reference.retries() > 0) {
                     referenceConfig.setRetries(reference.retries());
                 }
                 if (reference.usegz()) {
                     referenceConfig.setUsegz(reference.usegz());
                 }
-                if(reference.mingzSize()>0) {
+                if (reference.mingzSize() > 0) {
                     referenceConfig.setMingzSize(reference.mingzSize());
                 }
                 if (reference.codec() != null && reference.codec().length() > 0) {

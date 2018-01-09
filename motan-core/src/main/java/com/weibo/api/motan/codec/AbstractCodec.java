@@ -34,6 +34,24 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractCodec implements Codec {
     protected static ConcurrentHashMap<Integer, String> serializations;
 
+    protected static synchronized void initAllSerialziation() {
+        if (serializations == null) {
+            serializations = new ConcurrentHashMap<Integer, String>();
+            try {
+                ExtensionLoader<Serialization> loader = ExtensionLoader.getExtensionLoader(Serialization.class);
+                List<Serialization> exts = loader.getExtensions(null);
+                for (Serialization s : exts) {
+                    String old = serializations.put(s.getSerializationNumber(), loader.getSpiName(s.getClass()));
+                    if (old != null) {
+                        LoggerUtil.warn("conflict serialization spi! serialization num :" + s.getSerializationNumber() + ", old spi :" + old
+                                + ", new spi :" + serializations.get(s.getSerializationNumber()));
+                    }
+                }
+            } catch (Exception e) {
+                LoggerUtil.warn("init all serialzaion fail!", e);
+            }
+        }
+    }
 
     protected void serialize(ObjectOutput output, Object message, Serialization serialize) throws IOException {
         if (message == null) {
@@ -67,25 +85,6 @@ public abstract class AbstractCodec implements Codec {
         } catch (Exception e) {
             throw new MotanFrameworkException(this.getClass().getSimpleName() + " createInput error", e,
                     MotanErrorMsgConstant.FRAMEWORK_DECODE_ERROR);
-        }
-    }
-
-    protected static synchronized void initAllSerialziation() {
-        if (serializations == null) {
-            serializations = new ConcurrentHashMap<Integer, String>();
-            try {
-                ExtensionLoader<Serialization> loader = ExtensionLoader.getExtensionLoader(Serialization.class);
-                List<Serialization> exts = loader.getExtensions(null);
-                for (Serialization s : exts) {
-                    String old = serializations.put(s.getSerializationNumber(), loader.getSpiName(s.getClass()));
-                    if (old != null) {
-                        LoggerUtil.warn("conflict serialization spi! serialization num :" + s.getSerializationNumber() + ", old spi :" + old
-                                + ", new spi :" + serializations.get(s.getSerializationNumber()));
-                    }
-                }
-            } catch (Exception e) {
-                LoggerUtil.warn("init all serialzaion fail!", e);
-            }
         }
     }
 

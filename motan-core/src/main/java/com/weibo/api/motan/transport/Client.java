@@ -19,9 +19,8 @@ package com.weibo.api.motan.transport;
 import com.weibo.api.motan.rpc.Request;
 
 /**
- * 
  * 类说明
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-21
  */

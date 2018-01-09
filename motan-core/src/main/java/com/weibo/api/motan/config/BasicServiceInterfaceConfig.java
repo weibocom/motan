@@ -18,9 +18,8 @@ package com.weibo.api.motan.config;
 
 
 /**
- * 
  * Base config for service and referer config.
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-6-5
  */
@@ -28,7 +27,9 @@ package com.weibo.api.motan.config;
 public class BasicServiceInterfaceConfig extends AbstractServiceConfig {
 
     private static final long serialVersionUID = 12689211620290427L;
-    /** 是否默认配置 */
+    /**
+     * 是否默认配置
+     */
     private Boolean isDefault;
 
     public void setDefault(boolean isDefault) {

@@ -23,7 +23,6 @@ import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 
 /**
- * 
  * Ha strategy.
  *
  * @author fishermen

@@ -24,11 +24,9 @@ import com.weibo.api.motan.transport.Server;
 import com.weibo.api.motan.transport.support.AbstractEndpointFactory;
 
 /**
- * 
- * @Description MockEndpointFactory
  * @author zhanglei28
+ * @Description MockEndpointFactory
  * @date 2016年3月17日
- *
  */
 
 @SpiMeta(name = "mockEndpoint")

@@ -28,9 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * abstract protocol
- * 
+ *
  * @author maijunsheng
- * 
  */
 public abstract class AbstractProtocol implements Protocol {
     protected ConcurrentHashMap<String, Exporter<?>> exporterMap = new ConcurrentHashMap<String, Exporter<?>>();

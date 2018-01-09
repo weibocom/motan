@@ -16,18 +16,16 @@
 
 package com.weibo.api.motan.util;
 
+import com.weibo.api.motan.common.MotanConstants;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.weibo.api.motan.common.MotanConstants;
-
 /**
- * 
  * String utils
  *
  * @author fishermen

@@ -16,19 +16,6 @@
 
 package com.weibo.api.motan.cluster;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import junit.framework.Assert;
-
-import org.jmock.Expectations;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.weibo.api.motan.cluster.support.ClusterSupport;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
@@ -41,9 +28,19 @@ import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.StringTools;
+import junit.framework.Assert;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * 
  * ClusterSupport test.
  *
  * @author fishermen
@@ -65,6 +62,22 @@ public class ClusterSupportTest {
     private static String regProtocol2 = "reg_2";
     private static String localAddress = NetUtils.getLocalAddress().getHostAddress();
     private static Map<String, Referer<IHello>> portReferers = new HashMap<String, Referer<IHello>>();
+
+    private static List<URL> mockRegistryUrls() {
+        URL refUrl = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, IHello.class.getName());
+        refUrl.addParameter(URLParamType.check.getName(), "false");
+
+        URL url1 = new URL(regProtocol1, "192.168.1.1", 18081, RegistryService.class.getName());
+        url1.addParameter(URLParamType.embed.getName(), StringTools.urlEncode(refUrl.toFullStr()));
+
+        URL url2 = new URL(regProtocol2, "192.168.1.2", 8082, RegistryService.class.getName());
+        url2.addParameter(URLParamType.embed.getName(), StringTools.urlEncode(refUrl.toFullStr()));
+
+        List<URL> urls = new ArrayList<URL>();
+        urls.add(url1);
+        urls.add(url2);
+        return urls;
+    }
 
     @Before
     public void initCluster() {
@@ -178,20 +191,22 @@ public class ClusterSupportTest {
 
     }
 
-    private static List<URL> mockRegistryUrls() {
-        URL refUrl = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, IHello.class.getName());
-        refUrl.addParameter(URLParamType.check.getName(), "false");
+    @SuppressWarnings("unchecked")
+    private synchronized Referer<IHello> mockReferer(URL url) {
+        if (portReferers.get(url.getIdentity()) != null) {
+            return portReferers.get(url.getIdentity());
+        }
+        portReferers.put(url.getIdentity(), mockery.mock(Referer.class, url.getIdentity()));
+        return portReferers.get(url.getIdentity());
 
-        URL url1 = new URL(regProtocol1, "192.168.1.1", 18081, RegistryService.class.getName());
-        url1.addParameter(URLParamType.embed.getName(), StringTools.urlEncode(refUrl.toFullStr()));
+    }
 
-        URL url2 = new URL(regProtocol2, "192.168.1.2", 8082, RegistryService.class.getName());
-        url2.addParameter(URLParamType.embed.getName(), StringTools.urlEncode(refUrl.toFullStr()));
-
-        List<URL> urls = new ArrayList<URL>();
-        urls.add(url1);
-        urls.add(url2);
-        return urls;
+    private List<URL> copy(List<URL> dest, List<URL> source) {
+        dest.clear();
+        for (URL url : source) {
+            dest.add(url.createCopy());
+        }
+        return dest;
     }
 
     private static class ClusterSupportMask<T> extends ClusterSupport<T> {
@@ -209,23 +224,5 @@ public class ClusterSupportTest {
             return registries.get(url.getProtocol());
         }
 
-    }
-
-    @SuppressWarnings("unchecked")
-    private synchronized Referer<IHello> mockReferer(URL url) {
-        if (portReferers.get(url.getIdentity()) != null) {
-            return portReferers.get(url.getIdentity());
-        }
-        portReferers.put(url.getIdentity(), mockery.mock(Referer.class, url.getIdentity()));
-        return portReferers.get(url.getIdentity());
-
-    }
-
-    private List<URL> copy(List<URL> dest, List<URL> source) {
-        dest.clear();
-        for (URL url : source) {
-            dest.add(url.createCopy());
-        }
-        return dest;
     }
 }

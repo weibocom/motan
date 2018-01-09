@@ -86,7 +86,7 @@ public class ExceptionUtil {
             type = 2;
             code = mbe.getErrorCode();
             errmsg = mbe.getOriginMessage();
-            if(mbe.getCause() != null){
+            if (mbe.getCause() != null) {
                 errmsg = errmsg + ", org err:" + mbe.getCause().getMessage();
             }
         } else {

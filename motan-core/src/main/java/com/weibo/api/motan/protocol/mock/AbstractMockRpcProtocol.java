@@ -4,14 +4,7 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.protocol.AbstractProtocol;
-import com.weibo.api.motan.rpc.AbstractExporter;
-import com.weibo.api.motan.rpc.AbstractReferer;
-import com.weibo.api.motan.rpc.Exporter;
-import com.weibo.api.motan.rpc.Provider;
-import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.EndpointFactory;
 import com.weibo.api.motan.transport.ProviderMessageRouter;
@@ -20,12 +13,10 @@ import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 /**
- * 
- * @Description:abstract mock protocol, it can mock all rpc from server or client.
- *                    implementation class must implement 'processRequest()' method, and declare SpiMeta annotation. 
  * @author zhanglei28
+ * @Description:abstract mock protocol, it can mock all rpc from server or client.
+ * implementation class must implement 'processRequest()' method, and declare SpiMeta annotation.
  * @date 2016-3-14
- *
  */
 public abstract class AbstractMockRpcProtocol extends AbstractProtocol {
     private static ProviderMessageRouter mockProviderMessageRouter;
@@ -43,6 +34,24 @@ public abstract class AbstractMockRpcProtocol extends AbstractProtocol {
         LoggerUtil.info("create MockRpcReferer: url={}", url);
         return referer;
     }
+
+    // process all urls。
+    public ProviderMessageRouter getMockProviderMessageRouter(URL url) {
+        if (mockProviderMessageRouter == null) {
+            //default
+            mockProviderMessageRouter = new MockProviderMessageRouter();
+        }
+
+        return mockProviderMessageRouter;
+    }
+
+    /**
+     * process request. request is mock processed by client or server
+     *
+     * @param request
+     * @return
+     */
+    protected abstract Response processRequest(Request request);
 
     class MockRpcExporter<T> extends AbstractExporter<T> {
         private Server server;
@@ -85,7 +94,6 @@ public abstract class AbstractMockRpcProtocol extends AbstractProtocol {
 
     }
 
-
     class MockRpcReferer<T> extends AbstractReferer<T> {
 
 
@@ -112,16 +120,6 @@ public abstract class AbstractMockRpcProtocol extends AbstractProtocol {
 
     }
 
-    // process all urls。
-    public ProviderMessageRouter getMockProviderMessageRouter(URL url) {
-        if (mockProviderMessageRouter == null) {
-            //default
-            mockProviderMessageRouter = new MockProviderMessageRouter();
-        }
-
-        return mockProviderMessageRouter;
-    }
-
     class MockProviderMessageRouter extends ProviderMessageRouter {
 
         @Override
@@ -137,13 +135,5 @@ public abstract class AbstractMockRpcProtocol extends AbstractProtocol {
         }
 
     }
-
-    /**
-     * process request. request is mock processed by client or server
-     * 
-     * @param request
-     * @return
-     */
-    protected abstract Response processRequest(Request request);
 
 }

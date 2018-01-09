@@ -30,37 +30,36 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * 
  * abstract endpoint factory
- * 
+ * <p>
  * <pre>
  * 		一些约定：
- * 
+ *
  * 		1） service :
  * 			1.1） not share channel :  某个service暴露服务的时候，不期望和别的service共享服务，明哲自保，比如你说：我很重要，我很重要。
- * 
+ *
  * 			1.2） share channel ： 某个service 暴露服务的时候，如果有某个模块，但是拆成10个接口，可以使用这种方式，不过有一些约束条件：接口的几个serviceConfig配置需要保持一致。
- * 				
+ *
  * 				不允许差异化的配置如下：
  * 					protocol, codec , serialize, maxContentLength , maxServerConnection , maxWorkerThread, workerQueueSize, heartbeatFactory
- * 				
+ *
  * 		2）心跳机制：
- * 
+ *
  * 			不同的protocol的心跳包格式可能不一样，无法进行强制，那么通过可扩展的方式，依赖heartbeatFactory进行heartbeat包的创建，
- * 			同时对于service的messageHandler进行wrap heartbeat包的处理。 
- * 
+ * 			同时对于service的messageHandler进行wrap heartbeat包的处理。
+ *
  * 			对于service来说，把心跳包当成普通的request处理，因为这种heartbeat才能够探测到整个service处理的关键路径的可用状况
- * 
+ *
  * </pre>
- * 
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-6-5
- * 
  */
 public abstract class AbstractEndpointFactory implements EndpointFactory {
 
-    /** 维持share channel 的service列表 **/
+    /**
+     * 维持share channel 的service列表
+     **/
     protected Map<String, Server> ipPort2ServerShareChannel = new HashMap<String, Server>();
     protected ConcurrentMap<Server, Set<String>> server2UrlsShareChannel = new ConcurrentHashMap<Server, Set<String>>();
 
@@ -135,7 +134,7 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
     }
 
     private <T extends Endpoint> void safeReleaseResource(T endpoint, URL url, Map<String, T> ipPort2Endpoint,
-            ConcurrentMap<T, Set<String>> endpoint2Urls) {
+                                                          ConcurrentMap<T, Set<String>> endpoint2Urls) {
         boolean shareChannel = url.getBooleanParameter(URLParamType.shareChannel.getName(), URLParamType.shareChannel.getBooleanValue());
 
         if (!shareChannel) {

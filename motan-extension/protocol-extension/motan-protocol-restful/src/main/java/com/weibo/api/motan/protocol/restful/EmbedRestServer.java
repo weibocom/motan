@@ -22,7 +22,6 @@ import org.jboss.resteasy.spi.ResteasyDeployment;
  * 内嵌resteasy server
  *
  * @author zhouhaocheng
- *
  */
 public class EmbedRestServer implements RestServer {
     private EmbeddedJaxrsServer server;

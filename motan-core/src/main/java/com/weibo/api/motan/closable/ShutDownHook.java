@@ -1,6 +1,7 @@
 package com.weibo.api.motan.closable;
 
 import com.weibo.api.motan.util.LoggerUtil;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -28,11 +29,6 @@ public class ShutDownHook extends Thread {
         }
     }
 
-    @Override
-    public void run() {
-        closeAll();
-    }
-
     public static void runHook(boolean sync) {
         if (instance != null) {
             if (sync)
@@ -40,6 +36,23 @@ public class ShutDownHook extends Thread {
             else
                 instance.start();
         }
+    }
+
+    public static void registerShutdownHook(Closable closable) {
+        registerShutdownHook(closable, defaultPriority);
+    }
+
+    public static synchronized void registerShutdownHook(Closable closable, int priority) {
+        if (instance == null) {
+            init();
+        }
+        instance.resourceList.add(new closableObject(closable, priority));
+        LoggerUtil.info("add resource " + closable.getClass() + " to list");
+    }
+
+    @Override
+    public void run() {
+        closeAll();
     }
 
     //synchronized method to close all the resources in the list
@@ -56,18 +69,6 @@ public class ShutDownHook extends Thread {
         }
         LoggerUtil.info("Success to close all the resource!");
         resourceList.clear();
-    }
-
-    public static void registerShutdownHook(Closable closable) {
-        registerShutdownHook(closable, defaultPriority);
-    }
-
-    public static synchronized void registerShutdownHook(Closable closable, int priority) {
-        if (instance == null) {
-            init();
-        }
-        instance.resourceList.add(new closableObject(closable, priority));
-        LoggerUtil.info("add resource " + closable.getClass() + " to list");
     }
 
     private static class closableObject implements Comparable<closableObject> {

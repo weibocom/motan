@@ -27,9 +27,8 @@ import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.RpcStats;
 
 /**
- * 
  * limit active count，判断某个接口并发数是否超限，如果超过限制，则上抛异常,同时做简单的统计。 此filter比较严格，尽量放到底层较早执行。
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-23
  */

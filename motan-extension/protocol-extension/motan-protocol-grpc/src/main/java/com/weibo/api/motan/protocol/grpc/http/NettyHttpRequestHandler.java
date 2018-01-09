@@ -1,48 +1,17 @@
 /*
  * Copyright 2009-2016 Weibo, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.weibo.api.motan.protocol.grpc.http;
-
-import io.grpc.MethodDescriptor.Marshaller;
-import io.grpc.protobuf.ProtoUtils;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.HttpVersion;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
-import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -59,13 +28,31 @@ import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
 import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.ReflectUtil;
+import io.grpc.MethodDescriptor.Marshaller;
+import io.grpc.protobuf.ProtoUtils;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.*;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
+import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 
 /**
- * 
- * @Description http request handler for netty4
  * @author zhanglei
+ * @Description http request handler for netty4
  * @date 2016-5-31
- *
  */
 
 @Sharable
@@ -73,11 +60,11 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
     public static final String BAD_REQUEST = "/bad-request";
     public static final String ROOT_PATH = "/";
     public static final String STATUS_PATH = "/rpcstatus";
-    private ExecutorService executor;
     protected String swictherName = MotanConstants.REGISTRY_HEARTBEAT_SWITCHER;
     @SuppressWarnings("rawtypes")
     protected ConcurrentHashMap<String, Provider> providerMap = new ConcurrentHashMap<String, Provider>();
     protected ConcurrentHashMap<String, MethodInfo> methodDescMap = new ConcurrentHashMap<String, MethodInfo>();
+    private ExecutorService executor;
 
 
     public NettyHttpRequestHandler(ExecutorService executor) {
@@ -153,10 +140,10 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
             DefaultRequest rpcRequest = buildRpcRequest(httpRequest);
 
             String ip = NetUtils.getHostName(ctx.channel().remoteAddress());
-            if(ip != null){
+            if (ip != null) {
                 rpcRequest.setAttachment(URLParamType.host.getName(), ip);
             }
-            
+
             Provider provider = providerMap.get(rpcRequest.getInterfaceName());
             if (provider == null) {
                 httpResponse = buildErrorResponse("request service not exist. service:" + rpcRequest.getInterfaceName());
@@ -241,7 +228,7 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
 
         Class<?>[] paramsType = methodInfo.getMethod().getParameterTypes();
         JsonParser parser = new JsonParser();
-        JsonArray jsonArray = (JsonArray) parser.parse(params);        
+        JsonArray jsonArray = (JsonArray) parser.parse(params);
         try {
             Object[] result = new Object[jsonArray.size()];
             for (int i = 0; i < jsonArray.size(); i++) {
@@ -332,7 +319,7 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
 
     /**
      * is service switcher close. http status will be 503 when switcher is close
-     * 
+     *
      * @return
      */
     protected boolean isSwitchOpen() {

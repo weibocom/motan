@@ -15,8 +15,9 @@
  */
 package com.weibo.api.motan.protocol.restful.support.proxy;
 
-import java.lang.reflect.Method;
-
+import com.weibo.api.motan.protocol.restful.support.RestfulClientResponse;
+import com.weibo.api.motan.protocol.restful.support.RestfulUtil;
+import com.weibo.api.motan.rpc.Request;
 import org.jboss.resteasy.client.jaxrs.ProxyConfig;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.jboss.resteasy.client.jaxrs.internal.ClientInvocation;
@@ -24,9 +25,7 @@ import org.jboss.resteasy.client.jaxrs.internal.ClientResponse;
 import org.jboss.resteasy.client.jaxrs.internal.proxy.ClientInvoker;
 import org.jboss.resteasy.client.jaxrs.internal.proxy.extractors.ClientContext;
 
-import com.weibo.api.motan.protocol.restful.support.RestfulClientResponse;
-import com.weibo.api.motan.protocol.restful.support.RestfulUtil;
-import com.weibo.api.motan.rpc.Request;
+import java.lang.reflect.Method;
 
 public class RestfulClientInvoker extends ClientInvoker {
 

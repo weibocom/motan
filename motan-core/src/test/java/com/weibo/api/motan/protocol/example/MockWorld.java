@@ -40,7 +40,8 @@ public class MockWorld implements IWorld {
         long num = sleepCount.incrementAndGet();
         try {
             Thread.sleep(sleep);
-        } catch (InterruptedException ignore) {}
+        } catch (InterruptedException ignore) {
+        }
         return world + num;
     }
 

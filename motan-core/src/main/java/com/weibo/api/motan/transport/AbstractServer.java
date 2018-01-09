@@ -16,9 +16,6 @@
 
 package com.weibo.api.motan.transport;
 
-import java.net.InetSocketAddress;
-import java.util.Collection;
-
 import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.common.ChannelState;
 import com.weibo.api.motan.common.URLParamType;
@@ -26,10 +23,12 @@ import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.URL;
 
+import java.net.InetSocketAddress;
+import java.util.Collection;
+
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-21
- * 
  */
 public abstract class AbstractServer implements Server {
     protected InetSocketAddress localAddress;
@@ -41,7 +40,8 @@ public abstract class AbstractServer implements Server {
     protected volatile ChannelState state = ChannelState.UNINIT;
 
 
-    public AbstractServer() {}
+    public AbstractServer() {
+    }
 
     public AbstractServer(URL url) {
         this.url = url;
@@ -55,13 +55,13 @@ public abstract class AbstractServer implements Server {
         return localAddress;
     }
 
+    public void setLocalAddress(InetSocketAddress localAddress) {
+        this.localAddress = localAddress;
+    }
+
     @Override
     public InetSocketAddress getRemoteAddress() {
         return remoteAddress;
-    }
-
-    public void setLocalAddress(InetSocketAddress localAddress) {
-        this.localAddress = localAddress;
     }
 
     public void setRemoteAddress(InetSocketAddress remoteAddress) {

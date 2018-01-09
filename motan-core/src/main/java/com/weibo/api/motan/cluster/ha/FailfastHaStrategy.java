@@ -23,7 +23,6 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 
 /**
- * 
  * Fail fast ha strategy.
  *
  * @author fishermen

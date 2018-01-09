@@ -16,19 +16,18 @@
 
 package com.weibo.api.motan.cluster.loadbalance;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.util.MathUtil;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
- * 
  * Use consistent hash to choose referer
  *
  * @author fishermen

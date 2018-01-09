@@ -36,9 +36,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 
  * Referer config.
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-17
  */
@@ -46,12 +45,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RefererConfig<T> extends AbstractRefererConfig {
 
     private static final long serialVersionUID = -2299754608229467887L;
-
-    private Class<T> interfaceClass;
-
     // 具体到方法的配置
     protected List<MethodConfig> methods;
-
+    private Class<T> interfaceClass;
     // 点对点直连服务提供地址
     private String directUrl;
 
@@ -67,12 +63,12 @@ public class RefererConfig<T> extends AbstractRefererConfig {
         return methods;
     }
 
-    public void setMethods(List<MethodConfig> methods) {
-        this.methods = methods;
-    }
-
     public void setMethods(MethodConfig methods) {
         this.methods = Collections.singletonList(methods);
+    }
+
+    public void setMethods(List<MethodConfig> methods) {
+        this.methods = methods;
     }
 
     public boolean hasMethods() {
@@ -193,15 +189,15 @@ public class RefererConfig<T> extends AbstractRefererConfig {
         initialized.set(false);
     }
 
+    public Class<?> getInterface() {
+        return interfaceClass;
+    }
+
     public void setInterface(Class<T> interfaceClass) {
         if (interfaceClass != null && !interfaceClass.isInterface()) {
             throw new IllegalStateException("The interface class " + interfaceClass + " is not a interface!");
         }
         this.interfaceClass = interfaceClass;
-    }
-
-    public Class<?> getInterface() {
-        return interfaceClass;
     }
 
     public String getDirectUrl() {

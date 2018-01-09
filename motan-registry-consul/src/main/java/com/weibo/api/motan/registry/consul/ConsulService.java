@@ -4,64 +4,64 @@ import java.util.List;
 
 public class ConsulService {
 
-	private String id;
+    private String id;
 
-	private String name;
+    private String name;
 
-	private List<String> tags;
+    private List<String> tags;
 
-	private String address;
+    private String address;
 
-	private Integer port;
-	
-	private long ttl;
+    private Integer port;
 
-	public String getId() {
-		return id;
-	}
+    private long ttl;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public List<String> getTags() {
-		return tags;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setTags(List<String> tags) {
-		this.tags = tags;
-	}
+    public List<String> getTags() {
+        return tags;
+    }
 
-	public String getAddress() {
-		return address;
-	}
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
 
-	public void setAddress(String address) {
-		this.address = address;
-	}
+    public String getAddress() {
+        return address;
+    }
 
-	public Integer getPort() {
-		return port;
-	}
+    public void setAddress(String address) {
+        this.address = address;
+    }
 
-	public void setPort(Integer port) {
-		this.port = port;
-	}
+    public Integer getPort() {
+        return port;
+    }
 
-	public long getTtl() {
-		return ttl;
-	}
+    public void setPort(Integer port) {
+        this.port = port;
+    }
 
-	public void setTtl(long ttl) {
-		this.ttl = ttl;
-	}
+    public long getTtl() {
+        return ttl;
+    }
+
+    public void setTtl(long ttl) {
+        this.ttl = ttl;
+    }
 
 }

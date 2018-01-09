@@ -16,15 +16,14 @@
 
 package com.weibo.api.motan.cluster.loadbalance;
 
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
 
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
- * 
  * random load balance.
  *
  * @author fishermen

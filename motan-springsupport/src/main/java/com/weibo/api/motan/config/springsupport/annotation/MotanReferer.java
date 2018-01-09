@@ -1,11 +1,7 @@
 package com.weibo.api.motan.config.springsupport.annotation;
 
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * @author fld
@@ -94,9 +90,13 @@ public @interface MotanReferer {
     String codec() default "";
 
     String mean() default "";
+
     String p90() default "";
+
     String p99() default "";
+
     String p999() default "";
+
     String errorRate() default "";
 
 }

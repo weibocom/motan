@@ -16,7 +16,13 @@
 
 package com.weibo.api.motan.cluster.loadbalance;
 
-import static org.junit.Assert.assertTrue;
+import com.weibo.api.motan.mock.MockReferer;
+import com.weibo.api.motan.protocol.example.IHello;
+import com.weibo.api.motan.rpc.DefaultRequest;
+import com.weibo.api.motan.rpc.Referer;
+import com.weibo.api.motan.rpc.URL;
+import junit.framework.Assert;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,15 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import junit.framework.Assert;
-
-import org.junit.Test;
-
-import com.weibo.api.motan.mock.MockReferer;
-import com.weibo.api.motan.protocol.example.IHello;
-import com.weibo.api.motan.rpc.DefaultRequest;
-import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.rpc.URL;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author chengya1
@@ -44,8 +42,8 @@ public class ConfigurableWeightLoadBalanceTest {
 
     @Test
     public void testDoSelect() {
-        int[] groupWeight = new int[] {2, 3, 5};
-        Map<String, AtomicInteger> counter = generate(3, groupWeight, new int[] {3, 4, 5});
+        int[] groupWeight = new int[]{2, 3, 5};
+        Map<String, AtomicInteger> counter = generate(3, groupWeight, new int[]{3, 4, 5});
 
         for (int j = 0; j < 100; j++) {
             int size = 100;
@@ -68,7 +66,7 @@ public class ConfigurableWeightLoadBalanceTest {
 
     @Test
     public void testDoSelectToHolder() {
-        generate(3, new int[] {2, 3, 5}, new int[] {3, 4, 5});
+        generate(3, new int[]{2, 3, 5}, new int[]{3, 4, 5});
         List<Referer<IHello>> list = new ArrayList<Referer<IHello>>();
         balance.doSelectToHolder(new DefaultRequest(), list);
         assertTrue(list.size() > 0 && list.size() <= ConfigurableWeightLoadBalance.MAX_REFERER_COUNT);

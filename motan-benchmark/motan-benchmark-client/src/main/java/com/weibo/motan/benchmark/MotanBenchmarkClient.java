@@ -69,7 +69,7 @@ public class MotanBenchmarkClient extends AbstractBenchmarkClient {
 
     @Override
     public ClientRunnable getClientRunnable(String classname, String params, CyclicBarrier barrier,
-            CountDownLatch latch, long startTime, long endTime) {
+                                            CountDownLatch latch, long startTime, long endTime) {
         BenchmarkService service;
         if (isMultiClient) {
             ApplicationContext applicationContext = new ClassPathXmlApplicationContext(new String[]{"classpath*:motan-benchmark-client.xml"});

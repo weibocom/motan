@@ -21,7 +21,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class HelloServer {
     public static void main(String[] args) {
         //set tracer implementation by spring config. see motan_server.xml
-        
+
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:motan_server.xml");
         System.out.println("server start...");
     }

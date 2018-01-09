@@ -42,6 +42,14 @@ public class RpcCommand {
         });
     }
 
+    public List<ClientCommand> getClientCommandList() {
+        return clientCommandList;
+    }
+
+    public void setClientCommandList(List<ClientCommand> clientCommandList) {
+        this.clientCommandList = clientCommandList;
+    }
+
     public static class ClientCommand {
         private Integer index;
         private String version;
@@ -107,14 +115,6 @@ public class RpcCommand {
         public void setRemark(String remark) {
             this.remark = remark;
         }
-    }
-
-    public List<ClientCommand> getClientCommandList() {
-        return clientCommandList;
-    }
-
-    public void setClientCommandList(List<ClientCommand> clientCommandList) {
-        this.clientCommandList = clientCommandList;
     }
 
     public static class ServerCommand {

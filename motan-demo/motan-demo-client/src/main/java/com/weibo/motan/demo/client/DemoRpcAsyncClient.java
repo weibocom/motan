@@ -1,11 +1,11 @@
 /*
  * Copyright 2009-2016 Weibo, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -13,13 +13,12 @@
  */
 package com.weibo.motan.demo.client;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
 import com.weibo.api.motan.rpc.Future;
 import com.weibo.api.motan.rpc.FutureListener;
 import com.weibo.api.motan.rpc.ResponseFuture;
 import com.weibo.motan.demo.service.MotanDemoServiceAsync;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class DemoRpcAsyncClient {
 
@@ -29,10 +28,9 @@ public class DemoRpcAsyncClient {
      * 也可以不使用plugin，手动将target/generated-sources/annotations目录设置为source path。
      * 3、在client配置的motan:referer标签中配置interface为自动生成的以Async为后缀的对应service类。
      * 参见本模块的motan_demo_async_client.xml
-     * 
      */
     public static void main(String[] args) {
-        ApplicationContext ctx = new ClassPathXmlApplicationContext(new String[] {"classpath:motan_demo_async_client.xml"});
+        ApplicationContext ctx = new ClassPathXmlApplicationContext(new String[]{"classpath:motan_demo_async_client.xml"});
 
         MotanDemoServiceAsync service = (MotanDemoServiceAsync) ctx.getBean("motanDemoReferer");
         for (int i = 0; i < Integer.MAX_VALUE; i++) {
@@ -56,7 +54,7 @@ public class DemoRpcAsyncClient {
                 public void operationComplete(Future future) throws Exception {
                     System.out.println("async call "
                             + (future.isSuccess() ? "sucess! value:" + future.getValue() : "fail! exception:"
-                                    + future.getException().getMessage()));
+                            + future.getException().getMessage()));
                 }
             };
             future3.addListener(listener);

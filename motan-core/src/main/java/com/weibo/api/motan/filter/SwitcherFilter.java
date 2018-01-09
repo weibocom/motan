@@ -28,7 +28,6 @@ import com.weibo.api.motan.util.MotanSwitcherUtil;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-14
- * 
  */
 @SpiMeta(name = "switcher")
 public class SwitcherFilter implements Filter {
@@ -45,7 +44,7 @@ public class SwitcherFilter implements Filter {
 
     /**
      * 返回的reponse需要设置exception，这样invocationhandler会在throwException为false时，构建默认值返回
-     * 
+     *
      * @param request
      * @return
      */

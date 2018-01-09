@@ -16,20 +16,15 @@
 
 package com.weibo.api.motan.util;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
-import java.net.Socket;
-import java.net.SocketAddress;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.*;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
- * 
  * 网络工具类
  *
  * @author fishermen
@@ -38,19 +33,13 @@ import org.slf4j.LoggerFactory;
 
 public class NetUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(NetUtils.class);
-
     public static final String LOCALHOST = "127.0.0.1";
-
     public static final String ANYHOST = "0.0.0.0";
-
-    private static volatile InetAddress LOCAL_ADDRESS = null;
-
+    private static final Logger logger = LoggerFactory.getLogger(NetUtils.class);
     private static final Pattern LOCAL_IP_PATTERN = Pattern.compile("127(\\.\\d{1,3}){3}$");
-
     private static final Pattern ADDRESS_PATTERN = Pattern.compile("^\\d{1,3}(\\.\\d{1,3}){3}\\:\\d{1,5}$");
-
     private static final Pattern IP_PATTERN = Pattern.compile("\\d{1,3}(\\.\\d{1,3}){3,5}$");
+    private static volatile InetAddress LOCAL_ADDRESS = null;
 
     public static boolean isInvalidLocalHost(String host) {
         return host == null || host.length() == 0 || host.equalsIgnoreCase("localhost") || host.equals("0.0.0.0")
@@ -63,7 +52,7 @@ public class NetUtils {
 
     /**
      * {@link #getLocalAddress(Map)}
-     * 
+     *
      * @return
      */
     public static InetAddress getLocalAddress() {
@@ -74,7 +63,7 @@ public class NetUtils {
      * <pre>
      * 查找策略：首先看是否已经查到ip --> hostname对应的ip --> 根据连接目标端口得到的本地ip --> 轮询网卡
      * </pre>
-     * 
+     *
      * @return loca ip
      */
     public static InetAddress getLocalAddress(Map<String, Integer> destHostPorts) {
@@ -127,7 +116,8 @@ public class NetUtils {
                 } finally {
                     try {
                         socket.close();
-                    } catch (Throwable e) {}
+                    } catch (Throwable e) {
+                    }
                 }
             } catch (Exception e) {
                 LoggerUtil.warn(String.format("Failed to retriving local address by connecting to dest host:port(%s:%s) false, e=%s", host,
@@ -175,6 +165,7 @@ public class NetUtils {
         String name = address.getHostAddress();
         return (name != null && !ANYHOST.equals(name) && !LOCALHOST.equals(name) && IP_PATTERN.matcher(name).matches());
     }
+
     //return ip to avoid lookup dns
     public static String getHostName(SocketAddress socketAddress) {
         if (socketAddress == null) {
@@ -183,7 +174,7 @@ public class NetUtils {
 
         if (socketAddress instanceof InetSocketAddress) {
             InetAddress addr = ((InetSocketAddress) socketAddress).getAddress();
-            if(addr != null){
+            if (addr != null) {
                 return addr.getHostAddress();
             }
         }

@@ -21,26 +21,24 @@ import com.weibo.api.motan.core.extension.Spi;
 import com.weibo.api.motan.rpc.Request;
 
 /**
- * 
  * heartbeat的消息保持和正常请求的Request一致，这样以便更能反应service端的可用情况
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-6-14
- * 
  */
 @Spi(scope = Scope.SINGLETON)
 public interface HeartbeatFactory {
 
     /**
      * 创建心跳包
-     * 
+     *
      * @return
      */
     Request createRequest();
 
     /**
      * 包装 handler，支持心跳包的处理
-     * 
+     *
      * @param handler
      * @return
      */

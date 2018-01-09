@@ -22,7 +22,6 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MathUtil;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -175,8 +174,8 @@ public class ConfigurableWeightLoadBalance<T> extends ActiveWeightLoadBalance<T>
             // 求出最大公约数，若不为1，对权重做除法
             int weightGcd = findGcd(weightsArr);
             if (weightGcd != 1) {
-                for(Map.Entry<String,Integer> entry: weightsMap.entrySet()) {
-                    weightsMap.put(entry.getKey(),entry.getValue()/weightGcd);
+                for (Map.Entry<String, Integer> entry : weightsMap.entrySet()) {
+                    weightsMap.put(entry.getKey(), entry.getValue() / weightGcd);
                 }
             }
 

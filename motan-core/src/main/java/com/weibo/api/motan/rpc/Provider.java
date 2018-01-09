@@ -22,7 +22,6 @@ import com.weibo.api.motan.core.extension.Spi;
 import java.lang.reflect.Method;
 
 /**
- *
  * Service provider.
  *
  * @author fishermen

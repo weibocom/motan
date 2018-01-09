@@ -16,8 +16,8 @@
 
 package com.weibo.api.motan.transport.netty;
 
-import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.DefaultResponse;
+import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
@@ -25,7 +25,6 @@ import com.weibo.api.motan.transport.MessageHandler;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-7
- * 
  */
 public class NettyServerExample {
     public static void main(String[] args) throws InterruptedException {

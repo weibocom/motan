@@ -32,20 +32,21 @@ public class MathUtil {
         }
     }
 
-    public static long parseLong(String longStr, long defaultValue){
+    public static long parseLong(String longStr, long defaultValue) {
         try {
             return Long.parseLong(longStr);
         } catch (NumberFormatException e) {
             return defaultValue;
         }
     }
-    
+
     /**
      * return positive int value of originValue
+     *
      * @param originValue
      * @return positive int
      */
-    public static int getPositive(int originValue){
+    public static int getPositive(int originValue) {
         return 0x7fffffff & originValue;
     }
 }

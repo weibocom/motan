@@ -19,7 +19,6 @@ package com.weibo.api.motan.protocol.example;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-6
- * 
  */
 public interface IWorld {
     String world();

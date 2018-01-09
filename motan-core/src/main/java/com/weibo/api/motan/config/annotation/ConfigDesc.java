@@ -16,14 +16,9 @@
 
 package com.weibo.api.motan.config.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
- * 
  * 对配置参数的描述，用于通过配置方法进行配置属性自动装载
  *
  * @author fishermen

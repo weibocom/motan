@@ -16,14 +16,12 @@
 
 package com.weibo.api.motan.cluster.loadbalance;
 
-import org.jmock.Expectations;
-
 import com.weibo.api.motan.protocol.example.IHello;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
+import org.jmock.Expectations;
 
 /**
- * 
  * Unit test
  *
  * @author fishermen
@@ -50,7 +48,7 @@ public class ConsistentHashLoadBalanceTest extends AbstractLoadBalanceTest {
                     will(returnValue(true));
                 }
                 atLeast(1).of(request).getArguments();
-                will(returnValue(new Object[] {1, 2, 3}));
+                will(returnValue(new Object[]{1, 2, 3}));
                 atLeast(0).of(request).getParamtersDesc();
                 will(returnValue("void_"));
             }
@@ -74,7 +72,7 @@ public class ConsistentHashLoadBalanceTest extends AbstractLoadBalanceTest {
                     will(returnValue(rs));
                 }
                 atLeast(1).of(request).getArguments();
-                will(returnValue(new Object[] {1, 2, 3}));
+                will(returnValue(new Object[]{1, 2, 3}));
                 atLeast(0).of(request).getParamtersDesc();
                 will(returnValue("void_"));
             }

@@ -15,21 +15,15 @@
  */
 package com.weibo.api.motan.protocol.restful.support;
 
-import javax.ws.rs.InternalServerErrorException;
-
-import org.jboss.resteasy.core.InjectorFactoryImpl;
-import org.jboss.resteasy.core.MethodInjectorImpl;
-import org.jboss.resteasy.spi.ApplicationException;
-import org.jboss.resteasy.spi.Failure;
-import org.jboss.resteasy.spi.HttpRequest;
-import org.jboss.resteasy.spi.HttpResponse;
-import org.jboss.resteasy.spi.MethodInjector;
-import org.jboss.resteasy.spi.ResteasyProviderFactory;
-import org.jboss.resteasy.spi.metadata.ResourceLocator;
-
 import com.weibo.api.motan.rpc.Provider;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.util.ReflectUtil;
+import org.jboss.resteasy.core.InjectorFactoryImpl;
+import org.jboss.resteasy.core.MethodInjectorImpl;
+import org.jboss.resteasy.spi.*;
+import org.jboss.resteasy.spi.metadata.ResourceLocator;
+
+import javax.ws.rs.InternalServerErrorException;
 
 public class RestfulInjectorFactory extends InjectorFactoryImpl {
 

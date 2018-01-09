@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class DefaultResponseFutureTest {
     static URL url = new URL("motan", "localhost", 18080, "testurl");
+
     @Test
     public void testNormal() {
         DefaultRequest request = new DefaultRequest();

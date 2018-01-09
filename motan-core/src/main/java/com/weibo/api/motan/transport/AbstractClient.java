@@ -16,8 +16,6 @@
 
 package com.weibo.api.motan.transport;
 
-import java.net.InetSocketAddress;
-
 import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.common.ChannelState;
 import com.weibo.api.motan.common.URLParamType;
@@ -28,10 +26,11 @@ import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
+import java.net.InetSocketAddress;
+
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-21
- * 
  */
 public abstract class AbstractClient implements Client {
 
@@ -56,21 +55,21 @@ public abstract class AbstractClient implements Client {
         return localAddress;
     }
 
+    public void setLocalAddress(InetSocketAddress localAddress) {
+        this.localAddress = localAddress;
+    }
+
     @Override
     public InetSocketAddress getRemoteAddress() {
         return remoteAddress;
     }
 
+    public void setRemoteAddress(InetSocketAddress remoteAddress) {
+        this.remoteAddress = remoteAddress;
+    }
+
     @Override
     public void heartbeat(Request request) {
         throw new MotanFrameworkException("heartbeat not support: " + MotanFrameworkUtil.toString(request));
-    }
-
-    public void setLocalAddress(InetSocketAddress localAddress) {
-        this.localAddress = localAddress;
-    }
-
-    public void setRemoteAddress(InetSocketAddress remoteAddress) {
-        this.remoteAddress = remoteAddress;
     }
 }

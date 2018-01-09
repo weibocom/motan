@@ -1,11 +1,11 @@
 /*
  * Copyright 2009-2016 Weibo, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -31,11 +31,9 @@ import java.util.concurrent.TimeUnit;
 
 
 /**
- * 
- * @Description GrpcClient
  * @author zhanglei
+ * @Description GrpcClient
  * @date Oct 13, 2016
- *
  */
 public class GrpcClient {
 
@@ -45,7 +43,6 @@ public class GrpcClient {
     private CallOptions callOption = CallOptions.DEFAULT; // TODO 需要配置线程池时使用
     @SuppressWarnings("rawtypes")
     private HashMap<String, MethodDescriptor> methodDescMap;
-
 
 
     public GrpcClient(URL url, Class<?> interfaceClazz) {

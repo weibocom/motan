@@ -19,7 +19,6 @@ package com.weibo.api.motan.core.extension;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-29
- * 
  */
 @Spi(scope = Scope.SINGLETON)
 public interface SpiTestInterface {

@@ -16,19 +16,17 @@
 
 package com.weibo.api.motan.config;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Test;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.protocol.example.IWorld;
 import com.weibo.api.motan.rpc.URL;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 
  * Service config test
  *
  * @author fishermen zhanglei

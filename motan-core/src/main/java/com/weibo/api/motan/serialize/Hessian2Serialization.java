@@ -27,10 +27,9 @@ import java.io.IOException;
 
 /**
  * hession2 序列化，要求序列化的对象实现 java.io.Serializable 接口
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-5-30
- * 
  */
 @SpiMeta(name = "hessian2")
 public class Hessian2Serialization implements Serialization {
@@ -55,7 +54,7 @@ public class Hessian2Serialization implements Serialization {
     public byte[] serializeMulti(Object[] data) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         Hessian2Output out = new Hessian2Output(bos);
-        for(Object obj: data){
+        for (Object obj : data) {
             out.writeObject(obj);
         }
         out.flush();

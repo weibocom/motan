@@ -52,10 +52,12 @@ public class MockReferer<T> implements Referer<T> {
     }
 
     @Override
-    public void init() {}
+    public void init() {
+    }
 
     @Override
-    public void destroy() {}
+    public void destroy() {
+    }
 
     @Override
     public boolean isAvailable() {

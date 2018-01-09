@@ -16,17 +16,6 @@
 
 package com.weibo.api.motan.registry.support;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import com.weibo.api.motan.closable.Closable;
 import com.weibo.api.motan.closable.ShutDownHook;
 import com.weibo.api.motan.common.URLParamType;
@@ -36,15 +25,33 @@ import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
 
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 /**
- * 
  * Failback registry
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-28
  */
 
 public abstract class FailbackRegistry extends AbstractRegistry {
+
+    private static ScheduledExecutorService retryExecutor = Executors.newScheduledThreadPool(1);
+
+    static {
+        ShutDownHook.registerShutdownHook(new Closable() {
+            @Override
+            public void close() {
+                if (!retryExecutor.isShutdown()) {
+                    retryExecutor.shutdown();
+                }
+            }
+        });
+    }
 
     private Set<URL> failedRegistered = new ConcurrentHashSet<URL>();
     private Set<URL> failedUnregistered = new ConcurrentHashSet<URL>();
@@ -52,18 +59,6 @@ public abstract class FailbackRegistry extends AbstractRegistry {
             new ConcurrentHashMap<URL, ConcurrentHashSet<NotifyListener>>();
     private ConcurrentHashMap<URL, ConcurrentHashSet<NotifyListener>> failedUnsubscribed =
             new ConcurrentHashMap<URL, ConcurrentHashSet<NotifyListener>>();
-
-    private static ScheduledExecutorService retryExecutor = Executors.newScheduledThreadPool(1);
-    static{
-        ShutDownHook.registerShutdownHook(new Closable() {
-            @Override
-            public void close() {
-                if(!retryExecutor.isShutdown()){
-                    retryExecutor.shutdown();
-                }
-            }
-        });
-    }
 
     public FailbackRegistry(URL url) {
         super(url);

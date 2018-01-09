@@ -16,19 +16,17 @@
 
 package com.weibo.api.motan.util;
 
+import com.weibo.api.motan.common.MotanConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.CRC32;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.weibo.api.motan.common.MotanConstants;
-
 
 /**
- *
  * 摘要算法辅助类
  *
  * @author fishermen

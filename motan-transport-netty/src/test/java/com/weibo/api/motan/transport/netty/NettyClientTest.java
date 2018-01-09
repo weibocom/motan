@@ -23,9 +23,7 @@ import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.RequestIdGenerator;
-
 import junit.framework.Assert;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -99,7 +97,7 @@ public class NettyClientTest {
         }
 
     }
-    
+
     @Test
     public void testAsync() {
         nettyClient = new NettyClient(url);

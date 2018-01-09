@@ -16,18 +16,6 @@
 
 package com.weibo.api.motan.config.springsupport;
 
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.jmock.Expectations;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.config.ServiceConfig;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
@@ -35,13 +23,22 @@ import com.weibo.api.motan.registry.RegistryFactory;
 import com.weibo.api.motan.transport.Client;
 import com.weibo.api.motan.transport.EndpointFactory;
 import com.weibo.api.motan.transport.Server;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.After;
+import org.junit.Before;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class BaseTest {
 
-    ApplicationContext cp;
     public static JUnit4Mockery mockery = null;
     static MockEndpointFactory endpointFactory;
-
+    ApplicationContext cp;
 
     @Before
     public void before() {

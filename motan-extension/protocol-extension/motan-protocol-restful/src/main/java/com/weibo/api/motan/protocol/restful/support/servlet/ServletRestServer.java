@@ -15,10 +15,9 @@
  */
 package com.weibo.api.motan.protocol.restful.support.servlet;
 
-import org.jboss.resteasy.spi.ResteasyDeployment;
-
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.protocol.restful.RestServer;
+import org.jboss.resteasy.spi.ResteasyDeployment;
 
 public class ServletRestServer implements RestServer {
     private static ResteasyDeployment deployment;

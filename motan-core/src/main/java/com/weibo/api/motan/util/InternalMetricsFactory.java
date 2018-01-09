@@ -16,23 +16,23 @@
 
 package com.weibo.api.motan.util;
 
+import com.codahale.metrics.MetricRegistry;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.codahale.metrics.MetricRegistry;
-
 /**
  * 生成 {@link MetricRegistry} 的工厂类。
- * 
- * @author Aiden S. Zouliu
  *
+ * @author Aiden S. Zouliu
  */
 public class InternalMetricsFactory {
 
     private static final ConcurrentMap<String, MetricRegistry> getRegistryCache;
     private static final MetricRegistry defaultMetricsRegistry;
+
     static {
         getRegistryCache = new ConcurrentHashMap<String, MetricRegistry>();
         getRegistryCache.put("default", defaultMetricsRegistry = new MetricRegistry());
@@ -40,7 +40,7 @@ public class InternalMetricsFactory {
 
     /**
      * 指定名字获取所属的实例。
-     * 
+     *
      * @param name {@link MetricRegistry} 实例的名字。
      * @return {@link MetricRegistry} 实例。
      */
@@ -55,8 +55,8 @@ public class InternalMetricsFactory {
 
     /**
      * 指定几个名字的关键词，依据 {@link MetricRegistry} 的名字生成规则获取所属的实例。
-     * 
-     * @param name 关键字。
+     *
+     * @param name  关键字。
      * @param names 剩余的关键字。
      * @return {@link MetricRegistry} 实例。
      */
@@ -72,7 +72,7 @@ public class InternalMetricsFactory {
 
     /**
      * 指定类类型和几个名字的关键词，依据 {@link MetricRegistry} 的名字生成规则获取所属的实例。
-     * 
+     *
      * @param clazz 类的类型。
      * @param names 关键字。
      * @return {@link MetricRegistry} 实例。

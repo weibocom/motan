@@ -19,7 +19,6 @@ package com.weibo.api.motan.core.extension;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-28
- * 
  */
 public enum Scope {
 

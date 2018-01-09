@@ -21,27 +21,26 @@ import java.util.concurrent.Future;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-21
- * 
  */
 public interface Transport {
 
     /**
      * remote transport
-     * 
+     *
      * @return
      */
     Future<byte[]> transport(byte[] request) throws TransportException;
 
     /**
      * 判断transport的available状态
-     * 
+     *
      * @return
      */
     boolean isAvailable();
 
     /**
      * 判断transport的connect状态
-     * 
+     *
      * @return
      */
     boolean isConnect();
@@ -63,7 +62,7 @@ public interface Transport {
 
     /**
      * transport is close?
-     * 
+     *
      * @return
      */
     boolean isClose();

@@ -20,7 +20,6 @@ import com.weibo.api.motan.cluster.HaStrategy;
 import com.weibo.api.motan.rpc.URL;
 
 /**
- * 
  * Abstract ha strategy.
  *
  * @author fishermen

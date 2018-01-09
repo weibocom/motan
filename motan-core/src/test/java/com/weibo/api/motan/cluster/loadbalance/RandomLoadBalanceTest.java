@@ -16,17 +16,15 @@
 
 package com.weibo.api.motan.cluster.loadbalance;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jmock.Expectations;
-
 import com.weibo.api.motan.protocol.example.IHello;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
+import org.jmock.Expectations;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 
  * RandomLoadbalance test
  *
  * @author fishermen
@@ -35,8 +33,8 @@ import com.weibo.api.motan.rpc.Request;
 
 public class RandomLoadBalanceTest extends AbstractLoadBalanceTest {
 
-    private RandomLoadBalance<IHello> randomLoadBalance = new RandomLoadBalance<IHello>();
     private final int falseCount = 5;
+    private RandomLoadBalance<IHello> randomLoadBalance = new RandomLoadBalance<IHello>();
 
     @Override
     public void setUp() throws Exception {
@@ -60,7 +58,7 @@ public class RandomLoadBalanceTest extends AbstractLoadBalanceTest {
         mockery.checking(new Expectations() {
             {
                 atLeast(1).of(request).getArguments();
-                will(returnValue(new Object[] {1, 2, 3}));
+                will(returnValue(new Object[]{1, 2, 3}));
                 atLeast(0).of(request).getParamtersDesc();
                 will(returnValue("void_"));
             }
@@ -79,7 +77,7 @@ public class RandomLoadBalanceTest extends AbstractLoadBalanceTest {
         mockery.checking(new Expectations() {
             {
                 atLeast(1).of(request).getArguments();
-                will(returnValue(new Object[] {1, 2, 3}));
+                will(returnValue(new Object[]{1, 2, 3}));
                 atLeast(0).of(request).getParamtersDesc();
                 will(returnValue("void_"));
             }

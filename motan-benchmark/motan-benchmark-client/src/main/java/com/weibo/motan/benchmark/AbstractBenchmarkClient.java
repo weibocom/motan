@@ -35,11 +35,10 @@ public abstract class AbstractBenchmarkClient {
     private ClientStatistics statistics;
 
     /**
-     *
      * @param concurrents 并发线程数
-     * @param runtime benchmark实际运行时间
-     * @param classname 测试的类名
-     * @param params 测试String时，指String的size，单位为k
+     * @param runtime     benchmark实际运行时间
+     * @param classname   测试的类名
+     * @param params      测试String时，指String的size，单位为k
      */
     public void start(int concurrents, int runtime, String classname, String params) {
         this.concurrents = concurrents;

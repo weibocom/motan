@@ -78,7 +78,7 @@ public class NettyDecoder extends FrameDecoder {
 
     private Object decodev2(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
         buffer.resetReaderIndex();
-        if(buffer.readableBytes() < 21){
+        if (buffer.readableBytes() < 21) {
             return null;
         }
         buffer.skipBytes(2);
@@ -96,14 +96,14 @@ public class NettyDecoder extends FrameDecoder {
             }
             buffer.skipBytes(metasize);
         }
-        if(buffer.readableBytes() < 4){
+        if (buffer.readableBytes() < 4) {
             buffer.resetReaderIndex();
             return null;
         }
         int bodysize = buffer.readInt();
         checkMaxContext(bodysize, ctx, channel, isRequest, requestId);
         size += 4;
-        if (bodysize > 0){
+        if (bodysize > 0) {
             size += bodysize;
             if (buffer.readableBytes() < bodysize) {
                 buffer.resetReaderIndex();
@@ -116,7 +116,7 @@ public class NettyDecoder extends FrameDecoder {
         return decode(data, channel, isRequest, requestId);
     }
 
-    private boolean isV2Request(byte b){
+    private boolean isV2Request(byte b) {
         return (b & 0x01) == 0x00;
     }
 
@@ -159,7 +159,7 @@ public class NettyDecoder extends FrameDecoder {
         }
     }
 
-    private Object decode(byte[] data, Channel channel, boolean isRequest, long requestId){
+    private Object decode(byte[] data, Channel channel, boolean isRequest, long requestId) {
         try {
             String remoteIp = getRemoteIp(channel);
             return codec.decode(client, remoteIp, data);

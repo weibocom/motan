@@ -16,17 +16,6 @@
 
 package com.weibo.api.motan;
 
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.List;
-
-import junit.framework.TestCase;
-
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.junit.After;
-import org.junit.Before;
-
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RefererConfig;
@@ -36,46 +25,30 @@ import com.weibo.api.motan.protocol.example.IWorld;
 import com.weibo.api.motan.protocol.example.MockWorld;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.NetUtils;
+import junit.framework.TestCase;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.After;
+import org.junit.Before;
+
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 
  * base test
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-23
  */
 
 public class BaseTestCase extends TestCase {
 
+    public static JUnit4Mockery mockery = null;
     protected static String application = "api";
     protected static String module = "test";
-
-    protected String localAddress = null;
-
     protected static String group = "test-yf";
-
-    public static JUnit4Mockery mockery = null;
-
-    @Before
-    @Override
-    public void setUp() throws Exception {
-        mockery = new JUnit4Mockery() {
-            {
-                setImposteriser(ClassImposteriser.INSTANCE);
-            }
-        };
-        InetAddress address = NetUtils.getLocalAddress();
-        if (address != null) {
-            localAddress = address.getHostAddress();
-        }
-
-    }
-
-    @After
-    @Override
-    public void tearDown() throws Exception {}
-
-    public void testBase() {}
+    protected String localAddress = null;
 
     protected static RefererConfig<IWorld> mockIWorldRefererConfig() {
         RefererConfig<IWorld> rc = new RefererConfig<IWorld>();
@@ -105,7 +78,6 @@ public class BaseTestCase extends TestCase {
         return pc;
     }
 
-
     protected static <T> ServiceConfig<T> createServiceConfig(Class<T> clz, T impl) {
         ServiceConfig<T> serviceConfig = new MockServiceConfig<T>();
         serviceConfig.setRef(impl);
@@ -121,7 +93,7 @@ public class BaseTestCase extends TestCase {
     }
 
     protected static <T> ServiceConfig<T> createServiceConfig(Class<T> clz, T impl, String group, String version, ProtocolConfig protocl,
-            RegistryConfig registryConfig, String export) {
+                                                              RegistryConfig registryConfig, String export) {
         ServiceConfig<T> serviceConfig = new MockServiceConfig<T>();
         serviceConfig.setRef(impl);
         serviceConfig.setApplication(application);
@@ -194,6 +166,29 @@ public class BaseTestCase extends TestCase {
             registries.add(registryConfig);
         }
         return registries;
+    }
+
+    @Before
+    @Override
+    public void setUp() throws Exception {
+        mockery = new JUnit4Mockery() {
+            {
+                setImposteriser(ClassImposteriser.INSTANCE);
+            }
+        };
+        InetAddress address = NetUtils.getLocalAddress();
+        if (address != null) {
+            localAddress = address.getHostAddress();
+        }
+
+    }
+
+    @After
+    @Override
+    public void tearDown() throws Exception {
+    }
+
+    public void testBase() {
     }
 }
 

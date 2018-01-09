@@ -16,11 +16,7 @@
 
 package com.weibo.api.motan.config.springsupport;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.weibo.api.motan.config.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -36,16 +32,12 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.weibo.api.motan.common.URLParamType;
-import com.weibo.api.motan.config.BasicRefererInterfaceConfig;
-import com.weibo.api.motan.config.BasicServiceInterfaceConfig;
-import com.weibo.api.motan.config.ConfigUtil;
-import com.weibo.api.motan.config.MethodConfig;
-import com.weibo.api.motan.config.ProtocolConfig;
-import com.weibo.api.motan.config.RegistryConfig;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * 
  * MotanBeanDefinitionParser
  *
  * @author fishermen
@@ -61,16 +53,6 @@ public class MotanBeanDefinitionParser implements BeanDefinitionParser {
     public MotanBeanDefinitionParser(Class<?> beanClass, boolean required) {
         this.beanClass = beanClass;
         this.required = required;
-    }
-
-    @Override
-    public BeanDefinition parse(Element element, ParserContext parserContext) {
-        try {
-            return parse(element, parserContext, beanClass, required);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -279,6 +261,16 @@ public class MotanBeanDefinitionParser implements BeanDefinitionParser {
             if (methods != null) {
                 beanDefinition.getPropertyValues().addPropertyValue("methods", methods);
             }
+        }
+    }
+
+    @Override
+    public BeanDefinition parse(Element element, ParserContext parserContext) {
+        try {
+            return parse(element, parserContext, beanClass, required);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

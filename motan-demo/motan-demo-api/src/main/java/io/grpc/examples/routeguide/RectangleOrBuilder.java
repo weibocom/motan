@@ -4,56 +4,60 @@
 package io.grpc.examples.routeguide;
 
 public interface RectangleOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:routeguide.Rectangle)
-    com.google.protobuf.MessageOrBuilder {
+        // @@protoc_insertion_point(interface_extends:routeguide.Rectangle)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <pre>
-   * One corner of the rectangle.
-   * </pre>
-   *
-   * <code>optional .routeguide.Point lo = 1;</code>
-   */
-  boolean hasLo();
-  /**
-   * <pre>
-   * One corner of the rectangle.
-   * </pre>
-   *
-   * <code>optional .routeguide.Point lo = 1;</code>
-   */
-  io.grpc.examples.routeguide.Point getLo();
-  /**
-   * <pre>
-   * One corner of the rectangle.
-   * </pre>
-   *
-   * <code>optional .routeguide.Point lo = 1;</code>
-   */
-  io.grpc.examples.routeguide.PointOrBuilder getLoOrBuilder();
+    /**
+     * <pre>
+     * One corner of the rectangle.
+     * </pre>
+     * <p>
+     * <code>optional .routeguide.Point lo = 1;</code>
+     */
+    boolean hasLo();
 
-  /**
-   * <pre>
-   * The other corner of the rectangle.
-   * </pre>
-   *
-   * <code>optional .routeguide.Point hi = 2;</code>
-   */
-  boolean hasHi();
-  /**
-   * <pre>
-   * The other corner of the rectangle.
-   * </pre>
-   *
-   * <code>optional .routeguide.Point hi = 2;</code>
-   */
-  io.grpc.examples.routeguide.Point getHi();
-  /**
-   * <pre>
-   * The other corner of the rectangle.
-   * </pre>
-   *
-   * <code>optional .routeguide.Point hi = 2;</code>
-   */
-  io.grpc.examples.routeguide.PointOrBuilder getHiOrBuilder();
+    /**
+     * <pre>
+     * One corner of the rectangle.
+     * </pre>
+     * <p>
+     * <code>optional .routeguide.Point lo = 1;</code>
+     */
+    io.grpc.examples.routeguide.Point getLo();
+
+    /**
+     * <pre>
+     * One corner of the rectangle.
+     * </pre>
+     * <p>
+     * <code>optional .routeguide.Point lo = 1;</code>
+     */
+    io.grpc.examples.routeguide.PointOrBuilder getLoOrBuilder();
+
+    /**
+     * <pre>
+     * The other corner of the rectangle.
+     * </pre>
+     * <p>
+     * <code>optional .routeguide.Point hi = 2;</code>
+     */
+    boolean hasHi();
+
+    /**
+     * <pre>
+     * The other corner of the rectangle.
+     * </pre>
+     * <p>
+     * <code>optional .routeguide.Point hi = 2;</code>
+     */
+    io.grpc.examples.routeguide.Point getHi();
+
+    /**
+     * <pre>
+     * The other corner of the rectangle.
+     * </pre>
+     * <p>
+     * <code>optional .routeguide.Point hi = 2;</code>
+     */
+    io.grpc.examples.routeguide.PointOrBuilder getHiOrBuilder();
 }

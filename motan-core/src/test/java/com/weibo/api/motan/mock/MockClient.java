@@ -16,10 +16,6 @@
 
 package com.weibo.api.motan.mock;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
@@ -27,12 +23,14 @@ import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.Client;
 import com.weibo.api.motan.transport.TransportException;
 
+import java.net.InetSocketAddress;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
- * 
- * @Description MockClient
  * @author zhanglei28
+ * @Description MockClient
  * @date 2016年3月17日
- *
  */
 public class MockClient implements Client {
 
@@ -101,7 +99,8 @@ public class MockClient implements Client {
     }
 
     @Override
-    public void heartbeat(Request request) {}
+    public void heartbeat(Request request) {
+    }
 
 
 }

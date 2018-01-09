@@ -20,27 +20,19 @@ import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.protocol.AbstractProtocol;
-import com.weibo.api.motan.rpc.AbstractExporter;
-import com.weibo.api.motan.rpc.AbstractReferer;
-import com.weibo.api.motan.rpc.Exporter;
-import com.weibo.api.motan.rpc.Provider;
-import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 /**
  * JVM 节点内部的调用
- * 
+ * <p>
  * <pre>
- * 		1) provider 和 referer 相对应 
+ * 		1) provider 和 referer 相对应
  * 		2) provider 需要在被consumer refer 之前需要 export
  * </pre>
- * 
+ *
  * @author maijunsheng
- * 
  */
 @SpiMeta(name = "injvm")
 public class InjvmProtocol extends AbstractProtocol {
@@ -57,10 +49,9 @@ public class InjvmProtocol extends AbstractProtocol {
 
     /**
      * injvm provider
-     * 
-     * @author maijunsheng
-     * 
+     *
      * @param <T>
+     * @author maijunsheng
      */
     class InJvmExporter<T> extends AbstractExporter<T> {
         public InJvmExporter(Provider<T> provider, URL url) {
@@ -87,15 +78,15 @@ public class InjvmProtocol extends AbstractProtocol {
         }
 
         @Override
-        public void destroy() {}
+        public void destroy() {
+        }
     }
 
     /**
      * injvm consumer
-     * 
-     * @author maijunsheng
-     * 
+     *
      * @param <T>
+     * @author maijunsheng
      */
     class InjvmReferer<T> extends AbstractReferer<T> {
         private Exporter<T> exporter;
@@ -130,6 +121,7 @@ public class InjvmProtocol extends AbstractProtocol {
         }
 
         @Override
-        public void destroy() {}
+        public void destroy() {
+        }
     }
 }

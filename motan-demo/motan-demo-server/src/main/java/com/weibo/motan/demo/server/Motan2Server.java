@@ -29,7 +29,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class Motan2Server {
 
     public static void main(String[] args) throws InterruptedException {
-        ApplicationContext applicationContext = new ClassPathXmlApplicationContext(new String[] {"classpath*:motan2_demo_server.xml"});
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext(new String[]{"classpath*:motan2_demo_server.xml"});
         MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
         System.out.println("server start...");
     }

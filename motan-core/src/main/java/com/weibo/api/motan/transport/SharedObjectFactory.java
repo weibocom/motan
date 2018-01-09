@@ -14,6 +14,7 @@ public interface SharedObjectFactory<T> {
 
     /**
      * 重建对象
+     *
      * @param obj
      * @return
      */

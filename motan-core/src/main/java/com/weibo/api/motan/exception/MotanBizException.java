@@ -18,9 +18,8 @@ package com.weibo.api.motan.exception;
 
 /**
  * wrapper biz exception.
- * 
+ *
  * @author maijunsheng
- * 
  */
 public class MotanBizException extends MotanAbstractException {
     private static final long serialVersionUID = -3491276058323309898L;

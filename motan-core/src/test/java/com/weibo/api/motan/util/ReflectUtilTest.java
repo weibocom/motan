@@ -16,24 +16,24 @@
 
 package com.weibo.api.motan.util;
 
+import org.junit.Test;
+
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
-
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-26
- * 
  */
 public class ReflectUtilTest {
-    
-    
+
+
     @Test
-    public void testReflect(){
+    public void testReflect() {
         Method method;
         try {
             method = ReflectTest.class.getMethod("getByte", byte.class);
@@ -50,21 +50,46 @@ public class ReflectUtilTest {
             assertEquals("getIntArray(int[])", ReflectUtil.getMethodDesc(method));
         } catch (Exception e) {
             assertTrue(false);
-        } 
-        
+        }
+
     }
 
 }
 
 
 class ReflectTest {
-    public void get(){}
-    public int getInt(int param) {return param;}
-    public int[] getIntArray(int[] param) {return param;}
-    public byte getByte(byte param) {return param;}
-    public byte[] getByteArray(byte[] param) {return param;}
-    public String getString(String param) {return param;}
-    public String[] getStringArray(String[] param) {return param;}
-    public List<Object> getList(List<Object> param) {return param;}
-    public Map<Object, Object> getMap(Map<Object, Object> param) {return param;}
+    public void get() {
+    }
+
+    public int getInt(int param) {
+        return param;
+    }
+
+    public int[] getIntArray(int[] param) {
+        return param;
+    }
+
+    public byte getByte(byte param) {
+        return param;
+    }
+
+    public byte[] getByteArray(byte[] param) {
+        return param;
+    }
+
+    public String getString(String param) {
+        return param;
+    }
+
+    public String[] getStringArray(String[] param) {
+        return param;
+    }
+
+    public List<Object> getList(List<Object> param) {
+        return param;
+    }
+
+    public Map<Object, Object> getMap(Map<Object, Object> param) {
+        return param;
+    }
 }

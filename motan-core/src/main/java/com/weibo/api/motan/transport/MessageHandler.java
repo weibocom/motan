@@ -20,7 +20,6 @@ package com.weibo.api.motan.transport;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-4
- * 
  */
 public interface MessageHandler {
 

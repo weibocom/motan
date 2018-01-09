@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-29
- * 
  */
 @SpiMeta(name = "spiPrototypeTest")
 public class SpiPrototypeTestImpl implements SpiPrototypeInterface {

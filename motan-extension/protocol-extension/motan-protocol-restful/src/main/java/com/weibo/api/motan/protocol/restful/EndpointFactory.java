@@ -15,11 +15,10 @@
  */
 package com.weibo.api.motan.protocol.restful;
 
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-
 import com.weibo.api.motan.core.extension.Scope;
 import com.weibo.api.motan.core.extension.Spi;
 import com.weibo.api.motan.rpc.URL;
+import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 @Spi(scope = Scope.SINGLETON)
 public interface EndpointFactory {

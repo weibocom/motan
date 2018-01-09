@@ -15,26 +15,20 @@
  */
 package com.weibo.api.motan.protocol.restful.support;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.StringTools;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.resteasy.specimpl.BuiltResponse;
 import org.jboss.resteasy.util.Base64;
 
-import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.StringTools;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RestfulUtil {
     public static final String ATTACHMENT_HEADER = "X-Attach";

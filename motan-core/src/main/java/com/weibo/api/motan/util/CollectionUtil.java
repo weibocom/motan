@@ -19,7 +19,6 @@ package com.weibo.api.motan.util;
 import java.util.Collection;
 
 /**
- * 
  * Utils for collections.
  *
  * @author fishermen

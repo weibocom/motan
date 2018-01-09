@@ -16,58 +16,56 @@
 
 package com.weibo.api.motan.transport.netty;
 
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
-
+import com.weibo.api.motan.exception.MotanErrorMsgConstant;
+import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.rpc.DefaultResponse;
+import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.util.LoggerUtil;
 import org.jboss.netty.channel.ChannelEvent;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 
-import com.weibo.api.motan.exception.MotanErrorMsgConstant;
-import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.util.LoggerUtil;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-7
- * 
  */
 public class ProtectedExecutionHandler extends ExecutionHandler {
-	private ThreadPoolExecutor threadPoolExecutor;
+    private ThreadPoolExecutor threadPoolExecutor;
 
-	ProtectedExecutionHandler(final ThreadPoolExecutor threadPoolExecutor) {
-		super(threadPoolExecutor);
-		this.threadPoolExecutor = threadPoolExecutor;
-	}
+    ProtectedExecutionHandler(final ThreadPoolExecutor threadPoolExecutor) {
+        super(threadPoolExecutor);
+        this.threadPoolExecutor = threadPoolExecutor;
+    }
 
-	/**
-	 * if RejectedExecutionException happen, send 503 exception to client
-	 */
-	@Override
-	public void handleUpstream(ChannelHandlerContext context, ChannelEvent e) throws Exception {
-		try {
-			super.handleUpstream(context, e);
-		} catch (RejectedExecutionException rejectException) {
-			if (e instanceof MessageEvent) {
-				if (((MessageEvent) e).getMessage() instanceof Request) {
-					Request request = (Request) ((MessageEvent) e).getMessage();
-					DefaultResponse response = new DefaultResponse();
-					response.setRequestId(request.getRequestId());
-					response.setException(new MotanServiceException("process thread pool is full, reject",
-							MotanErrorMsgConstant.SERVICE_REJECT));
-					e.getChannel().write(response);
+    /**
+     * if RejectedExecutionException happen, send 503 exception to client
+     */
+    @Override
+    public void handleUpstream(ChannelHandlerContext context, ChannelEvent e) throws Exception {
+        try {
+            super.handleUpstream(context, e);
+        } catch (RejectedExecutionException rejectException) {
+            if (e instanceof MessageEvent) {
+                if (((MessageEvent) e).getMessage() instanceof Request) {
+                    Request request = (Request) ((MessageEvent) e).getMessage();
+                    DefaultResponse response = new DefaultResponse();
+                    response.setRequestId(request.getRequestId());
+                    response.setException(new MotanServiceException("process thread pool is full, reject",
+                            MotanErrorMsgConstant.SERVICE_REJECT));
+                    e.getChannel().write(response);
 
-					LoggerUtil
-							.debug("process thread pool is full, reject, active={} poolSize={} corePoolSize={} maxPoolSize={} taskCount={} requestId={}",
-									threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(),
-									threadPoolExecutor.getCorePoolSize(), threadPoolExecutor.getMaximumPoolSize(),
-									threadPoolExecutor.getTaskCount(), request.getRequestId());
-				}
-			}
-		}
-	}
+                    LoggerUtil
+                            .debug("process thread pool is full, reject, active={} poolSize={} corePoolSize={} maxPoolSize={} taskCount={} requestId={}",
+                                    threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(),
+                                    threadPoolExecutor.getCorePoolSize(), threadPoolExecutor.getMaximumPoolSize(),
+                                    threadPoolExecutor.getTaskCount(), request.getRequestId());
+                }
+            }
+        }
+    }
 
 }

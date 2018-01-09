@@ -35,27 +35,23 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * <pre>
  * 	扩展增加的方式：
- * 		支持 JDK ServiceProvider 
- * 
+ * 		支持 JDK ServiceProvider
+ *
  * 		支持 weibo:spi 配置
  * </pre>
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-5-28
- * 
  */
 public class ExtensionLoader<T> {
 
-    private static ConcurrentMap<Class<?>, ExtensionLoader<?>> extensionLoaders = new ConcurrentHashMap<Class<?>, ExtensionLoader<?>>();
-
-    private ConcurrentMap<String, T> singletonInstances = null;
-    private ConcurrentMap<String, Class<T>> extensionClasses = null;
-
-    private Class<T> type;
-    private volatile boolean init = false;
-
     // spi path prefix
     private static final String PREFIX = "META-INF/services/";
+    private static ConcurrentMap<Class<?>, ExtensionLoader<?>> extensionLoaders = new ConcurrentHashMap<Class<?>, ExtensionLoader<?>>();
+    private ConcurrentMap<String, T> singletonInstances = null;
+    private ConcurrentMap<String, Class<T>> extensionClasses = null;
+    private Class<T> type;
+    private volatile boolean init = false;
     private ClassLoader classLoader;
 
     private ExtensionLoader(Class<T> type) {
@@ -65,6 +61,78 @@ public class ExtensionLoader<T> {
     private ExtensionLoader(Class<T> type, ClassLoader classLoader) {
         this.type = type;
         this.classLoader = classLoader;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> ExtensionLoader<T> getExtensionLoader(Class<T> type) {
+        checkInterfaceType(type);
+
+        ExtensionLoader<T> loader = (ExtensionLoader<T>) extensionLoaders.get(type);
+
+        if (loader == null) {
+            loader = initExtensionLoader(type);
+        }
+        return loader;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static synchronized <T> ExtensionLoader<T> initExtensionLoader(Class<T> type) {
+        ExtensionLoader<T> loader = (ExtensionLoader<T>) extensionLoaders.get(type);
+
+        if (loader == null) {
+            loader = new ExtensionLoader<T>(type);
+
+            extensionLoaders.putIfAbsent(type, loader);
+
+            loader = (ExtensionLoader<T>) extensionLoaders.get(type);
+        }
+
+        return loader;
+    }
+
+    /**
+     * check clz
+     * <p>
+     * <pre>
+     * 		1.  is interface
+     * 		2.  is contains @Spi annotation
+     * </pre>
+     *
+     * @param <T>
+     * @param clz
+     */
+    private static <T> void checkInterfaceType(Class<T> clz) {
+        if (clz == null) {
+            failThrows(clz, "Error extension type is null");
+        }
+
+        if (!clz.isInterface()) {
+            failThrows(clz, "Error extension type is not interface");
+        }
+
+        if (!isSpiType(clz)) {
+            failThrows(clz, "Error extension type without @Spi annotation");
+        }
+    }
+
+    private static <T> boolean isSpiType(Class<T> clz) {
+        return clz.isAnnotationPresent(Spi.class);
+    }
+
+    private static <T> void failLog(Class<T> type, String msg, Throwable cause) {
+        LoggerUtil.error(type.getName() + ": " + msg, cause);
+    }
+
+    private static <T> void failThrows(Class<T> type, String msg, Throwable cause) {
+        throw new MotanFrameworkException(type.getName() + ": " + msg, cause);
+    }
+
+    private static <T> void failThrows(Class<T> type, String msg) {
+        throw new MotanFrameworkException(type.getName() + ": " + msg);
+    }
+
+    private static <T> void failThrows(Class<T> type, URL url, int line, String msg) throws ServiceConfigurationError {
+        failThrows(type, url + ":" + line + ": " + msg);
     }
 
     private void checkInit() {
@@ -164,37 +232,10 @@ public class ExtensionLoader<T> {
         init = true;
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> ExtensionLoader<T> getExtensionLoader(Class<T> type) {
-        checkInterfaceType(type);
-
-        ExtensionLoader<T> loader = (ExtensionLoader<T>) extensionLoaders.get(type);
-
-        if (loader == null) {
-            loader = initExtensionLoader(type);
-        }
-        return loader;
-    }
-
-    @SuppressWarnings("unchecked")
-    public static synchronized <T> ExtensionLoader<T> initExtensionLoader(Class<T> type) {
-        ExtensionLoader<T> loader = (ExtensionLoader<T>) extensionLoaders.get(type);
-
-        if (loader == null) {
-            loader = new ExtensionLoader<T>(type);
-
-            extensionLoaders.putIfAbsent(type, loader);
-
-            loader = (ExtensionLoader<T>) extensionLoaders.get(type);
-        }
-
-        return loader;
-    }
-
     /**
      * 有些地方需要spi的所有激活的instances，所以需要能返回一个列表的方法 注意：1 SpiMeta 中的active 为true； 2
      * 按照spiMeta中的sequence进行排序 FIXME： 是否需要对singleton来区分对待，后面再考虑 fishermen
-     * 
+     *
      * @return
      */
     @SuppressWarnings("unchecked")
@@ -227,40 +268,14 @@ public class ExtensionLoader<T> {
     }
 
     /**
-     * check clz
-     * 
-     * <pre>
-	 * 		1.  is interface
-	 * 		2.  is contains @Spi annotation
-	 * </pre>
-     * 
-     * 
-     * @param <T>
-     * @param clz
-     */
-    private static <T> void checkInterfaceType(Class<T> clz) {
-        if (clz == null) {
-            failThrows(clz, "Error extension type is null");
-        }
-
-        if (!clz.isInterface()) {
-            failThrows(clz, "Error extension type is not interface");
-        }
-
-        if (!isSpiType(clz)) {
-            failThrows(clz, "Error extension type without @Spi annotation");
-        }
-    }
-
-    /**
      * check extension clz
-     * 
+     * <p>
      * <pre>
-	 * 		1) is public class
-	 * 		2) contain public constructor and has not-args constructor
-	 * 		3) check extension clz instanceof Type.class
-	 * </pre>
-     * 
+     * 		1) is public class
+     * 		2) contain public constructor and has not-args constructor
+     * 		3) check extension clz instanceof Type.class
+     * </pre>
+     *
      * @param clz
      */
     private void checkExtensionType(Class<T> clz) {
@@ -297,10 +312,6 @@ public class ExtensionLoader<T> {
         }
 
         failThrows(clz, "Error has no public no-args constructor");
-    }
-
-    private static <T> boolean isSpiType(Class<T> clz) {
-        return clz.isAnnotationPresent(Spi.class);
     }
 
     private ConcurrentMap<String, Class<T>> loadExtensionClasses(String prefix) {
@@ -365,11 +376,11 @@ public class ExtensionLoader<T> {
 
     /**
      * 获取扩展点的名字
-     * 
+     * <p>
      * <pre>
-	 * 		如果扩展类有SpiMeta的注解，那么获取对应的name，如果没有的话获取classname
-	 * </pre>
-     * 
+     * 		如果扩展类有SpiMeta的注解，那么获取对应的name，如果没有的话获取classname
+     * </pre>
+     *
      * @param clz
      * @return
      */
@@ -444,22 +455,6 @@ public class ExtensionLoader<T> {
         if (!names.contains(line)) {
             names.add(line);
         }
-    }
-
-    private static <T> void failLog(Class<T> type, String msg, Throwable cause) {
-        LoggerUtil.error(type.getName() + ": " + msg, cause);
-    }
-
-    private static <T> void failThrows(Class<T> type, String msg, Throwable cause) {
-        throw new MotanFrameworkException(type.getName() + ": " + msg, cause);
-    }
-
-    private static <T> void failThrows(Class<T> type, String msg) {
-        throw new MotanFrameworkException(type.getName() + ": " + msg);
-    }
-
-    private static <T> void failThrows(Class<T> type, URL url, int line, String msg) throws ServiceConfigurationError {
-        failThrows(type, url + ":" + line + ": " + msg);
     }
 
 }

@@ -62,7 +62,7 @@ public class DirectRegistry extends AbstractRegistry {
     }
 
     private void registerDirectUrl(String ip, Integer port) {
-        URL url = new URL(MotanConstants.REGISTRY_PROTOCOL_DIRECT,ip,port,"");
+        URL url = new URL(MotanConstants.REGISTRY_PROTOCOL_DIRECT, ip, port, "");
         directUrls.add(url);
     }
 

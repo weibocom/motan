@@ -20,10 +20,8 @@ import com.weibo.api.motan.log.DefaultLogService;
 import com.weibo.api.motan.log.LogService;
 
 /**
- * 
  * @author maijunsheng
  * @author zhanglei
- * 
  */
 public class LoggerUtil {
     private static LogService logService = new DefaultLogService();// 可以通过设置为不同logservice控制log行为。

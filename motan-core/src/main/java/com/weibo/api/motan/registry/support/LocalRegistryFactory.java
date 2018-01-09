@@ -23,7 +23,6 @@ import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.rpc.URL;
 
 /**
- * 
  * 类说明
  *
  * @author fishermen

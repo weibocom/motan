@@ -15,9 +15,6 @@
  */
 package com.weibo.api.motan.protocol.restful.support.netty;
 
-import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
-import org.jboss.resteasy.spi.ResteasyDeployment;
-
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.protocol.restful.EmbedRestServer;
@@ -26,6 +23,8 @@ import com.weibo.api.motan.protocol.restful.support.AbstractEndpointFactory;
 import com.weibo.api.motan.protocol.restful.support.RestfulInjectorFactory;
 import com.weibo.api.motan.protocol.restful.support.RpcExceptionMapper;
 import com.weibo.api.motan.rpc.URL;
+import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
+import org.jboss.resteasy.spi.ResteasyDeployment;
 
 @SpiMeta(name = "netty")
 public class NettyEndpointFactory extends AbstractEndpointFactory {

@@ -36,15 +36,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * service 消息处理
- * 
+ * <p>
  * <pre>
  * 		1） 多个service的支持
  * 		2） 区分service的方式： group/interface/version
  * </pre>
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-6-4
- * 
  */
 public class ProviderMessageRouter implements MessageHandler {
     protected Map<String, Provider<?>> providers = new HashMap<String, Provider<?>>();
@@ -54,7 +53,8 @@ public class ProviderMessageRouter implements MessageHandler {
     // 有10个public method，那么就是15
     protected AtomicInteger methodCounter = new AtomicInteger(0);
 
-    public ProviderMessageRouter() {}
+    public ProviderMessageRouter() {
+    }
 
     public ProviderMessageRouter(Provider<?> provider) {
         addProvider(provider);
@@ -116,10 +116,10 @@ public class ProviderMessageRouter implements MessageHandler {
         }
     }
 
-    private void fillParamDesc(Request request, Method method){
-        if(method != null && StringUtils.isBlank(request.getParamtersDesc())
-                && request instanceof DefaultRequest){
-            DefaultRequest dr = (DefaultRequest)request;
+    private void fillParamDesc(Request request, Method method) {
+        if (method != null && StringUtils.isBlank(request.getParamtersDesc())
+                && request instanceof DefaultRequest) {
+            DefaultRequest dr = (DefaultRequest) request;
             dr.setParamtersDesc(ReflectUtil.getMethodParamDesc(method));
             dr.setMethodName(method.getName());
         }

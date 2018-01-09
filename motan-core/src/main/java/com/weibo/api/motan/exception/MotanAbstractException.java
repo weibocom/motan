@@ -22,7 +22,6 @@ import com.weibo.api.motan.rpc.RpcContext;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-30
- * 
  */
 public abstract class MotanAbstractException extends RuntimeException {
     private static final long serialVersionUID = -8742311167276890503L;
@@ -78,7 +77,7 @@ public abstract class MotanAbstractException extends RuntimeException {
                 + ",r=" + RpcContext.getContext().getRequestId();
     }
 
-    public String getOriginMessage(){
+    public String getOriginMessage() {
         if (motanErrorMsg == null) {
             return super.getMessage();
         }

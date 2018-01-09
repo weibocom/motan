@@ -17,7 +17,6 @@
 package com.weibo.api.motan.transport;
 
 /**
- * 
  * Endpoint of client or server.
  *
  * @author fishermen

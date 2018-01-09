@@ -16,9 +16,9 @@
 
 package com.weibo.api.motan.registry.support.command;
 
-import java.util.List;
-
 import com.weibo.api.motan.rpc.URL;
+
+import java.util.List;
 
 public interface ServiceListener {
 

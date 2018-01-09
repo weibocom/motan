@@ -16,9 +16,6 @@
 
 package com.weibo.api.motan.config.handler;
 
-import java.util.Collection;
-import java.util.List;
-
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.cluster.support.ClusterSupport;
 import com.weibo.api.motan.core.extension.Scope;
@@ -26,8 +23,10 @@ import com.weibo.api.motan.core.extension.Spi;
 import com.weibo.api.motan.rpc.Exporter;
 import com.weibo.api.motan.rpc.URL;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
- * 
  * Handle urls which are from config.
  *
  * @author fishermen

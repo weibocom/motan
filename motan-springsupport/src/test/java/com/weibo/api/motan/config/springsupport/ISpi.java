@@ -21,7 +21,6 @@ import com.weibo.api.motan.core.extension.Spi;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-9
- * 
  */
 @Spi
 public interface ISpi {

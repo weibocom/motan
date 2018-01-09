@@ -21,7 +21,6 @@ import com.codahale.metrics.Histogram;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-26
- * 
  */
 public class AccessStatisticResult {
     public int totalCount = 0;

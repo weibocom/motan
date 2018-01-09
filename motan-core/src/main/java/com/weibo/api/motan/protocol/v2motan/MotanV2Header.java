@@ -37,6 +37,42 @@ public class MotanV2Header {
     private int serialize = 1;// 消息body序列化方式，最大支持32种方式，最大值31。0 hessian、1 grpc-pb、2 json、3 msgpack、4 hprose、5 pb、6 simple、7 grpc-pb-json
     private long requestId;
 
+    public static MotanV2Header buildHeader(byte[] headerBytes) {
+        ByteBuffer buf = ByteBuffer.wrap(headerBytes);
+        short mg = buf.getShort();
+        if (mg != MAGIC) {
+            throw new MotanServiceException("decode motan v2 header fail. magicnum not correct. magic:" + mg);
+        }
+        MotanV2Header header = new MotanV2Header();
+        byte b = buf.get();
+        if ((b & 0x10) == 0x10) {
+            header.setHeartbeat(true);
+        }
+        if ((b & 0x08) == 0x08) {
+            header.setGzip(true);
+        }
+        if ((b & 0x04) == 0x04) {
+            header.setOneway(true);
+        }
+        if ((b & 0x02) == 0x02) {
+            header.setProxy(true);
+        }
+        if ((b & 0x01) == 0x01) {
+            header.setRequest(false);
+        }
+
+        b = buf.get();
+        header.setVersion((b >>> 3) & 0x1f);
+        header.setStatus(b & 0x07);
+
+        b = buf.get();
+        header.setSerialize((b >>> 3) & 0x1f);
+
+        header.setRequestId(buf.getLong());
+
+        return header;
+    }
+
     public int getVersion() {
         return version;
     }
@@ -147,42 +183,6 @@ public class MotanV2Header {
         buf.flip();
         return buf.array();
 
-    }
-
-    public static MotanV2Header buildHeader(byte[] headerBytes) {
-        ByteBuffer buf = ByteBuffer.wrap(headerBytes);
-        short mg = buf.getShort();
-        if (mg != MAGIC) {
-            throw new MotanServiceException("decode motan v2 header fail. magicnum not correct. magic:" + mg);
-        }
-        MotanV2Header header = new MotanV2Header();
-        byte b = buf.get();
-        if ((b & 0x10) == 0x10) {
-            header.setHeartbeat(true);
-        }
-        if ((b & 0x08) == 0x08) {
-            header.setGzip(true);
-        }
-        if ((b & 0x04) == 0x04) {
-            header.setOneway(true);
-        }
-        if ((b & 0x02) == 0x02) {
-            header.setProxy(true);
-        }
-        if ((b & 0x01) == 0x01) {
-            header.setRequest(false);
-        }
-
-        b = buf.get();
-        header.setVersion((b >>> 3) & 0x1f);
-        header.setStatus(b & 0x07);
-
-        b = buf.get();
-        header.setSerialize((b >>> 3) & 0x1f);
-
-        header.setRequestId(buf.getLong());
-
-        return header;
     }
 
     @Override

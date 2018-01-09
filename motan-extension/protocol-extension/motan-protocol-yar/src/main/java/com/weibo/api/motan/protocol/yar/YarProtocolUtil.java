@@ -1,11 +1,11 @@
 /*
  * Copyright 2009-2016 Weibo, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -13,28 +13,21 @@
  */
 package com.weibo.api.motan.protocol.yar;
 
-import java.lang.reflect.Method;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.weibo.api.motan.exception.MotanBizException;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.protocol.yar.annotation.YarConfig;
-import com.weibo.api.motan.rpc.DefaultRequest;
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.ReflectUtil;
 import com.weibo.yar.YarRequest;
 import com.weibo.yar.YarResponse;
+import org.apache.commons.lang3.StringUtils;
+
+import java.lang.reflect.Method;
 
 /**
- * 
- * @Description yar protocol util.
  * @author zhanglei
+ * @Description yar protocol util.
  * @date 2016-6-8
- *
  */
 public class YarProtocolUtil {
 
@@ -51,7 +44,7 @@ public class YarProtocolUtil {
 
     /**
      * convert yar request to motan rpc request
-     * 
+     *
      * @param yarRequest
      * @param interfaceClass
      * @return
@@ -107,7 +100,7 @@ public class YarProtocolUtil {
 
     /**
      * add arguments
-     * 
+     *
      * @param interfaceClass
      * @param methodName
      * @param arguments
@@ -209,7 +202,7 @@ public class YarProtocolUtil {
                         + argumentClazz[i].getName() + ", actual param:"
                         + (arguments[i] == null ? null : arguments[i].getClass().getName() + "-" + arguments[i]));
             }
-            
+
         }
         return arguments;
     }

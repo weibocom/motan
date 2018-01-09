@@ -29,7 +29,6 @@ import java.lang.reflect.Method;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-23
- *
  */
 @SpiMeta(name = "motan")
 public class DefaultProvider<T> extends AbstractProvider<T> {
@@ -41,8 +40,8 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
     }
 
     @Override
-    public T getImpl(){
-    	return proxyImpl;
+    public T getImpl() {
+        return proxyImpl;
     }
 
     @Override

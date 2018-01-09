@@ -28,13 +28,12 @@ import java.util.List;
 
 /**
  * fastjson 序列化
- * 
+ * <p>
  * <pre>
  * 对于嵌套场景无法支持
  * </pre>
- * 
+ *
  * @author maijunsheng
- * 
  */
 @SpiMeta(name = "fastjson")
 public class FastJsonSerialization implements Serialization {
@@ -61,11 +60,11 @@ public class FastJsonSerialization implements Serialization {
 
     @Override
     public Object[] deserializeMulti(byte[] data, Class<?>[] classes) throws IOException {
-         List<Object> list = JSON.parseArray(new String(data), classes);
-         if (list != null) {
-             return list.toArray();
-         }
-         return null;
+        List<Object> list = JSON.parseArray(new String(data), classes);
+        if (list != null) {
+            return list.toArray();
+        }
+        return null;
     }
 
     @Override

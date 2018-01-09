@@ -24,7 +24,8 @@ public class TestImpl implements ITest {
     }
 
     @Override
-    public void hello() {}
+    public void hello() {
+    }
 
     @Override
     public String hello(String name) {

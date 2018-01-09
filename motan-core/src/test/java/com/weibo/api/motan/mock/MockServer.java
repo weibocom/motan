@@ -16,9 +16,6 @@
 
 package com.weibo.api.motan.mock;
 
-import java.net.InetSocketAddress;
-import java.util.Collection;
-
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
@@ -26,12 +23,13 @@ import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.Server;
 import com.weibo.api.motan.transport.TransportException;
 
+import java.net.InetSocketAddress;
+import java.util.Collection;
+
 /**
- * 
- * @Description MockServer
  * @author zhanglei28
+ * @Description MockServer
  * @date 2016年3月17日
- *
  */
 public class MockServer implements Server {
     URL url;

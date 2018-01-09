@@ -17,7 +17,6 @@
 package com.weibo.api.motan.rpc;
 
 /**
- * 
  * 类说明
  *
  * @author fishermen

@@ -15,13 +15,12 @@
  */
 
 /**
- * 
+ *
  */
 package com.weibo.api.motan.rpc;
 
 /**
  * @author bozheng
- * 
  */
 public class Application {
 

@@ -16,14 +16,12 @@
 
 package com.weibo.api.motan.proxy;
 
-import java.lang.reflect.InvocationHandler;
-
 import com.weibo.api.motan.core.extension.Spi;
 
+import java.lang.reflect.InvocationHandler;
+
 /**
- * 
  * @author maijunsheng
- * 
  */
 @Spi
 public interface ProxyFactory {

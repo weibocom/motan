@@ -16,10 +16,11 @@
 
 package com.weibo.api.motan.registry.support.command;
 
-import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.util.regex.Pattern;
+
+import static org.junit.Assert.*;
 
 /**
  * @author chengya1

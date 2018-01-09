@@ -21,7 +21,6 @@ import java.util.Arrays;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-23
- * 
  */
 public class Hello implements IHello {
     private String protocol;
@@ -91,7 +90,7 @@ public class Hello implements IHello {
     public Model[] objArrayResult(String name, int age) {
         Model mode = new Model(name, age, Model.class);
 
-        return new Model[] {mode};
+        return new Model[]{mode};
     }
 
     public Model nullResult() {

@@ -15,14 +15,12 @@
  */
 package com.weibo.api.motan.protocol.restful;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import com.weibo.api.motan.config.ProtocolConfig;
+import com.weibo.api.motan.config.RefererConfig;
+import com.weibo.api.motan.config.RegistryConfig;
+import com.weibo.api.motan.config.ServiceConfig;
+import com.weibo.api.motan.protocol.restful.HelloResource.User;
+import com.weibo.api.motan.protocol.restful.support.servlet.RestfulServletContainerListener;
 import org.apache.catalina.Context;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.startup.Tomcat;
@@ -33,18 +31,17 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.weibo.api.motan.config.ProtocolConfig;
-import com.weibo.api.motan.config.RefererConfig;
-import com.weibo.api.motan.config.RegistryConfig;
-import com.weibo.api.motan.config.ServiceConfig;
-import com.weibo.api.motan.protocol.restful.HelloResource.User;
-import com.weibo.api.motan.protocol.restful.support.servlet.RestfulServletContainerListener;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * servlet容器下restful协议测试
  *
  * @author zhouhaocheng
- *
  */
 public class TestServletCotainerRestful {
     private Tomcat tomcat;

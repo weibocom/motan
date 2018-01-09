@@ -20,9 +20,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
- * 
- * 
- *
  * @author fishermen
  * @version V1.0 created at: 2013-5-21
  */

@@ -38,10 +38,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DefaultRpcExporter<T> extends AbstractExporter<T> {
 
-    protected Server server;
-    protected EndpointFactory endpointFactory;
     protected final ConcurrentHashMap<String, ProviderMessageRouter> ipPort2RequestRouter;
     protected final ConcurrentHashMap<String, Exporter<?>> exporterMap;
+    protected Server server;
+    protected EndpointFactory endpointFactory;
 
     public DefaultRpcExporter(Provider<T> provider, URL url, ConcurrentHashMap<String, ProviderMessageRouter> ipPort2RequestRouter,
                               ConcurrentHashMap<String, Exporter<?>> exporterMap) {

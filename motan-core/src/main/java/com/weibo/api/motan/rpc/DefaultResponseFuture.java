@@ -302,11 +302,11 @@ public class DefaultResponseFuture implements ResponseFuture {
     }
 
     @Override
-    public void setRpcProtocolVersion(byte rpcProtocolVersion) {
+    public byte getRpcProtocolVersion() {
+        return RpcProtocolVersion.VERSION_1.getVersion();
     }
 
     @Override
-    public byte getRpcProtocolVersion() {
-        return RpcProtocolVersion.VERSION_1.getVersion();
+    public void setRpcProtocolVersion(byte rpcProtocolVersion) {
     }
 }

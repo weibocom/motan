@@ -21,7 +21,6 @@ import com.weibo.api.motan.core.extension.Spi;
 import com.weibo.api.motan.rpc.URL;
 
 /**
- * 
  * To create registry
  *
  * @author fishermen

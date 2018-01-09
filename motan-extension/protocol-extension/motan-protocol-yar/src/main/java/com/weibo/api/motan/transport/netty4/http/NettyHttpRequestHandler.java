@@ -1,11 +1,11 @@
 /*
  * Copyright 2009-2016 Weibo, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -13,32 +13,24 @@
  */
 package com.weibo.api.motan.transport.netty4.http;
 
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpHeaders.Values;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
-
-import java.util.concurrent.ThreadPoolExecutor;
-
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.HttpHeaders.Values;
+
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- * 
- * @Description http request handler for netty4
  * @author zhanglei
+ * @Description http request handler for netty4
  * @date 2016-5-31
- *
  */
 
 @Sharable
@@ -46,12 +38,11 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
     public static final String BAD_REQUEST = "/bad-request";
     public static final String ROOT_PATH = "/";
     public static final String STATUS_PATH = "/rpcstatus";
+    protected String swictherName = MotanConstants.REGISTRY_HEARTBEAT_SWITCHER;
     private Channel serverChannel;
     private ThreadPoolExecutor threadPoolExecutor;
     private MessageHandler messageHandler;
-    protected String swictherName = MotanConstants.REGISTRY_HEARTBEAT_SWITCHER;
-    
-    
+
 
     public NettyHttpRequestHandler(Channel serverChannel) {
         this.serverChannel = serverChannel;
@@ -72,16 +63,16 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest httpRequest) throws Exception {
         // check badRequest
-        if(BAD_REQUEST.equals(httpRequest.getUri())){
+        if (BAD_REQUEST.equals(httpRequest.getUri())) {
             sendResponse(ctx, buildDefaultResponse("bad request!", HttpResponseStatus.BAD_REQUEST));
             return;
         }
-        
+
         // service status 
-        if(ROOT_PATH.equals(httpRequest.getUri()) || STATUS_PATH.equals(httpRequest.getUri())){
-            if(isSwitchOpen()){// 200
+        if (ROOT_PATH.equals(httpRequest.getUri()) || STATUS_PATH.equals(httpRequest.getUri())) {
+            if (isSwitchOpen()) {// 200
                 sendResponse(ctx, buildDefaultResponse("ok!", HttpResponseStatus.OK));
-            }else{//503
+            } else {//503
                 sendResponse(ctx, buildErrorResponse("service not available!"));
             }
             return;
@@ -92,14 +83,14 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
         if (threadPoolExecutor == null) {
             processHttpRequest(ctx, httpRequest);
         } else {
-            try{
+            try {
                 threadPoolExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
                         processHttpRequest(ctx, httpRequest);
                     }
                 });
-            }catch(Exception e){
+            } catch (Exception e) {
                 LoggerUtil.error("request is rejected by threadpool!", e);
                 httpRequest.content().release();
                 sendResponse(ctx, buildErrorResponse("request is rejected by threadpool!"));
@@ -121,7 +112,7 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
         sendResponse(ctx, httpResponse);
     }
 
-    private void sendResponse(ChannelHandlerContext ctx, FullHttpResponse httpResponse){
+    private void sendResponse(ChannelHandlerContext ctx, FullHttpResponse httpResponse) {
         boolean close = false;
         try {
             ctx.write(httpResponse);
@@ -136,27 +127,28 @@ public class NettyHttpRequestHandler extends SimpleChannelInboundHandler<FullHtt
             }
         }
     }
-    
+
     protected FullHttpResponse buildErrorResponse(String errMsg) {
         return buildDefaultResponse(errMsg, HttpResponseStatus.SERVICE_UNAVAILABLE);
     }
-    
-    protected FullHttpResponse buildDefaultResponse(String msg, HttpResponseStatus status){
+
+    protected FullHttpResponse buildDefaultResponse(String msg, HttpResponseStatus status) {
         FullHttpResponse errorResponse =
                 new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, Unpooled.wrappedBuffer(msg
                         .getBytes()));
         return errorResponse;
     }
-    
+
     /**
      * is service switcher close. http status will be 503 when switcher is close
+     *
      * @return
      */
-    protected boolean isSwitchOpen(){
+    protected boolean isSwitchOpen() {
         return MotanSwitcherUtil.isOpen(swictherName);
     }
-    
-    
+
+
     public MessageHandler getMessageHandler() {
         return messageHandler;
     }

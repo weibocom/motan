@@ -16,15 +16,6 @@
 
 package com.weibo.api.motan.registry.support;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import org.apache.commons.lang3.ObjectUtils;
-
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.SpiMeta;
@@ -35,17 +26,25 @@ import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.NetUtils;
+import org.apache.commons.lang3.ObjectUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
- * 
  * @author maijunsheng
  * @version 创建时间：2013-5-24
- * 
  */
 @SpiMeta(name = "local")
 public class LocalRegistryService extends AbstractRegistry {
 
-    /** Map<interface/nodeType, List<URL>>, List 中的url用identity/id来区分唯一性 */
+    /**
+     * Map<interface/nodeType, List<URL>>, List 中的url用identity/id来区分唯一性
+     */
     private ConcurrentMap<String, List<URL>> registeredServices = new ConcurrentHashMap<String, List<URL>>();
 
     private ConcurrentHashMap<String, ConcurrentHashMap<URL, ConcurrentHashSet<NotifyListener>>> subscribeListeners =
@@ -156,7 +155,7 @@ public class LocalRegistryService extends AbstractRegistry {
 
     /**
      * 防止数据在外部被变更，因此copy一份
-     * 
+     *
      * @return
      */
     public Map<String, List<URL>> getAllUrl() {

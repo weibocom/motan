@@ -20,9 +20,8 @@ import com.weibo.api.motan.config.annotation.ConfigDesc;
 
 
 /**
- * 
  * registry config
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-27
  */
@@ -98,13 +97,13 @@ public class RegistryConfig extends AbstractConfig {
         return check;
     }
 
-    public void setCheck(String check) {
-        this.check = check;
-    }
-
     @Deprecated
     public void setCheck(Boolean check) {
         this.check = String.valueOf(check);
+    }
+
+    public void setCheck(String check) {
+        this.check = check;
     }
 
     public Boolean getRegister() {
@@ -181,13 +180,12 @@ public class RegistryConfig extends AbstractConfig {
 
     /**
      * <pre>
-	 * vintage 的 excise 方式，static、dynamic、ratio；
-	 * static表示使用静态列表，不剔除unreachable的node；dynamic完全剔除；ratio按比例提出。
-	 * 配置方式，ratio直接使用数字，其他使用数字0-100.
-	 * </pre>
-     * 
-     * @author fishermen
+     * vintage 的 excise 方式，static、dynamic、ratio；
+     * static表示使用静态列表，不剔除unreachable的node；dynamic完全剔除；ratio按比例提出。
+     * 配置方式，ratio直接使用数字，其他使用数字0-100.
+     * </pre>
      *
+     * @author fishermen
      */
     public enum Excise {
         excise_static("static"), excise_dynamic("dynamic"), excise_ratio("ratio");

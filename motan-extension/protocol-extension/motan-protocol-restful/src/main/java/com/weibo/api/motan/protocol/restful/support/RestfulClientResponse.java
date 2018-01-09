@@ -15,9 +15,8 @@
  */
 package com.weibo.api.motan.protocol.restful.support;
 
-import org.jboss.resteasy.specimpl.BuiltResponse;
-
 import com.weibo.api.motan.rpc.DefaultResponse;
+import org.jboss.resteasy.specimpl.BuiltResponse;
 
 public class RestfulClientResponse extends DefaultResponse {
     private static final long serialVersionUID = -2780120101690526109L;
@@ -31,12 +30,12 @@ public class RestfulClientResponse extends DefaultResponse {
         super(requestId);
     }
 
-    public void setHttpResponse(BuiltResponse httpResponse) {
-        this.httpResponse = httpResponse;
-    }
-
     public BuiltResponse getHttpResponse() {
         return httpResponse;
+    }
+
+    public void setHttpResponse(BuiltResponse httpResponse) {
+        this.httpResponse = httpResponse;
     }
 
 }

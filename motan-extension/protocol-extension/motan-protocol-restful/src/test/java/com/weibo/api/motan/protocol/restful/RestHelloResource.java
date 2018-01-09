@@ -15,11 +15,10 @@
  */
 package com.weibo.api.motan.protocol.restful;
 
-import java.util.Arrays;
-import java.util.List;
-
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.List;
 
 public class RestHelloResource implements HelloResource {
 

@@ -18,9 +18,8 @@ package com.weibo.api.motan.exception;
 
 /**
  * wrapper service exception.
- * 
+ *
  * @author maijunsheng
- * 
  */
 public class MotanServiceException extends MotanAbstractException {
     private static final long serialVersionUID = -3491276058323309898L;

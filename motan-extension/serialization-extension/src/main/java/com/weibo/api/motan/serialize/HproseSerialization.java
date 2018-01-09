@@ -30,7 +30,6 @@ import java.io.IOException;
  *
  * @author mabingyao
  * @version 创建时间：2016-8-11
- *
  */
 @SpiMeta(name = "hprose")
 public class HproseSerialization implements Serialization {
@@ -44,8 +43,7 @@ public class HproseSerialization implements Serialization {
             writer.serialize(data);
             byte[] result = stream.toArray();
             return result;
-        }
-        finally {
+        } finally {
             if (stream != null) {
                 stream.close();
             }
@@ -80,7 +78,7 @@ public class HproseSerialization implements Serialization {
     public Object[] deserializeMulti(byte[] data, Class<?>[] classes) throws IOException {
         HproseReader reader = new HproseReader(data);
         Object[] objects = new Object[classes.length];
-        for (int i = 0; i < classes.length; i++){
+        for (int i = 0; i < classes.length; i++) {
             objects[i] = reader.unserialize(classes[i]);
         }
         return objects;

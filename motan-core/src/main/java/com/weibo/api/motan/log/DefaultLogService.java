@@ -112,7 +112,7 @@ public class DefaultLogService implements LogService {
     public boolean isDebugEnabled() {
         return debug.isDebugEnabled();
     }
-    
+
     @Override
     public boolean isInfoEnabled() {
         return info.isInfoEnabled();
@@ -133,5 +133,5 @@ public class DefaultLogService implements LogService {
         return serviceStats.isInfoEnabled();
     }
 
-    
+
 }

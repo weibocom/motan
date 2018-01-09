@@ -15,11 +15,6 @@
  */
 package com.weibo.api.motan.protocol.restful;
 
-import java.lang.reflect.Method;
-import java.util.Map;
-
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.core.extension.SpiMeta;
@@ -29,23 +24,19 @@ import com.weibo.api.motan.protocol.restful.support.RestfulClientResponse;
 import com.weibo.api.motan.protocol.restful.support.RestfulUtil;
 import com.weibo.api.motan.protocol.restful.support.proxy.RestfulClientInvoker;
 import com.weibo.api.motan.protocol.restful.support.proxy.RestfulProxyBuilder;
-import com.weibo.api.motan.rpc.AbstractExporter;
-import com.weibo.api.motan.rpc.AbstractReferer;
-import com.weibo.api.motan.rpc.Exporter;
-import com.weibo.api.motan.rpc.Provider;
-import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.ReflectUtil;
+import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+
+import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  * restful协议
  *
  * @author zhouhaocheng
- *
  */
 @SpiMeta(name = "restful")
 public class RestfulProtocol extends AbstractProtocol {
@@ -58,48 +49,6 @@ public class RestfulProtocol extends AbstractProtocol {
     @Override
     protected <T> Referer<T> createReferer(Class<T> clz, URL url, URL serviceUrl) {
         return new RestfulReferer<T>(clz, serviceUrl);
-    }
-
-    private class RestfulExporter<T> extends AbstractExporter<T> {
-        private RestServer server;
-        private EndpointFactory endpointFactory;
-
-        public RestfulExporter(Provider<T> provider, URL url) {
-            super(provider, url);
-
-            endpointFactory = ExtensionLoader.getExtensionLoader(EndpointFactory.class).getExtension(
-                    url.getParameter(URLParamType.endpointFactory.getName(), URLParamType.endpointFactory.getValue()));
-            server = endpointFactory.createServer(url);
-        }
-
-        @Override
-        public void unexport() {
-            server.getDeployment().getRegistry().removeRegistrations(provider.getInterface());
-
-            String protocolKey = MotanFrameworkUtil.getProtocolKey(url);
-
-            @SuppressWarnings("unchecked")
-            Exporter<T> exporter = (Exporter<T>) exporterMap.remove(protocolKey);
-
-            if (exporter != null) {
-                exporter.destroy();
-            }
-
-            LoggerUtil.info("RestfulExporter unexport Success: url={}", url);
-        }
-
-        @Override
-        public void destroy() {
-            endpointFactory.safeReleaseResource(server, url);
-
-            LoggerUtil.info("RestfulExporter destory Success: url={}", url);
-        }
-
-        @Override
-        protected boolean doInit() {
-            server.getDeployment().getRegistry().addResourceFactory(new ProviderResource<T>(provider));
-            return true;
-        }
     }
 
     private static class RestfulReferer<T> extends AbstractReferer<T> {
@@ -149,6 +98,48 @@ public class RestfulProtocol extends AbstractProtocol {
             return true;
         }
 
+    }
+
+    private class RestfulExporter<T> extends AbstractExporter<T> {
+        private RestServer server;
+        private EndpointFactory endpointFactory;
+
+        public RestfulExporter(Provider<T> provider, URL url) {
+            super(provider, url);
+
+            endpointFactory = ExtensionLoader.getExtensionLoader(EndpointFactory.class).getExtension(
+                    url.getParameter(URLParamType.endpointFactory.getName(), URLParamType.endpointFactory.getValue()));
+            server = endpointFactory.createServer(url);
+        }
+
+        @Override
+        public void unexport() {
+            server.getDeployment().getRegistry().removeRegistrations(provider.getInterface());
+
+            String protocolKey = MotanFrameworkUtil.getProtocolKey(url);
+
+            @SuppressWarnings("unchecked")
+            Exporter<T> exporter = (Exporter<T>) exporterMap.remove(protocolKey);
+
+            if (exporter != null) {
+                exporter.destroy();
+            }
+
+            LoggerUtil.info("RestfulExporter unexport Success: url={}", url);
+        }
+
+        @Override
+        public void destroy() {
+            endpointFactory.safeReleaseResource(server, url);
+
+            LoggerUtil.info("RestfulExporter destory Success: url={}", url);
+        }
+
+        @Override
+        protected boolean doInit() {
+            server.getDeployment().getRegistry().addResourceFactory(new ProviderResource<T>(provider));
+            return true;
+        }
     }
 
 }

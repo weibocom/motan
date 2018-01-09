@@ -16,18 +16,17 @@
 
 package com.weibo.api.motan.cluster;
 
-import java.util.List;
-
 import com.weibo.api.motan.core.extension.Scope;
 import com.weibo.api.motan.core.extension.Spi;
 import com.weibo.api.motan.rpc.Caller;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.URL;
 
+import java.util.List;
+
 /**
- * 
  * Cluster is a service broker, used to
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-16
  */
@@ -39,8 +38,6 @@ public interface Cluster<T> extends Caller<T> {
 
     void setUrl(URL url);
 
-    void setLoadBalance(LoadBalance<T> loadBalance);
-
     void setHaStrategy(HaStrategy<T> haStrategy);
 
     void onRefresh(List<Referer<T>> referers);
@@ -48,4 +45,6 @@ public interface Cluster<T> extends Caller<T> {
     List<Referer<T>> getReferers();
 
     LoadBalance<T> getLoadBalance();
+
+    void setLoadBalance(LoadBalance<T> loadBalance);
 }

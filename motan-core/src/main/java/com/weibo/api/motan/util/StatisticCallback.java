@@ -18,10 +18,9 @@ package com.weibo.api.motan.util;
 
 /**
  * 统计扩展接口，需要统计的资源自行实现后 registry到StatsUtil便可以
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-6-24
- * 
  */
 public interface StatisticCallback {
 

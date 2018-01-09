@@ -16,12 +16,11 @@
 
 package com.weibo.api.motan.config;
 
-import java.lang.reflect.Field;
-
 import junit.framework.TestCase;
 
+import java.lang.reflect.Field;
+
 /**
- * 
  * 对配置class来说，所有的要进入url的properties都需要是Object，而不能是原始类型。 因为这样可以通过判断property是否为null，来避免使用原始类型的默认值。
  * 为了防止误用，此处监测严格一点：检查所有的字段，而非进入url的字段.
  *

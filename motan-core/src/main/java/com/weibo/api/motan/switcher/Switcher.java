@@ -19,7 +19,6 @@ package com.weibo.api.motan.switcher;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-14
- * 
  */
 public class Switcher {
     private boolean on = true;
@@ -36,7 +35,7 @@ public class Switcher {
 
     /**
      * isOn: true，服务可用; isOn: false, 服务不可用
-     * 
+     *
      * @return
      */
     public boolean isOn() {

@@ -21,7 +21,6 @@ import com.weibo.api.motan.core.extension.SpiMeta;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-9
- * 
  */
 @SpiMeta(name = "spi_impl")
 public class SpiImpl implements ISpi {

@@ -16,17 +16,6 @@
 
 package com.weibo.api.motan.protocol.rpc;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.zip.GZIPInputStream;
-
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.mock.MockChannel;
@@ -39,12 +28,21 @@ import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.util.ByteUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 /**
  * 基础功能由父类进行测试，此类中测试开关、版本兼容性、gz压缩等功能
- * 
- * @author zhanglei
  *
+ * @author zhanglei
  */
 public class CompressRpcCodecTest extends DefaultRpcCodecTest {
 
@@ -62,7 +60,8 @@ public class CompressRpcCodecTest extends DefaultRpcCodecTest {
     }
 
     @After
-    public void tearDown() throws Exception {}
+    public void tearDown() throws Exception {
+    }
 
     // 测试开关有效性
     @Test
@@ -86,7 +85,7 @@ public class CompressRpcCodecTest extends DefaultRpcCodecTest {
     // 测试server端对旧版本的兼容性
     @Test
     public void testCompatibility() throws IOException {
-        DefaultRequest request = getRequest("int[]", new Object[] {new int[] {1, 2}});
+        DefaultRequest request = getRequest("int[]", new Object[]{new int[]{1, 2}});
         Codec v1Codec = new DefaultRpcCodec();
         byte[] bytes = v1Codec.encode(channel, request);
         assertTrue(isV1Version(bytes));
@@ -98,7 +97,7 @@ public class CompressRpcCodecTest extends DefaultRpcCodecTest {
     // 测试gz压缩
     @Test
     public void testGzip() throws IOException {
-        DefaultRequest request = getRequest("int[]", new Object[] {new int[] {1, 2}});
+        DefaultRequest request = getRequest("int[]", new Object[]{new int[]{1, 2}});
         byte[] bytes = rpcCodec.encode(channel, request);
         assertFalse(isGzip(bytes));
 
@@ -121,7 +120,6 @@ public class CompressRpcCodecTest extends DefaultRpcCodecTest {
         bytes = rpcCodec.encode(tempChannel, request);
         assertFalse(isGzip(bytes));
     }
-
 
 
     public void testCodecRequest(Request request) throws Exception {

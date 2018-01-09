@@ -4,49 +4,52 @@
 package io.grpc.examples.routeguide;
 
 public interface FeatureOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:routeguide.Feature)
-    com.google.protobuf.MessageOrBuilder {
+        // @@protoc_insertion_point(interface_extends:routeguide.Feature)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <pre>
-   * The name of the feature.
-   * </pre>
-   *
-   * <code>optional string name = 1;</code>
-   */
-  java.lang.String getName();
-  /**
-   * <pre>
-   * The name of the feature.
-   * </pre>
-   *
-   * <code>optional string name = 1;</code>
-   */
-  com.google.protobuf.ByteString
-      getNameBytes();
+    /**
+     * <pre>
+     * The name of the feature.
+     * </pre>
+     * <p>
+     * <code>optional string name = 1;</code>
+     */
+    java.lang.String getName();
 
-  /**
-   * <pre>
-   * The point where the feature is detected.
-   * </pre>
-   *
-   * <code>optional .routeguide.Point location = 2;</code>
-   */
-  boolean hasLocation();
-  /**
-   * <pre>
-   * The point where the feature is detected.
-   * </pre>
-   *
-   * <code>optional .routeguide.Point location = 2;</code>
-   */
-  io.grpc.examples.routeguide.Point getLocation();
-  /**
-   * <pre>
-   * The point where the feature is detected.
-   * </pre>
-   *
-   * <code>optional .routeguide.Point location = 2;</code>
-   */
-  io.grpc.examples.routeguide.PointOrBuilder getLocationOrBuilder();
+    /**
+     * <pre>
+     * The name of the feature.
+     * </pre>
+     * <p>
+     * <code>optional string name = 1;</code>
+     */
+    com.google.protobuf.ByteString
+    getNameBytes();
+
+    /**
+     * <pre>
+     * The point where the feature is detected.
+     * </pre>
+     * <p>
+     * <code>optional .routeguide.Point location = 2;</code>
+     */
+    boolean hasLocation();
+
+    /**
+     * <pre>
+     * The point where the feature is detected.
+     * </pre>
+     * <p>
+     * <code>optional .routeguide.Point location = 2;</code>
+     */
+    io.grpc.examples.routeguide.Point getLocation();
+
+    /**
+     * <pre>
+     * The point where the feature is detected.
+     * </pre>
+     * <p>
+     * <code>optional .routeguide.Point location = 2;</code>
+     */
+    io.grpc.examples.routeguide.PointOrBuilder getLocationOrBuilder();
 }

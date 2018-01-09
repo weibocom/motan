@@ -40,7 +40,7 @@ public class AnnotationRpcServerDemo {
     }
 
 
-    @Bean(name="demoMotan")
+    @Bean(name = "demoMotan")
     public ProtocolConfigBean protocolConfig1() {
         ProtocolConfigBean config = new ProtocolConfigBean();
         config.setDefault(true);
@@ -58,7 +58,7 @@ public class AnnotationRpcServerDemo {
         return config;
     }
 
-    @Bean(name="registryConfig1")
+    @Bean(name = "registryConfig1")
     public RegistryConfigBean registryConfig() {
         RegistryConfigBean config = new RegistryConfigBean();
 //        config.setRegProtocol("zookeeper");

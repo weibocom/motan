@@ -1,11 +1,11 @@
 /*
  * Copyright 2009-2016 Weibo, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -13,39 +13,34 @@
  */
 package com.weibo.api.motan.protocol.yar;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.lang.reflect.Method;
-
+import com.weibo.api.motan.exception.MotanBizException;
+import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.util.ReflectUtil;
+import com.weibo.yar.YarRequest;
+import com.weibo.yar.YarResponse;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.weibo.api.motan.exception.MotanBizException;
-import com.weibo.api.motan.rpc.DefaultRequest;
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.util.ReflectUtil;
-import com.weibo.yar.YarRequest;
-import com.weibo.yar.YarResponse;
+import java.lang.reflect.Method;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
- * 
- * @Description YarProtocolUtilTest
  * @author zhanglei
+ * @Description YarProtocolUtilTest
  * @date 2016年7月27日
- *
  */
 public class YarProtocolUtilTest {
 
     @Before
-    public void setUp() throws Exception {}
+    public void setUp() throws Exception {
+    }
 
     @After
-    public void tearDown() throws Exception {}
+    public void tearDown() throws Exception {
+    }
 
     @Test
     public void testGetYarPath() {
@@ -61,7 +56,7 @@ public class YarProtocolUtilTest {
         DefaultRequest request = new DefaultRequest();
         request.setRequestId(123);
         request.setMethodName("hello");
-        request.setArguments(new Object[] {"param1"});
+        request.setArguments(new Object[]{"param1"});
         request.setInterfaceName(YarMessageRouterTest.AnnoService.class.getName());
         request.setParamtersDesc(ReflectUtil.getMethodParamDesc(YarMessageRouterTest.AnnoService.class.getMethod("hello", String.class)));
         YarRequest yarRequest = YarProtocolUtil.convert(request, "JSON");
@@ -76,7 +71,7 @@ public class YarProtocolUtilTest {
     // test string cast primitive value
     public void testConvertRequest() throws Exception {
         String methodName = "testParam";
-        Class[] paramClazz = new Class[] {int.class, long.class, boolean.class, float.class, double.class};
+        Class[] paramClazz = new Class[]{int.class, long.class, boolean.class, float.class, double.class};
         Method method = MethodTestService.class.getDeclaredMethod(methodName, paramClazz);
         final String result = "succ";
         MethodTestService service = new MethodTestService() {
@@ -87,11 +82,11 @@ public class YarProtocolUtilTest {
         };
 
         // string
-        Object[] params = new Object[] {"234", "567", "true", "789.12", "678.12"};
+        Object[] params = new Object[]{"234", "567", "true", "789.12", "678.12"};
         verifyMethodParam(MethodTestService.class, service, method, params, result);
 
         // number
-        params = new Object[] {234l, 567, false, 789.12d, 678.12f};
+        params = new Object[]{234l, 567, false, 789.12d, 678.12f};
         verifyMethodParam(MethodTestService.class, service, method, params, result);
     }
 

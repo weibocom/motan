@@ -21,12 +21,10 @@ import com.weibo.api.motan.switcher.SwitcherListener;
 import com.weibo.api.motan.switcher.SwitcherService;
 
 
-
 /**
  * 静态开关工具类。一般全局开关使用此类。 可以替换switcherService为不同实现
- * 
- * @author zhanglei
  *
+ * @author zhanglei
  */
 public class MotanSwitcherUtil {
     private static SwitcherService switcherService = new LocalSwitcherService();
@@ -37,7 +35,7 @@ public class MotanSwitcherUtil {
 
     /**
      * 检查开关是否开启。
-     * 
+     *
      * @param switcherName
      * @return true ：设置了开关，并且开关值为true false：未设置开关或开关为false
      */
@@ -47,7 +45,7 @@ public class MotanSwitcherUtil {
 
     /**
      * 检查开关是否开启，如果开关不存在则将开关置默认值，并返回。
-     * 
+     *
      * @param switcherName
      * @param defaultValue
      * @return 开关存在时返回开关值，开关不存在时设置开关为默认值，并返回默认值。
@@ -58,7 +56,7 @@ public class MotanSwitcherUtil {
 
     /**
      * 设置开关状态。
-     * 
+     *
      * @param switcherName
      * @param value
      * @return

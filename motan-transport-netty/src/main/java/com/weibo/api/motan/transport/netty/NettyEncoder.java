@@ -60,7 +60,7 @@ public class NettyEncoder extends OneToOneEncoder {
 
     private Object encodev1(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
         long requestId = getRequestId(message);
-        byte[] data =  encodeMessage(message);
+        byte[] data = encodeMessage(message);
 
         byte[] transportHeader = new byte[MotanConstants.NETTY_HEADER];
         ByteUtil.short2bytes(MotanConstants.NETTY_MAGIC_TYPE, transportHeader, 0);

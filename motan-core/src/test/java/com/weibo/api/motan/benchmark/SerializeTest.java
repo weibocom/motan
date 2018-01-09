@@ -16,17 +16,16 @@
 
 package com.weibo.api.motan.benchmark;
 
-import java.io.Serializable;
-import java.util.Map;
-
 import com.weibo.api.motan.codec.Serialization;
 import com.weibo.api.motan.serialize.FastJsonSerialization;
 import com.weibo.api.motan.serialize.Hessian2Serialization;
 
+import java.io.Serializable;
+import java.util.Map;
+
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-9
- * 
  */
 public class SerializeTest {
     private static final int loop = 10000;
@@ -100,38 +99,39 @@ class SerializeObject implements Serializable {
     private int[][] arr2;
     private Map<String, Object> obj;
 
-    public SerializeObject() {}
-
-    public void setAge(long age) {
-        this.age = age;
-    }
-
-    public void setHello(String hello) {
-        this.hello = hello;
-    }
-
-    public void setArr(int[] arr) {
-        this.arr = arr;
-    }
-
-    public void setArr2(int[][] arr2) {
-        this.arr2 = arr2;
+    public SerializeObject() {
     }
 
     public long getAge() {
         return age;
     }
 
+    public void setAge(long age) {
+        this.age = age;
+    }
+
     public String getHello() {
         return hello;
+    }
+
+    public void setHello(String hello) {
+        this.hello = hello;
     }
 
     public int[] getArr() {
         return arr;
     }
 
+    public void setArr(int[] arr) {
+        this.arr = arr;
+    }
+
     public int[][] getArr2() {
         return arr2;
+    }
+
+    public void setArr2(int[][] arr2) {
+        this.arr2 = arr2;
     }
 
     public Map<String, Object> getObj() {

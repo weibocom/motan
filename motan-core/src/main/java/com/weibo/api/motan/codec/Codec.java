@@ -16,30 +16,28 @@
 
 package com.weibo.api.motan.codec;
 
-import java.io.IOException;
-
 import com.weibo.api.motan.core.extension.Scope;
 import com.weibo.api.motan.core.extension.Spi;
 import com.weibo.api.motan.transport.Channel;
 
+import java.io.IOException;
+
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-21
- * 
  */
-@Spi(scope=Scope.PROTOTYPE)
+@Spi(scope = Scope.PROTOTYPE)
 public interface Codec {
 
-	byte[] encode(Channel channel, Object message) throws IOException;
+    byte[] encode(Channel channel, Object message) throws IOException;
 
-	/**
-	 * 
-	 * @param channel
-	 * @param remoteIp 用来在server端decode request时能获取到client的ip。
-	 * @param buffer
-	 * @return
-	 * @throws IOException
-	 */
-	Object decode(Channel channel, String remoteIp, byte[] buffer) throws IOException;
+    /**
+     * @param channel
+     * @param remoteIp 用来在server端decode request时能获取到client的ip。
+     * @param buffer
+     * @return
+     * @throws IOException
+     */
+    Object decode(Channel channel, String remoteIp, byte[] buffer) throws IOException;
 
 }

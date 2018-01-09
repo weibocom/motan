@@ -16,13 +16,12 @@
 
 package com.weibo.api.motan.registry;
 
-import java.util.List;
-
 import com.weibo.api.motan.rpc.URL;
+
+import java.util.List;
 
 
 /**
- * 
  * Deicovery service.
  *
  * @author fishermen

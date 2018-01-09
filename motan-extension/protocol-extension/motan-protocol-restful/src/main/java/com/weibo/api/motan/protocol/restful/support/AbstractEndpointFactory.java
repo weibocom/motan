@@ -15,23 +15,24 @@
  */
 package com.weibo.api.motan.protocol.restful.support;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.jboss.resteasy.client.jaxrs.ResteasyClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-
 import com.weibo.api.motan.protocol.restful.EndpointFactory;
 import com.weibo.api.motan.protocol.restful.RestServer;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
+import org.jboss.resteasy.client.jaxrs.ResteasyClient;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractEndpointFactory implements EndpointFactory {
-    /** 维持share channel 的service列表 **/
+    /**
+     * 维持share channel 的service列表
+     **/
     protected final Map<String, RestServer> ipPort2ServerShareChannel = new HashMap<String, RestServer>();
     // 维持share channel 的client列表 <ip:port,client>
     protected final Map<String, ResteasyWebTarget> ipPort2ClientShareChannel = new HashMap<String, ResteasyWebTarget>();

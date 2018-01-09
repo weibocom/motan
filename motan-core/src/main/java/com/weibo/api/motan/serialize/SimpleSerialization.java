@@ -60,7 +60,7 @@ public class SimpleSerialization implements Serialization {
                 buffer.position(1);
                 buffer.putInt(size);
                 buffer.position(5 + size);
-            } else if(obj instanceof byte[]){
+            } else if (obj instanceof byte[]) {
                 buffer.put((byte) 3);
                 byte[] b = (byte[]) obj;
                 buffer.putInt(b.length);

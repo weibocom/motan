@@ -54,7 +54,7 @@ public class SimpleSerializationTest {
             assertEquals(entry.getValue(), m2.get(entry.getKey()));
         }
 
-        byte[] bytes = new byte[]{2,34,12,24};
+        byte[] bytes = new byte[]{2, 34, 12, 24};
         b = serialization.serialize(bytes);
         assertNotNull(b);
         assertTrue(b.length > 0);

@@ -26,7 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 
  * rpc call statistic.
  *
  * @author fishermen
@@ -42,19 +41,21 @@ public class RpcStats {
             new ConcurrentHashMap<String, ConcurrentHashMap<String, StatInfo>>();
 
     private static ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(1);
-    static{
+
+    static {
         ShutDownHook.registerShutdownHook(new Closable() {
             @Override
             public void close() {
-                if(!scheduledExecutor.isShutdown()){
+                if (!scheduledExecutor.isShutdown()) {
                     scheduledExecutor.shutdown();
                 }
             }
         });
     }
+
     /**
      * call before invoke the request
-     * 
+     *
      * @param url
      * @param request
      */
@@ -66,7 +67,7 @@ public class RpcStats {
 
     /**
      * call after invoke the request
-     * 
+     *
      * @param url
      * @param request
      * @param success

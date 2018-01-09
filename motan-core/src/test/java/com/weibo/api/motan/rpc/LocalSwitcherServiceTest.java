@@ -16,19 +16,16 @@
 
 package com.weibo.api.motan.rpc;
 
-import junit.framework.TestCase;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.switcher.LocalSwitcherService;
 import com.weibo.api.motan.switcher.Switcher;
+import junit.framework.TestCase;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-17
- * 
  */
 public class LocalSwitcherServiceTest extends TestCase {
 

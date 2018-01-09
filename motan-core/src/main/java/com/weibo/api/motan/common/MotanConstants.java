@@ -69,7 +69,7 @@ public class MotanConstants {
     public static final int STATISTIC_PEROID = 30; // 30 seconds
     public static final String ASYNC_SUFFIX = "Async";// suffix for async call.
     public static final String APPLICATION_STATISTIC = "statisitic";
-    
+
     /**
      * netty channel constants start
      **/

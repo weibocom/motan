@@ -16,15 +16,15 @@
 
 package com.weibo.api.motan.config.springsupport;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.registry.NotifyListener;
 import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.registry.support.AbstractRegistryFactory;
 import com.weibo.api.motan.rpc.URL;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 
 @SpiMeta(name = "mockRegistry")
@@ -35,10 +35,12 @@ public class MockRegistryFactory extends AbstractRegistryFactory {
         return new Registry() {
 
             @Override
-            public void register(URL url) {}
+            public void register(URL url) {
+            }
 
             @Override
-            public void unregister(URL url) {}
+            public void unregister(URL url) {
+            }
 
             @Override
             public void available(URL url) {
@@ -56,10 +58,12 @@ public class MockRegistryFactory extends AbstractRegistryFactory {
             }
 
             @Override
-            public void subscribe(URL url, NotifyListener listener) {}
+            public void subscribe(URL url, NotifyListener listener) {
+            }
 
             @Override
-            public void unsubscribe(URL url, NotifyListener listener) {}
+            public void unsubscribe(URL url, NotifyListener listener) {
+            }
 
             @Override
             public List<URL> discover(URL url) {

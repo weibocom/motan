@@ -16,18 +16,20 @@
 
 package com.weibo.api.motan.registry.support.command;
 
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.weibo.api.motan.util.LoggerUtil;
+
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.weibo.api.motan.util.LoggerUtil;
-
 public class RpcCommandUtil {
+
+    private static PatternEvaluator evaluator = new PatternEvaluator();
 
     /**
      * 把指令字符串转为指令对象
@@ -53,8 +55,6 @@ public class RpcCommandUtil {
     public static String commandToString(RpcCommand command) {
         return JSONObject.toJSONString(command);
     }
-
-    private static PatternEvaluator evaluator = new PatternEvaluator();
 
     public static boolean match(String expression, String path) {
         if (expression == null || expression.length() == 0) {
@@ -189,7 +189,7 @@ public class RpcCommandUtil {
 
             // 处理|
             operand = '0';
-            while (!list.isEmpty() && (operand = list.pop()) != '1');
+            while (!list.isEmpty() && (operand = list.pop()) != '1') ;
             return operand;
         }
 

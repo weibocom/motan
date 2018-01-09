@@ -16,20 +16,17 @@
 
 package com.weibo.api.motan.config.springsupport;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.weibo.api.motan.config.ServiceConfig;
 import com.weibo.api.motan.rpc.Exporter;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.ConcurrentHashSet;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 public class ServiceConfigBeanTest extends BaseTest {
     ServiceConfig<ITest> serviceTest;
@@ -45,7 +42,8 @@ public class ServiceConfigBeanTest extends BaseTest {
     }
 
     @After
-    public void tearDown() throws Exception {}
+    public void tearDown() throws Exception {
+    }
 
     @Test
     public void testGetRef() {

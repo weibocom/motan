@@ -15,12 +15,12 @@
  */
 package com.weibo.api.motan.protocol.restful.support;
 
+import org.jboss.resteasy.spi.HttpRequest;
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
+
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
-
-import org.jboss.resteasy.spi.HttpRequest;
-import org.jboss.resteasy.spi.ResteasyProviderFactory;
 
 public class RpcExceptionMapper implements ExceptionMapper<Exception> {
 

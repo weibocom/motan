@@ -21,17 +21,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 
- * @Description yar rpc config
  * @author zhanglei
+ * @Description yar rpc config
  * @date 2016-6-7
- *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 public @interface YarConfig {
     /**
      * yar rpc request path
+     *
      * @return path
      */
     String path() default "";

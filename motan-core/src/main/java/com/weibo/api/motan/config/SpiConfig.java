@@ -19,7 +19,6 @@ package com.weibo.api.motan.config;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-9
- * 
  */
 public class SpiConfig<T> {
     private String id;

@@ -16,15 +16,14 @@
 
 package com.weibo.api.motan.cluster.loadbalance;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.protocol.example.IHello;
 import com.weibo.api.motan.rpc.Referer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * 
  * Precreate referers.
  *
  * @author fishermen

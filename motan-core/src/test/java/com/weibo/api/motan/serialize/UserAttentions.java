@@ -21,26 +21,23 @@ import java.sql.Timestamp;
 
 /**
  * 该case主要用于验证 hessian 序列化的一个bug，见 testHessianBug，如果有bug，那么会导致exception
- * 
+ *
  * @author maijunsheng
- * 
  */
 public class UserAttentions implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 13L;
-
+    public static UserAttentions INVALID_USERATTENTIONS = new UserAttentions(0, new long[0], 0, 0L);
+    public static UserAttentions INVALID_REINFORCED_USERATTENTIONS = new UserAttentions(0L, new long[0], new long[0], 0, 0L);
     private long uid; // 用户UID
     private long[] attentions = null; // 关注/粉丝集合
     private long lastAddtime; // 最后关注/粉丝时间
     private int count; // 关注数/粉丝数
     private long[] addTimes = null; // add attention/fan/filter times
-
     private Timestamp timeStamp = new Timestamp(System.currentTimeMillis());
 
-    public static UserAttentions INVALID_USERATTENTIONS = new UserAttentions(0, new long[0], 0, 0L);
-    public static UserAttentions INVALID_REINFORCED_USERATTENTIONS = new UserAttentions(0L, new long[0], new long[0], 0, 0L);
-
-    public UserAttentions() {}
+    public UserAttentions() {
+    }
 
     public UserAttentions(long uid, long[] attentions, int count) {
         this.uid = uid;
@@ -68,6 +65,10 @@ public class UserAttentions implements Serializable, Cloneable {
         this.addTimes = addTimes;
         this.count = count;
         this.lastAddtime = lastAddTime;
+    }
+
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
     }
 
     public long getUid() {
@@ -108,10 +109,6 @@ public class UserAttentions implements Serializable, Cloneable {
 
     public void setAddTimes(long[] addTimes) {
         this.addTimes = addTimes;
-    }
-
-    public static long getSerialVersionUID() {
-        return serialVersionUID;
     }
 
     public Timestamp getTimeStamp() {

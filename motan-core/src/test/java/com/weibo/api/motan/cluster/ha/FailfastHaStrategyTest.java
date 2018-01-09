@@ -16,10 +16,6 @@
 
 package com.weibo.api.motan.cluster.ha;
 
-import org.jmock.Expectations;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.cluster.LoadBalance;
 import com.weibo.api.motan.common.MotanConstants;
@@ -30,11 +26,13 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.NetUtils;
+import org.jmock.Expectations;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
- * 
  * Failfast ha strategy.
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-6-18
  */

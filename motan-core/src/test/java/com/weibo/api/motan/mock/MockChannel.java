@@ -16,18 +16,17 @@
 
 package com.weibo.api.motan.mock;
 
-import java.net.InetSocketAddress;
-
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.TransportException;
 
+import java.net.InetSocketAddress;
+
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-5
- * 
  */
 public class MockChannel implements Channel {
     private URL url;
@@ -57,10 +56,12 @@ public class MockChannel implements Channel {
     }
 
     @Override
-    public void close() {}
+    public void close() {
+    }
 
     @Override
-    public void close(int timeout) {}
+    public void close(int timeout) {
+    }
 
     @Override
     public boolean isClosed() {

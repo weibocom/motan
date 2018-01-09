@@ -1,48 +1,48 @@
 package com.weibo.api.motan.registry.consul;
 
 public class ConsulResponse<T> {
-	/**
-	 * consul返回的具体结果
-	 */
-	private T value;
-	
-	private Long consulIndex;
-	
-	private Boolean consulKnownLeader;
-	
-	private Long consulLastContact;
+    /**
+     * consul返回的具体结果
+     */
+    private T value;
 
-	public T getValue() {
-		return value;
-	}
+    private Long consulIndex;
 
-	public void setValue(T value) {
-		this.value = value;
-	}
+    private Boolean consulKnownLeader;
 
-	public Long getConsulIndex() {
-		return consulIndex;
-	}
+    private Long consulLastContact;
 
-	public void setConsulIndex(Long consulIndex) {
-		this.consulIndex = consulIndex;
-	}
+    public T getValue() {
+        return value;
+    }
 
-	public Boolean getConsulKnownLeader() {
-		return consulKnownLeader;
-	}
+    public void setValue(T value) {
+        this.value = value;
+    }
 
-	public void setConsulKnownLeader(Boolean consulKnownLeader) {
-		this.consulKnownLeader = consulKnownLeader;
-	}
+    public Long getConsulIndex() {
+        return consulIndex;
+    }
 
-	public Long getConsulLastContact() {
-		return consulLastContact;
-	}
+    public void setConsulIndex(Long consulIndex) {
+        this.consulIndex = consulIndex;
+    }
 
-	public void setConsulLastContact(Long consulLastContact) {
-		this.consulLastContact = consulLastContact;
-	}
+    public Boolean getConsulKnownLeader() {
+        return consulKnownLeader;
+    }
 
-	
+    public void setConsulKnownLeader(Boolean consulKnownLeader) {
+        this.consulKnownLeader = consulKnownLeader;
+    }
+
+    public Long getConsulLastContact() {
+        return consulLastContact;
+    }
+
+    public void setConsulLastContact(Long consulLastContact) {
+        this.consulLastContact = consulLastContact;
+    }
+
+
 }

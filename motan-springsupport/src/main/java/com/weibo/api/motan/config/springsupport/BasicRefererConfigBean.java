@@ -26,13 +26,12 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
  * @author fld
- *         <p>
- *         Created by fld on 16/5/13.
+ * <p>
+ * Created by fld on 16/5/13.
  */
 public class BasicRefererConfigBean extends BasicRefererInterfaceConfig implements BeanNameAware, InitializingBean, BeanFactoryAware {
 

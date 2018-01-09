@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 
-
 public class CommandServiceManager implements CommandListener, ServiceListener {
 
     public static final String MOTAN_COMMAND_SWITCHER = "feature.motanrpc.command.enable";

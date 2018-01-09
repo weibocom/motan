@@ -33,11 +33,11 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @version 创建时间：2013-6-14
  */
 public abstract class AbstractPoolClient extends AbstractClient {
-    private static ThreadPoolExecutor executor = new StandardThreadExecutor(1, 300, 20000,
-            new DefaultThreadFactory("AbstractPoolClient-initPool-", true));
     protected static long defaultMinEvictableIdleTimeMillis = (long) 1000 * 60 * 60;//默认链接空闲时间
     protected static long defaultSoftMinEvictableIdleTimeMillis = (long) 1000 * 60 * 10;//
     protected static long defaultTimeBetweenEvictionRunsMillis = (long) 1000 * 60 * 10;//默认回收周期
+    private static ThreadPoolExecutor executor = new StandardThreadExecutor(1, 300, 20000,
+            new DefaultThreadFactory("AbstractPoolClient-initPool-", true));
     protected GenericObjectPool pool;
     protected GenericObjectPool.Config poolConfig;
     protected PoolableObjectFactory factory;

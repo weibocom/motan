@@ -16,22 +16,6 @@
 
 package com.weibo.api.motan.protocol.rpc;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.weibo.api.motan.codec.AbstractCodec;
 import com.weibo.api.motan.codec.Serialization;
 import com.weibo.api.motan.common.MotanConstants;
@@ -40,58 +24,101 @@ import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
-import com.weibo.api.motan.rpc.DefaultRequest;
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.rpc.Provider;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.support.DefaultRpcHeartbeatFactory;
-import com.weibo.api.motan.util.ByteUtil;
-import com.weibo.api.motan.util.ConcurrentHashSet;
-import com.weibo.api.motan.util.ExceptionUtil;
-import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.MotanDigestUtil;
-import com.weibo.api.motan.util.MotanFrameworkUtil;
-import com.weibo.api.motan.util.MotanSwitcherUtil;
-import com.weibo.api.motan.util.ReflectUtil;
+import com.weibo.api.motan.util.*;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.*;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * 压缩协议codec，支持开启gzip压缩。
- * 
- * @author zhanglei
  *
+ * @author zhanglei
  */
 @SpiMeta(name = "compressMotan")
 public class CompressRpcCodec extends AbstractCodec {
+    public static final String CODEC_VERSION_SWITCHER = "feature.motanrpc.codecversion.degrade";// codec降级开关，默认为false，为true时会使用v1非压缩版本。
+    public static final String GROUP_CODEC_VERSION_SWITCHER = "feature.motanrpc.codecversion.groupdegrade.";// 按group分组降级codec开关前缀，默认为false，为true时会使用v1非压缩版本。
     private static final short MAGIC = (short) 0xF0F0;
-
     private static final byte MASK = 0x07;
-
-    // 保存方法签名与具体方法信息的对应关系，decode request时server端使用
-    private static ConcurrentHashMap<String, MethodInfo> SIGN_METHOD_MAP = new ConcurrentHashMap<String, MethodInfo>();
-    // 保存方法信息串与签名之间的对应关系。
-    private static ConcurrentHashMap<String, String> METHOD_SIGN_MAP = new ConcurrentHashMap<String, String>();
-
-    // 保存方法签名与调用方attachment中application等固定信息的对应关系，decode request时server端使用
-    private static ConcurrentHashMap<String, AttachmentInfo> SIGN_ATTACHMENT_MAP = new ConcurrentHashMap<String, AttachmentInfo>();
-
-    private static ConcurrentHashSet<String> ACCEPT_ATTACHMENT_SIGN = new ConcurrentHashSet<String>();// 保存已被server端缓存的attachment信息签名。
-                                                                                                      // client使用，如果server端已缓存则不用重复发送
+    // client使用，如果server端已缓存则不用重复发送
     private static final String SIGN_FLAG = "1";// 使用方法签名标识位。用来实现新旧版本兼容
-
     // attachment中使用的简化key，都以_开头
     private static final String ATTACHMENT_SIGN = "_A";// 压缩attachment固定参数后签名的key。同时也是server确认已保存的签名key
     private static final String UN_ATTACHMENT_SIGN = "_UA";// server确认尚未保存的签名key
     private static final String CLIENT_REQUESTID = "_RID";// client requestid的简化key
-
-    public static final String CODEC_VERSION_SWITCHER = "feature.motanrpc.codecversion.degrade";// codec降级开关，默认为false，为true时会使用v1非压缩版本。
-    public static final String GROUP_CODEC_VERSION_SWITCHER = "feature.motanrpc.codecversion.groupdegrade.";// 按group分组降级codec开关前缀，默认为false，为true时会使用v1非压缩版本。
-    private DefaultRpcCodec v1Codec = new DefaultRpcCodec();
+    // 保存方法签名与具体方法信息的对应关系，decode request时server端使用
+    private static ConcurrentHashMap<String, MethodInfo> SIGN_METHOD_MAP = new ConcurrentHashMap<String, MethodInfo>();
+    // 保存方法信息串与签名之间的对应关系。
+    private static ConcurrentHashMap<String, String> METHOD_SIGN_MAP = new ConcurrentHashMap<String, String>();
+    // 保存方法签名与调用方attachment中application等固定信息的对应关系，decode request时server端使用
+    private static ConcurrentHashMap<String, AttachmentInfo> SIGN_ATTACHMENT_MAP = new ConcurrentHashMap<String, AttachmentInfo>();
+    private static ConcurrentHashSet<String> ACCEPT_ATTACHMENT_SIGN = new ConcurrentHashSet<String>();// 保存已被server端缓存的attachment信息签名。
 
     static {
         LoggerUtil.info("init compress codec");
         MotanSwitcherUtil.initSwitcher(CODEC_VERSION_SWITCHER, false);
+    }
+
+    private DefaultRpcCodec v1Codec = new DefaultRpcCodec();
+
+    /**
+     * 获取输入流。兼容gzip
+     *
+     * @param data
+     * @return
+     */
+    public static InputStream getInputStream(byte[] data) {
+        if (isGzipData(data)) {// 判断 gzip魔数
+            try {
+                return new GZIPInputStream(new ByteArrayInputStream(data));
+            } catch (Exception ignore) {
+            }
+        }
+        return new ByteArrayInputStream(data);
+    }
+
+    // 简单判断是否为gzip压缩数据。
+    // 判断方法为检验gzip魔数
+    private static boolean isGzipData(byte[] data) {
+        if (data.length > 2) {
+            int header = (int) (((data[0] & 0xff)) | (data[1] & 0xff) << 8);
+            if (GZIPInputStream.GZIP_MAGIC == header) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void putMethodSign(Provider<?> provider, List<Method> methods) {
+        String group = provider.getUrl().getGroup();
+        String interfaceName = provider.getInterface().getName();
+        String version = provider.getUrl().getVersion();
+        for (Method method : methods) {
+            MethodInfo temp = new MethodInfo(group, interfaceName, method.getName(), ReflectUtil.getMethodParamDesc(method), version);
+            String sign = temp.getSign();
+            MethodInfo priInfo = SIGN_METHOD_MAP.putIfAbsent(sign, temp);
+            if (priInfo != null && !temp.equals(priInfo)) {// 方法签名冲突
+                throw new MotanFrameworkException("add method sign conflict! " + temp.toString() + " with " + priInfo.toString(),
+                        MotanErrorMsgConstant.FRAMEWORK_DECODE_ERROR);
+            } else {
+                LoggerUtil.info("add method sign:" + sign + ", methodinfo:" + temp.toString());
+            }
+
+        }
+    }
+
+    public static void putMethodSign(String methodSign, MethodInfo methodInfo) {
+        SIGN_METHOD_MAP.putIfAbsent(methodSign, methodInfo);
     }
 
     @Override
@@ -126,16 +153,14 @@ public class CompressRpcCodec extends AbstractCodec {
 
     }
 
-
-
     /**
      * decode data
-     * 
+     * <p>
      * <pre>
-	 * 		对于client端：主要是来自server端的response or exception
-	 * 		对于server端: 主要是来自client端的request
-	 * </pre>
-     * 
+     * 		对于client端：主要是来自server端的response or exception
+     * 		对于server端: 主要是来自client端的request
+     * </pre>
+     *
      * @param data
      * @return
      * @throws IOException
@@ -163,8 +188,6 @@ public class CompressRpcCodec extends AbstractCodec {
         }
     }
 
-
-
     public byte[] encodeV2(Channel channel, Object message) throws IOException {
         try {
             if (message instanceof Request) {
@@ -189,12 +212,12 @@ public class CompressRpcCodec extends AbstractCodec {
 
     /**
      * decode data
-     * 
+     * <p>
      * <pre>
      *      对于client端：主要是来自server端的response or exception
      *      对于server端: 主要是来自client端的request
      * </pre>
-     * 
+     *
      * @param data
      * @return
      * @throws IOException
@@ -248,26 +271,25 @@ public class CompressRpcCodec extends AbstractCodec {
         }
     }
 
-
     /**
      * request body 数据：
-     * 
+     * <p>
      * <pre>
-	 * 
-	 * 	 body:
-	 * 
-	 * 	 byte[] data :  
-	 * 
-	 * 			serialize(interface_name, method_name, method_param_desc, method_param_value, attachments_size, attachments_value) 
-	 * 
-	 *   method_param_desc:  for_each (string.append(method_param_interface_name))
-	 * 
-	 *   method_param_value: for_each (method_param_name, method_param_value)
-	 * 
-	 * 	 attachments_value:  for_each (attachment_name, attachment_value)
-	 * 
-	 * </pre>
-     * 
+     *
+     * 	 body:
+     *
+     * 	 byte[] data :
+     *
+     * 			serialize(interface_name, method_name, method_param_desc, method_param_value, attachments_size, attachments_value)
+     *
+     *   method_param_desc:  for_each (string.append(method_param_interface_name))
+     *
+     *   method_param_value: for_each (method_param_name, method_param_value)
+     *
+     * 	 attachments_value:  for_each (attachment_name, attachment_value)
+     *
+     * </pre>
+     *
      * @param request
      * @return
      * @throws IOException
@@ -320,7 +342,7 @@ public class CompressRpcCodec extends AbstractCodec {
 
     /**
      * 添加方法完整信息或方法签名。
-     * 
+     *
      * @param output
      * @param request
      * @throws IOException
@@ -354,7 +376,7 @@ public class CompressRpcCodec extends AbstractCodec {
 
     /**
      * 用签名替换Attachment中每次必传的固定参数。
-     * 
+     *
      * @param attachments
      */
     private void replaceAttachmentParamsBySign(Channel channel, Map<String, String> attachments) {
@@ -389,14 +411,14 @@ public class CompressRpcCodec extends AbstractCodec {
 
     /**
      * response body 数据：
-     * 
+     * <p>
      * <pre>
-	 * 
-	 * body:
-	 * 
-	 * 	 byte[] :  serialize (result) or serialize (exception)
-	 * 
-	 * </pre>
+     *
+     * body:
+     *
+     * 	 byte[] :  serialize (result) or serialize (exception)
+     *
+     * </pre>
      *
      * @param channel
      * @param value
@@ -458,18 +480,18 @@ public class CompressRpcCodec extends AbstractCodec {
 
     /**
      * 数据协议：
-     * 
+     * <p>
      * <pre>
-	 * 
-	 * header:  16个字节 
-	 * 
-	 * 0-15 bit 	:  magic
-	 * 16-23 bit	:  version
-	 * 24-31 bit	:  extend flag , 其中： 29-30 bit: event 可支持4种event，比如normal, exception等,  31 bit : 0 is request , 1 is response 
-	 * 32-95 bit 	:  request id
-	 * 96-127 bit 	:  body content length
-	 * 
-	 * </pre>
+     *
+     * header:  16个字节
+     *
+     * 0-15 bit 	:  magic
+     * 16-23 bit	:  version
+     * 24-31 bit	:  extend flag , 其中： 29-30 bit: event 可支持4种event，比如normal, exception等,  31 bit : 0 is request , 1 is response
+     * 32-95 bit 	:  request id
+     * 96-127 bit 	:  body content length
+     *
+     * </pre>
      *
      * @param body
      * @param flag
@@ -558,8 +580,6 @@ public class CompressRpcCodec extends AbstractCodec {
         return rpcRequest;
     }
 
-
-
     private void putSignedAttachment(Map<String, String> attachments, String remoteIp) {
         if (attachments != null && !attachments.isEmpty()) {
             AttachmentInfo info = getAttachmentInfoMap(attachments);
@@ -632,7 +652,6 @@ public class CompressRpcCodec extends AbstractCodec {
     }
 
     /**
-     * 
      * @param body
      * @param dataType
      * @param requestId
@@ -688,7 +707,7 @@ public class CompressRpcCodec extends AbstractCodec {
         if (attachment != null && !attachment.isEmpty()) {
             String acceptSign = attachment.get(ATTACHMENT_SIGN);
             if (StringUtils.isNotBlank(acceptSign)) {// attachment
-                                                     // sign已被server端缓存，则后续请求不用在传递固定的attachment
+                // sign已被server端缓存，则后续请求不用在传递固定的attachment
                 ACCEPT_ATTACHMENT_SIGN.add(acceptSign);
             }
             String notAcceptSign = attachment.get(UN_ATTACHMENT_SIGN);
@@ -729,33 +748,6 @@ public class CompressRpcCodec extends AbstractCodec {
         }
     }
 
-    /**
-     * 获取输入流。兼容gzip
-     *
-     * @param data
-     * @return
-     */
-    public static InputStream getInputStream(byte[] data) {
-        if (isGzipData(data)) {// 判断 gzip魔数
-            try {
-                return new GZIPInputStream(new ByteArrayInputStream(data));
-            } catch (Exception ignore) {}
-        }
-        return  new ByteArrayInputStream(data);
-    }
-
-    // 简单判断是否为gzip压缩数据。
-    // 判断方法为检验gzip魔数
-    private static boolean isGzipData(byte[] data) {
-        if (data.length > 2) {
-            int header = (int) (((data[0] & 0xff)) | (data[1] & 0xff) << 8);
-            if (GZIPInputStream.GZIP_MAGIC == header) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     // 对rpc body进行压缩。
     public byte[] compress(byte[] org, boolean useGzip, int minGzSize) throws IOException {
         if (useGzip && org.length > minGzSize) {
@@ -773,35 +765,12 @@ public class CompressRpcCodec extends AbstractCodec {
 
     }
 
-    public static void putMethodSign(Provider<?> provider, List<Method> methods) {
-        String group = provider.getUrl().getGroup();
-        String interfaceName = provider.getInterface().getName();
-        String version = provider.getUrl().getVersion();
-        for (Method method : methods) {
-            MethodInfo temp = new MethodInfo(group, interfaceName, method.getName(), ReflectUtil.getMethodParamDesc(method), version);
-            String sign = temp.getSign();
-            MethodInfo priInfo = SIGN_METHOD_MAP.putIfAbsent(sign, temp);
-            if (priInfo != null && !temp.equals(priInfo)) {// 方法签名冲突
-                throw new MotanFrameworkException("add method sign conflict! " + temp.toString() + " with " + priInfo.toString(),
-                        MotanErrorMsgConstant.FRAMEWORK_DECODE_ERROR);
-            } else {
-                LoggerUtil.info("add method sign:" + sign + ", methodinfo:" + temp.toString());
-            }
-
-        }
-    }
-
-    public static void putMethodSign(String methodSign, MethodInfo methodInfo) {
-        SIGN_METHOD_MAP.putIfAbsent(methodSign, methodInfo);
-    }
-
     static class MethodInfo {
         String group;
         String interfaceName;
         String methodName;
         String paramtersDesc;
         String version;
-
 
 
         public MethodInfo(String group, String interfaceName, String methodName, String paramtersDesc, String version) {
@@ -815,7 +784,7 @@ public class CompressRpcCodec extends AbstractCodec {
 
         /**
          * 根据方法信息生成对应的签名。 此方法会抛出异常，调用时根据使用情况决定是否处理异常。
-         * 
+         *
          * @return
          * @throws Exception
          */

@@ -17,7 +17,6 @@
 package com.weibo.api.motan.config;
 
 /**
- *
  * Abstract referer config.
  *
  * @author fishermen

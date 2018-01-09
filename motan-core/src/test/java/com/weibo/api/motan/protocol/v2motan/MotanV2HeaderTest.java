@@ -62,7 +62,7 @@ public class MotanV2HeaderTest {
         checkEquals(header);
     }
 
-    private void checkEquals(MotanV2Header header){
+    private void checkEquals(MotanV2Header header) {
         byte[] headerBytes = header.toBytes();
         assertTrue(headerBytes.length == 13);
         assertEquals(header, MotanV2Header.buildHeader(headerBytes));

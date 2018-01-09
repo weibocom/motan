@@ -16,16 +16,14 @@
 
 package com.weibo.api.motan.core;
 
+import com.weibo.api.motan.common.MotanConstants;
+
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.weibo.api.motan.common.MotanConstants;
-
 /**
- * 
  * @author maijunsheng
  * @version 创建时间：2013-6-6
- * 
  */
 public class DefaultThreadFactory implements ThreadFactory {
     private static final AtomicInteger poolNumber = new AtomicInteger(1);

@@ -15,27 +15,25 @@
  */
 package com.weibo.api.motan.protocol.restful.support;
 
-import org.jboss.resteasy.spi.HttpRequest;
-
 import com.weibo.api.motan.rpc.DefaultRequest;
+import org.jboss.resteasy.spi.HttpRequest;
 
 /**
  * 服务端接收到的rpc request
  *
  * @author zhouhaocheng
- *
  */
 public class RestfulContainerRequest extends DefaultRequest {
     private static final long serialVersionUID = 5226548801729702089L;
 
     private HttpRequest httpRequest;
 
-    public void setHttpRequest(HttpRequest httpRequest) {
-        this.httpRequest = httpRequest;
-    }
-
     public HttpRequest getHttpRequest() {
         return httpRequest;
+    }
+
+    public void setHttpRequest(HttpRequest httpRequest) {
+        this.httpRequest = httpRequest;
     }
 
 }

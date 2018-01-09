@@ -32,16 +32,14 @@ import java.util.List;
 
 /**
  * @author fld
- *         <p>
- *         Created by fld on 16/5/13.
+ * <p>
+ * Created by fld on 16/5/13.
  */
 public class BasicServiceConfigBean extends BasicServiceInterfaceConfig implements BeanNameAware,
         InitializingBean, BeanFactoryAware {
 
-    private String registryNames;
-
-
     BeanFactory beanFactory;
+    private String registryNames;
 
     @Override
     public void setBeanName(String name) {

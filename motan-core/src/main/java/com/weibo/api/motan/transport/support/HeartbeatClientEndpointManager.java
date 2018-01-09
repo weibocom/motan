@@ -37,9 +37,8 @@ import java.util.concurrent.*;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-14
- *
  */
-public class HeartbeatClientEndpointManager implements EndpointManager{
+public class HeartbeatClientEndpointManager implements EndpointManager {
 
     private ConcurrentMap<Client, HeartbeatFactory> endpoints = new ConcurrentHashMap<Client, HeartbeatFactory>();
 

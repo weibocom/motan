@@ -16,15 +16,14 @@
 
 package com.weibo.api.motan.cluster;
 
-import java.util.List;
-
 import com.weibo.api.motan.core.extension.Scope;
 import com.weibo.api.motan.core.extension.Spi;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
 
+import java.util.List;
+
 /**
- * 
  * Loadbalance for select referer
  *
  * @author fishermen

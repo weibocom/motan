@@ -39,7 +39,6 @@ import java.util.List;
 
 
 /**
- * 
  * Handle refUrl to get referers, assemble to a cluster, create a proxy
  *
  * @author fishermen
@@ -84,10 +83,10 @@ public class SimpleConfigHandler implements ConfigHandler {
         return exporter;
     }
 
-    protected <T> Provider<T> getProvider(Protocol protocol, T proxyImpl, URL url, Class<T> clz){
-        if (protocol instanceof ProviderFactory){
-            return ((ProviderFactory)protocol).newProvider(proxyImpl, url, clz);
-        } else{
+    protected <T> Provider<T> getProvider(Protocol protocol, T proxyImpl, URL url, Class<T> clz) {
+        if (protocol instanceof ProviderFactory) {
+            return ((ProviderFactory) protocol).newProvider(proxyImpl, url, clz);
+        } else {
             return new DefaultProvider<T>(proxyImpl, url, clz);
         }
     }

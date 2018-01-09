@@ -1,11 +1,11 @@
 /*
  * Copyright 2009-2016 Weibo, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -31,16 +31,15 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 
 /**
- * 
- * @Description TODO
  * @author zhanglei
+ * @Description TODO
  * @date Oct 13, 2016
- *
  */
 public class GrpcUtil {
+    public static final String JSON_CODEC = "grpc-pb-json";
     @SuppressWarnings("rawtypes")
     private static HashMap<String, HashMap<String, MethodDescriptor>> serviceMap = new HashMap<String, HashMap<String, MethodDescriptor>>();
-    public static final String JSON_CODEC = "grpc-pb-json";
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static ServerServiceDefinition getServiceDefByAnnotation(Class<?> clazz) throws Exception {
         ServiceDescriptor serviceDesc = getServiceDesc(getGrpcClassName(clazz));
@@ -75,7 +74,7 @@ public class GrpcUtil {
                     HashMap<String, MethodDescriptor> methodMap = new HashMap<String, MethodDescriptor>();
                     for (MethodDescriptor<?, ?> methodDesc : serviceDesc.getMethods()) {
                         Method interfaceMethod = getMethod(methodDesc.getFullMethodName(), clazz);
-                        if(JSON_CODEC.equals(serialization)){
+                        if (JSON_CODEC.equals(serialization)) {
                             methodDesc = convertJsonDescriptor(methodDesc, interfaceMethod.getParameterTypes()[0], interfaceMethod.getReturnType());
                         }
                         methodMap.put(interfaceMethod.getName(), methodDesc);
@@ -103,10 +102,10 @@ public class GrpcUtil {
         throw new MotanFrameworkException("not find grpc method");
     }
 
-    public static MethodDescriptor convertJsonDescriptor(MethodDescriptor oldDesc, Class req, Class res){
+    public static MethodDescriptor convertJsonDescriptor(MethodDescriptor oldDesc, Class req, Class res) {
         MethodDescriptor.Marshaller reqMarshaller = getJsonMarshaller(req);
         MethodDescriptor.Marshaller resMarshaller = getJsonMarshaller(res);
-        if(reqMarshaller != null && resMarshaller != null){
+        if (reqMarshaller != null && resMarshaller != null) {
             return MethodDescriptor.create(oldDesc.getType(), oldDesc.getFullMethodName(), reqMarshaller, resMarshaller);
         }
         return null;

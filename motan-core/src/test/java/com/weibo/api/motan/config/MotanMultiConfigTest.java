@@ -16,23 +16,21 @@
 
 package com.weibo.api.motan.config;
 
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.junit.Test;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.mock.MockClient;
 import com.weibo.api.motan.protocol.example.Hello;
 import com.weibo.api.motan.protocol.example.IHello;
 import com.weibo.api.motan.rpc.URL;
+import org.junit.Test;
+
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author maijunsheng
  * @author zhanlgei
  * @version 创建时间：2013-6-23
- * 
  */
 public class MotanMultiConfigTest extends BaseTestCase {
     ServiceConfig<IHello> serviceConfig1 = null;

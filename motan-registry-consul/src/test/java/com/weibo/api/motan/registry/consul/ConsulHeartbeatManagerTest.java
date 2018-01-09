@@ -1,23 +1,19 @@
 package com.weibo.api.motan.registry.consul;
 
-import static org.junit.Assert.assertTrue;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.weibo.api.motan.util.MotanSwitcherUtil;
+import static org.junit.Assert.assertTrue;
 
 /**
- * 
- * @Description ConsulHeartbeatManagerTest
  * @author zhanglei28
+ * @Description ConsulHeartbeatManagerTest
  * @date 2016年3月22日
- *
  */
 public class ConsulHeartbeatManagerTest {
     private ConsulHeartbeatManager heartbeatManager;

@@ -18,10 +18,9 @@ package com.weibo.api.motan.rpc;
 
 /**
  * abstract exporter
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-5-21
- * 
  */
 public abstract class AbstractExporter<T> extends AbstractNode implements Exporter<T> {
     protected Provider<T> provider;

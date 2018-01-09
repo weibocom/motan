@@ -19,7 +19,6 @@ package com.weibo.api.motan.protocol.example;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-23
- * 
  */
 public interface IHello {
     String hello();

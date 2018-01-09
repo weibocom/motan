@@ -16,29 +16,22 @@
 
 package com.weibo.api.motan.protocol.rpc;
 
-import java.util.Arrays;
-
-import junit.framework.TestCase;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.mock.MockChannel;
 import com.weibo.api.motan.protocol.example.Model;
-import com.weibo.api.motan.rpc.DefaultRequest;
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.transport.Channel;
+import junit.framework.TestCase;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.Arrays;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-26
- * 
  */
 public class DefaultRpcCodecTest extends TestCase {
     protected Codec rpcCodec = new DefaultRpcCodec();
@@ -56,33 +49,33 @@ public class DefaultRpcCodecTest extends TestCase {
 
     @Test
     public void testOriginalTypeRequest() throws Exception {
-        DefaultRequest request = getRequest("java.lang.Integer", new Object[] {1});
+        DefaultRequest request = getRequest("java.lang.Integer", new Object[]{1});
         testCodecRequest(request);
     }
 
     @Test
     public void testStringTypeRequest() throws Exception {
-        DefaultRequest request = getRequest("java.lang.String", new Object[] {"hello"});
+        DefaultRequest request = getRequest("java.lang.String", new Object[]{"hello"});
         testCodecRequest(request);
     }
 
     @Test
     public void testObjectTypeRequest() throws Exception {
         DefaultRequest request =
-                getRequest("com.weibo.api.motan.protocol.example.Model", new Object[] {new Model("world", 12, Model.class)});
+                getRequest("com.weibo.api.motan.protocol.example.Model", new Object[]{new Model("world", 12, Model.class)});
         testCodecRequest(request);
     }
 
     @Test
     public void testNullRequest() throws Exception {
-        DefaultRequest request = getRequest("com.weibo.api.motan.protocol.example.Model", new Object[] {null});
+        DefaultRequest request = getRequest("com.weibo.api.motan.protocol.example.Model", new Object[]{null});
         testCodecRequest(request);
     }
 
     @Test
     public void testHalfNullRequest() throws Exception {
         DefaultRequest request =
-                getRequest("com.weibo.api.motan.protocol.example.Model,com.weibo.api.motan.protocol.example.Model", new Object[] {null,
+                getRequest("com.weibo.api.motan.protocol.example.Model,com.weibo.api.motan.protocol.example.Model", new Object[]{null,
                         new Model("world", 12, Model.class)});
         testCodecRequest(request);
     }
@@ -90,7 +83,7 @@ public class DefaultRpcCodecTest extends TestCase {
     @Test
     public void testHalfNullRequest1() throws Exception {
         DefaultRequest request =
-                getRequest("com.weibo.api.motan.protocol.example.Model[]", new Object[] {new Model[] {null,
+                getRequest("com.weibo.api.motan.protocol.example.Model[]", new Object[]{new Model[]{null,
                         new Model("world", 12, Model.class)}});
         testCodecRequest(request);
     }
@@ -99,26 +92,27 @@ public class DefaultRpcCodecTest extends TestCase {
     @Test
     public void testMultiTypeRequest() throws Exception {
         DefaultRequest request =
-                getRequest("com.weibo.api.motan.protocol.example.Model,java.lang.Integer,java.lang.String", new Object[] {
+                getRequest("com.weibo.api.motan.protocol.example.Model,java.lang.Integer,java.lang.String", new Object[]{
                         new Model("world", 12, Model.class), 1, "hello"});
         testCodecRequest(request);
     }
 
-    public @Test void testOriginalTypeArrayRequest() throws Exception {
-        DefaultRequest request = getRequest("int[]", new Object[] {new int[] {1, 2}});
+    public @Test
+    void testOriginalTypeArrayRequest() throws Exception {
+        DefaultRequest request = getRequest("int[]", new Object[]{new int[]{1, 2}});
         testCodecRequest(request);
     }
 
     @Test
     public void testStringArrayRequest() throws Exception {
-        DefaultRequest request = getRequest("java.lang.String[]", new Object[] {new String[] {"hello", "world"}});
+        DefaultRequest request = getRequest("java.lang.String[]", new Object[]{new String[]{"hello", "world"}});
         testCodecRequest(request);
     }
 
     @Test
     public void testObjectArrayRequest() throws Exception {
         DefaultRequest request =
-                getRequest("com.weibo.api.motan.protocol.example.Model[]", new Object[] {new Model[] {new Model("hello", 11, Model.class),
+                getRequest("com.weibo.api.motan.protocol.example.Model[]", new Object[]{new Model[]{new Model("hello", 11, Model.class),
                         new Model("world", 12, Model.class)}});
         testCodecRequest(request);
     }

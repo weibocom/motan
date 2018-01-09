@@ -22,7 +22,6 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 
 /**
- * 
  * filter before transport.
  *
  * @author fishermen

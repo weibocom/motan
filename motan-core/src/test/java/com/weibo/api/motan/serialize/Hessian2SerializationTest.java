@@ -30,7 +30,6 @@ import java.util.Map;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-3
- * 
  */
 public class Hessian2SerializationTest extends TestCase {
     Hessian2Serialization hessian2Serialization = new Hessian2Serialization();
@@ -65,8 +64,8 @@ public class Hessian2SerializationTest extends TestCase {
 
     @Test
     public void testHessianBug() throws Exception {
-        UserAttentions ua1 = new UserAttentions(1234L, new long[] {}, new long[] {}, 0, 0L);
-        UserAttentions ua2 = new UserAttentions(1234L, new long[] {}, new long[] {}, 0);
+        UserAttentions ua1 = new UserAttentions(1234L, new long[]{}, new long[]{}, 0, 0L);
+        UserAttentions ua2 = new UserAttentions(1234L, new long[]{}, new long[]{}, 0);
         Hessian2Serialization s = new Hessian2Serialization();
         byte[] bytes1 = s.serialize(ua1);
         byte[] bytes2 = s.serialize(ua2);
@@ -79,7 +78,7 @@ public class Hessian2SerializationTest extends TestCase {
 
     @Test
     public void testHessianTimeStampBug() throws Exception {
-        UserAttentions ua = new UserAttentions(1234L, new long[] {}, new long[] {}, 0, 0L);
+        UserAttentions ua = new UserAttentions(1234L, new long[]{}, new long[]{}, 0, 0L);
         Timestamp timestamp = ua.getTimeStamp();
 
         Hessian2Serialization s = new Hessian2Serialization();

@@ -16,15 +16,22 @@
 
 package com.weibo.api.motan.benchmark;
 
+import com.weibo.api.motan.proxy.spi.JdkProxyFactory;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
-import com.weibo.api.motan.proxy.spi.JdkProxyFactory;
+interface ICall {
+    String call_1kb_string();
+
+    void empty_method();
+
+    void sleep_1ms();
+}
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-9
- * 
  */
 public class JdkProxyTest {
 
@@ -109,16 +116,6 @@ public class JdkProxyTest {
 
 }
 
-
-interface ICall {
-    String call_1kb_string();
-
-    void empty_method();
-
-    void sleep_1ms();
-}
-
-
 class Call implements ICall {
     public String call_1kb_string() {
 
@@ -135,8 +132,10 @@ class Call implements ICall {
     public void sleep_1ms() {
         try {
             Thread.sleep(1);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
 
-    public void empty_method() {}
+    public void empty_method() {
+    }
 }

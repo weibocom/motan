@@ -58,7 +58,9 @@ public class MotanErrorMsgConstant {
     public static final MotanErrorMsg FRAMEWORK_DEFAULT_ERROR = new MotanErrorMsg(503, FRAMEWORK_DEFAULT_ERROR_CODE,
             "framework default error");
 
-    /** service error end **/
+    /**
+     * service error end
+     **/
     public static final MotanErrorMsg FRAMEWORK_ENCODE_ERROR =
             new MotanErrorMsg(503, FRAMEWORK_ENCODE_ERROR_CODE, "framework encode error");
     public static final MotanErrorMsg FRAMEWORK_DECODE_ERROR =
@@ -71,7 +73,10 @@ public class MotanErrorMsgConstant {
      * biz error start
      **/
     public static final MotanErrorMsg BIZ_DEFAULT_EXCEPTION = new MotanErrorMsg(503, BIZ_DEFAULT_ERROR_CODE, "provider error");
-    /** framework error end **/
+
+    /**
+     * framework error end
+     **/
 
     private MotanErrorMsgConstant() {
     }

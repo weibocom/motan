@@ -60,14 +60,14 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
         }
 
     }
-    
+
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
-    public void testLocalMehtod() throws Exception{
+    public void testLocalMehtod() throws Exception {
         final Cluster cluster = mockery.mock(Cluster.class);
         final URL u = new URL("motan", "local", 80, "test");
         final List<Referer> referers = new ArrayList<Referer>();
-        final Referer referer = mockery.mock(Referer.class); 
+        final Referer referer = mockery.mock(Referer.class);
         referers.add(referer);
         mockery.checking(new Expectations() {
             {
@@ -86,25 +86,24 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
         Method method = TestServiceImpl.class.getMethod("toString", new Class<?>[]{});
         assertTrue(handler.isLocalMethod(method));
         try {
-            String result = (String)handler.invoke(null, method, null);
+            String result = (String) handler.invoke(null, method, null);
             assertEquals("{protocol:motan[motan://local:80/test?group=default_rpc, available:true]}", result);
         } catch (Throwable e) {
             assertTrue(false);
         }
-        
+
         method = TestServiceImpl.class.getMethod("hashCode", new Class<?>[]{});
         assertTrue(handler.isLocalMethod(method));
-        
+
         //remote method
         method = TestServiceImpl.class.getMethod("hello", new Class<?>[]{});
         assertFalse(handler.isLocalMethod(method));
         method = TestServiceImpl.class.getMethod("equals", new Class<?>[]{Object.class});
         assertFalse(handler.isLocalMethod(method));
-        
-        
-        
+
+
     }
-    
+
     @Test
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void testAsync() {
@@ -127,7 +126,7 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
         RefererInvocationHandler handler = new RefererInvocationHandler(String.class, clus);
         Method method;
         try {
-            method = TestService.class.getMethod("helloAsync", new Class<?>[] {});
+            method = TestService.class.getMethod("helloAsync", new Class<?>[]{});
             ResponseFuture res = (ResponseFuture) handler.invoke(null, method, null);
             assertEquals(response, res);
             assertTrue((Boolean) RpcContext.getContext().getAttribute(MotanConstants.ASYNC_SUFFIX));

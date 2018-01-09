@@ -17,7 +17,6 @@
 package com.weibo.dao;
 
 import com.weibo.model.OperationRecord;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 

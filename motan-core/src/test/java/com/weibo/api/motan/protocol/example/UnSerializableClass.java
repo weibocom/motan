@@ -15,13 +15,12 @@
  */
 
 /**
- * 
+ *
  */
 package com.weibo.api.motan.protocol.example;
 
 /**
  * @author bozheng
- * 
  */
 public class UnSerializableClass {
 

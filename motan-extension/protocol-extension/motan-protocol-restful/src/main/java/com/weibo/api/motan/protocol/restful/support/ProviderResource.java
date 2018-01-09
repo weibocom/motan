@@ -15,6 +15,7 @@
  */
 package com.weibo.api.motan.protocol.restful.support;
 
+import com.weibo.api.motan.rpc.Provider;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.HttpResponse;
 import org.jboss.resteasy.spi.ResourceFactory;
@@ -22,14 +23,11 @@ import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.jboss.resteasy.spi.metadata.ResourceBuilder;
 import org.jboss.resteasy.spi.metadata.ResourceClass;
 
-import com.weibo.api.motan.rpc.Provider;
-
 /**
  * 基于provider的resource
  *
- * @author zhouhaocheng
- *
  * @param <T>
+ * @author zhouhaocheng
  */
 public class ProviderResource<T> implements ResourceFactory {
     private final Provider<T> provider;

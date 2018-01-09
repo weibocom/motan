@@ -16,8 +16,6 @@
 
 package com.weibo.api.motan.transport.netty;
 
-import java.io.IOException;
-
 import com.weibo.api.motan.codec.AbstractCodec;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.core.extension.SpiMeta;
@@ -28,11 +26,12 @@ import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.transport.Channel;
 
+import java.io.IOException;
+
 @SpiMeta(name = "mockMotan")
 public class MockDefaultRpcCodec extends AbstractCodec {
-    private DefaultRpcCodec codec = new DefaultRpcCodec();
-
     private static final byte MASK = 0x07;
+    private DefaultRpcCodec codec = new DefaultRpcCodec();
 
     @Override
     public byte[] encode(Channel channel, Object message) throws IOException {

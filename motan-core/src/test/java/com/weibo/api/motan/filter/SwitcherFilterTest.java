@@ -108,7 +108,7 @@ public class SwitcherFilterTest extends BaseTestCase {
     }
 
     public void testOnSwitcher() {
-        MotanSwitcherUtil.setSwitcherValue("mock_class_name",true);
+        MotanSwitcherUtil.setSwitcherValue("mock_class_name", true);
 
         mockery.checking(new Expectations() {
             {
@@ -135,7 +135,7 @@ public class SwitcherFilterTest extends BaseTestCase {
         assertNotNull(resultOnSwitcher);
         assertTrue(resultOnSwitcher.getException().getMessage().contains("Request false for switcher is on"));
 
-        MotanSwitcherUtil.setSwitcherValue("mock_class_name",false);
+        MotanSwitcherUtil.setSwitcherValue("mock_class_name", false);
 
         Response resultOffSwitcher = filter.filter(caller, request);
 

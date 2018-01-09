@@ -35,18 +35,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.weibo.api.motan.common.MotanConstants.APPLICATION_STATISTIC;
 
 /**
- * 
  * @author maijunsheng
  * @version 创建时间：2013-6-24
  */
 public class StatsUtil {
 
+    public static final String HISTOGRAM_NAME = MetricRegistry.name(AccessStatisticItem.class, "costTimeMillis");
     public static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+    public static String SEPARATE = "\\|";
     protected static ConcurrentMap<String, AccessStatisticItem> accessStatistics = new ConcurrentHashMap<String, AccessStatisticItem>();
     protected static List<StatisticCallback> statisticCallbacks = new CopyOnWriteArrayList<StatisticCallback>();
-    public static String SEPARATE = "\\|";
     protected static ScheduledFuture<?> scheduledFuture;
-    public static final String HISTOGRAM_NAME = MetricRegistry.name(AccessStatisticItem.class, "costTimeMillis");
 
     static {
         scheduledFuture = executorService.scheduleAtFixedRate(new Runnable() {
@@ -64,7 +63,7 @@ public class StatsUtil {
         ShutDownHook.registerShutdownHook(new Closable() {
             @Override
             public void close() {
-                if(!executorService.isShutdown()){
+                if (!executorService.isShutdown()) {
                     executorService.shutdown();
                 }
             }
@@ -113,7 +112,7 @@ public class StatsUtil {
         if (StringUtils.isBlank(application)) {
             application = URLParamType.application.getValue();
         }
-        if (StringUtils.isBlank(module)){
+        if (StringUtils.isBlank(module)) {
             module = URLParamType.module.getValue();
         }
 

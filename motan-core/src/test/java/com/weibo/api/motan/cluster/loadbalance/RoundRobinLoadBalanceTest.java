@@ -16,17 +16,15 @@
 
 package com.weibo.api.motan.cluster.loadbalance;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jmock.Expectations;
-
 import com.weibo.api.motan.protocol.example.IHello;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
+import org.jmock.Expectations;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 
  * RoundRobin loadBalance
  *
  * @author fishermen

@@ -78,12 +78,12 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         return methods;
     }
 
-    public void setMethods(MethodConfig methods) {
-        this.methods = Collections.singletonList(methods);
-    }
-
     public void setMethods(List<MethodConfig> methods) {
         this.methods = methods;
+    }
+
+    public void setMethods(MethodConfig methods) {
+        this.methods = Collections.singletonList(methods);
     }
 
     public boolean hasMethods() {

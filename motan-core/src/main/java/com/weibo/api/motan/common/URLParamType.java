@@ -21,60 +21,93 @@ import com.weibo.api.motan.config.RegistryConfig.Excise;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-21
- *
  */
 public enum URLParamType {
-    /** version **/
+    /**
+     * version
+     **/
     version("version", MotanConstants.DEFAULT_VERSION),
-    /** request timeout **/
+    /**
+     * request timeout
+     **/
     requestTimeout("requestTimeout", 200),
-    /** request id from http interface **/
+    /**
+     * request id from http interface
+     **/
     requestIdFromClient("requestIdFromClient", 0),
-    /** connect timeout **/
+    /**
+     * connect timeout
+     **/
     connectTimeout("connectTimeout", 1000),
-    /** service min worker threads **/
+    /**
+     * service min worker threads
+     **/
     minWorkerThread("minWorkerThread", 20),
-    /** service max worker threads **/
+    /**
+     * service max worker threads
+     **/
     maxWorkerThread("maxWorkerThread", 200),
-    /** pool min conn number **/
+    /**
+     * pool min conn number
+     **/
     minClientConnection("minClientConnection", 2),
-    /** pool max conn number **/
+    /**
+     * pool max conn number
+     **/
     maxClientConnection("maxClientConnection", 10),
-    /** pool max conn number **/
+    /**
+     * pool max conn number
+     **/
     maxContentLength("maxContentLength", 10 * 1024 * 1024),
-    /** max server conn (all clients conn) **/
+    /**
+     * max server conn (all clients conn)
+     **/
     maxServerConnection("maxServerConnection", 100000),
-    /** pool conn manger stragy **/
+    /**
+     * pool conn manger stragy
+     **/
     poolLifo("poolLifo", true),
 
     lazyInit("lazyInit", false),
-    /** multi referer share the same channel **/
+    /**
+     * multi referer share the same channel
+     **/
     shareChannel("shareChannel", false),
     asyncInitConnection("asyncInitConnection", false),
 
     /************************** SPI start ******************************/
 
-    /** serialize **/
+    /**
+     * serialize
+     **/
     serialize("serialization", "hessian2"),
-    /** codec **/
+    /**
+     * codec
+     **/
     codec("codec", "motan"),
-    /** endpointFactory **/
+    /**
+     * endpointFactory
+     **/
     endpointFactory("endpointFactory", "motan"),
-    /** heartbeatFactory **/
+    /**
+     * heartbeatFactory
+     **/
     heartbeatFactory("heartbeatFactory", "motan"),
-    /** switcherService **/
+    /**
+     * switcherService
+     **/
     switcherService("switcherService", "localSwitcherService"),
 
     /************************** SPI end ******************************/
 
-    group("group", "default_rpc"), 
-    clientGroup("clientGroup", "default_rpc"), 
+    group("group", "default_rpc"),
+    clientGroup("clientGroup", "default_rpc"),
     accessLog("accessLog", false),
 
     // 0为不做并发限制
     actives("actives", 0),
 
-    refreshTimestamp("refreshTimestamp", 0), 
+    refreshTimestamp("refreshTimestamp", 0),
     nodeType("nodeType", MotanConstants.NODE_TYPE_SERVICE),
 
     // 格式为protocol:port
@@ -83,41 +116,41 @@ public enum URLParamType {
 
     registryRetryPeriod("registryRetryPeriod", 30 * MotanConstants.SECOND_MILLS),
     /* 注册中心不可用节点剔除方式 */
-    excise("excise", Excise.excise_dynamic.getName()), 
-    cluster("cluster", MotanConstants.DEFAULT_VALUE), 
-    loadbalance("loadbalance", "activeWeight"), 
-    haStrategy("haStrategy", "failover"), 
-    protocol("protocol", MotanConstants.PROTOCOL_MOTAN), 
-    path("path", ""), 
-    host("host", ""), 
-    port("port", 0), 
-    iothreads("iothreads", Runtime.getRuntime().availableProcessors() + 1), 
-    workerQueueSize("workerQueueSize", 0), 
-    acceptConnections("acceptConnections", 0), 
-    proxy("proxy", MotanConstants.PROXY_JDK), 
+    excise("excise", Excise.excise_dynamic.getName()),
+    cluster("cluster", MotanConstants.DEFAULT_VALUE),
+    loadbalance("loadbalance", "activeWeight"),
+    haStrategy("haStrategy", "failover"),
+    protocol("protocol", MotanConstants.PROTOCOL_MOTAN),
+    path("path", ""),
+    host("host", ""),
+    port("port", 0),
+    iothreads("iothreads", Runtime.getRuntime().availableProcessors() + 1),
+    workerQueueSize("workerQueueSize", 0),
+    acceptConnections("acceptConnections", 0),
+    proxy("proxy", MotanConstants.PROXY_JDK),
     filter("filter", ""),
 
     usegz("usegz", false), // 是否开启gzip压缩
     mingzSize("mingzSize", 1000), // 进行gz压缩的最小数据大小。超过此阈值才进行gz压缩
 
 
-    application("application", MotanConstants.FRAMEWORK_NAME), 
+    application("application", MotanConstants.FRAMEWORK_NAME),
     module("module", MotanConstants.FRAMEWORK_NAME),
 
-    retries("retries", 0), 
-    async("async", false), 
-    mock("mock", "false"), 
-    mean("mean", "2"), 
-    p90("p90", "4"), 
-    p99("p99", "10"), 
-    p999("p999", "70"), 
-    errorRate("errorRate", "0.01"), 
-    check("check", "true"), 
-    directUrl("directUrl", ""), 
+    retries("retries", 0),
+    async("async", false),
+    mock("mock", "false"),
+    mean("mean", "2"),
+    p90("p90", "4"),
+    p99("p99", "10"),
+    p999("p999", "70"),
+    errorRate("errorRate", "0.01"),
+    check("check", "true"),
+    directUrl("directUrl", ""),
     registrySessionTimeout("registrySessionTimeout", 1 * MotanConstants.MINUTE_MILLS),
 
-    register("register", true), 
-    subscribe("subscribe", true), 
+    register("register", true),
+    subscribe("subscribe", true),
     throwException("throwException", "true"),
     transExceptionStack("transExceptionStack", true),
 

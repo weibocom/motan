@@ -15,18 +15,17 @@
  */
 package com.weibo.api.motan.protocol.restful.support.proxy;
 
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import org.jboss.resteasy.client.jaxrs.ProxyConfig;
+import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+import org.jboss.resteasy.util.IsHttpMethod;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-
-import org.jboss.resteasy.client.jaxrs.ProxyConfig;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.jboss.resteasy.util.IsHttpMethod;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class RestfulProxyBuilder<T> {
     private final Class<T> iface;
@@ -35,12 +34,17 @@ public class RestfulProxyBuilder<T> {
     private MediaType serverConsumes;
     private MediaType serverProduces;
 
+    private RestfulProxyBuilder(Class<T> iface, ResteasyWebTarget webTarget) {
+        this.iface = iface;
+        this.webTarget = webTarget;
+    }
+
     public static <T> RestfulProxyBuilder<T> builder(Class<T> iface, WebTarget webTarget) {
         return new RestfulProxyBuilder<T>(iface, (ResteasyWebTarget) webTarget);
     }
 
     public static Map<Method, RestfulClientInvoker> proxy(final Class<?> iface, WebTarget base,
-            final ProxyConfig config) {
+                                                          final ProxyConfig config) {
         if (iface.isAnnotationPresent(Path.class)) {
             Path path = iface.getAnnotation(Path.class);
             if (!path.value().equals("") && !path.value().equals("/")) {
@@ -58,7 +62,7 @@ public class RestfulProxyBuilder<T> {
     }
 
     private static <T> RestfulClientInvoker createClientInvoker(Class<T> clazz, Method method, ResteasyWebTarget base,
-            ProxyConfig config) {
+                                                                ProxyConfig config) {
         Set<String> httpMethods = IsHttpMethod.getHttpMethods(method);
         if (httpMethods == null || httpMethods.size() != 1) {
             throw new RuntimeException(
@@ -68,11 +72,6 @@ public class RestfulProxyBuilder<T> {
         RestfulClientInvoker invoker = new RestfulClientInvoker(base, clazz, method, config);
         invoker.setHttpMethod(httpMethods.iterator().next());
         return invoker;
-    }
-
-    private RestfulProxyBuilder(Class<T> iface, ResteasyWebTarget webTarget) {
-        this.iface = iface;
-        this.webTarget = webTarget;
     }
 
     public RestfulProxyBuilder<T> classloader(ClassLoader cl) {

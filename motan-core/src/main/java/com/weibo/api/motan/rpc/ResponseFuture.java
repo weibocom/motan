@@ -14,11 +14,11 @@
  */
 package com.weibo.api.motan.rpc;
 
-public interface ResponseFuture extends Future, Response{
+public interface ResponseFuture extends Future, Response {
     void onSuccess(Response response);
 
-    void onFailure(Response response) ;
-    
+    void onFailure(Response response);
+
     long getCreateTime();
 
     void setReturnType(Class<?> clazz);

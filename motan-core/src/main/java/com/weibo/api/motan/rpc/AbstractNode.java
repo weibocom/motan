@@ -23,7 +23,6 @@ import com.weibo.api.motan.util.LoggerUtil;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-21
- * 
  */
 public abstract class AbstractNode implements Node {
 

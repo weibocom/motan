@@ -26,9 +26,8 @@ import com.weibo.api.motan.util.MotanFrameworkUtil;
 import java.util.List;
 
 /**
- * 
  * loadbalance
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-22
  */

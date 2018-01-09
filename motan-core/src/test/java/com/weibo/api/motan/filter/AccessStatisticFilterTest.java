@@ -16,11 +16,6 @@
 
 package com.weibo.api.motan.filter;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.jmock.Expectations;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
@@ -33,10 +28,13 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.NetUtils;
+import org.jmock.Expectations;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
- * 
  * test
  *
  * @author fishermen

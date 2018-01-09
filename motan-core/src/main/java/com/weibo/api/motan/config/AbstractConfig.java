@@ -16,22 +16,20 @@
 
 package com.weibo.api.motan.config;
 
+import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.config.annotation.ConfigDesc;
+import com.weibo.api.motan.exception.MotanErrorMsgConstant;
+import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.util.LoggerUtil;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.config.annotation.ConfigDesc;
-import com.weibo.api.motan.exception.MotanErrorMsgConstant;
-import com.weibo.api.motan.exception.MotanFrameworkException;
-import com.weibo.api.motan.util.LoggerUtil;
-
 /**
- * 
  * abstract config
  *
  * @author fishermen
@@ -41,20 +39,12 @@ import com.weibo.api.motan.util.LoggerUtil;
 public abstract class AbstractConfig implements Serializable {
 
     private static final long serialVersionUID = 5736580957909744603L;
-
+    private static final String[] SUFFIXS = new String[]{"Config", "Bean"};
     protected String id;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     /**
      * 按顺序进行config 参数append and override，按照configs出现的顺序，后面的会覆盖前面的相同名称的参数
-     * 
+     *
      * @param parameters
      * @param configs
      */
@@ -77,13 +67,33 @@ public abstract class AbstractConfig implements Serializable {
         }
     }
 
+    private static String getTagName(Class<?> cls) {
+        String tag = cls.getSimpleName();
+        for (String suffix : SUFFIXS) {
+            if (tag.endsWith(suffix)) {
+                tag = tag.substring(0, tag.length() - suffix.length());
+                break;
+            }
+        }
+        tag = tag.toLowerCase();
+        return tag;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     protected void appendConfigParams(Map<String, String> parameters) {
         appendConfigParams(parameters, null);
     }
 
     /**
      * 将config 参数录入Map中
-     * 
+     *
      * @param parameters
      */
     @SuppressWarnings("unchecked")
@@ -184,19 +194,5 @@ public abstract class AbstractConfig implements Serializable {
             LoggerUtil.warn(t.getMessage(), t);
             return super.toString();
         }
-    }
-
-    private static final String[] SUFFIXS = new String[] {"Config", "Bean"};
-
-    private static String getTagName(Class<?> cls) {
-        String tag = cls.getSimpleName();
-        for (String suffix : SUFFIXS) {
-            if (tag.endsWith(suffix)) {
-                tag = tag.substring(0, tag.length() - suffix.length());
-                break;
-            }
-        }
-        tag = tag.toLowerCase();
-        return tag;
     }
 }

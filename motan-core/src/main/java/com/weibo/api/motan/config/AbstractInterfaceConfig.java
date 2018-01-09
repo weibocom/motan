@@ -241,13 +241,13 @@ public class AbstractInterfaceConfig extends AbstractConfig {
         return check;
     }
 
+    public void setCheck(String check) {
+        this.check = check;
+    }
+
     @Deprecated
     public void setCheck(Boolean check) {
         this.check = String.valueOf(check);
-    }
-
-    public void setCheck(String check) {
-        this.check = check;
     }
 
     public Boolean getShareChannel() {

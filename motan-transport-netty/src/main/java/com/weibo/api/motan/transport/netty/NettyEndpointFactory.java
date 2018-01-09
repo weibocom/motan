@@ -21,26 +21,23 @@ import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.Client;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.transport.Server;
-import com.weibo.api.motan.transport.netty.NettyClient;
-import com.weibo.api.motan.transport.netty.NettyServer;
 import com.weibo.api.motan.transport.support.AbstractEndpointFactory;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-5
- * 
  */
 @SpiMeta(name = "motan")
 public class NettyEndpointFactory extends AbstractEndpointFactory {
 
-	@Override
-	protected Server innerCreateServer(URL url, MessageHandler messageHandler) {
-		return new NettyServer(url, messageHandler);
-	}
+    @Override
+    protected Server innerCreateServer(URL url, MessageHandler messageHandler) {
+        return new NettyServer(url, messageHandler);
+    }
 
-	@Override
-	protected Client innerCreateClient(URL url) {
-		return new NettyClient(url);
-	}
+    @Override
+    protected Client innerCreateClient(URL url) {
+        return new NettyClient(url);
+    }
 
 }

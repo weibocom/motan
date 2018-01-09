@@ -20,18 +20,18 @@ import com.weibo.api.motan.serialize.protobuf.gen.UserProto.User;
 
 public interface HelloService {
 
-	Address queryByUid(int uid);
+    Address queryByUid(int uid);
 
-	Long boxIfNotZero(int value);
+    Long boxIfNotZero(int value);
 
-	boolean isUserAddress(User user, Address address);
+    boolean isUserAddress(User user, Address address);
 
-	void testException();
+    void testException();
 
-	boolean isNull(User user);
+    boolean isNull(User user);
 
-	User copy(User origin);
+    User copy(User origin);
 
-	String sumAsString(int a, int b);
+    String sumAsString(int a, int b);
 
 }

@@ -38,13 +38,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ZookeeperRegistry extends CommandFailbackRegistry implements Closable {
+    private final ReentrantLock clientLock = new ReentrantLock();
+    private final ReentrantLock serverLock = new ReentrantLock();
     private ZkClient zkClient;
     private Set<URL> availableServices = new ConcurrentHashSet<URL>();
     private ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>> serviceListeners = new ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>>();
     private ConcurrentHashMap<URL, ConcurrentHashMap<CommandListener, IZkDataListener>> commandListeners = new ConcurrentHashMap<URL, ConcurrentHashMap<CommandListener, IZkDataListener>>();
-    private final ReentrantLock clientLock = new ReentrantLock();
-    private final ReentrantLock serverLock = new ReentrantLock();
-    
+
     public ZookeeperRegistry(URL url, ZkClient client) {
         super(url);
         this.zkClient = client;
@@ -241,7 +241,7 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
 
     @Override
     protected void doAvailable(URL url) {
-        try{
+        try {
             serverLock.lock();
             if (url == null) {
                 availableServices.addAll(getRegisteredServiceUrls());
@@ -263,7 +263,7 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
 
     @Override
     protected void doUnavailable(URL url) {
-        try{
+        try {
             serverLock.lock();
             if (url == null) {
                 availableServices.removeAll(getRegisteredServiceUrls());
@@ -289,9 +289,9 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
             for (String node : currentChilds) {
                 String nodePath = parentPath + MotanConstants.PATH_SEPARATOR + node;
                 String data = null;
-                try{
+                try {
                     data = zkClient.readData(nodePath, true);
-                } catch (Exception e){
+                } catch (Exception e) {
                     LoggerUtil.warn("get zkdata fail!" + e.getMessage());
                 }
                 URL newurl = null;
@@ -341,7 +341,7 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
             zkClient.delete(nodePath);
         }
     }
-    
+
     private void reconnectService() {
         Collection<URL> allRegisteredServices = getRegisteredServiceUrls();
         if (allRegisteredServices != null && !allRegisteredServices.isEmpty()) {

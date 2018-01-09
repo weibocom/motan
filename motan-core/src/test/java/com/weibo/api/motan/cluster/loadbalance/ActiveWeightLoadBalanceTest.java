@@ -16,20 +16,18 @@
 
 package com.weibo.api.motan.cluster.loadbalance;
 
+import com.weibo.api.motan.mock.MockReferer;
+import com.weibo.api.motan.rpc.Referer;
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.weibo.api.motan.mock.MockReferer;
-import com.weibo.api.motan.rpc.Referer;
-
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-14
- * 
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class ActiveWeightLoadBalanceTest {
@@ -39,6 +37,48 @@ public class ActiveWeightLoadBalanceTest {
     private int largeSize = 15;
 
     private int testLoop = 100;
+
+    private static void check(List<Referer> referersHolder) {
+        int prefix = 0;
+        for (Referer aReferersHolder : referersHolder) {
+            Assert.assertTrue(aReferersHolder.isAvailable());
+
+            Assert.assertTrue(aReferersHolder.activeRefererCount() > prefix);
+            prefix = aReferersHolder.activeRefererCount();
+        }
+    }
+
+    public static void main(String[] args) {
+        List<MockReferer> referers = new ArrayList<MockReferer>();
+
+        for (int i = 0; i < 20; i++) {
+            MockReferer referer = new MockReferer();
+            referer.active = 1 + i;
+
+            referers.add(referer);
+        }
+
+        for (int j = 0; j < 20; j++) {
+            List<Referer> copy = new ArrayList<Referer>(referers);
+            Collections.shuffle(copy);
+
+            String buffer = "[";
+            for (Referer referer : copy) {
+                buffer += referer.activeRefererCount() + ",";
+            }
+
+            Collections.sort(copy, new ActiveWeightLoadBalance.LowActivePriorityComparator());
+
+            int prefix = -1;
+            for (Referer aCopy : copy) {
+                if (aCopy.activeRefererCount() <= prefix) {
+                    throw new RuntimeException("bug bug bug");
+                }
+                prefix = aCopy.activeRefererCount();
+            }
+        }
+
+    }
 
     @Test
     public void testSelect() {
@@ -102,7 +142,7 @@ public class ActiveWeightLoadBalanceTest {
         if (availableSize <= ActiveWeightLoadBalance.MAX_REFERER_COUNT) {
             Assert.assertTrue(referer.activeRefererCount() - lowActive - unAvailableSize <= 0);
         } else {
-            Assert.assertTrue(refererSize - ActiveWeightLoadBalance.MAX_REFERER_COUNT + unAvailableSize +1 >= referer.activeRefererCount());
+            Assert.assertTrue(refererSize - ActiveWeightLoadBalance.MAX_REFERER_COUNT + unAvailableSize + 1 >= referer.activeRefererCount());
         }
 
         List<Referer> referersHolder = new ArrayList<Referer>();
@@ -114,16 +154,6 @@ public class ActiveWeightLoadBalanceTest {
         } else {
             Assert.assertEquals(referersHolder.size(), ActiveWeightLoadBalance.MAX_REFERER_COUNT);
             check(referersHolder);
-        }
-    }
-
-    private static void check(List<Referer> referersHolder) {
-        int prefix = 0;
-        for (Referer aReferersHolder : referersHolder) {
-            Assert.assertTrue(aReferersHolder.isAvailable());
-
-            Assert.assertTrue(aReferersHolder.activeRefererCount() > prefix);
-            prefix = aReferersHolder.activeRefererCount();
         }
     }
 
@@ -168,37 +198,5 @@ public class ActiveWeightLoadBalanceTest {
         balance.onRefresh(referers);
 
         return balance;
-    }
-
-    public static void main(String[] args) {
-        List<MockReferer> referers = new ArrayList<MockReferer>();
-
-        for (int i = 0; i < 20; i++) {
-            MockReferer referer = new MockReferer();
-            referer.active = 1 + i;
-
-            referers.add(referer);
-        }
-
-        for (int j = 0; j < 20; j++) {
-            List<Referer> copy = new ArrayList<Referer>(referers);
-            Collections.shuffle(copy);
-
-            String buffer = "[";
-            for (Referer referer : copy) {
-                buffer += referer.activeRefererCount() + ",";
-            }
-
-            Collections.sort(copy, new ActiveWeightLoadBalance.LowActivePriorityComparator());
-
-            int prefix = -1;
-            for (Referer aCopy : copy) {
-                if (aCopy.activeRefererCount() <= prefix) {
-                    throw new RuntimeException("bug bug bug");
-                }
-                prefix = aCopy.activeRefererCount();
-            }
-        }
-
     }
 }

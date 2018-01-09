@@ -16,10 +16,9 @@
 
 package com.weibo.api.motan.config.springsupport;
 
-import org.springframework.beans.factory.InitializingBean;
-
 import com.weibo.api.motan.config.SpiConfig;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
+import org.springframework.beans.factory.InitializingBean;
 
 public class SpiConfigBean<T> extends SpiConfig<T> implements InitializingBean {
 

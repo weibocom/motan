@@ -16,21 +16,18 @@
 
 package com.weibo.api.motan.config.springsupport;
 
-import static org.junit.Assert.*;
-
-import java.util.List;
-
+import com.weibo.api.motan.config.MethodConfig;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.weibo.api.motan.config.MethodConfig;
-import com.weibo.api.motan.config.RefererConfig;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 public class RefererConfigBeanTest extends BaseTest {
     RefererConfigBean<ITest> clientTest;
     RefererConfigBean<ITest> clientMethodTest;
     RefererConfigBean<ITest> clientDirectTest;
-
 
 
     @SuppressWarnings({"unchecked", "rawtypes"})

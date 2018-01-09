@@ -25,7 +25,7 @@ import io.grpc.examples.routeguide.Point;
 /**
  * Created by zhanglei28 on 2017/9/12.
  */
-public class PbParamServiceImpl implements PbParamService{
+public class PbParamServiceImpl implements PbParamService {
     @Override
     public Feature getFeature(Point point) {
         return Feature.newBuilder().setName("testfeature").setLocation(point).build();

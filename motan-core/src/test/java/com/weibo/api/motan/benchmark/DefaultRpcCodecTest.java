@@ -28,7 +28,6 @@ import com.weibo.api.motan.transport.Channel;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-21
- * 
  */
 public class DefaultRpcCodecTest {
     private static final int loop = 100000;
@@ -48,7 +47,7 @@ public class DefaultRpcCodecTest {
         }
 
         String value = builder.toString();
-        String[] arr = new String[] {value, value, value};
+        String[] arr = new String[]{value, value, value};
 
         Long[] sets = new Long[20];
         for (int i = 0; i < 20; i++) {
@@ -90,7 +89,7 @@ public class DefaultRpcCodecTest {
 
         if (data != null) {
             request.setParamtersDesc("java.util.HashSet");
-            request.setArguments(new Object[] {data});
+            request.setArguments(new Object[]{data});
         } else {
             request.setParamtersDesc("void");
         }
