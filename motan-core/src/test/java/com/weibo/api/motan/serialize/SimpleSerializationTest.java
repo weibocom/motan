@@ -54,7 +54,7 @@ public class SimpleSerializationTest {
             assertEquals(entry.getValue(), m2.get(entry.getKey()));
         }
 
-        byte[] bytes = new byte[]{2,34,12,24};
+        byte[] bytes = new byte[]{2, 34, 12, 24};
         b = serialization.serialize(bytes);
         assertNotNull(b);
         assertTrue(b.length > 0);
@@ -67,5 +67,37 @@ public class SimpleSerializationTest {
         }
     }
 
+    @Test
+    public void testSerializeMulti() throws Exception {
+        SimpleSerialization serialization = new SimpleSerialization();
+        Object[] objects = new Object[3];
+        objects[0] = "teststring";
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("name", "ray");
+        map.put("code", "xxx");
+        objects[1] = map;
+        byte[] bytes = new byte[]{2, 34, 12, 24};
+        objects[2] = bytes;
+
+        byte[] b = serialization.serializeMulti(objects);
+        assertNotNull(b);
+        assertTrue(b.length > 0);
+
+        Object[] result = serialization.deserializeMulti(b, new Class[]{String.class, Map.class, byte[].class});
+        assertEquals(3, result.length);
+        assertTrue(result[0] instanceof String);
+        assertEquals(result[0], objects[0]);
+        assertTrue(result[1] instanceof Map);
+        Map<String, String> map2 = (Map<String, String>) result[1];
+        for (Map.Entry entry : map.entrySet()) {
+            assertEquals(entry.getValue(), map2.get(entry.getKey()));
+        }
+        assertTrue(result[2] instanceof byte[]);
+
+        byte[] nbytes = (byte[]) result[2];
+        for (int i = 0; i < nbytes.length; i++) {
+            assertEquals(nbytes[i], bytes[i]);
+        }
+    }
 
 }

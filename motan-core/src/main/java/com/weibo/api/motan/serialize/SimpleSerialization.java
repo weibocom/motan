@@ -40,6 +40,14 @@ public class SimpleSerialization implements Serialization {
     @Override
     public byte[] serialize(Object obj) throws IOException {
         GrowableByteBuffer buffer = new GrowableByteBuffer(4096);
+        serialize(obj, buffer);
+        buffer.flip();
+        byte[] result = new byte[buffer.remaining()];
+        buffer.get(result);
+        return result;
+    }
+
+    private void serialize(Object obj, GrowableByteBuffer buffer) throws IOException {
         if (obj != null) {
             if (obj instanceof String) {
                 buffer.put((byte) 1);
@@ -48,8 +56,9 @@ public class SimpleSerialization implements Serialization {
                 buffer.put(b);
             } else if (obj instanceof Map) {
                 buffer.put((byte) 2);
+                int pos = buffer.position();
                 int size = 0;
-                buffer.position(5);
+                buffer.position(pos + 4);
                 for (Entry<Object, Object> entry : ((Map<Object, Object>) obj).entrySet()) {
                     if (entry.getKey() != null && entry.getValue() != null
                             && (entry.getKey() instanceof String) && (entry.getValue() instanceof String)) {
@@ -57,10 +66,10 @@ public class SimpleSerialization implements Serialization {
                         size += putString(buffer, (String) entry.getValue());
                     }
                 }
-                buffer.position(1);
+                buffer.position(pos);
                 buffer.putInt(size);
-                buffer.position(5 + size);
-            } else if(obj instanceof byte[]){
+                buffer.position(pos + size + 4);
+            } else if (obj instanceof byte[]) {
                 buffer.put((byte) 3);
                 byte[] b = (byte[]) obj;
                 buffer.putInt(b.length);
@@ -71,15 +80,15 @@ public class SimpleSerialization implements Serialization {
         } else {
             buffer.put((byte) 0);
         }
-        buffer.flip();
-        byte[] result = new byte[buffer.remaining()];
-        buffer.get(result);
-        return result;
     }
 
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> clz) throws IOException {
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        return deserialize(buffer, clz);
+    }
+
+    private <T> T deserialize(ByteBuffer buffer, Class<T> clz) throws IOException {
         byte type = buffer.get();
         switch (type) {
             case 0:
@@ -111,6 +120,7 @@ public class SimpleSerialization implements Serialization {
                             key = getString(buffer);
                         }
                     }
+                    buffer.limit(buffer.capacity());
                     return (T) map;
                 } else {
                     throw new MotanServiceException("SimpleSerialization not support type:" + clz);
@@ -125,30 +135,24 @@ public class SimpleSerialization implements Serialization {
 
     @Override
     public byte[] serializeMulti(Object[] data) throws IOException {
-        if (data.length == 1) {
-            return serialize(data[0]);
+        GrowableByteBuffer buffer = new GrowableByteBuffer(4096);
+        for (Object o : data) {
+            serialize(o, buffer);
         }
-        //TODO mulit param support
-        throw new MotanServiceException("SimpleSerialization not support serialize multi Object");
+        buffer.flip();
+        byte[] result = new byte[buffer.remaining()];
+        buffer.get(result);
+        return result;
     }
 
     @Override
     public Object[] deserializeMulti(byte[] data, Class<?>[] classes) throws IOException {
-        if (classes.length == 1) {
-            return new Object[]{deserialize(data, classes[0])};
-        } else {
-            StringBuilder sb = new StringBuilder(128);
-            sb.append("[");
-            for (Class c : classes) {
-                sb.append(c.getName()).append(",");
-            }
-            if (sb.length() > 1) {
-                sb.deleteCharAt(sb.length() - 1);
-            }
-            sb.append("]");
-            throw new MotanServiceException("SimpleSerialization not support deserialize multi Object of " + classes);
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        Object[] result = new Object[classes.length];
+        for (int i = 0; i < classes.length; i++) {
+            result[i] = deserialize(buffer, classes[i]);
         }
-
+        return result;
     }
 
     @Override
