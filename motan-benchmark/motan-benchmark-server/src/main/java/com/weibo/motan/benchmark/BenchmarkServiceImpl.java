@@ -36,7 +36,7 @@ public class BenchmarkServiceImpl implements BenchmarkService {
     }
 
     @Override
-    public long[] getLastStausIds(long[] uids) {
+    public long[] getLastStatusIds(long[] uids) {
         return new long[0];
     }
 }
