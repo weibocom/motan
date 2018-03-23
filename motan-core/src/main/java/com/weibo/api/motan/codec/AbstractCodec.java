@@ -70,7 +70,7 @@ public abstract class AbstractCodec implements Codec {
         }
     }
 
-    protected static synchronized void initAllSerialziation() {
+    protected static synchronized void initAllSerialization() {
         if (serializations == null) {
             serializations = new ConcurrentHashMap<Integer, String>();
             try {
@@ -89,9 +89,9 @@ public abstract class AbstractCodec implements Codec {
         }
     }
 
-    protected Serialization getSerializaiontByNum(int serializationNum) {
+    protected Serialization getSerializationByNum(int serializationNum) {
         if (serializations == null) {
-            initAllSerialziation();
+            initAllSerialization();
         }
         String name = serializations.get(serializationNum);
         Serialization s = null;

@@ -202,7 +202,7 @@ public class ConfigurableWeightLoadBalance<T> extends ActiveWeightLoadBalance<T>
             String group = randomKeyList.get(ThreadLocalRandom.current().nextInt(randomKeySize));
             AtomicInteger ai = cursors.get(group);
             List<Referer<T>> referers = groupReferers.get(group);
-            return referers.get(MathUtil.getPositive(ai.getAndIncrement()) % referers.size());
+            return referers.get(MathUtil.getNonNegative(ai.getAndIncrement()) % referers.size());
         }
 
         // 求最大公约数

@@ -54,7 +54,7 @@ public class MotanV2Codec extends AbstractCodec {
 
 
     static {
-        initAllSerialziation();
+        initAllSerialization();
     }
 
     @Override
@@ -233,7 +233,7 @@ public class MotanV2Codec extends AbstractCodec {
                 body = ByteUtil.unGzip(body);
             }
             //默认自适应序列化
-            Serialization serialization = getSerializaiontByNum(header.getSerialize());
+            Serialization serialization = getSerializationByNum(header.getSerialize());
             obj = new DeserializableObject(serialization, body);
         }
         if (header.isRequest()) {
