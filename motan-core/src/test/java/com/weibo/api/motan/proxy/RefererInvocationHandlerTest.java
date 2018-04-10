@@ -60,14 +60,14 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
         }
 
     }
-    
+
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
     public void testLocalMehtod() throws Exception{
         final Cluster cluster = mockery.mock(Cluster.class);
         final URL u = new URL("motan", "local", 80, "test");
         final List<Referer> referers = new ArrayList<Referer>();
-        final Referer referer = mockery.mock(Referer.class); 
+        final Referer referer = mockery.mock(Referer.class);
         referers.add(referer);
         mockery.checking(new Expectations() {
             {
@@ -81,9 +81,11 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
                 will(returnValue(referers));
             }
         });
-        RefererInvocationHandler handler = new RefererInvocationHandler(TestService.class, cluster);
+        List<Cluster> clusters = new ArrayList<>();
+        clusters.add(cluster);
+        RefererInvocationHandler handler = new RefererInvocationHandler(TestService.class, clusters);
         //local method
-        Method method = TestServiceImpl.class.getMethod("toString", new Class<?>[]{});
+        Method method = TestServiceImpl.class.getMethod("toString");
         assertTrue(handler.isLocalMethod(method));
         try {
             String result = (String)handler.invoke(null, method, null);
@@ -91,20 +93,19 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
         } catch (Throwable e) {
             assertTrue(false);
         }
-        
-        method = TestServiceImpl.class.getMethod("hashCode", new Class<?>[]{});
+
+        method = TestServiceImpl.class.getMethod("hashCode");
         assertTrue(handler.isLocalMethod(method));
-        
+
         //remote method
-        method = TestServiceImpl.class.getMethod("hello", new Class<?>[]{});
+        method = TestServiceImpl.class.getMethod("hello");
         assertFalse(handler.isLocalMethod(method));
-        method = TestServiceImpl.class.getMethod("equals", new Class<?>[]{Object.class});
+        method = TestServiceImpl.class.getMethod("equals", Object.class);
         assertFalse(handler.isLocalMethod(method));
-        
-        
-        
+
+
     }
-    
+
     @Test
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void testAsync() {

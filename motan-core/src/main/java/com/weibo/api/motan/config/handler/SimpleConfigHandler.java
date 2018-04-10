@@ -27,7 +27,6 @@ import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.protocol.support.ProtocolFilterDecorator;
 import com.weibo.api.motan.proxy.ProxyFactory;
-import com.weibo.api.motan.proxy.RefererInvocationHandler;
 import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.registry.RegistryFactory;
 import com.weibo.api.motan.rpc.*;
@@ -39,7 +38,7 @@ import java.util.List;
 
 
 /**
- * 
+ *
  * Handle refUrl to get referers, assemble to a cluster, create a proxy
  *
  * @author fishermen
@@ -60,7 +59,7 @@ public class SimpleConfigHandler implements ConfigHandler {
     @Override
     public <T> T refer(Class<T> interfaceClass, List<Cluster<T>> clusters, String proxyType) {
         ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getExtension(proxyType);
-        return proxyFactory.getProxy(interfaceClass, new RefererInvocationHandler<T>(interfaceClass, clusters));
+        return proxyFactory.getProxy(interfaceClass, clusters);
     }
 
     @Override

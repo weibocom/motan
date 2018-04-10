@@ -53,6 +53,7 @@ public class MotanConstants {
     public static final String PROTOCOL_INJVM = "injvm";
     public static final String PROTOCOL_MOTAN = "motan";
     public static final String PROXY_JDK = "jdk";
+    public static final String PROXY_COMMON = "common";
     public static final String PROXY_JAVASSIST = "javassist";
     public static final String FRAMEWORK_NAME = "motan";
     public static final String PROTOCOL_SWITCHER_PREFIX = "protocol:";
@@ -69,7 +70,7 @@ public class MotanConstants {
     public static final int STATISTIC_PEROID = 30; // 30 seconds
     public static final String ASYNC_SUFFIX = "Async";// suffix for async call.
     public static final String APPLICATION_STATISTIC = "statisitic";
-    
+
     /**
      * netty channel constants start
      **/
