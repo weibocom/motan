@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
  * Rpc Request
  *
  * @author fishermen
@@ -87,17 +86,17 @@ public class DefaultRequest implements Serializable, Request {
         return attachments != null ? attachments : Collections.EMPTY_MAP;
     }
 
+    public void setAttachments(Map<String, String> attachments) {
+        this.attachments = attachments;
+    }
+
     @Override
     public void setAttachment(String key, String value) {
         if (this.attachments == null) {
-            this.attachments = new HashMap<String, String>();
+            this.attachments = new HashMap<>();
         }
 
         this.attachments.put(key, value);
-    }
-
-    public void setAttachments(Map<String, String> attachments) {
-        this.attachments = attachments;
     }
 
     @Override
@@ -133,6 +132,5 @@ public class DefaultRequest implements Serializable, Request {
     public void setRpcProtocolVersion(byte rpcProtocolVersion) {
         this.rpcProtocolVersion = rpcProtocolVersion;
     }
-
 
 }

@@ -16,9 +16,10 @@
 
 package com.weibo.motan.demo.client;
 
-import com.weibo.api.motan.proxy.RefererCommonHandler;
+import com.weibo.api.motan.proxy.CommonHandler;
 import com.weibo.api.motan.rpc.Future;
 import com.weibo.api.motan.rpc.FutureListener;
+import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.ResponseFuture;
 import com.weibo.motan.demo.service.MotanDemoService;
 import com.weibo.motan.demo.service.model.User;
@@ -34,7 +35,7 @@ public class DemoRpcClient {
         MotanDemoService service = (MotanDemoService) ctx.getBean("motanDemoReferer");
         System.out.println(service.hello("motan"));
 
-        RefererCommonHandler client = (RefererCommonHandler) ctx.getBean("motanDemoReferer2");
+        CommonHandler client = (CommonHandler) ctx.getBean("motanDemoReferer2");
         User user = new User(1, "AAA");
         System.out.println(user);
 
@@ -52,6 +53,11 @@ public class DemoRpcClient {
                 System.out.println(future.getValue());
             }
         });
+
+        Request request = client.buildRequest("rename", new Object[]{user, "EEE"});
+        request.setAttachment("a", "a");
+        user = (User) client.call(request, User.class);
+        System.out.println(user);
 
         System.out.println("motan demo is finish.");
         System.exit(0);
