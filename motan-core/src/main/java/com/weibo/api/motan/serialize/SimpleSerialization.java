@@ -70,13 +70,20 @@ public class SimpleSerialization implements Serialization {
         public static final byte ARRAY = 21;
     }
 
+    private static final int DEFAULT_MAP_SIZE = 16;
+    private static final int DEFAULT_ARRAY_SIZE = 16;
+
     public static boolean isStringCollection(Collection<?> obj) {
-        // 假定一个Collection中只有一种数据类型
         if (obj.isEmpty()) {
             return false;
         }
         for (Object v : obj) {
-            return v.getClass() == String.class;
+            if (v == null) {
+                continue;
+            }
+            if (!(v instanceof String)) {
+                return false;
+            }
         }
         return true;
     }
@@ -86,6 +93,9 @@ public class SimpleSerialization implements Serialization {
             return false;
         }
         for (Map.Entry<?, ?> entry : obj.entrySet()) {
+            if (entry.getKey() == null || entry.getValue() == null) {
+                continue;
+            }
             if (!(entry.getKey() instanceof String) || !(entry.getValue() instanceof String)) {
                 return false;
             }
@@ -105,7 +115,7 @@ public class SimpleSerialization implements Serialization {
 
     private void serialize(Object obj, GrowableByteBuffer buffer) throws IOException {
         if (obj == null) {
-            buffer.put((byte) 0);
+            buffer.put(NULL);
             return;
         }
 
@@ -302,11 +312,10 @@ public class SimpleSerialization implements Serialization {
         return 6;
     }
 
-    private int putString(GrowableByteBuffer buffer, String str) throws IOException {
+    private void putString(GrowableByteBuffer buffer, String str) throws IOException {
         byte[] b = str.getBytes("UTF-8");
         buffer.putInt(b.length);
         buffer.put(b);
-        return 4 + b.length;
     }
 
     private void writeString(GrowableByteBuffer buffer, String str) throws IOException {
@@ -319,6 +328,9 @@ public class SimpleSerialization implements Serialization {
         int pos = buffer.position();
         buffer.position(pos + 4);
         for (Map.Entry<String, String> entry : value.entrySet()) {
+            if (entry.getKey() == null || entry.getValue() == null) {
+                continue;
+            }
             putString(buffer, entry.getKey());
             putString(buffer, entry.getValue());
         }
@@ -339,6 +351,9 @@ public class SimpleSerialization implements Serialization {
         int pos = buffer.position();
         buffer.position(pos + 4);
         for (int i = 0; i < value.length; i++) {
+            if (value[i] == null) {
+                continue;
+            }
             putString(buffer, value[i]);
         }
         int npos = buffer.position();
@@ -352,6 +367,9 @@ public class SimpleSerialization implements Serialization {
         int pos = buffer.position();
         buffer.position(pos + 4);
         for (String s : value) {
+            if (s == null) {
+                continue;
+            }
             putString(buffer, s);
         }
         int npos = buffer.position();
@@ -448,16 +466,11 @@ public class SimpleSerialization implements Serialization {
     }
 
     private String readString(GrowableByteBuffer buffer) throws IOException {
-        byte[] bytes = readBytes(buffer);
-        if (bytes == null) {
-            return null;
-        } else {
-            return new String(bytes, "UTF-8");
-        }
+        return new String(readBytes(buffer), "UTF-8");
     }
 
     private Map<String, String> readStringMap(GrowableByteBuffer buffer) throws IOException {
-        Map<String, String> map = new HashMap<>(16);
+        Map<String, String> map = new HashMap<>(DEFAULT_MAP_SIZE);
         int size = getAndCheckSize(buffer);
         int startPos = buffer.position();
         int endPos = startPos + size;
@@ -470,7 +483,7 @@ public class SimpleSerialization implements Serialization {
         return map;
     }
 
-    private byte[] readBytes(GrowableByteBuffer buffer) throws IOException {
+    private byte[] readBytes(GrowableByteBuffer buffer) {
         int size = getAndCheckSize(buffer);
         if (size == 0) {
             return new byte[]{};
@@ -488,12 +501,12 @@ public class SimpleSerialization implements Serialization {
     }
 
     private List<String> readStringList(GrowableByteBuffer buffer) throws IOException {
-        List<String> result = new ArrayList<>(8);
+        List<String> result = new ArrayList<>(DEFAULT_ARRAY_SIZE);
         return readStringCollection(buffer, result);
     }
 
     private Set<String> readStringSet(GrowableByteBuffer buffer) throws IOException {
-        Set<String> result = new HashSet<>(8);
+        Set<String> result = new HashSet<>(DEFAULT_ARRAY_SIZE);
         return readStringCollection(buffer, result);
     }
 
@@ -542,7 +555,7 @@ public class SimpleSerialization implements Serialization {
     }
 
     private Map readMap(GrowableByteBuffer buffer) throws IOException {
-        Map<Object, Object> map = new HashMap<>(16);
+        Map<Object, Object> map = new HashMap<>(DEFAULT_MAP_SIZE);
         int size = getAndCheckSize(buffer);
         int startPos = buffer.position();
         int endPos = startPos + size;
@@ -562,12 +575,12 @@ public class SimpleSerialization implements Serialization {
     }
 
     private List<Object> readList(GrowableByteBuffer buffer) throws IOException {
-        List<Object> result = new ArrayList<>(8);
+        List<Object> result = new ArrayList<>(DEFAULT_ARRAY_SIZE);
         return readCollection(buffer, result);
     }
 
     private Set<Object> readSet(GrowableByteBuffer buffer) throws IOException {
-        Set<Object> result = new HashSet<>(8);
+        Set<Object> result = new HashSet<>(DEFAULT_ARRAY_SIZE);
         return readCollection(buffer, result);
     }
 

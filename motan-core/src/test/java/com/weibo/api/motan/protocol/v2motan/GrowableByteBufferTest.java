@@ -182,5 +182,4 @@ public class GrowableByteBufferTest {
         assertEquals(0, buffer.remaining());
         buffer.clear();
     }
-
 }

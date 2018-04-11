@@ -152,6 +152,11 @@ public class SimpleSerializationTest {
 
     @Test
     public void testArray() throws Exception {
+        assertTrue(SimpleSerialization.isStringCollection(Arrays.asList("1", "2", "3")));
+        assertFalse(SimpleSerialization.isStringCollection(Arrays.asList("1", 1, "3")));
+        assertTrue(SimpleSerialization.isStringCollection(Sets.newHashSet("1", "2", "3")));
+        assertFalse(SimpleSerialization.isStringCollection(Sets.newHashSet("1", 1, "3")));
+
         List<String> sList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             sList.add("testString" + i);
@@ -168,6 +173,9 @@ public class SimpleSerializationTest {
     public void testMap() throws Exception {
         Serialization serialization = new SimpleSerialization();
         Map<String, String> v = new HashMap<>();
+        v.put("1", "1");
+        v.put("2", "2");
+        assertTrue(SimpleSerialization.isStringMap(v));
         Map<Object, Object> dv = serialization.deserialize(serialization.serialize(v), Map.class);
         assertEquals(v.size(), dv.size());
         Map<Object, Object> ov = new HashMap<>();
@@ -182,6 +190,7 @@ public class SimpleSerializationTest {
         ov.put("i", new String[]{"1", "2", "3", "4"});
         ov.put("j", Arrays.asList("1", "2", "3", "4"));
         ov.put("k", Sets.newHashSet("1", "2", "3", "4"));
+        assertFalse(SimpleSerialization.isStringMap(ov));
         dv = serialization.deserialize(serialization.serialize(ov), Map.class);
         assertEquals(ov.size(), dv.size());
         for (Map.Entry<Object, Object> entry : ov.entrySet()) {

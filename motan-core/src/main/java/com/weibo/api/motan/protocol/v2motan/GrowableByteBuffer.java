@@ -27,19 +27,19 @@ import java.nio.ByteBuffer;
  */
 public class GrowableByteBuffer {
 
-    public static int encodeZigZag32(final int value) {
+    public static int encodeZigZag32(int value) {
         return (value << 1) ^ (value >> 31);
     }
 
-    public static long encodeZigZag64(final long value) {
+    public static long encodeZigZag64(long value) {
         return (value << 1) ^ (value >> 63);
     }
 
-    public static int decodeZigZag32(final int n) {
+    public static int decodeZigZag32(int n) {
         return (n >>> 1) ^ -(n & 1);
     }
 
-    public static long decodeZigZag64(final long n) {
+    public static long decodeZigZag64(long n) {
         return (n >>> 1) ^ -(n & 1);
     }
 
