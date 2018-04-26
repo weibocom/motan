@@ -222,6 +222,8 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
             callbackMap.clear();
             // 设置close状态
             state = ChannelState.CLOSE;
+            // 关闭client持有的channel
+            closeAllChannels();
             // 解除统计回调的注册
             StatsUtil.unRegistryStatisticCallback(this);
             LoggerUtil.info("NettyClient close Success: url={}", url.getUri());

@@ -100,4 +100,10 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
         LoggerUtil.error(errorMsg);
         throw new MotanServiceException(errorMsg);
     }
+
+    protected void closeAllChannels() {
+        for (Channel channel : channels) {
+            channel.close();
+        }
+    }
 }
