@@ -38,6 +38,10 @@ public class LocalSwitcherService implements SwitcherService {
 
     private Map<String, List<SwitcherListener>> listenerMap = new ConcurrentHashMap<>();
 
+    public static Switcher getSwitcherStatic(String name) {
+        return switchers.get(name);
+    }
+
     @Override
     public Switcher getSwitcher(String name) {
         return switchers.get(name);
@@ -48,7 +52,7 @@ public class LocalSwitcherService implements SwitcherService {
         return new ArrayList<Switcher>(switchers.values());
     }
 
-    private void putSwitcher(Switcher switcher) {
+    public static void putSwitcher(Switcher switcher) {
         if (switcher == null) {
             throw new MotanFrameworkException("LocalSwitcherService addSwitcher Error: switcher is null");
         }
