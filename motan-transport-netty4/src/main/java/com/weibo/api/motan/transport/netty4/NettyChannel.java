@@ -102,9 +102,10 @@ public class NettyChannel implements Channel {
             return true;
         }
 
+        ChannelFuture channelFuture = null;
         try {
             long start = System.currentTimeMillis();
-            ChannelFuture channelFuture = nettyClient.getBootstrap().connect(remoteAddress);
+            channelFuture = nettyClient.getBootstrap().connect(remoteAddress);
             int timeout = nettyClient.getUrl().getIntParameter(URLParamType.connectTimeout.getName(), URLParamType.connectTimeout.getIntValue());
             if (timeout <= 0) {
                 throw new MotanFrameworkException("NettyClient init Error: timeout(" + timeout + ") <= 0 is forbid.", MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
@@ -136,6 +137,9 @@ public class NettyChannel implements Channel {
         } catch (MotanServiceException e) {
             throw e;
         } catch (Exception e) {
+            if (channelFuture != null) {
+                channelFuture.channel().close();
+            }
             throw new MotanServiceException("NettyChannel failed to connect to server, url: " + nettyClient.getUrl().getUri(), e);
         } finally {
             if (!state.isAliveState()) {
