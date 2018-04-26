@@ -30,8 +30,9 @@ import java.util.*;
 import static com.weibo.api.motan.serialize.SimpleSerialization.SimpleType.*;
 
 /**
- * Created by zhanglei28 on 2017/6/8.
- * 支持的类型，其中[]和list set等价
+ * Created by zhanglei28 on 2017/6/8. <br/>
+ *
+ * Supported types (list,set treated as array):
  * <pre>
  *    null
  *    String
@@ -48,6 +49,7 @@ import static com.weibo.api.motan.serialize.SimpleSerialization.SimpleType.*;
  *    Map&lt;Object, Object&gt;
  *    Object[]
  * </pre>
+ * @author luominggang
  */
 @SpiMeta(name = "simple")
 public class SimpleSerialization implements Serialization {
@@ -212,7 +214,7 @@ public class SimpleSerialization implements Serialization {
                 break;
             case STRING_MAP:
                 if (clz.isAssignableFrom(HashMap.class)) {
-                    // 此处包含Object, Map
+                    // contain Object, Map
                     return (T) readStringMap(buffer);
                 }
                 break;
@@ -225,7 +227,7 @@ public class SimpleSerialization implements Serialization {
                 if ((clz.isArray() && clz.getComponentType() == String.class)) {
                     return (T) readStringArray(buffer);
                 } else if (clz.isAssignableFrom(ArrayList.class)) {
-                    // 此处包含 Object, Collection, List
+                    // contain Object, Collection, List
                     return (T) readStringList(buffer);
                 } else if (clz.isAssignableFrom(HashSet.class)) {
                     return (T) readStringSet(buffer);
@@ -267,7 +269,7 @@ public class SimpleSerialization implements Serialization {
                 break;
             case MAP:
                 if (clz.isAssignableFrom(HashMap.class)) {
-                    // 此处包含Object, Map
+                    // contain Object, Map
                     return (T) readMap(buffer);
                 }
                 break;
@@ -275,7 +277,7 @@ public class SimpleSerialization implements Serialization {
                 if (clz.isArray()) {
                     return (T) readArray(buffer);
                 } else if (clz.isAssignableFrom(ArrayList.class)) {
-                    // 此处包含 Object, Collection, List
+                    // contain Object, Collection, List
                     return (T) readList(buffer);
                 } else if (clz.isAssignableFrom(HashSet.class)) {
                     return (T) readSet(buffer);
@@ -367,6 +369,7 @@ public class SimpleSerialization implements Serialization {
         int pos = buffer.position();
         buffer.position(pos + 4);
         for (String s : value) {
+            // TODO: if 's' is null, the size of array may be different with origin
             if (s == null) {
                 continue;
             }

@@ -120,7 +120,7 @@ public class GrowableByteBufferTest {
 
     @Test
     public void testGetAndPutWithIndex() {
-        GrowableByteBuffer buffer = new GrowableByteBuffer(16);
+        GrowableByteBuffer buffer = new GrowableByteBuffer(1);
         int index = 0;
         buffer.position(1);
         buffer.put(index, (byte) 1);

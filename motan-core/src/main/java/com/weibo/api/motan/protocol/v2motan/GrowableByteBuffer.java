@@ -216,6 +216,7 @@ public class GrowableByteBuffer {
     }
 
     public void position(int newPosition) {
+        ensureBufferEnough(newPosition - buf.position());
         buf.position(newPosition);
     }
 
@@ -247,9 +248,10 @@ public class GrowableByteBuffer {
     }
 
     private void ensureBufferEnough(int need) {
-        if (buf.remaining() < need) {
+        int expandSize = buf.position() + need;
+        if (buf.capacity() < expandSize) {
             int size = buf.capacity() * 2;
-            while (size < (need + buf.position())) {
+            while (size < expandSize) {
                 size = size * 2;
             }
             buf = grow(size);
