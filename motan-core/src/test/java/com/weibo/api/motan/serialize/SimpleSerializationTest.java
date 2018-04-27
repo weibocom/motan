@@ -18,10 +18,11 @@
 
 package com.weibo.api.motan.serialize;
 
+import com.google.common.collect.Sets;
+import com.weibo.api.motan.codec.Serialization;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -100,4 +101,122 @@ public class SimpleSerializationTest {
         }
     }
 
+    @Test
+    public void testBaseType() throws Exception {
+        verify(true);
+        verify(false);
+
+        verify((byte) 16);
+        verify((byte) 0);
+        verify((byte) 255);
+
+        verify((short) -16);
+        verify((short) 0);
+        verify((short) 16);
+        verify((short) 127);
+        verify((short) 128);
+        verify((short) 300);
+        verify(Short.MAX_VALUE);
+        verify(Short.MIN_VALUE);
+
+        verify(-16);
+        verify(0);
+        verify(16);
+        verify(127);
+        verify(128);
+        verify(300);
+        verify(Integer.MAX_VALUE);
+        verify(Integer.MIN_VALUE);
+
+        verify(-16L);
+        verify(0L);
+        verify(16L);
+        verify(127L);
+        verify(128L);
+        verify(300L);
+        verify(Long.MAX_VALUE);
+        verify(Long.MIN_VALUE);
+
+        verify(3.141592653f);
+        verify(-3.141592653f);
+        verify(0f);
+        verify(Float.MAX_VALUE);
+        verify(Float.MIN_VALUE);
+
+        verify(3.141592653d);
+        verify(-3.141592653d);
+        verify(0d);
+        verify(Double.MAX_VALUE);
+        verify(Double.MIN_VALUE);
+    }
+
+    @Test
+    public void testArray() throws Exception {
+        assertTrue(SimpleSerialization.isStringCollection(Arrays.asList("1", "2", "3")));
+        assertFalse(SimpleSerialization.isStringCollection(Arrays.asList("1", 1, "3")));
+        assertTrue(SimpleSerialization.isStringCollection(Sets.newHashSet("1", "2", "3")));
+        assertFalse(SimpleSerialization.isStringCollection(Sets.newHashSet("1", 1, "3")));
+
+        List<String> sList = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            sList.add("testString" + i);
+        }
+
+        String[] sArray = new String[sList.size()];
+        sArray = sList.toArray(sArray);
+        verify(sList);
+        verify(new HashSet<>(sList));
+        verify(sArray);
+    }
+
+    @Test
+    public void testMap() throws Exception {
+        Serialization serialization = new SimpleSerialization();
+        Map<String, String> v = new HashMap<>();
+        v.put("1", "1");
+        v.put("2", "2");
+        assertTrue(SimpleSerialization.isStringMap(v));
+        Map<Object, Object> dv = serialization.deserialize(serialization.serialize(v), Map.class);
+        assertEquals(v.size(), dv.size());
+        Map<Object, Object> ov = new HashMap<>();
+        ov.put("a", 1);
+        ov.put("b", true);
+        ov.put("c", 1L);
+        ov.put("d", 1f);
+        ov.put("e", 1d);
+        ov.put("f", (short) 1);
+        ov.put("g", (byte) 1);
+        ov.put("h", "1");
+        ov.put("i", new String[]{"1", "2", "3", "4"});
+        ov.put("j", Arrays.asList("1", "2", "3", "4"));
+        ov.put("k", Sets.newHashSet("1", "2", "3", "4"));
+        assertFalse(SimpleSerialization.isStringMap(ov));
+        dv = serialization.deserialize(serialization.serialize(ov), Map.class);
+        assertEquals(ov.size(), dv.size());
+        for (Map.Entry<Object, Object> entry : ov.entrySet()) {
+            if (entry.getValue().getClass().isArray()) {
+                List<Object> values = Arrays.asList((Object[]) entry.getValue());
+                assertEquals(values, dv.get(entry.getKey()));
+            } else if (entry.getValue() instanceof Collection) {
+                ArrayList excepted = new ArrayList((Collection) entry.getValue());
+                ArrayList actual = new ArrayList((Collection) entry.getValue());
+                Collections.sort(excepted);
+                Collections.sort(actual);
+                assertEquals(excepted, actual);
+            } else {
+                assertEquals(entry.getValue(), dv.get(entry.getKey()));
+            }
+        }
+    }
+
+    private void verify(Object v) throws Exception {
+        Serialization serialization = new SimpleSerialization();
+        byte[] bytes = serialization.serialize(v);
+        Object dv = serialization.deserialize(bytes, v.getClass());
+        if (v.getClass().isArray()) {
+            assertArrayEquals((Object[]) v, (Object[]) dv);
+        } else {
+            assertEquals(v, dv);
+        }
+    }
 }

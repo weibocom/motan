@@ -24,18 +24,86 @@ import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.protocol.v2motan.GrowableByteBuffer;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.*;
+
+import static com.weibo.api.motan.serialize.SimpleSerialization.SimpleType.*;
 
 /**
- * Created by zhanglei28 on 2017/6/8.
- * olny support Null, String, Map<String,String>, byte[]
+ * Created by zhanglei28 on 2017/6/8. <br/>
+ *
+ * Supported types (list,set treated as array):
+ * <pre>
+ *    null
+ *    String
+ *    Map&lt;String, String&gt;
+ *    byte[]
+ *    String[]
+ *    boolean
+ *    byte
+ *    short
+ *    int
+ *    long
+ *    float
+ *    double
+ *    Map&lt;Object, Object&gt;
+ *    Object[]
+ * </pre>
+ * @author luominggang
  */
 @SpiMeta(name = "simple")
 public class SimpleSerialization implements Serialization {
+
+    public static final class SimpleType {
+        public static final byte NULL = 0;
+        public static final byte STRING = 1;
+        public static final byte STRING_MAP = 2;
+        public static final byte BYTE_ARRAY = 3;
+        public static final byte STRING_ARRAY = 4;
+        public static final byte BOOL = 5;
+        public static final byte BYTE = 6;
+        public static final byte INT16 = 7;
+        public static final byte INT32 = 8;
+        public static final byte INT64 = 9;
+        public static final byte FLOAT32 = 10;
+        public static final byte FLOAT64 = 11;
+
+        public static final byte MAP = 20;
+        public static final byte ARRAY = 21;
+    }
+
+    private static final int DEFAULT_MAP_SIZE = 16;
+    private static final int DEFAULT_ARRAY_SIZE = 16;
+
+    public static boolean isStringCollection(Collection<?> obj) {
+        if (obj.isEmpty()) {
+            return false;
+        }
+        for (Object v : obj) {
+            if (v == null) {
+                continue;
+            }
+            if (!(v instanceof String)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean isStringMap(Map<?, ?> obj) {
+        if (obj.isEmpty()) {
+            return false;
+        }
+        for (Map.Entry<?, ?> entry : obj.entrySet()) {
+            if (entry.getKey() == null || entry.getValue() == null) {
+                continue;
+            }
+            if (!(entry.getKey() instanceof String) || !(entry.getValue() instanceof String)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     @Override
     public byte[] serialize(Object obj) throws IOException {
@@ -48,89 +116,175 @@ public class SimpleSerialization implements Serialization {
     }
 
     private void serialize(Object obj, GrowableByteBuffer buffer) throws IOException {
-        if (obj != null) {
-            if (obj instanceof String) {
-                buffer.put((byte) 1);
-                byte[] b = ((String) obj).getBytes("UTF-8");
-                buffer.putInt(b.length);
-                buffer.put(b);
-            } else if (obj instanceof Map) {
-                buffer.put((byte) 2);
-                int pos = buffer.position();
-                int size = 0;
-                buffer.position(pos + 4);
-                for (Entry<Object, Object> entry : ((Map<Object, Object>) obj).entrySet()) {
-                    if (entry.getKey() != null && entry.getValue() != null
-                            && (entry.getKey() instanceof String) && (entry.getValue() instanceof String)) {
-                        size += putString(buffer, (String) entry.getKey());
-                        size += putString(buffer, (String) entry.getValue());
-                    }
-                }
-                buffer.position(pos);
-                buffer.putInt(size);
-                buffer.position(pos + size + 4);
-            } else if (obj instanceof byte[]) {
-                buffer.put((byte) 3);
-                byte[] b = (byte[]) obj;
-                buffer.putInt(b.length);
-                buffer.put(b);
-            } else {
-                throw new MotanServiceException("SimpleSerialization not support type:" + obj.getClass());
-            }
-        } else {
-            buffer.put((byte) 0);
+        if (obj == null) {
+            buffer.put(NULL);
+            return;
         }
+
+        Class<?> clz = obj.getClass();
+        if (clz == String.class) {
+            writeString(buffer, (String) obj);
+            return;
+        }
+
+        if (clz == Byte.class || clz == byte.class) {
+            writeByte(buffer, (Byte) obj);
+            return;
+        }
+
+        if (clz == Boolean.class || clz == boolean.class) {
+            writeBool(buffer, (Boolean) obj);
+            return;
+        }
+
+        if (clz == Short.class || clz == short.class) {
+            writeInt16(buffer, (Short) obj);
+            return;
+        }
+
+        if (clz == Integer.class || clz == int.class) {
+            writeInt32(buffer, (Integer) obj);
+            return;
+        }
+
+        if (clz == Long.class || clz == long.class) {
+            writeInt64(buffer, (Long) obj);
+            return;
+        }
+
+        if (clz == Float.class || clz == float.class) {
+            writeFloat32(buffer, (Float) obj);
+            return;
+        }
+
+        if (clz == Double.class || clz == double.class) {
+            writeFloat64(buffer, (Double) obj);
+            return;
+        }
+
+        if (obj instanceof Map) {
+            if (isStringMap((Map) obj)) {
+                writeStringMap(buffer, (Map<String, String>) obj);
+            } else {
+                writeMap(buffer, (Map) obj);
+            }
+            return;
+        }
+
+        if (clz.isArray()) {
+            if (clz.getComponentType() == String.class) {
+                writeStringArray(buffer, (String[]) obj);
+            } else if (clz.getComponentType() == byte.class) {
+                writeBytes(buffer, (byte[]) obj);
+            } else {
+                writeArray(buffer, (Object[]) obj);
+            }
+            return;
+        }
+
+        if (obj instanceof List || obj instanceof Set) {
+            if (isStringCollection((Collection) obj)) {
+                writeStringArray(buffer, (Collection<String>) obj);
+            } else {
+                writeArray(buffer, (Collection) obj);
+            }
+            return;
+        }
+
+        throw new MotanServiceException("SimpleSerialization unsupported type: " + clz);
     }
 
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> clz) throws IOException {
-        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        GrowableByteBuffer buffer = new GrowableByteBuffer(ByteBuffer.wrap(bytes));
         return deserialize(buffer, clz);
     }
 
-    private <T> T deserialize(ByteBuffer buffer, Class<T> clz) throws IOException {
+    private <T> T deserialize(GrowableByteBuffer buffer, Class<T> clz) throws IOException {
         byte type = buffer.get();
         switch (type) {
-            case 0:
+            default:
+                break;
+            case NULL:
                 return null;
-            case 1:
+            case STRING:
                 if (clz == String.class || clz == Object.class) {
-                    String str = getString(buffer);
-                    return (T) str;
-                } else {
-                    throw new MotanServiceException("SimpleSerialization not support type:" + clz);
+                    return (T) readString(buffer);
                 }
-            case 2:
-                if (clz == Map.class || clz == Object.class) {
-                    Map<String, String> map = new HashMap<String, String>();
-                    int size = buffer.getInt();
-                    if (size > 0) {
-                        if (size > buffer.remaining()) {
-                            throw new MotanServiceException("SimpleSerialization deserialize fail! buffer not enough!need size:" + size);
-                        }
-                        buffer.limit(buffer.position() + size);
-                        String key = getString(buffer);
-                        while (key != null) {
-                            String value = getString(buffer);
-                            if (value == null) {
-                                throw new MotanServiceException("SimpleSerialization deserialize map fail! key and value not match. key:" + key);
-                            } else {
-                                map.put(key, value);
-                            }
-                            key = getString(buffer);
-                        }
-                    }
-                    buffer.limit(buffer.capacity());
-                    return (T) map;
-                } else {
-                    throw new MotanServiceException("SimpleSerialization not support type:" + clz);
+                break;
+            case STRING_MAP:
+                if (clz.isAssignableFrom(HashMap.class)) {
+                    // contain Object, Map
+                    return (T) readStringMap(buffer);
                 }
-            case 3:
+                break;
+            case BYTE_ARRAY:
                 if (clz == byte[].class || clz == Object.class) {
-                    return (T) getBytes(buffer);
+                    return (T) readBytes(buffer);
                 }
+                break;
+            case STRING_ARRAY:
+                if ((clz.isArray() && clz.getComponentType() == String.class)) {
+                    return (T) readStringArray(buffer);
+                } else if (clz.isAssignableFrom(ArrayList.class)) {
+                    // contain Object, Collection, List
+                    return (T) readStringList(buffer);
+                } else if (clz.isAssignableFrom(HashSet.class)) {
+                    return (T) readStringSet(buffer);
+                }
+                break;
+            case BOOL:
+                if (clz == boolean.class || clz == Boolean.class || clz == Object.class) {
+                    return (T) readBool(buffer);
+                }
+                break;
+            case BYTE:
+                if (clz == byte.class || clz == Byte.class || clz == Object.class) {
+                    return (T) readByte(buffer);
+                }
+            case INT16:
+                if (clz == short.class || clz == Short.class || clz == Object.class) {
+                    return (T) readInt16(buffer);
+                }
+                break;
+            case INT32:
+                if (clz == int.class || clz == Integer.class || clz == Object.class) {
+                    return (T) readInt32(buffer);
+                }
+                break;
+            case INT64:
+                if (clz == long.class || clz == Long.class || clz == Object.class) {
+                    return (T) readInt64(buffer);
+                }
+                break;
+            case FLOAT32:
+                if (clz == float.class || clz == Float.class || clz == Object.class) {
+                    return (T) readFloat32(buffer);
+                }
+                break;
+            case FLOAT64:
+                if (clz == double.class || clz == Double.class || clz == Object.class) {
+                    return (T) readFloat64(buffer);
+                }
+                break;
+            case MAP:
+                if (clz.isAssignableFrom(HashMap.class)) {
+                    // contain Object, Map
+                    return (T) readMap(buffer);
+                }
+                break;
+            case ARRAY:
+                if (clz.isArray()) {
+                    return (T) readArray(buffer);
+                } else if (clz.isAssignableFrom(ArrayList.class)) {
+                    // contain Object, Collection, List
+                    return (T) readList(buffer);
+                } else if (clz.isAssignableFrom(HashSet.class)) {
+                    return (T) readSet(buffer);
+                }
+                break;
         }
-        return null;
+        throw new MotanServiceException("SimpleSerialization not support " + type + " with receiver type:" + clz);
     }
 
     @Override
@@ -147,7 +301,7 @@ public class SimpleSerialization implements Serialization {
 
     @Override
     public Object[] deserializeMulti(byte[] data, Class<?>[] classes) throws IOException {
-        ByteBuffer buffer = ByteBuffer.wrap(data);
+        GrowableByteBuffer buffer = new GrowableByteBuffer(ByteBuffer.wrap(data));
         Object[] result = new Object[classes.length];
         for (int i = 0; i < classes.length; i++) {
             result[i] = deserialize(buffer, classes[i]);
@@ -160,40 +314,292 @@ public class SimpleSerialization implements Serialization {
         return 6;
     }
 
-    private int putString(GrowableByteBuffer buffer, String str) throws UnsupportedEncodingException {
+    private void putString(GrowableByteBuffer buffer, String str) throws IOException {
         byte[] b = str.getBytes("UTF-8");
         buffer.putInt(b.length);
         buffer.put(b);
-        return 4 + b.length;
     }
 
-    private String getString(ByteBuffer buffer) throws UnsupportedEncodingException {
-        byte[] bytes = getBytes(buffer);
-        if (bytes == null) {
-            return null;
+    private void writeString(GrowableByteBuffer buffer, String str) throws IOException {
+        buffer.put(STRING);
+        putString(buffer, str);
+    }
+
+    private void writeStringMap(GrowableByteBuffer buffer, Map<String, String> value) throws IOException {
+        buffer.put(STRING_MAP);
+        int pos = buffer.position();
+        buffer.position(pos + 4);
+        for (Map.Entry<String, String> entry : value.entrySet()) {
+            if (entry.getKey() == null || entry.getValue() == null) {
+                continue;
+            }
+            putString(buffer, entry.getKey());
+            putString(buffer, entry.getValue());
+        }
+        int npos = buffer.position();
+        buffer.position(pos);
+        buffer.putInt(npos - pos - 4);
+        buffer.position(npos);
+    }
+
+    private void writeBytes(GrowableByteBuffer buffer, byte[] value) {
+        buffer.put(BYTE_ARRAY);
+        buffer.putInt(value.length);
+        buffer.put(value);
+    }
+
+    private void writeStringArray(GrowableByteBuffer buffer, String[] value) throws IOException {
+        buffer.put(STRING_ARRAY);
+        int pos = buffer.position();
+        buffer.position(pos + 4);
+        for (int i = 0; i < value.length; i++) {
+            if (value[i] == null) {
+                continue;
+            }
+            putString(buffer, value[i]);
+        }
+        int npos = buffer.position();
+        buffer.position(pos);
+        buffer.putInt(npos - pos - 4);
+        buffer.position(npos);
+    }
+
+    private void writeStringArray(GrowableByteBuffer buffer, Collection<String> value) throws IOException {
+        buffer.put(STRING_ARRAY);
+        int pos = buffer.position();
+        buffer.position(pos + 4);
+        for (String s : value) {
+            // TODO: if 's' is null, the size of array may be different with origin
+            if (s == null) {
+                continue;
+            }
+            putString(buffer, s);
+        }
+        int npos = buffer.position();
+        buffer.position(pos);
+        buffer.putInt(npos - pos - 4);
+        buffer.position(npos);
+    }
+
+    private void writeBool(GrowableByteBuffer buffer, boolean value) {
+        buffer.put(BOOL);
+        if (value) {
+            buffer.put((byte) 1);
         } else {
-            return new String(bytes, "UTF-8");
+            buffer.put((byte) 0);
         }
     }
 
-    private byte[] getBytes(ByteBuffer buffer) throws UnsupportedEncodingException {
-        if (buffer.remaining() >= 4) {
-            int size = buffer.getInt();
-            if (size > buffer.remaining()) {
-                throw new MotanServiceException("SimpleSerialization deserialize fail! buffer not enough!need size:" + size);
-            }
-            if (size == 0) {
-                return new byte[]{};
-            } else {
-                byte[] b = new byte[size];
-                buffer.get(b);
-                return b;
-            }
+    private void writeByte(GrowableByteBuffer buffer, byte value) {
+        buffer.put(BYTE);
+        buffer.put(value);
+    }
+
+    private void writeInt16(GrowableByteBuffer buffer, short value) {
+        buffer.put(INT16);
+        buffer.putShort(value);
+    }
+
+    private void writeInt32(GrowableByteBuffer buffer, int value) {
+        buffer.put(INT32);
+        buffer.putZigzag32(value);
+    }
+
+    private void writeInt64(GrowableByteBuffer buffer, long value) {
+        buffer.put(INT64);
+        buffer.putZigzag64(value);
+    }
+
+    private void writeFloat32(GrowableByteBuffer buffer, float value) {
+        buffer.put(FLOAT32);
+        buffer.putFloat(value);
+    }
+
+    private void writeFloat64(GrowableByteBuffer buffer, double value) {
+        buffer.put(FLOAT64);
+        buffer.putDouble(value);
+    }
+
+    private void writeArray(GrowableByteBuffer buffer, Object[] value) throws IOException {
+        buffer.put(ARRAY);
+        int pos = buffer.position();
+        buffer.position(pos + 4);
+        for (int i = 0; i < value.length; i++) {
+            serialize(value[i], buffer);
+        }
+        int npos = buffer.position();
+        buffer.position(pos);
+        buffer.putInt(npos - pos - 4);
+        buffer.position(npos);
+    }
+
+    private void writeArray(GrowableByteBuffer buffer, Collection<?> value) throws IOException {
+        buffer.put(ARRAY);
+        int pos = buffer.position();
+        buffer.position(pos + 4);
+        for (Object v : value) {
+            serialize(v, buffer);
+        }
+        int npos = buffer.position();
+        buffer.position(pos);
+        buffer.putInt(npos - pos - 4);
+        buffer.position(npos);
+    }
+
+    private void writeMap(GrowableByteBuffer buffer, Map<?, ?> value) throws IOException {
+        buffer.put(MAP);
+        int pos = buffer.position();
+        buffer.position(pos + 4);
+        for (Map.Entry<?, ?> entry : value.entrySet()) {
+            serialize(entry.getKey(), buffer);
+            serialize(entry.getValue(), buffer);
+        }
+        int npos = buffer.position();
+        buffer.position(pos);
+        buffer.putInt(npos - pos - 4);
+        buffer.position(npos);
+    }
+
+    private int getAndCheckSize(GrowableByteBuffer buffer) {
+        int size = buffer.getInt();
+        if (size > buffer.remaining()) {
+            throw new MotanServiceException("SimpleSerialization deserialize fail! buffer not enough!need size:" + size);
+        }
+        return size;
+    }
+
+    private String readString(GrowableByteBuffer buffer) throws IOException {
+        return new String(readBytes(buffer), "UTF-8");
+    }
+
+    private Map<String, String> readStringMap(GrowableByteBuffer buffer) throws IOException {
+        Map<String, String> map = new HashMap<>(DEFAULT_MAP_SIZE);
+        int size = getAndCheckSize(buffer);
+        int startPos = buffer.position();
+        int endPos = startPos + size;
+        while (buffer.position() < endPos) {
+            map.put(readString(buffer), readString(buffer));
+        }
+        if (buffer.position() != endPos) {
+            throw new MotanServiceException("SimpleSerialization deserialize wrong map size, except: " + size + " actual: " + (buffer.position() - startPos));
+        }
+        return map;
+    }
+
+    private byte[] readBytes(GrowableByteBuffer buffer) {
+        int size = getAndCheckSize(buffer);
+        if (size == 0) {
+            return new byte[]{};
         } else {
-            return null;
+            byte[] b = new byte[size];
+            buffer.get(b);
+            return b;
         }
     }
 
+    private String[] readStringArray(GrowableByteBuffer buffer) throws IOException {
+        List<String> values = readStringList(buffer);
+        String[] result = new String[values.size()];
+        return values.toArray(result);
+    }
+
+    private List<String> readStringList(GrowableByteBuffer buffer) throws IOException {
+        List<String> result = new ArrayList<>(DEFAULT_ARRAY_SIZE);
+        return readStringCollection(buffer, result);
+    }
+
+    private Set<String> readStringSet(GrowableByteBuffer buffer) throws IOException {
+        Set<String> result = new HashSet<>(DEFAULT_ARRAY_SIZE);
+        return readStringCollection(buffer, result);
+    }
+
+    private <T extends Collection> T readStringCollection(GrowableByteBuffer buffer, T collection) throws IOException {
+        int size = getAndCheckSize(buffer);
+        if (size == 0) {
+            return collection;
+        }
+        int startPos = buffer.position();
+        int endPos = startPos + size;
+        while (buffer.position() < endPos) {
+            collection.add(readString(buffer));
+        }
+        if (buffer.position() != endPos) {
+            throw new MotanServiceException("SimpleSerialization deserialize wrong array size, except: " + size + " actual: " + (buffer.position() - startPos));
+        }
+        return collection;
+    }
+
+    private Boolean readBool(GrowableByteBuffer buffer) {
+        return buffer.get() == 1;
+    }
+
+    private Byte readByte(GrowableByteBuffer buffer) {
+        return buffer.get();
+    }
+
+    private Short readInt16(GrowableByteBuffer buffer) {
+        return buffer.getShort();
+    }
+
+    private Integer readInt32(GrowableByteBuffer buffer) {
+        return buffer.getZigZag32();
+    }
+
+    private Long readInt64(GrowableByteBuffer buffer) {
+        return buffer.getZigZag64();
+    }
+
+    private Float readFloat32(GrowableByteBuffer buffer) {
+        return buffer.getFloat();
+    }
+
+    private Double readFloat64(GrowableByteBuffer buffer) {
+        return buffer.getDouble();
+    }
+
+    private Map readMap(GrowableByteBuffer buffer) throws IOException {
+        Map<Object, Object> map = new HashMap<>(DEFAULT_MAP_SIZE);
+        int size = getAndCheckSize(buffer);
+        int startPos = buffer.position();
+        int endPos = startPos + size;
+        while (buffer.position() < endPos) {
+            map.put(deserialize(buffer, Object.class), deserialize(buffer, Object.class));
+        }
+        if (buffer.position() != endPos) {
+            throw new MotanServiceException("SimpleSerialization deserialize wrong map size, except: " + size + " actual: " + (buffer.position() - startPos));
+        }
+        return map;
+    }
+
+    private Object[] readArray(GrowableByteBuffer buffer) throws IOException {
+        List<Object> values = readList(buffer);
+        Object[] result = new Object[values.size()];
+        return values.toArray(result);
+    }
+
+    private List<Object> readList(GrowableByteBuffer buffer) throws IOException {
+        List<Object> result = new ArrayList<>(DEFAULT_ARRAY_SIZE);
+        return readCollection(buffer, result);
+    }
+
+    private Set<Object> readSet(GrowableByteBuffer buffer) throws IOException {
+        Set<Object> result = new HashSet<>(DEFAULT_ARRAY_SIZE);
+        return readCollection(buffer, result);
+    }
+
+    private <T extends Collection> T readCollection(GrowableByteBuffer buffer, T collection) throws IOException {
+        int size = getAndCheckSize(buffer);
+        if (size == 0) {
+            return collection;
+        }
+        int startPos = buffer.position();
+        int endPos = startPos + size;
+        while (buffer.position() < endPos) {
+            collection.add(deserialize(buffer, Object.class));
+        }
+        if (buffer.position() != endPos) {
+            throw new MotanServiceException("SimpleSerialization deserialize wrong array size, except: " + size + " actual: " + (buffer.position() - startPos));
+        }
+        return collection;
+    }
 }
-
-
