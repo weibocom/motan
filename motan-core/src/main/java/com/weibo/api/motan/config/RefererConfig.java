@@ -36,9 +36,9 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 
+ *
  * Referer config.
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-17
  */
@@ -48,6 +48,16 @@ public class RefererConfig<T> extends AbstractRefererConfig {
     private static final long serialVersionUID = -2299754608229467887L;
 
     private Class<T> interfaceClass;
+
+    private String serviceInterface;
+
+    public String getServiceInterface() {
+        return serviceInterface;
+    }
+
+    public void setServiceInterface(String serviceInterface) {
+        this.serviceInterface = serviceInterface;
+    }
 
     // 具体到方法的配置
     protected List<MethodConfig> methods;
@@ -123,7 +133,8 @@ public class RefererConfig<T> extends AbstractRefererConfig {
             collectConfigParams(params, protocol, basicReferer, extConfig, this);
             collectMethodConfigParams(params, this.getMethods());
 
-            URL refUrl = new URL(protocol.getName(), localIp, MotanConstants.DEFAULT_INT_VALUE, interfaceClass.getName(), params);
+            String path = StringUtils.isBlank(serviceInterface) ? interfaceClass.getName() : serviceInterface;
+            URL refUrl = new URL(protocol.getName(), localIp, MotanConstants.DEFAULT_INT_VALUE, path, params);
             ClusterSupport<T> clusterSupport = createClusterSupport(refUrl, configHandler, registryUrls);
 
             clusterSupports.add(clusterSupport);

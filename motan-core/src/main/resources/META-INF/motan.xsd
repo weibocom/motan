@@ -593,7 +593,7 @@
                             <xsd:documentation><![CDATA[ 使用的协议 ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
-                    <xsd:attribute name="interface" type="xsd:token" use="required">
+                    <xsd:attribute name="interface" type="xsd:token" use="optional" default="com.weibo.api.motan.proxy.CommonHandler">
                         <xsd:annotation>
                             <xsd:documentation><![CDATA[ The service interface class name. ]]></xsd:documentation>
                             <xsd:appinfo>
@@ -601,6 +601,11 @@
                                     <tool:expected-type type="java.lang.Class"/>
                                 </tool:annotation>
                             </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:attribute>
+                    <xsd:attribute name="serviceInterface" type="xsd:string" use="optional">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[ The service interface name. ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
                     <xsd:attribute name="client" type="xsd:string" use="optional">
