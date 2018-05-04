@@ -70,15 +70,6 @@ public class ReflectUtil {
         return builder.substring(0, builder.length() - 1);
     }
 
-    public static String getParamsDesc(Object[] params) {
-        StringBuilder builder = new StringBuilder();
-        for (Object param : params) {
-            String className = getName(param.getClass());
-            builder.append(className).append(PARAM_CLASS_SPLIT);
-        }
-        return builder.substring(0, builder.length() - 1);
-    }
-
     /**
      * 获取方法的标示 : method_name + "(" + paramDesc + ")"
      *
