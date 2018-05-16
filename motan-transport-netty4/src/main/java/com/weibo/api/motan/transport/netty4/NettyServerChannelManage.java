@@ -18,6 +18,7 @@ package com.weibo.api.motan.transport.netty4;
 
 import com.weibo.api.motan.util.LoggerUtil;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
@@ -29,10 +30,11 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * @author sunnights
  */
+@ChannelHandler.Sharable
 public class NettyServerChannelManage extends ChannelInboundHandlerAdapter {
-    private ConcurrentMap<String, Channel> channels = new ConcurrentHashMap<String, Channel>();
+    private ConcurrentMap<String, Channel> channels = new ConcurrentHashMap<>();
 
-    private int maxChannel = 0;
+    private int maxChannel;
 
     public NettyServerChannelManage(int maxChannel) {
         super();
