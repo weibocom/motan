@@ -116,8 +116,8 @@ public class RefererConfig<T> extends AbstractRefererConfig {
 
         checkInterfaceAndMethods(interfaceClass, methods);
 
-        clusterSupports = new ArrayList<ClusterSupport<T>>(protocols.size());
-        List<Cluster<T>> clusters = new ArrayList<Cluster<T>>(protocols.size());
+        clusterSupports = new ArrayList<>(protocols.size());
+        List<Cluster<T>> clusters = new ArrayList<>(protocols.size());
         String proxy = null;
 
         ConfigHandler configHandler = ExtensionLoader.getExtensionLoader(ConfigHandler.class).getExtension(MotanConstants.DEFAULT_VALUE);
@@ -125,7 +125,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
         List<URL> registryUrls = loadRegistryUrls();
         String localIp = getLocalHostAddress(registryUrls);
         for (ProtocolConfig protocol : protocols) {
-            Map<String, String> params = new HashMap<String, String>();
+            Map<String, String> params = new HashMap<>();
             params.put(URLParamType.nodeType.getName(), MotanConstants.NODE_TYPE_REFERER);
             params.put(URLParamType.version.getName(), URLParamType.version.getValue());
             params.put(URLParamType.refreshTimestamp.getName(), String.valueOf(System.currentTimeMillis()));
@@ -140,8 +140,10 @@ public class RefererConfig<T> extends AbstractRefererConfig {
             clusterSupports.add(clusterSupport);
             clusters.add(clusterSupport.getCluster());
 
-            proxy = (proxy == null) ? refUrl.getParameter(URLParamType.proxy.getName(), URLParamType.proxy.getValue()) : proxy;
-
+            if (proxy == null) {
+                String defaultValue = StringUtils.isBlank(serviceInterface) ? URLParamType.proxy.getValue() : MotanConstants.PROXY_COMMON;
+                proxy = refUrl.getParameter(URLParamType.proxy.getName(), defaultValue);
+            }
         }
 
         ref = configHandler.refer(interfaceClass, clusters, proxy);
@@ -150,7 +152,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
     }
 
     private ClusterSupport<T> createClusterSupport(URL refUrl, ConfigHandler configHandler, List<URL> registryUrls) {
-        List<URL> regUrls = new ArrayList<URL>();
+        List<URL> regUrls = new ArrayList<>();
 
         // 如果用户指定directUrls 或者 injvm协议访问，则使用local registry
         if (StringUtils.isNotBlank(directUrl) || MotanConstants.PROTOCOL_INJVM.equals(refUrl.getProtocol())) {
