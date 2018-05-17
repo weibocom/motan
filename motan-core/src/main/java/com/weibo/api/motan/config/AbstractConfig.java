@@ -16,19 +16,18 @@
 
 package com.weibo.api.motan.config;
 
-import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.config.annotation.ConfigDesc;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.util.LoggerUtil;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 
@@ -94,8 +93,7 @@ public abstract class AbstractConfig implements Serializable {
                 String name = method.getName();
                 if (isConfigMethod(method)) {
                     int idx = name.startsWith("get") ? 3 : 2;
-                    String prop = name.substring(idx, idx + 1).toLowerCase() + name.substring(idx + 1);
-                    String key = prop;
+                    String key = name.substring(idx, idx + 1).toLowerCase() + name.substring(idx + 1);
                     ConfigDesc configDesc = method.getAnnotation(ConfigDesc.class);
                     if (configDesc != null && !StringUtils.isBlank(configDesc.key())) {
                         key = configDesc.key();

@@ -59,4 +59,7 @@
     <motan:referer id="motanDemoReferer-pb" registry="registry3"
                    interface="com.weibo.motan.demo.service.PbParamService" protocol="motan2-pb"
                    connectTimeout="1000" requestTimeout="1000" basicReferer="motantestClientBasicConfig"/>
+    <motan:referer id="motanDemoReferer-common-client" protocol="motan2" registry="registry"
+                   serviceInterface="com.weibo.motan.demo.service.MotanDemoService"
+                   connectTimeout="1000" requestTimeout="1000" basicReferer="motantestClientBasicConfig"/>
 </beans>

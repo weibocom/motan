@@ -17,24 +17,11 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:aop="http://www.springframework.org/schema/aop"
-       xmlns:context="http://www.springframework.org/schema/context"
-       xmlns:lang="http://www.springframework.org/schema/lang"
-       xmlns:tx="http://www.springframework.org/schema/tx"
        xmlns:motan="http://api.weibo.com/schema/motan"
-       xmlns:weibo="http://api.weibo.com/schema/weibo" 
-       xmlns:util="http://www.springframework.org/schema/util"
-       xsi:schemaLocation="
-       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
-       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
-       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
-       http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.5.xsd
-       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
-       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd 
-       http://api.weibo.com/schema/weibo http://api.weibo.com/schema/weibo.xsd
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
        http://api.weibo.com/schema/motan http://api.weibo.com/schema/motan.xsd">
 
-    <motan:spi interfaceClass="com.weibo.api.motan.config.springsupport.ISpi" 
-        spiClass="com.weibo.api.motan.config.springsupport.SpiImpl"></motan:spi>
+    <motan:spi interfaceClass="com.weibo.api.motan.config.springsupport.ISpi"
+               spiClass="com.weibo.api.motan.config.springsupport.SpiImpl"/>
    
 </beans>

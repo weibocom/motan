@@ -31,6 +31,10 @@ public class MotanDemoServiceImpl implements MotanDemoService {
 
     @Override
     public User rename(User user, String name) {
+        if (user == null) {
+            System.out.println("user: null");
+            return null;
+        }
         System.out.println(user.getId() + " rename " + user.getName() + " to " + name);
         user.setName(name);
         return user;
