@@ -1,5 +1,22 @@
 # Change Log
 
+## [1.1.1](https://github.com/weibocom/motan/tree/1.1.1) (2018-05-17)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.0...1.1.1)
+
+**Implemented enhancements:**
+
+- support multi serialize in simpleSerialization [\#635](https://github.com/weibocom/motan/pull/635) ([Ray](https://github.com/rayzhang0603))
+- support more data type in simpleSerialization [\#683](https://github.com/weibocom/motan/pull/683) ([lion2luo](https://github.com/lion2luo))
+- add rpc common client [\#682](https://github.com/weibocom/motan/pull/682) [\#702](https://github.com/weibocom/motan/pull/702) ([sunnights](https://github.com/sunnights))
+- enable channel manage for netty4 server [\#707](https://github.com/weibocom/motan/pull/707) ([sunnights](https://github.com/sunnights))
+
+**Fixed bugs:**
+
+- optimize netty4 server when reject request [\#613](https://github.com/weibocom/motan/pull/613) ([sunnights](https://github.com/sunnights))
+- fix NPE when discover service failed [\#637](https://github.com/weibocom/motan/pull/637) ([sunnights](https://github.com/sunnights))
+- fix netty channel close issue in netty4 [\#693](https://github.com/weibocom/motan/pull/693) ([sunnights](https://github.com/sunnights))
+- fix connection leak when netty client create connection with exception [\#670](https://github.com/weibocom/motan/pull/670) ([lion2luo](https://github.com/lion2luo))
+
 ## [1.1.0](https://github.com/weibocom/motan/tree/1.1.0) (2017-10-31)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.0.0...1.1.0)
 
