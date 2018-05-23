@@ -82,6 +82,9 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
 
         channelManage = new NettyServerChannelManage(maxServerConnection);
 
+        final NettyChannelHandler handler = new NettyChannelHandler(NettyServer.this, messageHandler,
+                standardThreadExecutor);
+
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
@@ -92,7 +95,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
                         pipeline.addLast("channel_manage", channelManage);
                         pipeline.addLast("decoder", new NettyDecoder(codec, NettyServer.this, maxContentLength));
                         pipeline.addLast("encoder", new NettyEncoder());
-                        pipeline.addLast("handler", new NettyChannelHandler(NettyServer.this, messageHandler, standardThreadExecutor));
+                        pipeline.addLast("handler", handler);
                     }
                 });
         serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);
