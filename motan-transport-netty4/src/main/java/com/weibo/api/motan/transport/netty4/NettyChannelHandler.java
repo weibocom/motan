@@ -17,6 +17,7 @@ import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.NetUtils;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelHandler.Sharable;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -26,6 +27,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * @author sunnights
  */
+@Sharable
 public class NettyChannelHandler extends ChannelDuplexHandler {
     private ThreadPoolExecutor threadPoolExecutor;
     private MessageHandler messageHandler;
