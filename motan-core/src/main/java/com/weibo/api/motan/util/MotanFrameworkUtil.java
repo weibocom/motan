@@ -141,7 +141,7 @@ public class MotanFrameworkUtil {
      * @param target
      * @return
      */
-    public static boolean checkIfCanShallServiceChannel(URL source, URL target) {
+    public static boolean checkIfCanShareServiceChannel(URL source, URL target) {
         if (!StringUtils.equals(source.getProtocol(), target.getProtocol())) {
             return false;
         }
