@@ -95,30 +95,23 @@ public class LocalSwitcherService implements SwitcherService {
 
     @Override
     public void registerListener(String switcherName, SwitcherListener listener) {
-        synchronized (listenerMap) {
-            if (listenerMap.get(switcherName) == null) {
-                List listeners = Collections.synchronizedList(new ArrayList());
-                listenerMap.put(switcherName, listeners);
-                listeners.add(listener);
-            } else {
-                List listeners = listenerMap.get(switcherName);
-                if (!listeners.contains(listener)) {
-                    listeners.add(listener);
-                }
-            }
+        List listeners = Collections.synchronizedList(new ArrayList());
+        List preListeners= listenerMap.putIfAbsent(switcherName, listeners);
+        if (preListeners == null) {
+            listeners.add(listener);
+        } else {
+            preListeners.add(listener);
         }
     }
 
     @Override
     public void unRegisterListener(String switcherName, SwitcherListener listener) {
-        synchronized (listenerMap) {
+            List<SwitcherListener> listeners = listenerMap.get(switcherName);
             if (listener == null) {
-                listenerMap.remove(switcherName);
+                // keep empty listeners
+                listeners.clear();
             } else {
-                List<SwitcherListener> listeners = listenerMap.get(switcherName);
                 listeners.remove(listener);
             }
-        }
     }
-
 }
