@@ -95,7 +95,7 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
 
             if (server != null) {
                 // can't share service channel
-                if (!MotanFrameworkUtil.checkIfCanShallServiceChannel(server.getUrl(), url)) {
+                if (!MotanFrameworkUtil.checkIfCanShareServiceChannel(server.getUrl(), url)) {
                     throw new MotanFrameworkException(
                             "Service export Error: share channel but some config param is different, protocol or codec or serialize or maxContentLength or maxServerConnection or maxWorkerThread or heartbeatFactory, source="
                                     + server.getUrl() + " target=" + url, MotanErrorMsgConstant.FRAMEWORK_EXPORT_ERROR);
