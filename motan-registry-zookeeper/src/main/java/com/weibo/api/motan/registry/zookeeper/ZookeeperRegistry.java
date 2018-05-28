@@ -16,22 +16,8 @@
 
 package com.weibo.api.motan.registry.zookeeper;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.weibo.api.motan.closable.Closable;
 import com.weibo.api.motan.closable.ShutDownHook;
-import org.I0Itec.zkclient.IZkChildListener;
-import org.I0Itec.zkclient.IZkDataListener;
-import org.I0Itec.zkclient.IZkStateListener;
-import org.I0Itec.zkclient.ZkClient;
-import org.apache.zookeeper.Watcher;
-
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.registry.support.command.CommandFailbackRegistry;
@@ -40,6 +26,16 @@ import com.weibo.api.motan.registry.support.command.ServiceListener;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
+import org.I0Itec.zkclient.IZkChildListener;
+import org.I0Itec.zkclient.IZkDataListener;
+import org.I0Itec.zkclient.IZkStateListener;
+import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.zookeeper.Watcher;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ZookeeperRegistry extends CommandFailbackRegistry implements Closable {
     private ZkClient zkClient;
@@ -91,7 +87,7 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
                 childChangeListeners.putIfAbsent(serviceListener, new IZkChildListener() {
                     @Override
                     public void handleChildChange(String parentPath, List<String> currentChilds) {
-                        serviceListener.notifyService(url, getUrl(), nodeChildsToUrls(parentPath, currentChilds));
+                        serviceListener.notifyService(url, getUrl(), nodeChildsToUrls(url, parentPath, currentChilds));
                         LoggerUtil.info(String.format("[ZookeeperRegistry] service list change: path=%s, currentChilds=%s", parentPath, currentChilds.toString()));
                     }
                 });
@@ -195,7 +191,7 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
             if (zkClient.exists(parentPath)) {
                 currentChilds = zkClient.getChildren(parentPath);
             }
-            return nodeChildsToUrls(parentPath, currentChilds);
+            return nodeChildsToUrls(url, parentPath, currentChilds);
         } catch (Throwable e) {
             throw new MotanFrameworkException(String.format("Failed to discover service %s from zookeeper(%s), cause: %s", url, getUrl(), e.getMessage()), e);
         }
@@ -287,18 +283,45 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
         }
     }
 
-    private List<URL> nodeChildsToUrls(String parentPath, List<String> currentChilds) {
+    private List<URL> nodeChildsToUrls(URL url, String parentPath, List<String> currentChilds) {
         List<URL> urls = new ArrayList<URL>();
         if (currentChilds != null) {
             for (String node : currentChilds) {
                 String nodePath = parentPath + MotanConstants.PATH_SEPARATOR + node;
-                String data = zkClient.readData(nodePath, true);
-                try {
-                    URL url = URL.valueOf(data);
-                    urls.add(url);
-                } catch (Exception e) {
-                    LoggerUtil.warn(String.format("Found malformed urls from ZookeeperRegistry, path=%s", nodePath), e);
+                String data = null;
+                try{
+                    data = zkClient.readData(nodePath, true);
+                } catch (Exception e){
+                    LoggerUtil.warn("get zkdata fail!" + e.getMessage());
                 }
+                URL newurl = null;
+                if (StringUtils.isNotBlank(data)) {
+                    try {
+                        newurl = URL.valueOf(data);
+                    } catch (Exception e) {
+                        LoggerUtil.warn(String.format("Found malformed urls from ZookeeperRegistry, path=%s", nodePath), e);
+                    }
+                }
+                if (newurl == null) {
+                    newurl = url.createCopy();
+                    String host = "";
+                    int port = 80;
+                    if (node.indexOf(":") > -1) {
+                        String[] hp = node.split(":");
+                        if (hp.length > 1) {
+                            host = hp[0];
+                            try {
+                                port = Integer.parseInt(hp[1]);
+                            } catch (Exception ignore) {
+                            }
+                        }
+                    } else {
+                        host = node;
+                    }
+                    newurl.setHost(host);
+                    newurl.setPort(port);
+                }
+                urls.add(newurl);
             }
         }
         return urls;

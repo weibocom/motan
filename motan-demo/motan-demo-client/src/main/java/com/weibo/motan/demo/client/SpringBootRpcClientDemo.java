@@ -29,7 +29,11 @@ import com.weibo.api.motan.config.springsupport.RegistryConfigBean;
 public class SpringBootRpcClientDemo {
 
     public static void main(String[] args) {
+        System.setProperty("server.port", "8080");
         SpringApplication.run(SpringBootRpcClientDemo.class, args);
+
+        //start client and curl 'http://localhost:8080/' ,
+        // will requst to HelloController.home(), add than, request to the rpc server
     }
 
 
@@ -53,7 +57,8 @@ public class SpringBootRpcClientDemo {
     @Bean(name = "registry")
     public RegistryConfigBean registryConfig() {
         RegistryConfigBean config = new RegistryConfigBean();
-        config.setRegProtocol("local");
+        config.setRegProtocol("direct");
+        config.setAddress("127.0.0.1:8002");
         return config;
     }
 

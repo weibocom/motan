@@ -17,7 +17,7 @@
 package com.weibo.api.motan.config;
 
 /**
- * 
+ *
  * Abstract referer config.
  *
  * @author fishermen
@@ -34,6 +34,7 @@ public abstract class AbstractRefererConfig extends AbstractInterfaceConfig {
     protected String p99;
     protected String p999;
     protected String errorRate;
+    protected Boolean asyncInitConnection;
 
     public String getMean() {
         return mean;
@@ -75,5 +76,12 @@ public abstract class AbstractRefererConfig extends AbstractInterfaceConfig {
         this.errorRate = errorRate;
     }
 
+    public Boolean getAsyncInitConnection() {
+        return asyncInitConnection;
+    }
+
+    public void setAsyncInitConnection(Boolean asyncInitConnection) {
+        this.asyncInitConnection = asyncInitConnection;
+    }
 
 }

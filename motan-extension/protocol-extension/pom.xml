@@ -12,7 +12,7 @@
     <parent>
         <groupId>com.weibo</groupId>
         <artifactId>motan-extension</artifactId>
-        <version>0.3.2-SNAPSHOT</version>
+        <version>1.1.2-SNAPSHOT</version>
     </parent>
     <artifactId>protocol-extension</artifactId>
     <name>protocol-extension</name>
@@ -22,7 +22,8 @@
     </properties>
     <packaging>pom</packaging>
     <modules>
-      <module>motan-protocol-yar</module>
-      <module>motan-protocol-restful</module>
-  </modules>
+        <module>motan-protocol-yar</module>
+        <module>motan-protocol-grpc</module>
+        <module>motan-protocol-restful</module>
+    </modules>
 </project>

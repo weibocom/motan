@@ -16,17 +16,16 @@
 
 package com.weibo.api.motan.rpc;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <pre>
@@ -187,6 +186,14 @@ public class URL {
 
     public String getGroup() {
         return getParameter(URLParamType.group.getName(), URLParamType.group.getValue());
+    }
+
+    public String getApplication() {
+        return getParameter(URLParamType.application.getName(), URLParamType.application.getValue());
+    }
+
+    public String getModule() {
+        return getParameter(URLParamType.module.getName(), URLParamType.module.getValue());
     }
 
     public Map<String, String> getParameters() {

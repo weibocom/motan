@@ -26,6 +26,6 @@ public interface BenchmarkService {
 
     public Map<Long, Integer> getUserTypes(List<Long> uids);
 
-    public long[] getLastStausIds(long[] uids);
+    public long[] getLastStatusIds(long[] uids);
 
 }

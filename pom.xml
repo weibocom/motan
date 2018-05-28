@@ -13,7 +13,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>motan</artifactId>
     <groupId>com.weibo</groupId>
-    <version>0.3.2-SNAPSHOT</version>
+    <version>1.1.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <scm>
         <connection>scm:git:https://github.com/weibocom/motan.git</connection>
@@ -26,6 +26,7 @@
         <module>motan-manager</module>
         <module>motan-springsupport</module>
         <module>motan-transport-netty</module>
+        <module>motan-transport-netty4</module>
         <module>motan-demo</module>
         <module>motan-registry-consul</module>
         <module>motan-registry-zookeeper</module>
@@ -35,7 +36,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.source.jdk>1.6</java.source.jdk>
+        <java.source.jdk>1.7</java.source.jdk>
         <spring-framework.version>4.2.4.RELEASE</spring-framework.version>
     </properties>
 

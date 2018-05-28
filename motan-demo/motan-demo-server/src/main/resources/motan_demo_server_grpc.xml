@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~  Copyright 2009-2016 Weibo, Inc.
+  ~
+  ~    Licensed under the Apache License, Version 2.0 (the "License");
+  ~    you may not use this file except in compliance with the License.
+  ~    You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~    Unless required by applicable law or agreed to in writing, software
+  ~    distributed under the License is distributed on an "AS IS" BASIS,
+  ~    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~    See the License for the specific language governing permissions and
+  ~    limitations under the License.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:motan="http://api.weibo.com/schema/motan"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://api.weibo.com/schema/motan http://api.weibo.com/schema/motan.xsd">
+
+    <!-- 业务具体实现类 -->
+    <bean id="motanDemoServiceImpl" class="com.weibo.motan.demo.server.GrpcServerDemo"/>
+
+    <!-- 注册中心配置 使用不同注册中心需要依赖对应的jar包。如果不使用注册中心，可以把check属性改为false，忽略注册失败。-->
+    <motan:registry regProtocol="local" name="registry" />
+
+    <!-- 协议配置。为防止多个业务配置冲突，推荐使用id表示具体协议。-->
+    <motan:protocol id="demoGrpc" default="true" name="grpc"
+                    maxServerConnection="80000" maxContentLength="1048576"
+                    maxWorkerThread="800" minWorkerThread="20"/>
+
+    <!-- 通用配置，多个rpc服务使用相同的基础配置. group和module定义具体的服务池。export格式为“protocol id:提供服务的端口”-->
+    <motan:basicService export="demoYar:8004"
+                        group="motan-demo-rpc" accessLog="false" shareChannel="true" module="motan-demo-rpc"
+                        application="myMotanDemo" registry="registry" id="serviceBasicConfig"/>
+
+    <!-- 具体rpc服务配置，声明实现的接口类。-->
+    <motan:service interface="com.weibo.motan.demo.service.GrpcService"
+                   ref="motanDemoServiceImpl" export="demoGrpc:8004" basicService="serviceBasicConfig">
+    </motan:service>
+   
+</beans>

@@ -1,5 +1,60 @@
 # Change Log
 
+## [1.1.1](https://github.com/weibocom/motan/tree/1.1.1) (2018-05-17)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.0...1.1.1)
+
+**Implemented enhancements:**
+
+- support multi serialize in simpleSerialization [\#635](https://github.com/weibocom/motan/pull/635) ([Ray](https://github.com/rayzhang0603))
+- support more data type in simpleSerialization [\#683](https://github.com/weibocom/motan/pull/683) ([lion2luo](https://github.com/lion2luo))
+- add rpc common client [\#682](https://github.com/weibocom/motan/pull/682) [\#702](https://github.com/weibocom/motan/pull/702) ([sunnights](https://github.com/sunnights))
+- enable channel manage for netty4 server [\#707](https://github.com/weibocom/motan/pull/707) ([sunnights](https://github.com/sunnights))
+
+**Fixed bugs:**
+
+- optimize netty4 server when reject request [\#613](https://github.com/weibocom/motan/pull/613) ([sunnights](https://github.com/sunnights))
+- fix NPE when discover service failed [\#637](https://github.com/weibocom/motan/pull/637) ([sunnights](https://github.com/sunnights))
+- fix netty channel close issue in netty4 [\#693](https://github.com/weibocom/motan/pull/693) ([sunnights](https://github.com/sunnights))
+- fix connection leak when netty client create connection with exception [\#670](https://github.com/weibocom/motan/pull/670) ([lion2luo](https://github.com/lion2luo))
+
+## [1.1.0](https://github.com/weibocom/motan/tree/1.1.0) (2017-10-31)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.0.0...1.1.0)
+
+**Implemented enhancements:**
+
+- add netty4 support [\#595](https://github.com/weibocom/motan/pull/595) ([sunnights](https://github.com/sunnights))
+
+**Fixed bugs:**
+
+- fix MotanAsyncProcessor warning info above jdk7 [\#602](https://github.com/weibocom/motan/pull/602) ([Panying](https://github.com/anylain))
+- fix async return null when send exception happened [\#605](https://github.com/weibocom/motan/pull/605) ([Ray](https://github.com/rayzhang0603))
+- fix motan2 decode fail when object is null [\#591](https://github.com/weibocom/motan/pull/591) ([Ray](https://github.com/rayzhang0603))
+
+**Merged pull requests:**
+
+- update consul version [\#587](https://github.com/weibocom/motan/pull/587) ([Michael Yang](https://github.com/yangfuhai))
+
+
+
+## [1.0.0](https://github.com/weibocom/motan/tree/1.0.0) (2017-10-31)
+[Full Changelog](https://github.com/weibocom/motan/compare/0.3.1...1.0.0)
+
+**Implemented enhancements:**
+
+- add motan2 protocol for cross-language transport [\#561](https://github.com/weibocom/motan/pull/561) ([Ray](https://github.com/rayzhang0603))
+- add gRPC protocol support [\#561](https://github.com/weibocom/motan/pull/561) ([Ray](https://github.com/rayzhang0603))
+- add simple serialization [\#561](https://github.com/weibocom/motan/pull/561) ([Ray](https://github.com/rayzhang0603))
+- add RpcContext for pass custom params [\#561](https://github.com/weibocom/motan/pull/561) ([Ray](https://github.com/rayzhang0603))
+- add InitializableFilter interface [\#561](https://github.com/weibocom/motan/pull/561) ([Ray](https://github.com/rayzhang0603))
+- add transExceptionStack in motan config to avoid transport java exception stack [\#561](https://github.com/weibocom/motan/pull/561) ([Ray](https://github.com/rayzhang0603))
+
+**Fixed bugs:**
+
+**Merged pull requests:**
+
+- refine DefaultProvider log [\#501](https://github.com/weibocom/motan/pull/501) ([yeluoguigen009](https://github.com/yeluoguigen009)) 
+
+
 ## [0.3.1](https://github.com/weibocom/motan/tree/0.3.1) (2017-07-11)
 [Full Changelog](https://github.com/weibocom/motan/compare/0.3.0...0.3.1)
 

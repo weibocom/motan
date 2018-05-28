@@ -27,7 +27,6 @@ import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.protocol.support.ProtocolFilterDecorator;
 import com.weibo.api.motan.proxy.ProxyFactory;
-import com.weibo.api.motan.proxy.RefererInvocationHandler;
 import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.registry.RegistryFactory;
 import com.weibo.api.motan.rpc.*;
@@ -39,7 +38,7 @@ import java.util.List;
 
 
 /**
- * 
+ *
  * Handle refUrl to get referers, assemble to a cluster, create a proxy
  *
  * @author fishermen
@@ -60,7 +59,7 @@ public class SimpleConfigHandler implements ConfigHandler {
     @Override
     public <T> T refer(Class<T> interfaceClass, List<Cluster<T>> clusters, String proxyType) {
         ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getExtension(proxyType);
-        return proxyFactory.getProxy(interfaceClass, new RefererInvocationHandler<T>(interfaceClass, clusters));
+        return proxyFactory.getProxy(interfaceClass, clusters);
     }
 
     @Override
@@ -72,14 +71,24 @@ public class SimpleConfigHandler implements ConfigHandler {
         // export service
         // 利用protocol decorator来增加filter特性
         String protocolName = serviceUrl.getParameter(URLParamType.protocol.getName(), URLParamType.protocol.getValue());
-        Protocol protocol = new ProtocolFilterDecorator(ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(protocolName));
-        Provider<T> provider = new DefaultProvider<T>(ref, serviceUrl, interfaceClass);
+        Protocol orgProtocol = ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(protocolName);
+        Provider<T> provider = getProvider(orgProtocol, ref, serviceUrl, interfaceClass);
+
+        Protocol protocol = new ProtocolFilterDecorator(orgProtocol);
         Exporter<T> exporter = protocol.export(provider, serviceUrl);
 
         // register service
         register(registryUrls, serviceUrl);
 
         return exporter;
+    }
+
+    protected <T> Provider<T> getProvider(Protocol protocol, T proxyImpl, URL url, Class<T> clz){
+        if (protocol instanceof ProviderFactory){
+            return ((ProviderFactory)protocol).newProvider(proxyImpl, url, clz);
+        } else{
+            return new DefaultProvider<T>(proxyImpl, url, clz);
+        }
     }
 
     @Override

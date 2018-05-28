@@ -1,6 +1,5 @@
 package com.weibo.api.motan.config.springsupport.util;
 
-import com.weibo.api.motan.config.ProtocolConfig;
 import org.springframework.beans.factory.BeanFactory;
 
 import java.util.ArrayList;

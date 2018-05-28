@@ -40,7 +40,7 @@ public class RoundRobinLoadBalance<T> extends AbstractLoadBalance<T> {
     protected Referer<T> doSelect(Request request) {
         List<Referer<T>> referers = getReferers();
 
-        int index = getNextPositive();
+        int index = getNextNonNegative();
         for (int i = 0; i < referers.size(); i++) {
             Referer<T> ref = referers.get((i + index) % referers.size());
             if (ref.isAvailable()) {
@@ -54,7 +54,7 @@ public class RoundRobinLoadBalance<T> extends AbstractLoadBalance<T> {
     protected void doSelectToHolder(Request request, List<Referer<T>> refersHolder) {
         List<Referer<T>> referers = getReferers();
 
-        int index = getNextPositive();
+        int index = getNextNonNegative();
         for (int i = 0, count = 0; i < referers.size() && count < MAX_REFERER_COUNT; i++) {
             Referer<T> referer = referers.get((i + index) % referers.size());
             if (referer.isAvailable()) {
@@ -64,8 +64,8 @@ public class RoundRobinLoadBalance<T> extends AbstractLoadBalance<T> {
         }
     }
 
-    // get positive int
-    private int getNextPositive() {
-        return MathUtil.getPositive(idx.incrementAndGet());
+    // get non-negative int
+    private int getNextNonNegative() {
+        return MathUtil.getNonNegative(idx.incrementAndGet());
     }
 }

@@ -16,18 +16,19 @@
 
 package com.weibo.api.motan.proxy;
 
-import java.lang.reflect.InvocationHandler;
-
+import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.core.extension.Spi;
 
+import java.util.List;
+
 /**
- * 
+ *
  * @author maijunsheng
- * 
+ *
  */
 @Spi
 public interface ProxyFactory {
 
-    <T> T getProxy(Class<T> clz, InvocationHandler invocationHandler);
+    <T> T getProxy(Class<T> clz, List<Cluster<T>> clusters);
 
 }

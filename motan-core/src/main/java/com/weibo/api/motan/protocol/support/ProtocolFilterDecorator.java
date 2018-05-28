@@ -1,26 +1,18 @@
 /*
- *  Copyright 2009-2016 Weibo, Inc.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2016 Weibo, Inc.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 package com.weibo.api.motan.protocol.support;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
@@ -32,13 +24,14 @@ import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.filter.AccessLogFilter;
 import com.weibo.api.motan.filter.Filter;
-import com.weibo.api.motan.rpc.Exporter;
-import com.weibo.api.motan.rpc.Protocol;
-import com.weibo.api.motan.rpc.Provider;
-import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.filter.InitializableFilter;
+import com.weibo.api.motan.rpc.*;
+import org.apache.commons.lang3.StringUtils;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  *
@@ -79,6 +72,9 @@ public class ProtocolFilterDecorator implements Protocol {
         Referer<T> lastRef = referer;
         for (Filter filter : filters) {
             final Filter f = filter;
+            if (f instanceof InitializableFilter) {
+                ((InitializableFilter) f).init(lastRef);
+            }
             final Referer<T> lf = lastRef;
             lastRef = new Referer<T>() {
                 @Override
@@ -143,6 +139,9 @@ public class ProtocolFilterDecorator implements Protocol {
         Provider<T> lastProvider = provider;
         for (Filter filter : filters) {
             final Filter f = filter;
+            if (f instanceof InitializableFilter) {
+                ((InitializableFilter) f).init(lastProvider);
+            }
             final Provider<T> lp = lastProvider;
             lastProvider = new Provider<T>() {
                 @Override
@@ -163,6 +162,11 @@ public class ProtocolFilterDecorator implements Protocol {
                 @Override
                 public Class<T> getInterface() {
                     return lp.getInterface();
+                }
+
+                @Override
+                public Method lookupMethod(String methodName, String methodDesc) {
+                    return lp.lookupMethod(methodName, methodDesc);
                 }
 
                 @Override

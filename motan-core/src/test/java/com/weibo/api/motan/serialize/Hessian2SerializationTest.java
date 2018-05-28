@@ -16,18 +16,16 @@
 
 package com.weibo.api.motan.serialize;
 
+import com.weibo.api.motan.serialize.SubModel.SerializationObject1;
+import junit.framework.TestCase;
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
-
-import junit.framework.TestCase;
-
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.weibo.api.motan.serialize.SubModel.SerializationObject1;
 
 /**
  * @author maijunsheng
@@ -108,6 +106,20 @@ public class Hessian2SerializationTest extends TestCase {
             e.printStackTrace();
         }
     }
+
+    @Test
+    public void testSerializeMulti() throws Exception {
+        Object[] objects = new Object[]{"123", 456, true, 45.67f};
+        byte[] bytes = hessian2Serialization.serializeMulti(objects);
+        Class[] classes = new Class[objects.length];
+        for (int i = 0; i < objects.length; i++) {
+            classes[i] = objects[i].getClass();
+        }
+        Object[] newObjs = hessian2Serialization.deserializeMulti(bytes, classes);
+        for (int i = 0; i < objects.length; i++) {
+            assertEquals(objects[i], newObjs[i]);
+        }
+    }
 }
 
 
@@ -140,7 +152,7 @@ class Model implements Serializable {
 }
 
 
-class SubModel implements Serializable {
+class SubModel implements java.io.Serializable {
     private static final long serialVersionUID = 4797257086799637170L;
 
     private String name;

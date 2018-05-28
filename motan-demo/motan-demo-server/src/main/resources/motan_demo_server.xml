@@ -27,7 +27,9 @@
     <!-- 注册中心配置 使用不同注册中心需要依赖对应的jar包。如果不使用注册中心，可以把check属性改为false，忽略注册失败。-->
     <motan:registry regProtocol="local" name="registry" />
     <!--<motan:registry regProtocol="consul" name="registry" address="127.0.0.1:8500"/>-->
-    <!-- <motan:registry regProtocol="zookeeper" name="registry" address="127.0.0.1:2181" connectTimeout="2000"/> -->
+
+    <!--<motan:registry regProtocol="zookeeper" name="registry" address="127.0.0.1:2181" connectTimeout="2000"/>-->
+
 
     <!-- 协议配置。为防止多个业务配置冲突，推荐使用id表示具体协议。-->
     <motan:protocol id="demoMotan" default="true" name="motan"

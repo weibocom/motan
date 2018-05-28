@@ -16,23 +16,6 @@
 
 package com.weibo.api.motan.transport.netty;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.apache.commons.pool.BasePoolableObjectFactory;
-import org.jboss.netty.bootstrap.ClientBootstrap;
-import org.jboss.netty.channel.ChannelFactory;
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
-
 import com.weibo.api.motan.common.ChannelState;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
@@ -41,11 +24,7 @@ import com.weibo.api.motan.exception.MotanAbstractException;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.RpcContext;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.transport.AbstractPoolClient;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
@@ -54,6 +33,17 @@ import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.StatisticCallback;
 import com.weibo.api.motan.util.StatsUtil;
+import org.apache.commons.pool.BasePoolableObjectFactory;
+import org.jboss.netty.bootstrap.ClientBootstrap;
+import org.jboss.netty.channel.ChannelFactory;
+import org.jboss.netty.channel.ChannelPipeline;
+import org.jboss.netty.channel.ChannelPipelineFactory;
+import org.jboss.netty.channel.Channels;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
+
+import java.util.Map;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 
@@ -82,7 +72,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 	// 异步的request，需要注册callback future
 	// 触发remove的操作有： 1) service的返回结果处理。 2) timeout thread cancel
-	protected ConcurrentMap<Long, NettyResponseFuture> callbackMap = new ConcurrentHashMap<Long, NettyResponseFuture>();
+	protected ConcurrentMap<Long, ResponseFuture> callbackMap = new ConcurrentHashMap<Long, ResponseFuture>();
 
 	private ScheduledFuture<?> timeMonitorFuture = null;
 
@@ -135,7 +125,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 			// available，那么将会自动把该client设置成可用
 			request(request, true);
 		} catch (Exception e) {
-			LoggerUtil.error("NettyClient heartbeat Error: url=" + url.getUri(), e);
+			LoggerUtil.error("NettyClient heartbeat Error: url=" + url.getUri() + ", " + e.getMessage());
 		}
 	}
 
@@ -175,7 +165,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 			returnObject(channel);
 		} catch (Exception e) {
 			LoggerUtil.error(
-					"NettyClient request Error: url=" + url.getUri() + " " + MotanFrameworkUtil.toString(request), e);
+					"NettyClient request Error: url=" + url.getUri() + " " + MotanFrameworkUtil.toString(request) + ", " + e.getMessage());
 			//TODO 对特定的异常回收channel
 			invalidateObject(channel);
 
@@ -201,7 +191,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 	 * @return
 	 */
 	private Response asyncResponse(Response response, boolean async) {
-		if (async || !(response instanceof NettyResponseFuture)) {
+		if (async || !(response instanceof ResponseFuture)) {
 			return response;
 		}
 
@@ -262,7 +252,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 					public Object handle(Channel channel, Object message) {
 						Response response = (Response) message;
 
-						NettyResponseFuture responseFuture = NettyClient.this.removeCallback(response.getRequestId());
+						ResponseFuture responseFuture = NettyClient.this.removeCallback(response.getRequestId());
 
 						if (responseFuture == null) {
 							LoggerUtil.warn(
@@ -421,7 +411,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 	 * @param requestId
 	 * @param nettyResponseFuture
 	 */
-	public void registerCallback(long requestId, NettyResponseFuture nettyResponseFuture) {
+	public void registerCallback(long requestId, ResponseFuture nettyResponseFuture) {
 		if (this.callbackMap.size() >= MotanConstants.NETTY_CLIENT_MAX_REQUEST) {
 			// reject request, prevent from OutOfMemoryError
 			throw new MotanServiceException("NettyClient over of max concurrent request, drop request, url: "
@@ -451,7 +441,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 	 * @param requestId
 	 * @return
 	 */
-	public NettyResponseFuture removeCallback(long requestId) {
+	public ResponseFuture removeCallback(long requestId) {
 		return callbackMap.remove(requestId);
 	}
 
@@ -476,9 +466,9 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 			long currentTime = System.currentTimeMillis();
 
-			for (Map.Entry<Long, NettyResponseFuture> entry : callbackMap.entrySet()) {
+			for (Map.Entry<Long, ResponseFuture> entry : callbackMap.entrySet()) {
 				try {
-					NettyResponseFuture future = entry.getValue();
+					ResponseFuture future = entry.getValue();
 
 					if (future.getCreateTime() + future.getTimeout() < currentTime) {
 						// timeout: remove from callback list, and then cancel

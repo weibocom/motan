@@ -16,16 +16,15 @@
 
 package com.weibo.api.motan.registry.support.command;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.weibo.api.motan.registry.NotifyListener;
 import com.weibo.api.motan.registry.support.FailbackRegistry;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.LoggerUtil;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class CommandFailbackRegistry extends FailbackRegistry {
 
@@ -93,7 +92,7 @@ public abstract class CommandFailbackRegistry extends FailbackRegistry {
             finalResult = discoverService(urlCopy);
         }
 
-        LoggerUtil.info("CommandFailbackRegistry discover size: " + finalResult.size() + ", result:" + finalResult.toString());
+        LoggerUtil.info("CommandFailbackRegistry discover size: " + (finalResult == null ? "0" : finalResult.size()));
 
         return finalResult;
     }

@@ -22,7 +22,6 @@ import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.registry.RegistryService;
-import com.weibo.api.motan.rpc.ApplicationInfo;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.ReflectUtil;
@@ -115,7 +114,20 @@ public class AbstractInterfaceConfig extends AbstractConfig {
     protected Integer mingzSize;
 
     protected String codec;
+
     protected String localServiceAddress;
+
+    protected Integer backupRequestDelayTime;
+
+    protected String backupRequestDelayRatio;
+
+    protected String backupRequestSwitcherName;
+
+    protected String backupRequestMaxRetryRatio;
+
+    // 是否需要传输rpc server 端业务异常栈。默认true
+    protected Boolean transExceptionStack;
+
 
     public Integer getRetries() {
         return retries;
@@ -318,6 +330,46 @@ public class AbstractInterfaceConfig extends AbstractConfig {
         this.codec = codec;
     }
 
+    public Integer getBackupRequestDelayTime() {
+        return backupRequestDelayTime;
+    }
+
+    public void setBackupRequestDelayTime(Integer backupRequestDelayTime) {
+        this.backupRequestDelayTime = backupRequestDelayTime;
+    }
+
+    public String getBackupRequestDelayRatio() {
+        return backupRequestDelayRatio;
+    }
+
+    public void setBackupRequestDelayRatio(String backupRequestDelayRatio) {
+        this.backupRequestDelayRatio = backupRequestDelayRatio;
+    }
+
+    public String getBackupRequestSwitcherName() {
+        return backupRequestSwitcherName;
+    }
+
+    public void setBackupRequestSwitcherName(String backupRequestSwitcherName) {
+        this.backupRequestSwitcherName = backupRequestSwitcherName;
+    }
+
+    public String getBackupRequestMaxRetryRatio() {
+        return backupRequestMaxRetryRatio;
+    }
+
+    public void setBackupRequestMaxRetryRatio(String backupRequestMaxRetryRatio) {
+        this.backupRequestMaxRetryRatio = backupRequestMaxRetryRatio;
+    }
+
+    public Boolean getTransExceptionStack() {
+        return transExceptionStack;
+    }
+
+    public void setTransExceptionStack(Boolean transExceptionStack) {
+        this.transExceptionStack = transExceptionStack;
+    }
+
     protected List<URL> loadRegistryUrls() {
         List<URL> registryList = new ArrayList<URL>();
         if (registries != null && !registries.isEmpty()) {
@@ -419,7 +471,4 @@ public class AbstractInterfaceConfig extends AbstractConfig {
                 MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
     }
 
-    protected void initLocalAppInfo(URL localUrl) {
-        ApplicationInfo.addService(localUrl);
-    }
 }
