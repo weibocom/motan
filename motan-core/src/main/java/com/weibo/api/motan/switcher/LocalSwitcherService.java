@@ -22,7 +22,6 @@ import com.weibo.api.motan.exception.MotanFrameworkException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -36,7 +35,7 @@ public class LocalSwitcherService implements SwitcherService {
 
     private static ConcurrentMap<String, Switcher> switchers = new ConcurrentHashMap<String, Switcher>();
 
-    private Map<String, List<SwitcherListener>> listenerMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, List<SwitcherListener>> listenerMap = new ConcurrentHashMap<>();
 
     public static Switcher getSwitcherStatic(String name) {
         return switchers.get(name);
