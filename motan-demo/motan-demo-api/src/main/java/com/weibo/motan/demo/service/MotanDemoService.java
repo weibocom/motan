@@ -21,8 +21,8 @@ import com.weibo.motan.demo.service.model.User;
 
 @MotanAsync
 public interface MotanDemoService {
-	String hello(String name);
+    String hello(String name);
 
-	User rename(User user, String name);
+    User rename(User user, String name) throws NullPointerException;
 
 }
