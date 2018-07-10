@@ -59,6 +59,7 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
             return response;
         }
 
+        boolean defaultThrowExceptionStack = URLParamType.transExceptionStack.getBooleanValue();
         try {
             Object value = method.invoke(proxyImpl, request.getArguments());
             response.setValue(value);
@@ -69,18 +70,19 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
                 response.setException(new MotanBizException("provider call process error", e));
             }
 
-            // not print detail error when exception declared in method
+            // not print stack in error log when exception declared in method
             boolean logException = true;
             for (Class<?> clazz : method.getExceptionTypes()) {
-                if (e.getCause().getClass() == clazz) {
+                if (clazz.isInstance(response.getException().getCause())) {
                     logException = false;
+                    defaultThrowExceptionStack = false;
                     break;
                 }
             }
             if (logException) {
                 LoggerUtil.error("Exception caught when during method invocation. request:" + request.toString(), e);
             } else {
-                LoggerUtil.info("Exception caught when during method invocation. request:" + request.toString());
+                LoggerUtil.info("Exception caught when during method invocation. request:" + request.toString() + ", exception:" + response.getException().getCause().toString());
             }
         } catch (Throwable t) {
             // 如果服务发生Error，将Error转化为Exception，防止拖垮调用方
@@ -95,7 +97,7 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
 
         if (response.getException() != null) {
             //是否传输业务异常栈
-            boolean transExceptionStack = this.url.getBooleanParameter(URLParamType.transExceptionStack.getName(), URLParamType.transExceptionStack.getBooleanValue());
+            boolean transExceptionStack = this.url.getBooleanParameter(URLParamType.transExceptionStack.getName(), defaultThrowExceptionStack);
             if (!transExceptionStack) {//不传输业务异常栈
                 ExceptionUtil.setMockStackTrace(response.getException().getCause());
             }

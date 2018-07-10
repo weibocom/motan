@@ -32,7 +32,7 @@ public class MotanDemoServiceImpl implements MotanDemoService {
     }
 
     @Override
-    public User rename(User user, String name) {
+    public User rename(User user, String name) throws Exception {
         Objects.requireNonNull(user);
         System.out.println(user.getId() + " rename " + user.getName() + " to " + name);
         user.setName(name);

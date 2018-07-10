@@ -23,6 +23,6 @@ import com.weibo.motan.demo.service.model.User;
 public interface MotanDemoService {
     String hello(String name);
 
-    User rename(User user, String name) throws NullPointerException;
+    User rename(User user, String name) throws Exception;
 
 }
