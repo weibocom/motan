@@ -20,6 +20,8 @@ import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import com.weibo.motan.demo.service.MotanDemoService;
 import com.weibo.motan.demo.service.model.User;
 
+import java.util.Objects;
+
 @MotanService(export = "demoMotan:8002")
 public class MotanDemoServiceImpl implements MotanDemoService {
 
@@ -30,11 +32,8 @@ public class MotanDemoServiceImpl implements MotanDemoService {
     }
 
     @Override
-    public User rename(User user, String name) {
-        if (user == null) {
-            System.out.println("user: null");
-            return null;
-        }
+    public User rename(User user, String name) throws Exception {
+        Objects.requireNonNull(user);
         System.out.println(user.getId() + " rename " + user.getName() + " to " + name);
         user.setName(name);
         return user;
