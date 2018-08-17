@@ -133,7 +133,9 @@ public class NettyDecoder extends ByteToMessageDecoder {
     }
 
     private void decode(byte[] data, List<Object> out, boolean isRequest, long requestId) {
-        out.add(new NettyMessage(isRequest, requestId, data));
+        NettyMessage message = new NettyMessage(isRequest, requestId, data);
+        message.setStartTime(System.currentTimeMillis());
+        out.add(message);
     }
 
     private Response buildExceptionResponse(long requestId, Exception e) {

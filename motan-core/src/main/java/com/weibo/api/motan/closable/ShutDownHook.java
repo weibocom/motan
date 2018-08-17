@@ -1,6 +1,7 @@
 package com.weibo.api.motan.closable;
 
 import com.weibo.api.motan.util.LoggerUtil;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -12,7 +13,7 @@ import java.util.Collections;
 
 public class ShutDownHook extends Thread {
     //Smaller the priority is,earlier the resource is to be closed,default Priority is 20
-    private static final int defaultPriority = 20;
+    private static final int DEFAULT_PRIORITY = 20;
     //only global resource should be register to ShutDownHook,don't register connections to it.
     private static ShutDownHook instance;
     private ArrayList<closableObject> resourceList = new ArrayList<closableObject>();
@@ -28,18 +29,31 @@ public class ShutDownHook extends Thread {
         }
     }
 
+    public static void runHook(boolean sync) {
+        if (instance != null) {
+            if (sync) {
+                instance.run();
+            } else {
+                instance.start();
+            }
+        }
+    }
+
+    public static void registerShutdownHook(Closable closable) {
+        registerShutdownHook(closable, DEFAULT_PRIORITY);
+    }
+
+    public static synchronized void registerShutdownHook(Closable closable, int priority) {
+        if (instance == null) {
+            init();
+        }
+        instance.resourceList.add(new closableObject(closable, priority));
+        LoggerUtil.info("add resource " + closable.getClass() + " to list");
+    }
+
     @Override
     public void run() {
         closeAll();
-    }
-
-    public static void runHook(boolean sync) {
-        if (instance != null) {
-            if (sync)
-                instance.run();
-            else
-                instance.start();
-        }
     }
 
     //synchronized method to close all the resources in the list
@@ -58,18 +72,6 @@ public class ShutDownHook extends Thread {
         resourceList.clear();
     }
 
-    public static void registerShutdownHook(Closable closable) {
-        registerShutdownHook(closable, defaultPriority);
-    }
-
-    public static synchronized void registerShutdownHook(Closable closable, int priority) {
-        if (instance == null) {
-            init();
-        }
-        instance.resourceList.add(new closableObject(closable, priority));
-        LoggerUtil.info("add resource " + closable.getClass() + " to list");
-    }
-
     private static class closableObject implements Comparable<closableObject> {
         Closable closable;
         int priority;
@@ -81,9 +83,13 @@ public class ShutDownHook extends Thread {
 
         @Override
         public int compareTo(closableObject o) {
-            if (this.priority > o.priority) return -1;
-            else if (this.priority == o.priority) return 0;
-            else return 1;
+            if (this.priority > o.priority) {
+                return -1;
+            } else if (this.priority == o.priority) {
+                return 0;
+            } else {
+                return 1;
+            }
         }
     }
 }

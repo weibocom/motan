@@ -1,21 +1,21 @@
 package com.weibo.api.motan.transport.netty4;
 
 import com.weibo.api.motan.codec.Codec;
+import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.RpcContext;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.NetUtils;
 import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.net.InetSocketAddress;
@@ -108,7 +108,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         try {
             result = codec.decode(channel, remoteIp, msg.getData());
         } catch (Exception e) {
-            LoggerUtil.error("NettyDecoder decode fail! requestid" + msg.getRequestId() + ", size:" + msg.getData().length, e);
+            LoggerUtil.error("NettyDecoder decode fail! requestid" + msg.getRequestId() + ", size:" + msg.getData().length + ", ip:" + remoteIp + ", e:" + e.getMessage());
             if (msg.isRequest()) {
                 Response response = buildExceptionResponse(msg.getRequestId(), e);
                 sendResponse(ctx, response);
@@ -119,6 +119,9 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             return;
         }
         if (result instanceof Request) {
+            if (result instanceof TraceableRequest) {
+                ((TraceableRequest) result).setStartTime(msg.getStartTime());
+            }
             processRequest(ctx, (Request) result);
         } else if (result instanceof Response) {
             processResponse(result);
@@ -132,7 +135,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         return response;
     }
 
-    private void processRequest(final ChannelHandlerContext ctx, Request request) {
+    private void processRequest(final ChannelHandlerContext ctx, final Request request) {
         request.setAttachment(URLParamType.host.getName(), NetUtils.getHostName(ctx.channel().remoteAddress()));
         final long processStartTime = System.currentTimeMillis();
         try {
@@ -153,17 +156,27 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             response.setRequestId(request.getRequestId());
             response.setProcessTime(System.currentTimeMillis() - processStartTime);
 
-            sendResponse(ctx, response);
+            ChannelFuture channelFuture = sendResponse(ctx, response);
+            if (channelFuture != null && request instanceof TraceableRequest) {
+                channelFuture.addListener(new ChannelFutureListener() {
+                    @Override
+                    public void operationComplete(ChannelFuture future) throws Exception {
+                        ((TraceableRequest) request).addTraceInfo(MotanConstants.REQUEST_REMOTE_ADDR, future.channel().remoteAddress().toString());
+                        ((TraceableRequest) request).onFinish();
+                    }
+                });
+            }
         } finally {
             RpcContext.destroy();
         }
     }
 
-    private void sendResponse(ChannelHandlerContext ctx, Response response) {
+    private ChannelFuture sendResponse(ChannelHandlerContext ctx, Response response) {
         byte[] msg = CodecUtil.encodeObjectToBytes(channel, codec, response);
         if (ctx.channel().isActive()) {
-            ctx.channel().writeAndFlush(msg);
+            return ctx.channel().writeAndFlush(msg);
         }
+        return null;
     }
 
     private void processResponse(Object msg) {

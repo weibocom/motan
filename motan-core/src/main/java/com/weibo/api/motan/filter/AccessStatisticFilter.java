@@ -18,10 +18,7 @@ package com.weibo.api.motan.filter;
 
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.core.extension.SpiMeta;
-import com.weibo.api.motan.rpc.Caller;
-import com.weibo.api.motan.rpc.Provider;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.ExceptionUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.StatsUtil;
@@ -38,7 +35,7 @@ public class AccessStatisticFilter implements Filter {
     private static final String RPC_SERVICE = "rpc_service";
 
     @Override
-    public Response filter(Caller<?> caller, Request request) {
+    public Response filter(final Caller<?> caller, final Request request) {
         long start = System.currentTimeMillis();
         AccessStatus accessStatus = AccessStatus.NORMAL;
         boolean specialException = true;
@@ -71,13 +68,23 @@ public class AccessStatisticFilter implements Filter {
                 bizProcessTime = end - start;
             }
 
-            String statName =
-                    caller.getUrl().getProtocol() + MotanConstants.PROTOCOL_SEPARATOR + MotanFrameworkUtil.getGroupMethodString(request);
+            final String statName = caller.getUrl().getProtocol() + MotanConstants.PROTOCOL_SEPARATOR + MotanFrameworkUtil.getGroupMethodString(request);
             if (caller instanceof Provider) {
                 StatsUtil.accessStatistic(statName, APPLICATION_STATISTIC, RPC_SERVICE, end, end - start, bizProcessTime, accessStatus);
+                if (request instanceof TraceableRequest) {
+                    final long finalBizProcessTime = bizProcessTime;
+                    final AccessStatus finalAccessStatus = accessStatus;
+                    ((TraceableRequest) request).addFinishCallback(new Runnable() {
+                        @Override
+                        public void run() {
+                            long requestEnd = ((TraceableRequest) request).getEndTime();
+                            long requestStart = ((TraceableRequest) request).getStartTime();
+                            StatsUtil.accessStatistic(statName + "_WHOLE", caller.getUrl().getApplication(), caller.getUrl().getModule(), requestEnd, requestEnd - requestStart, finalBizProcessTime, finalAccessStatus);
+                        }
+                    }, null);
+                }
             }
             StatsUtil.accessStatistic(statName, caller.getUrl().getApplication(), caller.getUrl().getModule(), end, end - start, bizProcessTime, accessStatus);
-
         }
     }
 }

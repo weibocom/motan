@@ -22,6 +22,7 @@ import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.TraceableRequest;
 import com.weibo.api.motan.util.LoggerUtil;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
@@ -56,29 +57,35 @@ public class NettyDecoder extends FrameDecoder {
             return null;
         }
         buffer.markReaderIndex();
-
         short type = buffer.readShort();
 
         if (type != MotanConstants.NETTY_MAGIC_TYPE) {
             buffer.resetReaderIndex();
             throw new MotanFrameworkException("NettyDecoder transport header not support, type: " + type);
         }
+        long requestStart = System.currentTimeMillis();
         buffer.skipBytes(1);
-        int rpcversion = (buffer.readByte() & 0xff) >>> 3;
-        switch (rpcversion) {
+        int rpcVersion = (buffer.readByte() & 0xff) >>> 3;
+        Object result;
+        switch (rpcVersion) {
             case 0:
-                return decodev1(ctx, channel, buffer);
+                result = decodeV1(ctx, channel, buffer);
+                break;
             case 1:
-                return decodev2(ctx, channel, buffer);
+                result = decodeV2(ctx, channel, buffer);
+                break;
             default:
-                return decodev2(ctx, channel, buffer);
+                result = decodeV2(ctx, channel, buffer);
         }
-
+        if (result instanceof TraceableRequest) {
+            ((TraceableRequest) result).setStartTime(requestStart);
+        }
+        return result;
     }
 
-    private Object decodev2(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
+    private Object decodeV2(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
         buffer.resetReaderIndex();
-        if(buffer.readableBytes() < 21){
+        if (buffer.readableBytes() < 21) {
             return null;
         }
         buffer.skipBytes(2);
@@ -96,14 +103,14 @@ public class NettyDecoder extends FrameDecoder {
             }
             buffer.skipBytes(metasize);
         }
-        if(buffer.readableBytes() < 4){
+        if (buffer.readableBytes() < 4) {
             buffer.resetReaderIndex();
             return null;
         }
         int bodysize = buffer.readInt();
         checkMaxContext(bodysize, ctx, channel, isRequest, requestId);
         size += 4;
-        if (bodysize > 0){
+        if (bodysize > 0) {
             size += bodysize;
             if (buffer.readableBytes() < bodysize) {
                 buffer.resetReaderIndex();
@@ -116,11 +123,11 @@ public class NettyDecoder extends FrameDecoder {
         return decode(data, channel, isRequest, requestId);
     }
 
-    private boolean isV2Request(byte b){
+    private boolean isV2Request(byte b) {
         return (b & 0x01) == 0x00;
     }
 
-    private Object decodev1(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
+    private Object decodeV1(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
         buffer.resetReaderIndex();
         buffer.skipBytes(2);// skip magic num
         byte messageType = (byte) buffer.readShort();
@@ -142,13 +149,9 @@ public class NettyDecoder extends FrameDecoder {
 
     private void checkMaxContext(int dataLength, ChannelHandlerContext ctx, Channel channel, boolean isRequest, long requestId) throws Exception {
         if (maxContentLength > 0 && dataLength > maxContentLength) {
-            LoggerUtil.warn(
-                    "NettyDecoder transport data content length over of limit, size: {}  > {}. remote={} local={}",
-                    dataLength, maxContentLength, ctx.getChannel().getRemoteAddress(), ctx.getChannel()
-                            .getLocalAddress());
-            Exception e = new MotanServiceException("NettyDecoder transport data content length over of limit, size: "
-                    + dataLength + " > " + maxContentLength);
-
+            LoggerUtil.warn("NettyDecoder transport data content length over of limit, size: {}  > {}. remote={} local={}",
+                    dataLength, maxContentLength, ctx.getChannel().getRemoteAddress(), ctx.getChannel().getLocalAddress());
+            Exception e = new MotanServiceException("NettyDecoder transport data content length over of limit, size: " + dataLength + " > " + maxContentLength);
             if (isRequest) {
                 Response response = buildExceptionResponse(requestId, e);
                 channel.write(response);
@@ -159,19 +162,18 @@ public class NettyDecoder extends FrameDecoder {
         }
     }
 
-    private Object decode(byte[] data, Channel channel, boolean isRequest, long requestId){
+    private Object decode(byte[] data, Channel channel, boolean isRequest, long requestId) {
+        String remoteIp = getRemoteIp(channel);
         try {
-            String remoteIp = getRemoteIp(channel);
             return codec.decode(client, remoteIp, data);
         } catch (Exception e) {
-            LoggerUtil.error("NettyDecoder decode fail! requestid" + requestId + ", size:" + data.length, e);
+            LoggerUtil.error("NettyDecoder decode fail! requestid=" + requestId + ", size:" + data.length + ", ip:" + remoteIp + ", e:" + e.getMessage());
             if (isRequest) {
-                Response resonse = buildExceptionResponse(requestId, e);
-                channel.write(resonse);
+                Response response = buildExceptionResponse(requestId, e);
+                channel.write(response);
                 return null;
             } else {
-                Response resonse = buildExceptionResponse(requestId, e);
-                return resonse;
+                return buildExceptionResponse(requestId, e);
             }
         }
     }

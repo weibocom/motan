@@ -27,20 +27,20 @@ import java.util.Map;
  * @author maijunsheng
  */
 public class RpcContext {
+    private static final ThreadLocal<RpcContext> LOCAL_CONTEXT = new ThreadLocal<RpcContext>() {
+        @Override
+        protected RpcContext initialValue() {
+            return new RpcContext();
+        }
+    };
     private Map<Object, Object> attributes = new HashMap<Object, Object>();
     private Map<String, String> attachments = new HashMap<String, String>();// attachment in rpc context. not same with request's attachments
     private Request request;
     private Response response;
     private String clientRequestId = null;
 
-    private static final ThreadLocal<RpcContext> localContext = new ThreadLocal<RpcContext>() {
-        protected RpcContext initialValue() {
-            return new RpcContext();
-        }
-    };
-
     public static RpcContext getContext() {
-        return localContext.get();
+        return LOCAL_CONTEXT.get();
     }
 
     /**
@@ -55,18 +55,18 @@ public class RpcContext {
             context.setRequest(request);
             context.setClientRequestId(request.getAttachments().get(URLParamType.requestIdFromClient.getName()));
         }
-        localContext.set(context);
+        LOCAL_CONTEXT.set(context);
         return context;
     }
 
     public static RpcContext init() {
         RpcContext context = new RpcContext();
-        localContext.set(context);
+        LOCAL_CONTEXT.set(context);
         return context;
     }
 
     public static void destroy() {
-        localContext.remove();
+        LOCAL_CONTEXT.remove();
     }
 
     /**
@@ -90,7 +90,7 @@ public class RpcContext {
         return attributes.get(key);
     }
 
-    public void revomeAttribute(Object key) {
+    public void removeAttribute(Object key) {
         attributes.remove(key);
     }
 
