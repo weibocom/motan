@@ -10,8 +10,11 @@ import java.io.UnsupportedEncodingException;
 public class StringSerializer extends SerializableSerializer {
     @Override
     public Object deserialize(byte[] bytes) throws ZkMarshallingError {
+        if (bytes == null){
+            return null;
+        }
         try {
-            if (ByteUtil.bytes2short(bytes, 0) == ObjectStreamConstants.STREAM_MAGIC) {
+            if (bytes.length > 1 && ByteUtil.bytes2short(bytes, 0) == ObjectStreamConstants.STREAM_MAGIC) {
                 return super.deserialize(bytes);
             }
             return new String(bytes, "UTF-8");
