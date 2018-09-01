@@ -40,7 +40,7 @@ public class DefaultResponseFuture implements ResponseFuture {
 
     protected volatile FutureState state = FutureState.DOING;
 
-    protected Object lock = new Object();
+    protected final Object lock = new Object();
 
     protected Object result = null;
     protected Exception exception = null;
@@ -149,17 +149,23 @@ public class DefaultResponseFuture implements ResponseFuture {
 
     @Override
     public boolean isCancelled() {
-        return state.isCancelledState();
+        synchronized (lock) {
+            return state.isCancelledState();
+        }
     }
 
     @Override
     public boolean isDone() {
-        return state.isDoneState();
+        synchronized (lock) {
+            return state.isDoneState();
+        }
     }
 
     @Override
     public boolean isSuccess() {
-        return isDone() && (exception == null);
+        synchronized (lock) {
+            return isDone() && (exception == null);
+        }
     }
 
     @Override
@@ -240,7 +246,9 @@ public class DefaultResponseFuture implements ResponseFuture {
     }
 
     private boolean isDoing() {
-        return state.isDoingState();
+        synchronized (lock) {
+            return state.isDoingState();
+        }
     }
 
     protected boolean done() {
