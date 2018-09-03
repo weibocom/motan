@@ -318,7 +318,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
     }
 
     /**
-     * 注册回调的resposne
+     * 注册回调的response
      * <pre>
      * 进行最大的请求并发数的控制，如果超过NETTY_CLIENT_MAX_REQUEST的话，那么throw reject exception
      * </pre>
