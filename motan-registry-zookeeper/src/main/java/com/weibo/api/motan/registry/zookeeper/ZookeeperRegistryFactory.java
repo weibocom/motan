@@ -27,7 +27,6 @@ import org.I0Itec.zkclient.exception.ZkException;
 
 @SpiMeta(name = "zookeeper")
 public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
-
     @Override
     protected Registry createRegistry(URL registryUrl) {
         try {
@@ -35,7 +34,7 @@ public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
             int sessionTimeout =
                     registryUrl.getIntParameter(URLParamType.registrySessionTimeout.getName(),
                             URLParamType.registrySessionTimeout.getIntValue());
-            ZkClient zkClient = new ZkClient(registryUrl.getParameter("address"), sessionTimeout, timeout);
+            ZkClient zkClient = new ZkClient(registryUrl.getParameter("address"), sessionTimeout, timeout, new StringSerializer());
             return new ZookeeperRegistry(registryUrl, zkClient);
         } catch (ZkException e) {
             LoggerUtil.error("[ZookeeperRegistry] fail to connect zookeeper, cause: " + e.getMessage());
