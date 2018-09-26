@@ -19,6 +19,7 @@ package com.weibo.api.motan.util;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.rpc.URL;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,16 +35,15 @@ import java.util.Map;
 
 public class UrlUtils {
 
-
     public static List<URL> parseURLs(String address, Map<String, String> defaults) {
+        List<URL> registries = new ArrayList<>();
         if (address == null || address.length() == 0) {
-            return null;
+            return registries;
         }
         String[] addresses = MotanConstants.REGISTRY_SPLIT_PATTERN.split(address);
-        if (addresses == null || addresses.length == 0) {
-            return null; // here won't be empty
+        if (ArrayUtils.isEmpty(addresses)) {
+            return registries; // here won't be empty
         }
-        List<URL> registries = new ArrayList<URL>();
         for (String addr : addresses) {
             registries.add(parseURL(addr, defaults));
         }
@@ -52,7 +52,7 @@ public class UrlUtils {
 
 
     public static Map<String, String> parseQueryParams(String rawRefer) {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         String refer = StringTools.urlDecode(rawRefer);
         String[] kvs = MotanConstants.QUERY_PARAM_PATTERN.split(refer);
         for (String kv : kvs) {
@@ -66,7 +66,7 @@ public class UrlUtils {
         return map;
     }
 
-    private static URL parseURL(String address, Map<String, String> defaults) {
+    public static URL parseURL(String address, Map<String, String> defaults) {
         if (address == null || address.length() == 0) {
             return null;
         }
@@ -81,7 +81,7 @@ public class UrlUtils {
 
         int defaultPort = StringTools.parseInteger(defaults == null ? null : defaults.get("port"));
         String defaultPath = defaults == null ? null : defaults.get("path");
-        Map<String, String> defaultParameters = defaults == null ? null : new HashMap<String, String>(defaults);
+        Map<String, String> defaultParameters = defaults == null ? null : new HashMap<>(defaults);
         if (defaultParameters != null) {
             defaultParameters.remove("protocol");
             defaultParameters.remove("host");
@@ -95,7 +95,7 @@ public class UrlUtils {
         String host = u.getHost();
         int port = u.getPort();
         String path = u.getPath();
-        Map<String, String> parameters = new HashMap<String, String>(u.getParameters());
+        Map<String, String> parameters = new HashMap<>(u.getParameters());
         if ((protocol == null || protocol.length() == 0) && defaultProtocol != null && defaultProtocol.length() > 0) {
             changed = true;
             protocol = defaultProtocol;

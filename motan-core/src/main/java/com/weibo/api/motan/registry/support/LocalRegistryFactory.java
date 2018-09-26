@@ -37,5 +37,4 @@ public class LocalRegistryFactory extends AbstractRegistryFactory {
         return ExtensionLoader.getExtensionLoader(Registry.class).getExtension(MotanConstants.REGISTRY_PROTOCOL_LOCAL);
     }
 
-
 }

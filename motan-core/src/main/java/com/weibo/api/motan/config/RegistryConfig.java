@@ -18,11 +18,9 @@ package com.weibo.api.motan.config;
 
 import com.weibo.api.motan.config.annotation.ConfigDesc;
 
-
 /**
- * 
  * registry config
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-27
  */
@@ -30,44 +28,33 @@ import com.weibo.api.motan.config.annotation.ConfigDesc;
 public class RegistryConfig extends AbstractConfig {
 
     private static final long serialVersionUID = 3236055928361714933L;
-
     // 注册配置名称
     private String name;
-
     // 注册协议
     private String regProtocol;
-
     // 注册中心地址，支持多个ip+port，格式：ip1:port1,ip2:port2,ip3，如果没有port，则使用默认的port
     private String address;
-
     // 注册中心缺省端口
     private Integer port;
-
     // 注册中心请求超时时间(毫秒)
     private Integer requestTimeout;
-
     // 注册中心连接超时时间(毫秒)
     private Integer connectTimeout;
-
     // 注册中心会话超时时间(毫秒)
     private Integer registrySessionTimeout;
-
     // 失败后重试的时间间隔
     private Integer registryRetryPeriod;
-
     // 启动时检查注册中心是否存在
     private String check;
-
     // 在该注册中心上服务是否暴露
     private Boolean register;
-
     // 在该注册中心上服务是否引用
     private Boolean subscribe;
-
     private Boolean isDefault;
-
     // vintage的配置移除策略，@see #RegistryConfig#Excise
     private String excise;
+    // 扩展配置点
+    private ExtConfig extConfig;
 
     @ConfigDesc(key = "protocol")
     public String getRegProtocol() {
@@ -179,15 +166,22 @@ public class RegistryConfig extends AbstractConfig {
         this.connectTimeout = connectTimeout;
     }
 
+    public ExtConfig getExtConfig() {
+        return extConfig;
+    }
+
+    public void setExtConfig(ExtConfig extConfig) {
+        this.extConfig = extConfig;
+    }
+
     /**
      * <pre>
-	 * vintage 的 excise 方式，static、dynamic、ratio；
-	 * static表示使用静态列表，不剔除unreachable的node；dynamic完全剔除；ratio按比例提出。
-	 * 配置方式，ratio直接使用数字，其他使用数字0-100.
-	 * </pre>
-     * 
-     * @author fishermen
+     * vintage 的 excise 方式，static、dynamic、ratio；
+     * static表示使用静态列表，不剔除unreachable的node；dynamic完全剔除；ratio按比例提出。
+     * 配置方式，ratio直接使用数字，其他使用数字0-100.
+     * </pre>
      *
+     * @author fishermen
      */
     public enum Excise {
         excise_static("static"), excise_dynamic("dynamic"), excise_ratio("ratio");

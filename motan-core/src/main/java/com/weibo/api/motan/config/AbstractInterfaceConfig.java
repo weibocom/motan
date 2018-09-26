@@ -241,13 +241,13 @@ public class AbstractInterfaceConfig extends AbstractConfig {
         return check;
     }
 
+    public void setCheck(String check) {
+        this.check = check;
+    }
+
     @Deprecated
     public void setCheck(Boolean check) {
         this.check = String.valueOf(check);
-    }
-
-    public void setCheck(String check) {
-        this.check = check;
     }
 
     public Boolean getShareChannel() {
@@ -371,39 +371,44 @@ public class AbstractInterfaceConfig extends AbstractConfig {
     }
 
     protected List<URL> loadRegistryUrls() {
-        List<URL> registryList = new ArrayList<URL>();
+        List<URL> registryList = new ArrayList<>();
         if (registries != null && !registries.isEmpty()) {
             for (RegistryConfig config : registries) {
-                String address = config.getAddress();
-                if (StringUtils.isBlank(address)) {
-                    address = NetUtils.LOCALHOST + ":" + MotanConstants.DEFAULT_INT_VALUE;
-                }
-                Map<String, String> map = new HashMap<String, String>();
-                config.appendConfigParams(map);
-
-                map.put(URLParamType.application.getName(), getApplication());
-                map.put(URLParamType.path.getName(), RegistryService.class.getName());
-                map.put(URLParamType.refreshTimestamp.getName(), String.valueOf(System.currentTimeMillis()));
-
-                // 设置默认的registry protocol，parse完protocol后，需要去掉该参数
-                if (!map.containsKey(URLParamType.protocol.getName())) {
-                    if (address.contains("://")) {
-                        map.put(URLParamType.protocol.getName(), address.substring(0, address.indexOf("://")));
-                    } else {
-                        map.put(URLParamType.protocol.getName(), MotanConstants.REGISTRY_PROTOCOL_LOCAL);
-                    }
-                }
-                // address内部可能包含多个注册中心地址
-                List<URL> urls = UrlUtils.parseURLs(address, map);
-                if (urls != null && !urls.isEmpty()) {
-                    for (URL url : urls) {
-                        url.removeParameter(URLParamType.protocol.getName());
-                        registryList.add(url);
-                    }
+                for (URL url : extractRegistryConfigToUrl(config)) {
+                    url.removeParameter(URLParamType.protocol.getName());
+                    registryList.add(url);
                 }
             }
         }
         return registryList;
+    }
+
+    private List<URL> extractRegistryConfigToUrl(RegistryConfig registryConfig) {
+        String address = registryConfig.getAddress();
+        if (StringUtils.isBlank(address)) {
+            address = NetUtils.LOCALHOST + ":" + MotanConstants.DEFAULT_INT_VALUE;
+        }
+        Map<String, String> map = new HashMap<>();
+        registryConfig.appendConfigParams(map);
+        ExtConfig registryExtConfig = registryConfig.getExtConfig();
+        if (registryExtConfig != null) {
+            registryExtConfig.appendConfigParams(map);
+        }
+
+        map.put(URLParamType.application.getName(), getApplication());
+        map.put(URLParamType.path.getName(), RegistryService.class.getName());
+        map.put(URLParamType.refreshTimestamp.getName(), String.valueOf(System.currentTimeMillis()));
+
+        // 设置默认的registry protocol，parse完protocol后，需要去掉该参数
+        if (!map.containsKey(URLParamType.protocol.getName())) {
+            if (address.contains("://")) {
+                map.put(URLParamType.protocol.getName(), address.substring(0, address.indexOf("://")));
+            } else {
+                map.put(URLParamType.protocol.getName(), MotanConstants.REGISTRY_PROTOCOL_LOCAL);
+            }
+        }
+        // address内部可能包含多个注册中心地址
+        return UrlUtils.parseURLs(address, map);
     }
 
     protected void checkInterfaceAndMethods(Class<?> interfaceClass, List<MethodConfig> methods) {
@@ -452,7 +457,7 @@ public class AbstractInterfaceConfig extends AbstractConfig {
 
         String localAddress = null;
 
-        Map<String, Integer> regHostPorts = new HashMap<String, Integer>();
+        Map<String, Integer> regHostPorts = new HashMap<>();
         for (URL ru : registryURLs) {
             if (StringUtils.isNotBlank(ru.getHost()) && ru.getPort() > 0) {
                 regHostPorts.put(ru.getHost(), ru.getPort());

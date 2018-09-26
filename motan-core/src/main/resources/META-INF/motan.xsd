@@ -115,7 +115,11 @@
                         <xsd:documentation><![CDATA[ is default protocol ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
-
+                <xsd:attribute name="extConfig" type="xsd:string" use="optional">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[ 扩展配置. ]]></xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>

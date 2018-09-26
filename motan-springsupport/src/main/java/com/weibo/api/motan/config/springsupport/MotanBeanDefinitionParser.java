@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- *
  * MotanBeanDefinitionParser
  *
  * @author fishermen
@@ -54,16 +53,6 @@ public class MotanBeanDefinitionParser implements BeanDefinitionParser {
     public MotanBeanDefinitionParser(Class<?> beanClass, boolean required) {
         this.beanClass = beanClass;
         this.required = required;
-    }
-
-    @Override
-    public BeanDefinition parse(Element element, ParserContext parserContext) {
-        try {
-            return parse(element, parserContext, beanClass, required);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -271,6 +260,16 @@ public class MotanBeanDefinitionParser implements BeanDefinitionParser {
             if (methods != null) {
                 beanDefinition.getPropertyValues().addPropertyValue("methods", methods);
             }
+        }
+    }
+
+    @Override
+    public BeanDefinition parse(Element element, ParserContext parserContext) {
+        try {
+            return parse(element, parserContext, beanClass, required);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
