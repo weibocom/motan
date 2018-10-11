@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:motan="http://api.weibo.com/schema/motan"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://api.weibo.com/schema/motan http://api.weibo.com/schema/motan.xsd">
+
+    <!-- 业务具体实现类 -->
+    <bean id="motanDemoServiceImpl" class="com.weibo.motan.demo.server.MotanDemoServiceImpl"/>
+
+    <!-- 注册中心配置 使用不同注册中心需要依赖对应的jar包。如果不使用注册中心，可以把check属性改为false，忽略注册失败。-->
+    <motan:registry regProtocol="local" id="localRegistry"/>
+    <motan:registry regProtocol="consul" id="consulRegistry" address="127.0.0.1:8500"/>
+    <motan:registry regProtocol="zookeeper" id="zkRegistry" address="127.0.0.1:2181" connectTimeout="2000"/>
+    <motan:registry regProtocol="mesh" id="meshRegistry" address="127.0.0.1:8002" extConfig="backupReg"/>
+
+    <bean id="backupReg" class="com.weibo.api.motan.config.BackupRegistryConfig">
+        <constructor-arg index="0" ref="zkRegistry"/>
+    </bean>
+
+    <!-- 协议配置。为防止多个业务配置冲突，推荐使用id表示具体协议。-->
+    <motan:protocol id="motan2-hessian" name="motan2"/>
+    <motan:protocol id="motan2-simple" name="motan2" serialization="simple"/>
+
+    <!-- 通用配置，多个rpc服务使用相同的基础配置. group和module定义具体的服务池。export格式为“protocol id:提供服务的端口”-->
+    <motan:basicService id="serviceBasicConfig" registry="meshRegistry"
+                        group="motan-demo-rpc" module="motan-demo-rpc" application="myMotanDemo"/>
+
+    <!-- 具体rpc服务配置，声明实现的接口类。-->
+    <motan:service interface="com.weibo.motan.demo.service.MotanDemoService" ref="motanDemoServiceImpl"
+                   basicService="serviceBasicConfig" export="motan2-hessian:8111"/>
+
+</beans>

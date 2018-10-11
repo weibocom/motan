@@ -169,6 +169,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         collectMethodConfigParams(map, this.getMethods());
 
         URL serviceUrl = new URL(protocolName, hostAddress, port, interfaceClass.getName(), map);
+        serviceUrl.addParameter(URLParamType.version.getName(), serviceUrl.getVersion());
 
         if (serviceExists(serviceUrl)) {
             LoggerUtil.warn(String.format("%s configService is malformed, for same service (%s) already exists ", interfaceClass.getName(),

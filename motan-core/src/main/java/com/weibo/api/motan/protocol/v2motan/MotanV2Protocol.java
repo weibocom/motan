@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.weibo.api.motan.common.MotanConstants.M2_PROXY_PROTOCOL;
+import static com.weibo.api.motan.common.MotanConstants.M2_VERSION;
 
 /**
  * Created by zhanglei28 on 2017/4/27.
@@ -80,6 +81,7 @@ public class MotanV2Protocol extends AbstractProtocol {
                 // use server end group
                 request.setAttachment(URLParamType.group.getName(), serviceUrl.getGroup());
                 request.setAttachment(M2_PROXY_PROTOCOL, this.url.getProtocol()); // add proxy protocol for request agent
+                request.setAttachment(M2_VERSION, serviceUrl.getVersion());
                 return client.request(request);
             } catch (TransportException exception) {
                 throw new MotanServiceException("DefaultRpcReferer call Error: url=" + url.getUri(), exception);

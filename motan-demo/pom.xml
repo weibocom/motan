@@ -59,6 +59,11 @@
         </dependency>
         <dependency>
             <groupId>com.weibo</groupId>
+            <artifactId>motan-registy-mesh</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.weibo</groupId>
             <artifactId>motan-protocol-yar</artifactId>
             <version>${project.parent.version}</version>
             <exclusions>
