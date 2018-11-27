@@ -16,14 +16,6 @@
 
 package com.weibo.api.motan.cluster;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import junit.framework.Assert;
-
-import org.jmock.Expectations;
-import org.junit.Test;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.cluster.ha.FailoverHaStrategy;
 import com.weibo.api.motan.cluster.loadbalance.RandomLoadBalance;
@@ -36,6 +28,12 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.NetUtils;
+import junit.framework.Assert;
+import org.jmock.Expectations;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 
@@ -83,6 +81,8 @@ public class ClusterTest extends BaseTestCase {
                 will(returnValue(true));
                 allowing(any(Referer.class)).method("call").with(same(request));
                 will(returnValue(rs));
+                allowing(any(Request.class)).method("getRequestId").withNoArguments();
+                will(returnValue(0L));
 
                 atLeast(0).of(request).setRetries(0);
                 will(returnValue(null));
@@ -94,6 +94,7 @@ public class ClusterTest extends BaseTestCase {
                 will(returnValue("void"));
             }
         });
+
         Response callRs = cluster.call(request);
         Assert.assertEquals(rs, callRs);
     }

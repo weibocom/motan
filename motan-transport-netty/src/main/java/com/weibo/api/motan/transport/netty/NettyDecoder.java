@@ -21,9 +21,11 @@ import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.DefaultResponse;
+import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.TraceableRequest;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MotanFrameworkUtil;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -64,6 +66,7 @@ public class NettyDecoder extends FrameDecoder {
             throw new MotanFrameworkException("NettyDecoder transport header not support, type: " + type);
         }
         long requestStart = System.currentTimeMillis();
+
         buffer.skipBytes(1);
         int rpcVersion = (buffer.readByte() & 0xff) >>> 3;
         Object result;
@@ -77,8 +80,14 @@ public class NettyDecoder extends FrameDecoder {
             default:
                 result = decodeV2(ctx, channel, buffer);
         }
-        if (result instanceof TraceableRequest) {
-            ((TraceableRequest) result).setStartTime(requestStart);
+        if (result instanceof Request) {
+            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), MotanConstants.REQUEST_TRACK_LOG_SWITCHER, "receive rpc request", requestStart);
+            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), MotanConstants.REQUEST_TRACK_LOG_SWITCHER, "after decode rpc request", System.currentTimeMillis());
+            if (result instanceof TraceableRequest) {
+                ((TraceableRequest) result).setStartTime(requestStart);
+            }
+        } else if (result instanceof Response) {
+            MotanFrameworkUtil.logRequestEvent(((Response) result).getRequestId(), MotanConstants.REQUEST_TRACK_LOG_SWITCHER, "receive rpc response " + channel.getRemoteAddress(), requestStart);
         }
         return result;
     }

@@ -8,6 +8,7 @@ import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MotanFrameworkUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -55,6 +56,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
     }
 
     private void decodeV2(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        long startTime = System.currentTimeMillis();
         in.resetReaderIndex();
         if (in.readableBytes() < 21) {
             return;
@@ -92,6 +94,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
         in.resetReaderIndex();
         in.readBytes(data);
         decode(data, out, isRequest, requestId);
+        MotanFrameworkUtil.logRequestEvent(requestId, MotanConstants.REQUEST_TRACK_LOG_SWITCHER, "receive rpc " + (isRequest ? "request" : "respone"), startTime);
     }
 
     private boolean isV2Request(byte b) {
@@ -99,6 +102,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
     }
 
     private void decodeV1(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        long startTime = System.currentTimeMillis();
         in.resetReaderIndex();
         in.skipBytes(2);// skip magic num
         byte messageType = (byte) in.readShort();
@@ -114,6 +118,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
         byte[] data = new byte[dataLength];
         in.readBytes(data);
         decode(data, out, messageType == MotanConstants.FLAG_REQUEST, requestId);
+        MotanFrameworkUtil.logRequestEvent(requestId, MotanConstants.REQUEST_TRACK_LOG_SWITCHER, "receive " + (messageType == MotanConstants.FLAG_REQUEST ? "request" : "respone"), startTime);
     }
 
     private void checkMaxContext(int dataLength, ChannelHandlerContext ctx, boolean isRequest, long requestId) throws Exception {

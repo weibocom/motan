@@ -117,6 +117,7 @@ public class MotanConstants {
     public static final String ZOOKEEPER_REGISTRY_COMMAND = "/command";
 
     public static final String REGISTRY_HEARTBEAT_SWITCHER = "feature.configserver.heartbeat";
+    public static final String REQUEST_TRACK_LOG_SWITCHER = "feature.request.track.log";
 
     /**
      * 默认的consistent的hash的数量
