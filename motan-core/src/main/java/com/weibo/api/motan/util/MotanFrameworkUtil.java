@@ -24,7 +24,6 @@ import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.switcher.Switcher;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -272,12 +271,8 @@ public class MotanFrameworkUtil {
         return response;
     }
 
-    public static void logRequestEvent(long requestId, String switcherName, String event, long time) {
-        Switcher switcher = MotanSwitcherUtil.getSwitcherService().getSwitcher(switcherName);
-        if (switcher == null) {
-            MotanSwitcherUtil.initSwitcher(switcherName, false);
-        }
-        if (MotanSwitcherUtil.isOpen(switcherName)) {
+    public static void logRequestEvent(long requestId, String event, long time) {
+        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.REQUEST_TRACK_LOG_SWITCHER, false)) {
             LoggerUtil.info("[motan-track-log] | " + requestId + " | " + event + " | " + time);
         }
     }

@@ -1,7 +1,6 @@
 package com.weibo.api.motan.transport.netty4;
 
 import com.weibo.api.motan.codec.Codec;
-import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
@@ -118,13 +117,16 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             }
             return;
         }
+
         if (result instanceof Request) {
-            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), MotanConstants.REQUEST_TRACK_LOG_SWITCHER, "after decode rpc request", System.currentTimeMillis());
+            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), "receive rpc request", msg.getStartTime());
+            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), "after decode rpc request", System.currentTimeMillis());
             if (result instanceof TraceableRequest) {
                 ((TraceableRequest) result).setStartTime(msg.getStartTime());
             }
             processRequest(ctx, (Request) result);
         } else if (result instanceof Response) {
+            MotanFrameworkUtil.logRequestEvent(((Response) result).getRequestId(), "receive rpc response " + channel.getUrl().getServerPortStr(), msg.getStartTime());
             processResponse(result);
         }
     }
@@ -148,7 +150,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
                 LoggerUtil.error("NettyChannelHandler processRequest fail! request:" + MotanFrameworkUtil.toString(request), e);
                 result = MotanFrameworkUtil.buildErrorResponse(request.getRequestId(), new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
             }
-            MotanFrameworkUtil.logRequestEvent(request.getRequestId(), MotanConstants.REQUEST_TRACK_LOG_SWITCHER, "after invoke biz method", System.currentTimeMillis());
+            MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after invoke biz method", System.currentTimeMillis());
             DefaultResponse response;
             if (result instanceof DefaultResponse) {
                 response = (DefaultResponse) result;
@@ -163,8 +165,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
                 channelFuture.addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), MotanConstants.REQUEST_TRACK_LOG_SWITCHER, "after send rpc response", System.currentTimeMillis());
-                        ((TraceableRequest) request).addTraceInfo(MotanConstants.REQUEST_REMOTE_ADDR, future.channel().remoteAddress().toString());
+                        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after send rpc response", System.currentTimeMillis());
                         ((TraceableRequest) request).onFinish();
                     }
                 });

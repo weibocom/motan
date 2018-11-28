@@ -38,48 +38,40 @@ public class AccessStatisticFilter implements Filter {
     public Response filter(final Caller<?> caller, final Request request) {
         long start = System.currentTimeMillis();
         AccessStatus accessStatus = AccessStatus.NORMAL;
-        boolean specialException = true;
-        long bizProcessTime = 0;
+        final long bizProcessTime;
+        Response response = null;
 
         try {
-            Response response = caller.call(request);
-
-            if (response == null) {
-                accessStatus = AccessStatus.OTHER_EXCEPTION;
-            } else {
-                if (response.getException() != null) {
-                    if (ExceptionUtil.isBizException(response.getException())) {
-                        accessStatus = AccessStatus.BIZ_EXCEPTION;
-                    } else {
-                        accessStatus = AccessStatus.OTHER_EXCEPTION;
-                    }
+            response = caller.call(request);
+            if (response != null && response.getException() != null) {
+                if (ExceptionUtil.isBizException(response.getException())) {
+                    accessStatus = AccessStatus.BIZ_EXCEPTION;
+                } else {
+                    accessStatus = AccessStatus.OTHER_EXCEPTION;
                 }
-
-                specialException = false;
-                bizProcessTime = response.getProcessTime();
             }
-
             return response;
         } finally {
             long end = System.currentTimeMillis();
 
-            if (specialException) {
+            if (response == null) {
                 accessStatus = AccessStatus.OTHER_EXCEPTION;
                 bizProcessTime = end - start;
+            } else {
+                bizProcessTime = response.getProcessTime();
             }
 
             final String statName = caller.getUrl().getProtocol() + MotanConstants.PROTOCOL_SEPARATOR + MotanFrameworkUtil.getGroupMethodString(request);
             if (caller instanceof Provider) {
                 StatsUtil.accessStatistic(statName, APPLICATION_STATISTIC, RPC_SERVICE, end, end - start, bizProcessTime, accessStatus);
                 if (request instanceof TraceableRequest) {
-                    final long finalBizProcessTime = bizProcessTime;
                     final AccessStatus finalAccessStatus = accessStatus;
                     ((TraceableRequest) request).addFinishCallback(new Runnable() {
                         @Override
                         public void run() {
                             long requestEnd = ((TraceableRequest) request).getEndTime();
                             long requestStart = ((TraceableRequest) request).getStartTime();
-                            StatsUtil.accessStatistic(statName + "_WHOLE", caller.getUrl().getApplication(), caller.getUrl().getModule(), requestEnd, requestEnd - requestStart, finalBizProcessTime, finalAccessStatus);
+                            StatsUtil.accessStatistic(statName + "_WHOLE", caller.getUrl().getApplication(), caller.getUrl().getModule(), requestEnd, requestEnd - requestStart, bizProcessTime, finalAccessStatus);
                         }
                     }, null);
                 }

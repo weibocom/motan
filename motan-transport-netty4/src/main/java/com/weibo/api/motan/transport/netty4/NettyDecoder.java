@@ -8,7 +8,6 @@ import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.MotanFrameworkUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -93,8 +92,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
         byte[] data = new byte[size];
         in.resetReaderIndex();
         in.readBytes(data);
-        decode(data, out, isRequest, requestId);
-        MotanFrameworkUtil.logRequestEvent(requestId, MotanConstants.REQUEST_TRACK_LOG_SWITCHER, "receive rpc " + (isRequest ? "request" : "respone"), startTime);
+        decode(data, out, isRequest, requestId).setStartTime(startTime);
     }
 
     private boolean isV2Request(byte b) {
@@ -117,8 +115,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
         checkMaxContext(dataLength, ctx, messageType == MotanConstants.FLAG_REQUEST, requestId);
         byte[] data = new byte[dataLength];
         in.readBytes(data);
-        decode(data, out, messageType == MotanConstants.FLAG_REQUEST, requestId);
-        MotanFrameworkUtil.logRequestEvent(requestId, MotanConstants.REQUEST_TRACK_LOG_SWITCHER, "receive " + (messageType == MotanConstants.FLAG_REQUEST ? "request" : "respone"), startTime);
+        decode(data, out, messageType == MotanConstants.FLAG_REQUEST, requestId).setStartTime(startTime);
     }
 
     private void checkMaxContext(int dataLength, ChannelHandlerContext ctx, boolean isRequest, long requestId) throws Exception {
@@ -137,10 +134,10 @@ public class NettyDecoder extends ByteToMessageDecoder {
         }
     }
 
-    private void decode(byte[] data, List<Object> out, boolean isRequest, long requestId) {
+    private NettyMessage decode(byte[] data, List<Object> out, boolean isRequest, long requestId) {
         NettyMessage message = new NettyMessage(isRequest, requestId, data);
-        message.setStartTime(System.currentTimeMillis());
         out.add(message);
+        return message;
     }
 
     private Response buildExceptionResponse(long requestId, Exception e) {

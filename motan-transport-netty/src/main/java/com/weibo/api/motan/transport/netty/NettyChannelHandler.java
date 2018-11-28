@@ -16,7 +16,6 @@
 
 package com.weibo.api.motan.transport.netty;
 
-import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
@@ -134,7 +133,7 @@ public class NettyChannelHandler extends SimpleChannelHandler {
             result = MotanFrameworkUtil.buildErrorResponse(request.getRequestId(), new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
         }
 
-        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), MotanConstants.REQUEST_TRACK_LOG_SWITCHER, "after invoke biz method", System.currentTimeMillis());
+        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after invoke biz method", System.currentTimeMillis());
         DefaultResponse response = null;
 
         if (!(result instanceof DefaultResponse)) {
@@ -152,8 +151,7 @@ public class NettyChannelHandler extends SimpleChannelHandler {
                 channelFuture.addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), MotanConstants.REQUEST_TRACK_LOG_SWITCHER, "after send rpc response", System.currentTimeMillis());
-                        ((TraceableRequest) request).addTraceInfo(MotanConstants.REQUEST_REMOTE_ADDR, future.getChannel().getRemoteAddress().toString());
+                        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after send rpc response", System.currentTimeMillis());
                         ((TraceableRequest) request).onFinish();
                     }
                 });
