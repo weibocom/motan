@@ -133,7 +133,7 @@ public class NettyChannelHandler extends SimpleChannelHandler {
             result = MotanFrameworkUtil.buildErrorResponse(request.getRequestId(), new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
         }
 
-        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after invoke biz method", System.currentTimeMillis());
+        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after invoke biz method: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
         DefaultResponse response = null;
 
         if (!(result instanceof DefaultResponse)) {
@@ -151,7 +151,7 @@ public class NettyChannelHandler extends SimpleChannelHandler {
                 channelFuture.addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after send rpc response", System.currentTimeMillis());
+                        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after send rpc response: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
                         ((TraceableRequest) request).onFinish();
                     }
                 });

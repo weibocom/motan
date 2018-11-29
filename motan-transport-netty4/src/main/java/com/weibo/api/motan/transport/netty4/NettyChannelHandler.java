@@ -119,8 +119,8 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         }
 
         if (result instanceof Request) {
-            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), "receive rpc request", msg.getStartTime());
-            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), "after decode rpc request", System.currentTimeMillis());
+            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), "receive rpc request: " + MotanFrameworkUtil.getFullMethodString((Request) result), msg.getStartTime());
+            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), "after decode rpc request: " + MotanFrameworkUtil.getFullMethodString((Request) result), System.currentTimeMillis());
             if (result instanceof TraceableRequest) {
                 ((TraceableRequest) result).setStartTime(msg.getStartTime());
             }
@@ -150,7 +150,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
                 LoggerUtil.error("NettyChannelHandler processRequest fail! request:" + MotanFrameworkUtil.toString(request), e);
                 result = MotanFrameworkUtil.buildErrorResponse(request.getRequestId(), new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
             }
-            MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after invoke biz method", System.currentTimeMillis());
+            MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after invoke biz method: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
             DefaultResponse response;
             if (result instanceof DefaultResponse) {
                 response = (DefaultResponse) result;
@@ -165,7 +165,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
                 channelFuture.addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after send rpc response", System.currentTimeMillis());
+                        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after send rpc response: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
                         ((TraceableRequest) request).onFinish();
                     }
                 });

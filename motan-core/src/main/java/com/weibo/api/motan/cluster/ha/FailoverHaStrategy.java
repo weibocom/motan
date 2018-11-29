@@ -70,7 +70,7 @@ public class FailoverHaStrategy<T> extends AbstractHaStrategy<T> {
             Referer<T> refer = referers.get(i % referers.size());
             try {
                 request.setRetries(i);
-                MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "start retry " + i, System.currentTimeMillis());
+                MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "start retry " + i + " " + refer.getServiceUrl().getServerPortStr(), System.currentTimeMillis());
                 return refer.call(request);
             } catch (RuntimeException e) {
                 // 对于业务异常，直接抛出

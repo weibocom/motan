@@ -73,7 +73,7 @@ public class AbstractRefererHandler<T> {
             Response response;
             boolean throwException = Boolean.parseBoolean(cluster.getUrl().getParameter(URLParamType.throwException.getName(), URLParamType.throwException.getValue()));
             try {
-                MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "invoke rpc request", System.currentTimeMillis());
+                MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "invoke rpc request: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
                 response = cluster.call(request);
                 if (async) {
                     if (response instanceof ResponseFuture) {

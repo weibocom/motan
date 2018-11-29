@@ -58,6 +58,16 @@ public class ClusterTest extends BaseTestCase {
         referers = new ArrayList<Referer<IHello>>();
         referers.add(mockery.mock(Referer.class, "ref1"));
         referers.add(mockery.mock(Referer.class, "ref2"));
+        final URL url = URL.valueOf("motan%3A%2F%2F10.209.128.244%3A8000%2Fcom.weibo.api.motan.protocol.example.IWorld%3Fprotocol%3Dmotan%26export%3Dmotan%3A8000%26application%3Dapi%26module%3Dtest%26check%3Dtrue%26refreshTimestamp%3D1373275099717%26methodconfig.world%28void%29.retries%3D1%26id%3Dmotan%26methodconfig.world%28java.lang.String%29.retries%3D1%26methodconfig.world%28java.lang.String%2Cboolean%29.retries%3D1%26nodeType%3Dservice%26group%3Dwangzhe-test-yf%26shareChannel%3Dtrue%26&");
+        mockery.checking(new Expectations() {
+            {
+                for (Referer<IHello> ref : referers) {
+                    atLeast(0).of(ref).getServiceUrl();
+                    will(returnValue(url));
+                    atLeast(1).of(ref).destroy();
+                }
+            }
+        });
 
         cluster.setUrl(new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class
                 .getName()));
