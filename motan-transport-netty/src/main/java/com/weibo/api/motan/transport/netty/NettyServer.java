@@ -136,8 +136,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
         bootstrap.setOption("child.tcpNoDelay", true);
         bootstrap.setOption("child.keepAlive", true);
 
-        nettyChannelHandler = new NettyChannelHandler(NettyServer.this, messageHandler,
-                standardThreadExecutor);
+        nettyChannelHandler = new NettyChannelHandler(NettyServer.this, messageHandler, standardThreadExecutor);
         StatsUtil.registryStatisticCallback(nettyChannelHandler);
 
         bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
