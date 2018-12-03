@@ -86,13 +86,23 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
         serverBootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<SocketChannel>() {
+                    NettyChannelHandler handler;
+
+                    @Override
+                    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+                        StatsUtil.unRegistryStatisticCallback(handler);
+                        super.channelUnregistered(ctx);
+                    }
+
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
                         ChannelPipeline pipeline = ch.pipeline();
                         pipeline.addLast("channel_manage", channelManage);
                         pipeline.addLast("decoder", new NettyDecoder(codec, NettyServer.this, maxContentLength));
                         pipeline.addLast("encoder", new NettyEncoder());
-                        pipeline.addLast("handler", new NettyChannelHandler(NettyServer.this, messageHandler, standardThreadExecutor));
+                        handler = new NettyChannelHandler(NettyServer.this, messageHandler, standardThreadExecutor);
+                        pipeline.addLast("handler", handler);
+                        StatsUtil.registryStatisticCallback(handler);
                     }
                 });
         serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);

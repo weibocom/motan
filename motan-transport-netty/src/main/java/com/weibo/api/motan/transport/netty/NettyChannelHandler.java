@@ -26,19 +26,22 @@ import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.NetUtils;
+import com.weibo.api.motan.util.StatisticCallback;
 import org.jboss.netty.channel.*;
 
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-31
  */
-public class NettyChannelHandler extends SimpleChannelHandler {
+public class NettyChannelHandler extends SimpleChannelHandler implements StatisticCallback {
     private ThreadPoolExecutor threadPoolExecutor;
     private MessageHandler messageHandler;
     private Channel serverChannel;
+    private AtomicInteger rejectCounter = new AtomicInteger(0);
 
     public NettyChannelHandler(Channel serverChannel) {
         this.serverChannel = serverChannel;
@@ -121,6 +124,7 @@ public class NettyChannelHandler extends SimpleChannelHandler {
                     threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(),
                     threadPoolExecutor.getCorePoolSize(), threadPoolExecutor.getMaximumPoolSize(),
                     threadPoolExecutor.getTaskCount(), request.getRequestId());
+            rejectCounter.incrementAndGet();
         }
     }
 
@@ -169,5 +173,15 @@ public class NettyChannelHandler extends SimpleChannelHandler {
                 + " local=" + ctx.getChannel().getLocalAddress() + " event=" + e.getCause(), e.getCause());
 
         ctx.getChannel().close();
+    }
+
+    @Override
+    public String statisticCallback() {
+        int count = rejectCounter.getAndSet(0);
+        if (count > 0) {
+            return String.format("type: motan name: reject_request_pool total_count: %s reject_count: %s", threadPoolExecutor.getPoolSize(), count);
+        } else {
+            return null;
+        }
     }
 }

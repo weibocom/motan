@@ -30,6 +30,8 @@ import com.weibo.api.motan.transport.ProviderProtectedMessageRouter;
 import com.weibo.api.motan.transport.Server;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
+import com.weibo.api.motan.util.StatisticCallback;
+import com.weibo.api.motan.util.StatsUtil;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,10 +40,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DefaultRpcExporter<T> extends AbstractExporter<T> {
 
-    protected Server server;
-    protected EndpointFactory endpointFactory;
     protected final ConcurrentHashMap<String, ProviderMessageRouter> ipPort2RequestRouter;
     protected final ConcurrentHashMap<String, Exporter<?>> exporterMap;
+    protected Server server;
+    protected EndpointFactory endpointFactory;
 
     public DefaultRpcExporter(Provider<T> provider, URL url, ConcurrentHashMap<String, ProviderMessageRouter> ipPort2RequestRouter,
                               ConcurrentHashMap<String, Exporter<?>> exporterMap) {
@@ -68,6 +70,9 @@ public class DefaultRpcExporter<T> extends AbstractExporter<T> {
             exporter.destroy();
         }
         ProviderMessageRouter requestRouter = ipPort2RequestRouter.get(ipPort);
+        if (requestRouter instanceof StatisticCallback) {
+            StatsUtil.unRegistryStatisticCallback((StatisticCallback) requestRouter);
+        }
 
         if (requestRouter != null) {
             requestRouter.removeProvider(provider);
@@ -99,7 +104,9 @@ public class DefaultRpcExporter<T> extends AbstractExporter<T> {
         ProviderMessageRouter requestRouter = ipPort2RequestRouter.get(ipPort);
 
         if (requestRouter == null) {
-            ipPort2RequestRouter.putIfAbsent(ipPort, new ProviderProtectedMessageRouter());
+            ProviderProtectedMessageRouter router = new ProviderProtectedMessageRouter();
+            StatsUtil.registryStatisticCallback(router);
+            ipPort2RequestRouter.putIfAbsent(ipPort, router);
             requestRouter = ipPort2RequestRouter.get(ipPort);
         }
         requestRouter.addProvider(provider);
