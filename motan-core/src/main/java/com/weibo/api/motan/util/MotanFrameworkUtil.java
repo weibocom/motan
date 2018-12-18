@@ -16,29 +16,27 @@
 
 package com.weibo.api.motan.util;
 
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.rpc.Response;
-import org.apache.commons.lang3.StringUtils;
-
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RegistryConfig;
+import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 提供框架内部一些约定处理
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-6-4
- * 
  */
 public class MotanFrameworkUtil {
 
     /**
      * 目前根据 group/interface/version 来唯一标示一个服务
-     * 
+     *
      * @param request
      * @return
      */
@@ -78,7 +76,7 @@ public class MotanFrameworkUtil {
 
     /**
      * protocol key: protocol://host:port/group/interface/version
-     * 
+     *
      * @param url
      * @return
      */
@@ -89,7 +87,7 @@ public class MotanFrameworkUtil {
 
     /**
      * 输出请求的关键信息： requestId=** interface=** method=**(**)
-     * 
+     *
      * @param request
      * @return
      */
@@ -100,16 +98,16 @@ public class MotanFrameworkUtil {
 
     /**
      * 根据Request得到 interface.method(paramDesc) 的 desc
-     * 
+     *
      * <pre>
-	 * 		比如：
-	 * 			package com.weibo.api.motan;
-	 * 
-	 * 		 	interface A { public hello(int age); }
-	 * 
-	 * 			那么return "com.weibo.api.motan.A.hell(int)"
-	 * </pre>
-     * 
+     * 		比如：
+     * 			package com.weibo.api.motan;
+     *
+     * 		 	interface A { public hello(int age); }
+     *
+     * 			那么return "com.weibo.api.motan.A.hell(int)"
+     * </pre>
+     *
      * @param request
      * @return
      */
@@ -117,26 +115,26 @@ public class MotanFrameworkUtil {
         return request.getInterfaceName() + "." + request.getMethodName() + "("
                 + request.getParamtersDesc() + ")";
     }
-    
-    public static String getGroupMethodString(Request request){
+
+    public static String getGroupMethodString(Request request) {
         return getGroupFromRequest(request) + "_" + getFullMethodString(request);
     }
 
 
     /**
      * 判断url:source和url:target是否可以使用共享的service channel(port) 对外提供服务
-     * 
+     *
      * <pre>
-	 * 		1） protocol
-	 * 		2） codec 
-	 * 		3） serialize
-	 * 		4） maxContentLength
-	 * 		5） maxServerConnection
-	 * 		6） maxWorkerThread
-	 * 		7） workerQueueSize
-	 * 		8） heartbeatFactory
-	 * </pre>
-     * 
+     * 		1） protocol
+     * 		2） codec
+     * 		3） serialize
+     * 		4） maxContentLength
+     * 		5） maxServerConnection
+     * 		6） maxWorkerThread
+     * 		7） workerQueueSize
+     * 		8） heartbeatFactory
+     * </pre>
+     *
      * @param source
      * @param target
      * @return
@@ -182,16 +180,16 @@ public class MotanFrameworkUtil {
 
     /**
      * 判断url:source和url:target是否可以使用共享的client channel(port) 对外提供服务
-     * 
+     *
      * <pre>
-	 * 		1） protocol
-	 * 		2） codec 
-	 * 		3） serialize
-	 * 		4） maxContentLength
-	 * 		5） maxClientConnection
-	 * 		6） heartbeatFactory
-	 * </pre>
-     * 
+     * 		1） protocol
+     * 		2） codec
+     * 		3） serialize
+     * 		4） maxContentLength
+     * 		5） maxClientConnection
+     * 		6） heartbeatFactory
+     * </pre>
+     *
      * @param source
      * @param target
      * @return
@@ -227,7 +225,7 @@ public class MotanFrameworkUtil {
 
     /**
      * serviceKey: group/interface/version
-     * 
+     *
      * @param group
      * @param interfaceName
      * @param version
@@ -236,30 +234,32 @@ public class MotanFrameworkUtil {
     private static String getServiceKey(String group, String interfaceName, String version) {
         return group + MotanConstants.PATH_SEPARATOR + interfaceName + MotanConstants.PATH_SEPARATOR + version;
     }
-    
+
     /**
      * 获取默认motan协议配置
+     *
      * @return motan协议配置
      */
-    public static ProtocolConfig getDefaultProtocolConfig(){
+    public static ProtocolConfig getDefaultProtocolConfig() {
         ProtocolConfig pc = new ProtocolConfig();
         pc.setId("motan");
         pc.setName("motan");
         return pc;
     }
-    
+
     /**
      * 默认本地注册中心
+     *
      * @return local registry
      */
-    public static RegistryConfig getDefaultRegistryConfig(){
+    public static RegistryConfig getDefaultRegistryConfig() {
         RegistryConfig local = new RegistryConfig();
         local.setRegProtocol("local");
         return local;
     }
-    
-    public static String removeAsyncSuffix(String path){
-        if(path != null && path.endsWith(MotanConstants.ASYNC_SUFFIX)){
+
+    public static String removeAsyncSuffix(String path) {
+        if (path != null && path.endsWith(MotanConstants.ASYNC_SUFFIX)) {
             return path.substring(0, path.length() - MotanConstants.ASYNC_SUFFIX.length());
         }
         return path;
@@ -269,5 +269,11 @@ public class MotanFrameworkUtil {
         DefaultResponse response = new DefaultResponse(requestId);
         response.setException(e);
         return response;
+    }
+
+    public static void logRequestEvent(long requestId, String event, long time) {
+        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.REQUEST_TRACK_LOG_SWITCHER, false)) {
+            LoggerUtil.info("[motan-track-log] | " + requestId + " | " + event + " | " + time);
+        }
     }
 }

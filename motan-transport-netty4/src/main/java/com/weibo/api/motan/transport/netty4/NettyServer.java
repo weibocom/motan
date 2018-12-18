@@ -22,6 +22,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author sunnights
@@ -33,6 +35,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
     private Channel serverChannel;
     private MessageHandler messageHandler;
     private StandardThreadExecutor standardThreadExecutor = null;
+    private List<StatisticCallback> statisticCallbackList = new ArrayList<>();
 
     public NettyServer(URL url, MessageHandler messageHandler) {
         super(url);
@@ -92,7 +95,9 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
                         pipeline.addLast("channel_manage", channelManage);
                         pipeline.addLast("decoder", new NettyDecoder(codec, NettyServer.this, maxContentLength));
                         pipeline.addLast("encoder", new NettyEncoder());
-                        pipeline.addLast("handler", new NettyChannelHandler(NettyServer.this, messageHandler, standardThreadExecutor));
+                        NettyChannelHandler handler = new NettyChannelHandler(NettyServer.this, messageHandler, standardThreadExecutor);
+                        pipeline.addLast("handler", handler);
+                        addStatisticCallback(handler);
                     }
                 });
         serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);
@@ -101,7 +106,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
         channelFuture.syncUninterruptibly();
         serverChannel = channelFuture.channel();
         state = ChannelState.ALIVE;
-        StatsUtil.registryStatisticCallback(this);
+        addStatisticCallback(this);
         LoggerUtil.info("NettyServer ServerChannel finish Open: url=" + url);
         return state.isAliveState();
     }
@@ -143,7 +148,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
             // 设置close状态
             state = ChannelState.CLOSE;
             // 取消统计回调的注册
-            StatsUtil.unRegistryStatisticCallback(this);
+            clearStatisticCallback();
             LoggerUtil.info("NettyServer close Success: url={}", url.getUri());
         } catch (Exception e) {
             LoggerUtil.error("NettyServer close Error: url=" + url.getUri(), e);
@@ -171,5 +176,14 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
                 url.getIdentity(), channelManage.getChannels().size(), standardThreadExecutor.getSubmittedTasksCount(),
                 standardThreadExecutor.getQueue().size(), standardThreadExecutor.getMaximumPoolSize(),
                 standardThreadExecutor.getMaxSubmittedTaskCount());
+    }
+
+    private void addStatisticCallback(StatisticCallback callback) {
+        StatsUtil.registryStatisticCallback(callback);
+        statisticCallbackList.add(callback);
+    }
+
+    private void clearStatisticCallback() {
+        StatsUtil.unRegistryStatisticCallbacks(statisticCallbackList);
     }
 }

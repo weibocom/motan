@@ -61,6 +61,7 @@ public class NettyChannel implements Channel {
         boolean result = writeFuture.awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
 
         if (result && writeFuture.isSuccess()) {
+            MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after send rpc request " + nettyClient.getUrl().getServerPortStr(), System.currentTimeMillis());
             response.addListener(new FutureListener() {
                 @Override
                 public void operationComplete(Future future) throws Exception {

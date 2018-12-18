@@ -46,7 +46,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 
+ *
  * <pre>
  * 		netty client 相关
  * 			1)  timeout 设置 （connecttimeout，sotimeout, application timeout）
@@ -56,10 +56,10 @@ import java.util.concurrent.atomic.AtomicLong;
  * 			5） 最大返回数据包设置
  * 			6） RPC 的测试的时候，需要非常关注 OOM的问题
  * </pre>
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-5-31
- * 
+ *
  */
 public class NettyClient extends AbstractPoolClient implements StatisticCallback {
     //这里采用默认的CPU数*2
@@ -131,14 +131,14 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 	/**
 	 * 请求remote service
-	 * 
+	 *
 	 * <pre>
 	 * 		1)  get connection from pool
 	 * 		2)  async requset
 	 * 		3)  return connection to pool
 	 * 		4)  check if async return response, true: return ResponseFuture;  false: return result
 	 * </pre>
-	 * 
+	 *
 	 * @param request
 	 * @param async
 	 * @return
@@ -152,6 +152,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 		try {
 			// return channel or throw exception(timeout or connection_fail)
 			channel = borrowObject();
+			MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after get server connection " + this.getUrl().getServerPortStr(), System.currentTimeMillis());
 
 			if (channel == null) {
 				LoggerUtil.error("NettyClient borrowObject null: url=" + url.getUri() + " "
@@ -185,7 +186,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 	/**
 	 * 如果async是false，那么同步获取response的数据
-	 * 
+	 *
 	 * @param response
 	 * @param async
 	 * @return
@@ -225,7 +226,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 	 */
 	private void initClientBootstrap() {
 		bootstrap = new ClientBootstrap(channelFactory);
-		
+
 		bootstrap.setOption("keepAlive", true);
 		bootstrap.setOption("tcpNoDelay", true);
 
@@ -243,8 +244,9 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 				URLParamType.maxContentLength.getIntValue());
 
 		bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
+			@Override
 			public ChannelPipeline getPipeline() {
-				ChannelPipeline pipeline = Channels.pipeline();
+				final ChannelPipeline pipeline = Channels.pipeline();
 				pipeline.addLast("decoder", new NettyDecoder(codec, NettyClient.this, maxContentLength));
 				pipeline.addLast("encoder", new NettyEncoder(codec, NettyClient.this));
 				pipeline.addLast("handler", new NettyChannelHandler(NettyClient.this, new MessageHandler() {
@@ -341,11 +343,11 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 	/**
 	 * 增加调用失败的次数：
-	 * 
+	 *
 	 * <pre>
 	 * 	 	如果连续失败的次数 >= maxClientConnection, 那么把client设置成不可用状态
 	 * </pre>
-	 * 
+	 *
 	 */
 	void incrErrorCount() {
 		long count = errorCount.incrementAndGet();
@@ -366,11 +368,11 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 	/**
 	 * 重置调用失败的计数 ：
-	 * 
+	 *
 	 * <pre>
 	 * 把节点设置成可用
 	 * </pre>
-	 * 
+	 *
 	 */
 	void resetErrorCount() {
 		errorCount.set(0);
@@ -400,13 +402,13 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 	/**
 	 * 注册回调的resposne
-	 * 
+	 *
 	 * <pre>
-	 * 
+	 *
 	 * 		进行最大的请求并发数的控制，如果超过NETTY_CLIENT_MAX_REQUEST的话，那么throw reject exception
-	 * 
+	 *
 	 * </pre>
-	 * 
+	 *
 	 * @throws MotanServiceException
 	 * @param requestId
 	 * @param nettyResponseFuture
@@ -437,7 +439,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 	/**
 	 * 移除回调的response
-	 * 
+	 *
 	 * @param requestId
 	 * @return
 	 */
@@ -451,9 +453,9 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
 	/**
 	 * 回收超时任务
-	 * 
+	 *
 	 * @author maijunsheng
-	 * 
+	 *
 	 */
 	class TimeoutMonitor implements Runnable {
 		private String name;
@@ -462,6 +464,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 			this.name = name;
 		}
 
+		@Override
 		public void run() {
 
 			long currentTime = System.currentTimeMillis();
@@ -474,7 +477,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 						// timeout: remove from callback list, and then cancel
 						removeCallback(entry.getKey());
 						future.cancel();
-					} 
+					}
 				} catch (Exception e) {
 					LoggerUtil.error(
 							name + " clear timeout future Error: uri=" + url.getUri() + " requestId=" + entry.getKey(),
