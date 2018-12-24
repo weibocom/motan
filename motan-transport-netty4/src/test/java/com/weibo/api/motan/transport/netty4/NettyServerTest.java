@@ -76,7 +76,7 @@ public class NettyServerTest {
     @Test
     public void testCallbacks() throws InterruptedException {
         int minClientConnection = 2;
-        int maxServerConnection = 10;
+        int maxServerConnection = 2;
         url.addParameter(URLParamType.minClientConnection.getName(), String.valueOf(minClientConnection));
         url.addParameter(URLParamType.maxServerConnection.getName(), String.valueOf(maxServerConnection));
         url.addParameter(URLParamType.requestTimeout.getName(), "10000");
