@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.1.3](https://github.com/weibocom/motan/tree/1.1.3) (2018-12-24)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.2...1.1.3)
+
+**Fixed bugs:**
+
+- fix: compatible with zookeeper string serializer [\#707](https://github.com/weibocom/motan/pull/781) ([sunnights](https://github.com/sunnights))
+
 ## [1.1.2](https://github.com/weibocom/motan/tree/1.1.2) (2018-12-18)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.1.1...1.1.2)
 
