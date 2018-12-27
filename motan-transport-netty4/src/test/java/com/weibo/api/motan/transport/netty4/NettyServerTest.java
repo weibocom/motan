@@ -65,7 +65,7 @@ public class NettyServerTest {
         NettyClient nettyClient2 = new NettyClient(url);
         nettyClient2.open();
         Thread.sleep(100);
-        Assert.assertEquals(maxServerConnection, nettyServer.channelManage.getChannels().size());
+        Assert.assertTrue(nettyServer.channelManage.getChannels().size() < minClientConnection * 2);
 
         nettyClient.close();
         nettyClient2.close();
@@ -98,7 +98,7 @@ public class NettyServerTest {
         Thread.sleep(100);
         nettyClient.close();
 
-        Assert.assertEquals(minClientConnection + 1, StatsUtil.getStatisticCallbacks().size());
+        Assert.assertTrue(StatsUtil.getStatisticCallbacks().size() >= minClientConnection + 1);
         nettyServer.close();
         Thread.sleep(100);
         Assert.assertEquals(0, StatsUtil.getStatisticCallbacks().size());
