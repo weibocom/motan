@@ -11,6 +11,7 @@ import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.util.ByteUtil;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 import java.io.IOException;
 
@@ -61,6 +62,7 @@ public class CodecUtil {
         } else {
             data = codec.encode(channel, msg);
         }
+        MotanFrameworkUtil.logRequestEvent(getRequestId(msg), "after encode rpc " + (msg instanceof Request ? "request " : "response ") + channel.getUrl().getServerPortStr(), System.currentTimeMillis());
         return data;
     }
 

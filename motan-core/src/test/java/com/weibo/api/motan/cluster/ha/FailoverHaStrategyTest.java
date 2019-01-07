@@ -16,13 +16,6 @@
 
 package com.weibo.api.motan.cluster.ha;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jmock.Expectations;
-import org.junit.Assert;
-import org.junit.Before;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.cluster.LoadBalance;
 import com.weibo.api.motan.common.MotanConstants;
@@ -30,15 +23,16 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.protocol.example.IHello;
 import com.weibo.api.motan.protocol.example.IWorld;
-import com.weibo.api.motan.rpc.DefaultRequest;
-import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.NetUtils;
+import org.jmock.Expectations;
+import org.junit.Assert;
+import org.junit.Before;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 
  * Failover ha strategy test.
  *
  * @author fishermen
@@ -78,7 +72,7 @@ public class FailoverHaStrategyTest extends BaseTestCase {
     public void testCall() {
         final DefaultRequest request = new DefaultRequest();
         request.setMethodName(IWorld.class.getMethods()[0].getName());
-        request.setArguments(new Object[] {});
+        request.setArguments(new Object[]{});
         request.setInterfaceName(IHello.class.getSimpleName());
         request.setParamtersDesc("void");
         final Response response = mockery.mock(Response.class);
@@ -96,6 +90,8 @@ public class FailoverHaStrategyTest extends BaseTestCase {
                     will(returnValue(true));
                     atLeast(0).of(ref).getUrl();
                     will(returnValue(url));
+                    atLeast(0).of(ref).getServiceUrl();
+                    will(returnValue(url));
                     atLeast(1).of(ref).destroy();
                 }
 
@@ -109,12 +105,11 @@ public class FailoverHaStrategyTest extends BaseTestCase {
     public void testCallWithOneError() {
         final DefaultRequest request = new DefaultRequest();
         request.setMethodName(IWorld.class.getMethods()[0].getName());
-        request.setArguments(new Object[] {});
+        request.setArguments(new Object[]{});
         request.setInterfaceName(IHello.class.getSimpleName());
         request.setParamtersDesc("void");
         final Response response = mockery.mock(Response.class);
-        final URL url =
-                URL.valueOf("motan%3A%2F%2F10.209.128.244%3A8000%2Fcom.weibo.api.motan.protocol.example.IWorld%3Fprotocol%3Dmotan%26export%3Dmotan%3A8000%26application%3Dapi%26module%3Dtest%26check%3Dtrue%26refreshTimestamp%3D1373275099717%26methodconfig.world%28void%29.retries%3D1%26id%3Dmotan%26methodconfig.world%28java.lang.String%29.retries%3D1%26methodconfig.world%28java.lang.String%2Cboolean%29.retries%3D1%26nodeType%3Dservice%26group%3Dwangzhe-test-yf%26shareChannel%3Dtrue%26&");
+        final URL url = URL.valueOf("motan%3A%2F%2F10.209.128.244%3A8000%2Fcom.weibo.api.motan.protocol.example.IWorld%3Fprotocol%3Dmotan%26export%3Dmotan%3A8000%26application%3Dapi%26module%3Dtest%26check%3Dtrue%26refreshTimestamp%3D1373275099717%26methodconfig.world%28void%29.retries%3D1%26id%3Dmotan%26methodconfig.world%28java.lang.String%29.retries%3D1%26methodconfig.world%28java.lang.String%2Cboolean%29.retries%3D1%26nodeType%3Dservice%26group%3Dwangzhe-test-yf%26shareChannel%3Dtrue%26&");
 
         mockery.checking(new Expectations() {
             {
@@ -124,6 +119,8 @@ public class FailoverHaStrategyTest extends BaseTestCase {
                     atLeast(0).of(ref).isAvailable();
                     will(returnValue(true));
                     atLeast(0).of(ref).getUrl();
+                    will(returnValue(url));
+                    atLeast(0).of(ref).getServiceUrl();
                     will(returnValue(url));
                     atLeast(1).of(ref).destroy();
                 }
@@ -140,7 +137,7 @@ public class FailoverHaStrategyTest extends BaseTestCase {
     public void testCallWithFalse() {
         final DefaultRequest request = new DefaultRequest();
         request.setMethodName(IWorld.class.getMethods()[0].getName());
-        request.setArguments(new Object[] {});
+        request.setArguments(new Object[]{});
         request.setInterfaceName(IHello.class.getSimpleName());
         request.setParamtersDesc("void");
         final Response response = mockery.mock(Response.class);
@@ -155,6 +152,8 @@ public class FailoverHaStrategyTest extends BaseTestCase {
                     will(returnValue(true));
                     atLeast(0).of(ref).getUrl();
                     will(returnValue(url));
+                    atLeast(0).of(ref).getServiceUrl();
+                    will(returnValue(url));
                     atLeast(0).of(ref).destroy();
                 }
                 atLeast(2).of(referers.get(0)).call(request);
@@ -168,6 +167,7 @@ public class FailoverHaStrategyTest extends BaseTestCase {
             failoverHaStrategy.call(request, loadBalance);
             fail("Should throw exception before!");
             Assert.assertTrue(false); // should not run to here
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
 }

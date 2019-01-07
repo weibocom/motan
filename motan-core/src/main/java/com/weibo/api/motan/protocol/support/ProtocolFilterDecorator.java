@@ -63,6 +63,7 @@ public class ProtocolFilterDecorator implements Protocol {
         return decorateWithFilter(protocol.refer(clz, url, serviceUrl), url);
     }
 
+    @Override
     public void destroy() {
         protocol.destroy();
     }

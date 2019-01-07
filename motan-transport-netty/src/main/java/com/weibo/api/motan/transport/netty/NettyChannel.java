@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-31
- * 
+ *
  */
 public class NettyChannel implements com.weibo.api.motan.transport.Channel {
 	private volatile ChannelState state = ChannelState.UNINIT;
@@ -67,14 +67,15 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel {
 		boolean result = writeFuture.awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
 
 		if (result && writeFuture.isSuccess()) {
+			MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after send rpc request " + nettyClient.getUrl().getServerPortStr(), System.currentTimeMillis());
 			response.addListener(new FutureListener() {
 				@Override
 				public void operationComplete(Future future) throws Exception {
 					if (future.isSuccess() || (future.isDone() && ExceptionUtil.isBizException(future.getException()))) {
-						// 成功的调用 
+						// 成功的调用
 						nettyClient.resetErrorCount();
 					} else {
-						// 失败的调用 
+						// 失败的调用
 						nettyClient.incrErrorCount();
 					}
 				}
@@ -89,7 +90,7 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel {
 			response.cancel();
 		}
 
-		// 失败的调用 
+		// 失败的调用
 		nettyClient.incrErrorCount();
 
 		if (writeFuture.getCause() != null) {

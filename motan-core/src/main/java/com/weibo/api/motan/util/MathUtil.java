@@ -66,4 +66,15 @@ public class MathUtil {
     public static int getNonNegative(int originValue){
         return 0x7fffffff & originValue;
     }
+
+    /**
+     * 通过二进制位操作将originValue转化为非负数:
+     * 范围在[0-16777215] 之间
+     *
+     * @param originValue
+     * @return
+     */
+    public static int getNonNegativeRange24bit(int originValue) {
+        return 0x00ffffff & originValue;
+    }
 }

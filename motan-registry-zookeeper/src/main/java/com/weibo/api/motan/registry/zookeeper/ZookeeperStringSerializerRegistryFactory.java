@@ -14,23 +14,15 @@
  *    limitations under the License.
  */
 
-package com.weibo.api.motan.util;
+package com.weibo.api.motan.registry.zookeeper;
 
-import java.util.Collection;
+import com.weibo.api.motan.core.extension.SpiMeta;
+import org.I0Itec.zkclient.ZkClient;
 
-/**
- * 
- * Utils for collections.
- *
- * @author fishermen
- * @version V1.0 created at: 2013-6-7
- */
-
-public class CollectionUtil {
-
-    @SuppressWarnings("rawtypes")
-    public static boolean isEmpty(Collection collection) {
-        return collection == null || collection.isEmpty();
+@SpiMeta(name = "zk")
+public class ZookeeperStringSerializerRegistryFactory extends ZookeeperRegistryFactory {
+    @Override
+    protected ZkClient createInnerZkClient(String zkServers, int sessionTimeout, int connectionTimeout) {
+        return new ZkClient(zkServers, sessionTimeout, connectionTimeout, new StringSerializer());
     }
-
 }

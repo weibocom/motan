@@ -16,14 +16,6 @@
 
 package com.weibo.api.motan.protocol.rpc;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.weibo.api.motan.codec.AbstractCodec;
 import com.weibo.api.motan.codec.Serialization;
 import com.weibo.api.motan.common.MotanConstants;
@@ -41,10 +33,14 @@ import com.weibo.api.motan.util.ByteUtil;
 import com.weibo.api.motan.util.ExceptionUtil;
 import com.weibo.api.motan.util.ReflectUtil;
 
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-22
- * 
+ *
  */
 @SpiMeta(name = "motan")
 public class DefaultRpcCodec extends AbstractCodec {
@@ -75,12 +71,12 @@ public class DefaultRpcCodec extends AbstractCodec {
 
     /**
      * decode data
-     * 
+     *
      * <pre>
 	 * 		对于client端：主要是来自server端的response or exception
 	 * 		对于server端: 主要是来自client端的request
 	 * </pre>
-     * 
+     *
      * @param data
      * @return
      * @throws IOException
@@ -116,9 +112,8 @@ public class DefaultRpcCodec extends AbstractCodec {
         System.arraycopy(data, RpcProtocolVersion.VERSION_1.getHeaderLength(), body, 0, bodyLength);
 
         long requestId = ByteUtil.bytes2long(data, 4);
-        Serialization serialization =
-                ExtensionLoader.getExtensionLoader(Serialization.class).getExtension(
-                        channel.getUrl().getParameter(URLParamType.serialize.getName(), URLParamType.serialize.getValue()));
+        Serialization serialization = ExtensionLoader.getExtensionLoader(Serialization.class)
+                .getExtension(channel.getUrl().getParameter(URLParamType.serialize.getName(), URLParamType.serialize.getValue()));
 
         try {
             if (isResponse) { // response
@@ -140,23 +135,23 @@ public class DefaultRpcCodec extends AbstractCodec {
 
     /**
      * request body 数据：
-     * 
+     *
      * <pre>
-	 * 
+     *
 	 * 	 body:
-	 * 
-	 * 	 byte[] data :  
-	 * 
-	 * 			serialize(interface_name, method_name, method_param_desc, method_param_value, attachments_size, attachments_value) 
-	 * 
+     *
+     * 	 byte[] data :
+     *
+     * 			serialize(interface_name, method_name, method_param_desc, method_param_value, attachments_size, attachments_value)
+     *
 	 *   method_param_desc:  for_each (string.append(method_param_interface_name))
-	 * 
+     *
 	 *   method_param_value: for_each (method_param_name, method_param_value)
-	 * 
+     *
 	 * 	 attachments_value:  for_each (attachment_name, attachment_value)
-	 * 
+     *
 	 * </pre>
-     * 
+     *
      * @param request
      * @return
      * @throws IOException
@@ -201,13 +196,13 @@ public class DefaultRpcCodec extends AbstractCodec {
 
     /**
      * response body 数据：
-     * 
+     *
      * <pre>
-	 * 
+     *
 	 * body:
-	 * 
+     *
 	 * 	 byte[] :  serialize (result) or serialize (exception)
-	 * 
+     *
 	 * </pre>
      *
      * @param channel
@@ -249,17 +244,17 @@ public class DefaultRpcCodec extends AbstractCodec {
 
     /**
      * 数据协议：
-     * 
+     *
      * <pre>
-	 * 
-	 * header:  16个字节 
-	 * 
+     *
+     * header:  16个字节
+     *
 	 * 0-15 bit 	:  magic
 	 * 16-23 bit	:  version
-	 * 24-31 bit	:  extend flag , 其中： 29-30 bit: event 可支持4种event，比如normal, exception等,  31 bit : 0 is request , 1 is response 
+     * 24-31 bit	:  extend flag , 其中： 29-30 bit: event 可支持4种event，比如normal, exception等,  31 bit : 0 is request , 1 is response
 	 * 32-95 bit 	:  request id
 	 * 96-127 bit 	:  body content length
-	 * 
+     *
 	 * </pre>
      *
      * @param body

@@ -70,6 +70,7 @@ public class MotanConstants {
     public static final int STATISTIC_PEROID = 30; // 30 seconds
     public static final String ASYNC_SUFFIX = "Async";// suffix for async call.
     public static final String APPLICATION_STATISTIC = "statisitic";
+    public static final String REQUEST_REMOTE_ADDR = "requestRemoteAddress";
 
     /**
      * netty channel constants start
@@ -116,6 +117,7 @@ public class MotanConstants {
     public static final String ZOOKEEPER_REGISTRY_COMMAND = "/command";
 
     public static final String REGISTRY_HEARTBEAT_SWITCHER = "feature.configserver.heartbeat";
+    public static final String REQUEST_TRACK_LOG_SWITCHER = "feature.request.track.log";
 
     /**
      * 默认的consistent的hash的数量
