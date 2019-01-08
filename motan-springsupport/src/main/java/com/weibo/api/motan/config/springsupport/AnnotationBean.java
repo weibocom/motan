@@ -1,6 +1,5 @@
 package com.weibo.api.motan.config.springsupport;
 
-import com.weibo.api.motan.cluster.support.ClusterSupport;
 import com.weibo.api.motan.config.BasicRefererInterfaceConfig;
 import com.weibo.api.motan.config.BasicServiceInterfaceConfig;
 import com.weibo.api.motan.config.ConfigUtil;
@@ -26,13 +25,14 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.core.Ordered;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.StringValueResolver;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,8 +46,7 @@ import java.util.concurrent.ConcurrentMap;
  * <p>
  * Created by fld on 16/5/13.
  */
-public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor, BeanPostProcessor, BeanFactoryAware, Ordered {
-
+public class AnnotationBean implements EmbeddedValueResolverAware, DisposableBean, BeanFactoryPostProcessor, BeanPostProcessor, BeanFactoryAware, Ordered {
 
     private String id;
 
@@ -55,10 +54,9 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
 
     private String[] annotationPackages;
 
-
     private BeanFactory beanFactory;
 
-    List<ClusterSupport<?>> clusterSupportList = new ArrayList<ClusterSupport<?>>();
+    private StringValueResolver embeddedValueResolver;
 
     public AnnotationBean() {
     }
@@ -66,6 +64,7 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
     private final Set<ServiceConfigBean<?>> serviceConfigs = new ConcurrentHashSet<ServiceConfigBean<?>>();
 
     private final ConcurrentMap<String, RefererConfigBean> referenceConfigs = new ConcurrentHashMap<String, RefererConfigBean>();
+
     static{
         //custom Initializable before motan beans inited
         Initializable initialization = InitializationFactory.getInitialization();
@@ -132,7 +131,7 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                 try {
                     MotanReferer reference = method.getAnnotation(MotanReferer.class);
                     if (reference != null) {
-                        Object value = refer(reference, method.getParameterTypes()[0]);
+                        Object value = refer(new MotanRefererWrapper(reference, embeddedValueResolver), method.getParameterTypes()[0]);
                         if (value != null) {
                             method.invoke(bean, new Object[]{value});
                         }
@@ -153,7 +152,7 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                 }
                 MotanReferer reference = field.getAnnotation(MotanReferer.class);
                 if (reference != null) {
-                    Object value = refer(reference, field.getType());
+                    Object value = refer(new MotanRefererWrapper(reference, embeddedValueResolver), field.getType());
                     if (value != null) {
                         field.set(bean, value);
                     }
@@ -185,6 +184,7 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
         }
         MotanService service = clazz.getAnnotation(MotanService.class);
         if (service != null) {
+            service = new MotanServiceWrapper(service, embeddedValueResolver);
             ServiceConfigBean<Object> serviceConfig = new ServiceConfigBean<Object>();
             if (void.class.equals(service.interfaceClass())) {
                 if (clazz.getInterfaces().length > 0) {
@@ -559,6 +559,11 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
         this.beanFactory = beanFactory;
+    }
+
+    @Override
+    public void setEmbeddedValueResolver(StringValueResolver resolver) {
+        this.embeddedValueResolver = resolver;
     }
 
     @Override

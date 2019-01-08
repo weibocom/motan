@@ -28,7 +28,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class AnnotationRpcClientDemo {
 
     public static void main(String[] args) throws InterruptedException {
-
+        System.setProperty("motan.refer.directUrl", "localhost:8002");
         ApplicationContext ctx = new ClassPathXmlApplicationContext(new
                 String[]{"classpath:motan_demo_client_annotation.xml"});
 

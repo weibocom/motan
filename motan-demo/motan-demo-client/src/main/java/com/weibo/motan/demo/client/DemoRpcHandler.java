@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DemoRpcHandler {
 
-    @MotanReferer
+    @MotanReferer(directUrl = "${motan.refer.directUrl}")
     private MotanDemoService motanDemoService;
 
     public void test() {

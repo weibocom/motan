@@ -32,6 +32,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class AnnotationRpcServerDemo {
 
     public static void main(String[] args) throws InterruptedException {
+        System.setProperty("motan.server.export", "8002");
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext(new
                 String[]{"classpath*:motan_demo_server_annotation.xml"});
         MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);

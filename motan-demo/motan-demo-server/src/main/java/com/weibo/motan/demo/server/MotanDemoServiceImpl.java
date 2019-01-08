@@ -22,7 +22,7 @@ import com.weibo.motan.demo.service.model.User;
 
 import java.util.Objects;
 
-@MotanService(export = "demoMotan:8002")
+@MotanService(export = "${motan.server.export}")
 public class MotanDemoServiceImpl implements MotanDemoService {
 
     @Override
