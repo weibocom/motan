@@ -145,7 +145,7 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
         }
 
 
-        Field[] fields = clazz.getDeclaredFields();
+        Field[] fields = getAllClassFields(clazz);
         for (Field field : fields) {
             try {
                 if (!field.isAccessible()) {
@@ -164,6 +164,22 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
             }
         }
         return bean;
+    }
+
+    private Field[] getAllClassFields(Class<?> clazz) {
+        return getAllClassFields(clazz, new Field[0]);
+    }
+
+    private Field[] getAllClassFields(Class<?> clazz, Field[] childFields) {
+        Class<?> superClass = clazz.getSuperclass();
+        if (superClass == null) {
+            return childFields;
+        }
+        Field[] fields = clazz.getDeclaredFields();
+        Field[] totalFields = new Field[childFields.length + fields.length];
+        System.arraycopy(childFields, 0, totalFields, 0, childFields.length);
+        System.arraycopy(fields, 0, totalFields, childFields.length, fields.length);
+        return getAllClassFields(superClass, totalFields);
     }
 
     /**

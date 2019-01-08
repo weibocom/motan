@@ -33,8 +33,8 @@ public class AnnotationRpcClientDemo {
                 String[]{"classpath:motan_demo_client_annotation.xml"});
 
 
-        DemoRpcHandler handler = (DemoRpcHandler) ctx.getBean("demoRpcHandler");
-        handler.test();
+        DemoBaseRpcHandler handler = (DemoRpcHandler) ctx.getBean("demoRpcHandler");
+        handler.greeting();
 
 
         System.out.println("motan demo is finish.");
