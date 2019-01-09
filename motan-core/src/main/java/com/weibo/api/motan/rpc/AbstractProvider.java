@@ -16,16 +16,18 @@
 
 package com.weibo.api.motan.rpc;
 
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.weibo.api.motan.util.ReflectUtil;
+import org.apache.commons.lang3.StringUtils;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-23
- * 
  */
 public abstract class AbstractProvider<T> implements Provider<T> {
     protected Class<T> clz;
@@ -86,18 +88,38 @@ public abstract class AbstractProvider<T> implements Provider<T> {
         return clz;
     }
 
-    protected Method lookup(Request request) {
-        String methodDesc = ReflectUtil.getMethodDesc(request.getMethodName(), request.getParamtersDesc());
+    @Override
+    public Method lookupMethod(String methodName, String methodDesc) {
+        Method method = null;
+        String fullMethodName = ReflectUtil.getMethodDesc(methodName, methodDesc);
+        method = methodMap.get(fullMethodName);
+        if (method == null && StringUtils.isBlank(methodDesc)) {
+            method = methodMap.get(methodName);
+            if (method == null) {
+                method = methodMap.get(methodName.substring(0, 1).toLowerCase() + methodName.substring(1));
+            }
+        }
 
-        return methodMap.get(methodDesc);
+        return method;
     }
 
     private void initMethodMap(Class<T> clz) {
         Method[] methods = clz.getMethods();
 
+        List<String> dupList = new ArrayList<String>();
         for (Method method : methods) {
             String methodDesc = ReflectUtil.getMethodDesc(method);
             methodMap.put(methodDesc, method);
+            if (methodMap.get(method.getName()) == null) {
+                methodMap.put(method.getName(), method);
+            } else {
+                dupList.add(method.getName());
+            }
+        }
+        if (!dupList.isEmpty()) {
+            for (String removedName : dupList) {
+                methodMap.remove(removedName);
+            }
         }
     }
 

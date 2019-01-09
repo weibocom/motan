@@ -53,6 +53,7 @@ public class MotanConstants {
     public static final String PROTOCOL_INJVM = "injvm";
     public static final String PROTOCOL_MOTAN = "motan";
     public static final String PROXY_JDK = "jdk";
+    public static final String PROXY_COMMON = "common";
     public static final String PROXY_JAVASSIST = "javassist";
     public static final String FRAMEWORK_NAME = "motan";
     public static final String PROTOCOL_SWITCHER_PREFIX = "protocol:";
@@ -68,7 +69,9 @@ public class MotanConstants {
     public static final int SLOW_COST = 50; // 50ms
     public static final int STATISTIC_PEROID = 30; // 30 seconds
     public static final String ASYNC_SUFFIX = "Async";// suffix for async call.
-    
+    public static final String APPLICATION_STATISTIC = "statisitic";
+    public static final String REQUEST_REMOTE_ADDR = "requestRemoteAddress";
+
     /**
      * netty channel constants start
      **/
@@ -114,11 +117,27 @@ public class MotanConstants {
     public static final String ZOOKEEPER_REGISTRY_COMMAND = "/command";
 
     public static final String REGISTRY_HEARTBEAT_SWITCHER = "feature.configserver.heartbeat";
+    public static final String REQUEST_TRACK_LOG_SWITCHER = "feature.request.track.log";
 
     /**
      * 默认的consistent的hash的数量
      */
     public static final int DEFAULT_CONSISTENT_HASH_BASE_LOOP = 1000;
+
+    // ------------------ motan 2 protocol constants -----------------
+    public static final String M2_GROUP = "M_g";
+    public static final String M2_VERSION = "M_v";
+    public static final String M2_PATH = "M_p";
+    public static final String M2_METHOD = "M_m";
+    public static final String M2_METHOD_DESC = "M_md";
+    public static final String M2_AUTH = "M_a";
+    public static final String M2_SOURCE = "M_s";// 调用方来源标识,等同与application
+    public static final String M2_MODULE = "M_mdu";
+    public static final String M2_PROXY_PROTOCOL = "M_pp";
+    public static final String M2_INFO_SIGN = "M_is";
+    public static final String M2_ERROR = "M_e";
+    public static final String M2_PROCESS_TIME = "M_pt";
+
 
     private MotanConstants() {
     }

@@ -23,9 +23,8 @@ import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.RequestIdGenerator;
-
+import com.weibo.api.motan.util.StatsUtil;
 import junit.framework.Assert;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,9 +74,12 @@ public class NettyClientTest {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws InterruptedException {
         nettyClient.close();
         nettyServer.close();
+
+        Thread.sleep(100);
+        assertEquals(0, StatsUtil.getStatisticCallbacks().size());
     }
 
     @Test

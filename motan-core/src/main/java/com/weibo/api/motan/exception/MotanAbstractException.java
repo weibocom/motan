@@ -72,6 +72,13 @@ public abstract class MotanAbstractException extends RuntimeException {
 
     @Override
     public String getMessage() {
+        String message = getOriginMessage();
+
+        return "error_message: " + message + ", status: " + motanErrorMsg.getStatus() + ", error_code: " + motanErrorMsg.getErrorCode()
+                + ",r=" + RpcContext.getContext().getRequestId();
+    }
+
+    public String getOriginMessage(){
         if (motanErrorMsg == null) {
             return super.getMessage();
         }
@@ -83,9 +90,7 @@ public abstract class MotanAbstractException extends RuntimeException {
         } else {
             message = motanErrorMsg.getMessage();
         }
-
-        return "error_message: " + message + ", status: " + motanErrorMsg.getStatus() + ", error_code: " + motanErrorMsg.getErrorCode()
-                + ",r=" + RpcContext.getContext().getRequestId();
+        return message;
     }
 
     public int getStatus() {

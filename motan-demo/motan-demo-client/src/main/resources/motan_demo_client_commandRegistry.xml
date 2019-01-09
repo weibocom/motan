@@ -33,6 +33,6 @@
     <!-- 具体referer配置。使用方通过beanid使用服务接口类 -->
     <motan:referer id="motanDemoReferer"
                    interface="com.weibo.motan.demo.service.MotanDemoService"
-                   connectTimeout="300" requestTimeout="300" basicReferer="clientBasicConfig"/>
+                   connectTimeout="1000" requestTimeout="1000" basicReferer="clientBasicConfig"/>
 
 </beans>

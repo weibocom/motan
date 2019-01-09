@@ -20,21 +20,16 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
  * 反射相关的辅助类
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-5-23
- * 
+ *
  */
 public class ReflectUtil {
     public static final String PARAM_CLASS_SPLIT = ",";
@@ -54,7 +49,7 @@ public class ReflectUtil {
 
     /**
      * 获取method方式的接口参数，以逗号分割，拼接clz列表。 如果没有参数，那么void表示
-     * 
+     *
      * @param method
      * @return
      */
@@ -77,7 +72,7 @@ public class ReflectUtil {
 
     /**
      * 获取方法的标示 : method_name + "(" + paramDesc + ")"
-     * 
+     *
      * @param method
      * @return
      */
@@ -88,7 +83,7 @@ public class ReflectUtil {
 
     /**
      * 获取方法的标示 : method_name + "(" + paramDesc + ")"
-     * 
+     *
      * @param
      * @return
      */
@@ -164,7 +159,7 @@ public class ReflectUtil {
 
     /**
      * 需要支持一维数组、二维数组等
-     * 
+     *
      * @param
      * @return
      */
@@ -214,13 +209,13 @@ public class ReflectUtil {
 
     /**
      * 获取clz public method
-     * 
+     *
      * <pre>
      *      1）不包含构造函数
      *      2）不包含Object.class
      *      3）包含该clz的父类的所有public方法
      * </pre>
-     * 
+     *
      * @param clz
      * @return
      */

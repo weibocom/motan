@@ -16,24 +16,26 @@
 
 package com.weibo.api.motan.proxy.spi;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Proxy;
-
+import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.proxy.ProxyFactory;
+import com.weibo.api.motan.proxy.RefererInvocationHandler;
+
+import java.lang.reflect.Proxy;
+import java.util.List;
 
 /**
  * jdk proxy
- * 
+ *
  * @author maijunsheng
- * 
+ *
  */
 @SpiMeta(name = "jdk")
 public class JdkProxyFactory implements ProxyFactory {
 
+    @Override
     @SuppressWarnings("unchecked")
-    public <T> T getProxy(Class<T> clz, InvocationHandler invocationHandler) {
-        return (T) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[] {clz}, invocationHandler);
+    public <T> T getProxy(Class<T> clz, List<Cluster<T>> clusters) {
+        return (T) Proxy.newProxyInstance(clz.getClassLoader(), new Class[]{clz}, new RefererInvocationHandler<>(clz, clusters));
     }
-
 }

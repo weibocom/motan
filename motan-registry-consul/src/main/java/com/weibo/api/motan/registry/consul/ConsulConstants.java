@@ -68,7 +68,7 @@ public class ConsulConstants {
 	/**
 	 * consul block 查询时 block的最长时间,单位，分钟
 	 */
-	public static int CONSUL_BLOCK_TIME_MINUTES = 10;
+	public static int CONSUL_BLOCK_TIME_MINUTES = 9;
 	
 	/**
 	 * consul block 查询时 block的最长时间,单位，秒

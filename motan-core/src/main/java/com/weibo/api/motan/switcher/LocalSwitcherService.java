@@ -22,7 +22,6 @@ import com.weibo.api.motan.exception.MotanFrameworkException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -36,7 +35,11 @@ public class LocalSwitcherService implements SwitcherService {
 
     private static ConcurrentMap<String, Switcher> switchers = new ConcurrentHashMap<String, Switcher>();
 
-    private Map<String, List<SwitcherListener>> listenerMap = new ConcurrentHashMap();
+    private ConcurrentHashMap<String, List<SwitcherListener>> listenerMap = new ConcurrentHashMap<>();
+
+    public static Switcher getSwitcherStatic(String name) {
+        return switchers.get(name);
+    }
 
     @Override
     public Switcher getSwitcher(String name) {
@@ -48,7 +51,7 @@ public class LocalSwitcherService implements SwitcherService {
         return new ArrayList<Switcher>(switchers.values());
     }
 
-    private void putSwitcher(Switcher switcher) {
+    public static void putSwitcher(Switcher switcher) {
         if (switcher == null) {
             throw new MotanFrameworkException("LocalSwitcherService addSwitcher Error: switcher is null");
         }
@@ -91,30 +94,23 @@ public class LocalSwitcherService implements SwitcherService {
 
     @Override
     public void registerListener(String switcherName, SwitcherListener listener) {
-        synchronized (listenerMap) {
-            if (listenerMap.get(switcherName) == null) {
-                List listeners = Collections.synchronizedList(new ArrayList());
-                listenerMap.put(switcherName, listeners);
-                listeners.add(listener);
-            } else {
-                List listeners = listenerMap.get(switcherName);
-                if (!listeners.contains(listener)) {
-                    listeners.add(listener);
-                }
-            }
+        List listeners = Collections.synchronizedList(new ArrayList());
+        List preListeners= listenerMap.putIfAbsent(switcherName, listeners);
+        if (preListeners == null) {
+            listeners.add(listener);
+        } else {
+            preListeners.add(listener);
         }
     }
 
     @Override
     public void unRegisterListener(String switcherName, SwitcherListener listener) {
-        synchronized (listenerMap) {
+            List<SwitcherListener> listeners = listenerMap.get(switcherName);
             if (listener == null) {
-                listenerMap.remove(switcherName);
+                // keep empty listeners
+                listeners.clear();
             } else {
-                List<SwitcherListener> listeners = listenerMap.get(switcherName);
                 listeners.remove(listener);
             }
-        }
     }
-
 }

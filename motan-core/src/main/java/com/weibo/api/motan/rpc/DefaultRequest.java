@@ -16,21 +16,20 @@
 
 package com.weibo.api.motan.rpc;
 
+import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
-
 /**
- * 
  * Rpc Request
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-16
  */
-public class DefaultRequest implements Serializable, Request {
+public class DefaultRequest extends AbstractTraceableRequest implements Serializable {
 
     private static final long serialVersionUID = 1168814620391610215L;
 
@@ -40,11 +39,10 @@ public class DefaultRequest implements Serializable, Request {
     private Object[] arguments;
     private Map<String, String> attachments;
     private int retries = 0;
-
     private long requestId;
-
     private byte rpcProtocolVersion = RpcProtocolVersion.VERSION_1.getVersion();
 
+    @Override
     public String getInterfaceName() {
         return interfaceName;
     }
@@ -53,6 +51,7 @@ public class DefaultRequest implements Serializable, Request {
         this.interfaceName = interfaceName;
     }
 
+    @Override
     public String getMethodName() {
         return methodName;
     }
@@ -61,6 +60,7 @@ public class DefaultRequest implements Serializable, Request {
         this.methodName = methodName;
     }
 
+    @Override
     public String getParamtersDesc() {
         return paramtersDesc;
     }
@@ -69,6 +69,7 @@ public class DefaultRequest implements Serializable, Request {
         this.paramtersDesc = paramtersDesc;
     }
 
+    @Override
     public Object[] getArguments() {
         return arguments;
     }
@@ -77,24 +78,26 @@ public class DefaultRequest implements Serializable, Request {
         this.arguments = arguments;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public Map<String, String> getAttachments() {
         return attachments != null ? attachments : Collections.EMPTY_MAP;
-    }
-
-    @Override
-    public void setAttachment(String key, String value) {
-        if (this.attachments == null) {
-            this.attachments = new HashMap<String, String>();
-        }
-
-        this.attachments.put(key, value);
     }
 
     public void setAttachments(Map<String, String> attachments) {
         this.attachments = attachments;
     }
 
+    @Override
+    public void setAttachment(String key, String value) {
+        if (this.attachments == null) {
+            this.attachments = new HashMap<>();
+        }
+
+        this.attachments.put(key, value);
+    }
+
+    @Override
     public long getRequestId() {
         return requestId;
     }
@@ -103,14 +106,17 @@ public class DefaultRequest implements Serializable, Request {
         this.requestId = requestId;
     }
 
+    @Override
     public String toString() {
         return interfaceName + "." + methodName + "(" + paramtersDesc + ") requestId=" + requestId;
     }
 
+    @Override
     public int getRetries() {
         return retries;
     }
 
+    @Override
     public void setRetries(int retries) {
         this.retries = retries;
     }
@@ -120,6 +126,7 @@ public class DefaultRequest implements Serializable, Request {
         return rpcProtocolVersion;
     }
 
+    @Override
     public void setRpcProtocolVersion(byte rpcProtocolVersion) {
         this.rpcProtocolVersion = rpcProtocolVersion;
     }

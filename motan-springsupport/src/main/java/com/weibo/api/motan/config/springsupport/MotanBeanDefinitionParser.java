@@ -16,11 +16,7 @@
 
 package com.weibo.api.motan.config.springsupport;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.weibo.api.motan.config.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -36,16 +32,13 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.weibo.api.motan.common.URLParamType;
-import com.weibo.api.motan.config.BasicRefererInterfaceConfig;
-import com.weibo.api.motan.config.BasicServiceInterfaceConfig;
-import com.weibo.api.motan.config.ConfigUtil;
-import com.weibo.api.motan.config.MethodConfig;
-import com.weibo.api.motan.config.ProtocolConfig;
-import com.weibo.api.motan.config.RegistryConfig;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * 
+ *
  * MotanBeanDefinitionParser
  *
  * @author fishermen
@@ -214,8 +207,7 @@ public class MotanBeanDefinitionParser implements BeanDefinitionParser {
     private static void parseMultiRef(String property, String value, RootBeanDefinition beanDefinition, ParserContext parserContext) {
         String[] values = value.split("\\s*[,]+\\s*");
         ManagedList list = null;
-        for (int i = 0; i < values.length; i++) {
-            String v = values[i];
+        for (String v : values) {
             if (v != null && v.length() > 0) {
                 if (list == null) {
                     list = new ManagedList();

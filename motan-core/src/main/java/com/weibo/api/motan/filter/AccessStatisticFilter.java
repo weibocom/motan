@@ -24,58 +24,59 @@ import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.StatsUtil;
 import com.weibo.api.motan.util.StatsUtil.AccessStatus;
 
+import static com.weibo.api.motan.common.MotanConstants.APPLICATION_STATISTIC;
+
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-14
  */
 @SpiMeta(name = "statistic")
 public class AccessStatisticFilter implements Filter {
-    protected static Application RPC_SERVICES = new Application(ApplicationInfo.STATISTIC, "rpc_service");
+    private static final String RPC_SERVICE = "rpc_service";
 
     @Override
-    public Response filter(Caller<?> caller, Request request) {
+    public Response filter(final Caller<?> caller, final Request request) {
         long start = System.currentTimeMillis();
         AccessStatus accessStatus = AccessStatus.NORMAL;
-        boolean specialException = true;
-        long bizProcessTime = 0;
+        final long bizProcessTime;
+        Response response = null;
 
         try {
-            Response response = caller.call(request);
-
-            if (response == null) {
-                accessStatus = AccessStatus.OTHER_EXCEPTION;
-            } else {
-                if (response.getException() != null) {
-                    if (ExceptionUtil.isBizException(response.getException())) {
-                        accessStatus = AccessStatus.BIZ_EXCEPTION;
-                    } else {
-                        accessStatus = AccessStatus.OTHER_EXCEPTION;
-                    }
+            response = caller.call(request);
+            if (response != null && response.getException() != null) {
+                if (ExceptionUtil.isBizException(response.getException())) {
+                    accessStatus = AccessStatus.BIZ_EXCEPTION;
+                } else {
+                    accessStatus = AccessStatus.OTHER_EXCEPTION;
                 }
-
-                specialException = false;
-                bizProcessTime = response.getProcessTime();
             }
-
             return response;
         } finally {
             long end = System.currentTimeMillis();
 
-            if (specialException) {
+            if (response == null) {
                 accessStatus = AccessStatus.OTHER_EXCEPTION;
                 bizProcessTime = end - start;
+            } else {
+                bizProcessTime = response.getProcessTime();
             }
 
-            Application application;
-            String statName =
-                    caller.getUrl().getProtocol() + MotanConstants.PROTOCOL_SEPARATOR + MotanFrameworkUtil.getGroupMethodString(request);
+            final String statName = caller.getUrl().getProtocol() + MotanConstants.PROTOCOL_SEPARATOR + MotanFrameworkUtil.getGroupMethodString(request);
             if (caller instanceof Provider) {
-                application = RPC_SERVICES;
-                StatsUtil.accessStatistic(statName, application, end, end - start, bizProcessTime, accessStatus);
+                StatsUtil.accessStatistic(statName, APPLICATION_STATISTIC, RPC_SERVICE, end, end - start, bizProcessTime, accessStatus);
+                if (request instanceof TraceableRequest) {
+                    final AccessStatus finalAccessStatus = accessStatus;
+                    ((TraceableRequest) request).addFinishCallback(new Runnable() {
+                        @Override
+                        public void run() {
+                            long requestEnd = ((TraceableRequest) request).getEndTime();
+                            long requestStart = ((TraceableRequest) request).getStartTime();
+                            StatsUtil.accessStatistic(statName + "_WHOLE", caller.getUrl().getApplication(), caller.getUrl().getModule(), requestEnd, requestEnd - requestStart, bizProcessTime, finalAccessStatus);
+                        }
+                    }, null);
+                }
             }
-            application = ApplicationInfo.getApplication(caller.getUrl());
-            StatsUtil.accessStatistic(statName, application, end, end - start, bizProcessTime, accessStatus);
-
+            StatsUtil.accessStatistic(statName, caller.getUrl().getApplication(), caller.getUrl().getModule(), end, end - start, bizProcessTime, accessStatus);
         }
     }
 }

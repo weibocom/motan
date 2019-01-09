@@ -17,6 +17,8 @@
 package com.weibo.api.motan.transport;
 
 import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.core.DefaultThreadFactory;
+import com.weibo.api.motan.core.StandardThreadExecutor;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.LoggerUtil;
@@ -24,11 +26,15 @@ import org.apache.commons.pool.BasePoolableObjectFactory;
 import org.apache.commons.pool.PoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-14
  */
 public abstract class AbstractPoolClient extends AbstractClient {
+    private static ThreadPoolExecutor executor = new StandardThreadExecutor(1, 300, 20000,
+            new DefaultThreadFactory("AbstractPoolClient-initPool-", true));
     protected static long defaultMinEvictableIdleTimeMillis = (long) 1000 * 60 * 60;//默认链接空闲时间
     protected static long defaultSoftMinEvictableIdleTimeMillis = (long) 1000 * 60 * 10;//
     protected static long defaultTimeBetweenEvictionRunsMillis = (long) 1000 * 60 * 10;//默认回收周期
@@ -59,15 +65,38 @@ public abstract class AbstractPoolClient extends AbstractClient {
         boolean lazyInit = url.getBooleanParameter(URLParamType.lazyInit.getName(), URLParamType.lazyInit.getBooleanValue());
 
         if (!lazyInit) {
-            for (int i = 0; i < poolConfig.minIdle; i++) {
-                try {
-                    pool.addObject();
-                } catch (Exception e) {
-                    LoggerUtil.error("NettyClient init pool create connect Error: url=" + url.getUri(), e);
-                }
+            initConnection(true);
+        }
+    }
+
+    protected void initConnection(boolean async) {
+        if (async) {
+            try {
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        createConnections();
+                        LoggerUtil.info("async initPool success!" + getUrl().getUri());
+                    }
+                });
+                return;
+            } catch (Exception e) {
+                LoggerUtil.error("async initPool task execute fail!" + this.url.getUri(), e);
+            }
+        }
+        createConnections();
+    }
+
+    private void createConnections() {
+        for (int i = 0; i < poolConfig.minIdle; i++) {
+            try {
+                pool.addObject();
+            } catch (Exception e) {
+                LoggerUtil.error("NettyClient init pool create connect Error: url=" + url.getUri(), e);
             }
         }
     }
+
 
     protected abstract BasePoolableObjectFactory createChannelFactory();
 

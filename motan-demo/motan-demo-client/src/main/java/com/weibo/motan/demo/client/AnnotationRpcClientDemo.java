@@ -16,7 +16,6 @@
 
 package com.weibo.motan.demo.client;
 
-import com.weibo.api.motan.config.springsupport.AnnotationBean;
 import com.weibo.api.motan.config.springsupport.BasicRefererConfigBean;
 import com.weibo.api.motan.config.springsupport.ProtocolConfigBean;
 import com.weibo.api.motan.config.springsupport.RegistryConfigBean;
@@ -69,8 +68,10 @@ public class AnnotationRpcClientDemo {
     @Bean(name = "registry")
     public RegistryConfigBean registryConfig() {
         RegistryConfigBean config = new RegistryConfigBean();
-        config.setRegProtocol("zookeeper");
-        config.setAddress("127.0.0.1:2181");
+//        config.setRegProtocol("zookeeper");
+//        config.setAddress("127.0.0.1:2181");
+        config.setRegProtocol("direct");
+        config.setAddress("127.0.0.1:8002");
         return config;
     }
 

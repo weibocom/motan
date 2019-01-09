@@ -18,22 +18,20 @@ package com.weibo.api.motan.benchmark;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-
-import com.weibo.api.motan.proxy.spi.JdkProxyFactory;
+import java.lang.reflect.Proxy;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-9
- * 
+ *
  */
 public class JdkProxyTest {
 
     public static void main(String[] args) {
-        JdkProxyFactory proxyFactory = new JdkProxyFactory();
         final ICall call = new Call();
         int count = 100000;
 
-        ICall proxy = proxyFactory.getProxy(ICall.class, new InvocationHandler() {
+        ICall proxy = (ICall) Proxy.newProxyInstance(call.getClass().getClassLoader(), new Class[]{ICall.class}, new InvocationHandler() {
 
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {

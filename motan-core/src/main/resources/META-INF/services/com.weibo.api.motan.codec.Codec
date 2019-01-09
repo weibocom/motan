@@ -16,3 +16,4 @@
 
 com.weibo.api.motan.protocol.rpc.DefaultRpcCodec
 com.weibo.api.motan.protocol.rpc.CompressRpcCodec
+com.weibo.api.motan.protocol.v2motan.MotanV2Codec

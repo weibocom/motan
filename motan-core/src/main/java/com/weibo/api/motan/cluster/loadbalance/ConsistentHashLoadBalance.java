@@ -89,7 +89,7 @@ public class ConsistentHashLoadBalance<T> extends AbstractLoadBalance<T> {
         } else {
             hashcode = Arrays.hashCode(request.getArguments());
         }
-        return MathUtil.getPositive(hashcode);
+        return MathUtil.getNonNegative(hashcode);
     }
 
 

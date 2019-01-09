@@ -16,18 +16,19 @@
 
 package com.weibo.api.motan.rpc;
 
-import java.lang.reflect.Method;
-
+import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanBizException;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.util.ExceptionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
+
+import java.lang.reflect.Method;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-23
- *
  */
 @SpiMeta(name = "motan")
 public class DefaultProvider<T> extends AbstractProvider<T> {
@@ -39,15 +40,15 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
     }
 
     @Override
-    public T getImpl(){
-    	return proxyImpl;
+    public T getImpl() {
+        return proxyImpl;
     }
 
     @Override
     public Response invoke(Request request) {
         DefaultResponse response = new DefaultResponse();
 
-        Method method = lookup(request);
+        Method method = lookupMethod(request.getMethodName(), request.getParamtersDesc());
 
         if (method == null) {
             MotanServiceException exception =
@@ -58,15 +59,30 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
             return response;
         }
 
+        boolean defaultThrowExceptionStack = URLParamType.transExceptionStack.getBooleanValue();
         try {
             Object value = method.invoke(proxyImpl, request.getArguments());
             response.setValue(value);
         } catch (Exception e) {
             if (e.getCause() != null) {
-                LoggerUtil.error("Exception caught when method invoke: " + e.getCause());
                 response.setException(new MotanBizException("provider call process error", e.getCause()));
             } else {
                 response.setException(new MotanBizException("provider call process error", e));
+            }
+
+            // not print stack in error log when exception declared in method
+            boolean logException = true;
+            for (Class<?> clazz : method.getExceptionTypes()) {
+                if (clazz.isInstance(response.getException().getCause())) {
+                    logException = false;
+                    defaultThrowExceptionStack = false;
+                    break;
+                }
+            }
+            if (logException) {
+                LoggerUtil.error("Exception caught when during method invocation. request:" + request.toString(), e);
+            } else {
+                LoggerUtil.info("Exception caught when during method invocation. request:" + request.toString() + ", exception:" + response.getException().getCause().toString());
             }
         } catch (Throwable t) {
             // 如果服务发生Error，将Error转化为Exception，防止拖垮调用方
@@ -75,12 +91,20 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
             } else {
                 response.setException(new MotanServiceException("provider has encountered a fatal error!", t));
             }
+            //对于Throwable,也记录日志
+            LoggerUtil.error("Exception caught when during method invocation. request:" + request.toString(), t);
+        }
 
+        if (response.getException() != null) {
+            //是否传输业务异常栈
+            boolean transExceptionStack = this.url.getBooleanParameter(URLParamType.transExceptionStack.getName(), defaultThrowExceptionStack);
+            if (!transExceptionStack) {//不传输业务异常栈
+                ExceptionUtil.setMockStackTrace(response.getException().getCause());
+            }
         }
         // 传递rpc版本和attachment信息方便不同rpc版本的codec使用。
         response.setRpcProtocolVersion(request.getRpcProtocolVersion());
         response.setAttachments(request.getAttachments());
         return response;
     }
-
 }

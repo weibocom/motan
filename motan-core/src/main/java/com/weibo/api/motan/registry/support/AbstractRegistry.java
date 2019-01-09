@@ -43,8 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractRegistry implements Registry {
 
-    private ConcurrentHashMap<URL, Map<String, List<URL>>> subscribedCategoryResponses =
-            new ConcurrentHashMap<URL, Map<String, List<URL>>>();
+    private ConcurrentHashMap<URL, Map<String, List<URL>>> subscribedCategoryResponses = new ConcurrentHashMap<>();
 
     private URL registryUrl;
     private Set<URL> registeredServiceUrls = new ConcurrentHashSet<URL>();
@@ -53,6 +52,7 @@ public abstract class AbstractRegistry implements Registry {
     public AbstractRegistry(URL url) {
         this.registryUrl = url.createCopy();
         // register a heartbeat switcher to perceive service state change and change available state
+        MotanSwitcherUtil.initSwitcher(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, false);
         MotanSwitcherUtil.registerSwitcherListener(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, new SwitcherListener() {
 
             @Override

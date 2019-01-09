@@ -16,3 +16,4 @@
 
 com.weibo.api.motan.serialize.Hessian2Serialization
 com.weibo.api.motan.serialize.FastJsonSerialization
+com.weibo.api.motan.serialize.SimpleSerialization

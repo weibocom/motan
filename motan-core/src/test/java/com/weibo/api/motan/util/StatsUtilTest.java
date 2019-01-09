@@ -16,13 +16,12 @@
 
 package com.weibo.api.motan.util;
 
-import java.util.Map;
-
+import com.weibo.api.motan.rpc.Application;
+import com.weibo.api.motan.util.StatsUtil.AccessStatus;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.weibo.api.motan.rpc.Application;
-import com.weibo.api.motan.util.StatsUtil.AccessStatus;
+import java.util.Map;
 
 /**
  * @author maijunsheng
@@ -47,9 +46,9 @@ public class StatsUtilTest {
                 long currentTimeMillis = System.currentTimeMillis();
                 long costTime = currentTimeMillis - start;
                 long bizTime = costTime / 2;
-                StatsUtil.accessStatistic(name1, app1, currentTimeMillis, costTime, bizTime, AccessStatus.NORMAL);
-                StatsUtil.accessStatistic(name2, app1, currentTimeMillis, costTime, bizTime, AccessStatus.NORMAL);
-                StatsUtil.accessStatistic(name1, app2, currentTimeMillis, costTime, bizTime, AccessStatus.NORMAL);
+                StatsUtil.accessStatistic(name1, "application1", "module1", currentTimeMillis, costTime, bizTime, AccessStatus.NORMAL);
+                StatsUtil.accessStatistic(name2, "application1", "module1", currentTimeMillis, costTime, bizTime, AccessStatus.NORMAL);
+                StatsUtil.accessStatistic(name1, "application2", "module2", currentTimeMillis, costTime, bizTime, AccessStatus.NORMAL);
             }
         }
 

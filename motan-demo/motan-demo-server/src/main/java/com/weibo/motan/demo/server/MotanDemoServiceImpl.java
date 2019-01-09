@@ -18,13 +18,25 @@ package com.weibo.motan.demo.server;
 
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import com.weibo.motan.demo.service.MotanDemoService;
+import com.weibo.motan.demo.service.model.User;
+
+import java.util.Objects;
 
 @MotanService(export = "demoMotan:8002")
 public class MotanDemoServiceImpl implements MotanDemoService {
 
+    @Override
     public String hello(String name) {
         System.out.println(name);
         return "Hello " + name + "!";
+    }
+
+    @Override
+    public User rename(User user, String name) throws Exception {
+        Objects.requireNonNull(user);
+        System.out.println(user.getId() + " rename " + user.getName() + " to " + name);
+        user.setName(name);
+        return user;
     }
 
 }

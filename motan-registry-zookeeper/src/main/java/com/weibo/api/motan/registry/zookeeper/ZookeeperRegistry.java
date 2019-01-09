@@ -16,22 +16,8 @@
 
 package com.weibo.api.motan.registry.zookeeper;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.weibo.api.motan.closable.Closable;
 import com.weibo.api.motan.closable.ShutDownHook;
-import org.I0Itec.zkclient.IZkChildListener;
-import org.I0Itec.zkclient.IZkDataListener;
-import org.I0Itec.zkclient.IZkStateListener;
-import org.I0Itec.zkclient.ZkClient;
-import org.apache.zookeeper.Watcher;
-
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.registry.support.command.CommandFailbackRegistry;
@@ -40,15 +26,25 @@ import com.weibo.api.motan.registry.support.command.ServiceListener;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
+import org.I0Itec.zkclient.IZkChildListener;
+import org.I0Itec.zkclient.IZkDataListener;
+import org.I0Itec.zkclient.IZkStateListener;
+import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.zookeeper.Watcher;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ZookeeperRegistry extends CommandFailbackRegistry implements Closable {
-    private ZkClient zkClient;
-    private Set<URL> availableServices = new ConcurrentHashSet<URL>();
-    private ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>> serviceListeners = new ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>>();
-    private ConcurrentHashMap<URL, ConcurrentHashMap<CommandListener, IZkDataListener>> commandListeners = new ConcurrentHashMap<URL, ConcurrentHashMap<CommandListener, IZkDataListener>>();
     private final ReentrantLock clientLock = new ReentrantLock();
     private final ReentrantLock serverLock = new ReentrantLock();
-    
+    private ZkClient zkClient;
+    private Set<URL> availableServices = new ConcurrentHashSet<>();
+    private ConcurrentHashMap<URL, ConcurrentHashMap<ServiceListener, IZkChildListener>> serviceListeners = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<URL, ConcurrentHashMap<CommandListener, IZkDataListener>> commandListeners = new ConcurrentHashMap<>();
+
     public ZookeeperRegistry(URL url, ZkClient client) {
         super(url);
         this.zkClient = client;
@@ -91,16 +87,20 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
                 childChangeListeners.putIfAbsent(serviceListener, new IZkChildListener() {
                     @Override
                     public void handleChildChange(String parentPath, List<String> currentChilds) {
-                        serviceListener.notifyService(url, getUrl(), nodeChildsToUrls(parentPath, currentChilds));
+                        serviceListener.notifyService(url, getUrl(), nodeChildsToUrls(url, parentPath, currentChilds));
                         LoggerUtil.info(String.format("[ZookeeperRegistry] service list change: path=%s, currentChilds=%s", parentPath, currentChilds.toString()));
                     }
                 });
                 zkChildListener = childChangeListeners.get(serviceListener);
             }
 
-            // 防止旧节点未正常注销
-            removeNode(url, ZkNodeType.CLIENT);
-            createNode(url, ZkNodeType.CLIENT);
+            try {
+                // 防止旧节点未正常注销
+                removeNode(url, ZkNodeType.CLIENT);
+                createNode(url, ZkNodeType.CLIENT);
+            } catch (Exception e) {
+                LoggerUtil.warn("[ZookeeperRegistry] subscribe service: create node error, path=%s, msg=%s", ZkUtils.toNodePath(url, ZkNodeType.CLIENT), e.getMessage());
+            }
 
             String serverTypePath = ZkUtils.toNodeTypePath(url, ZkNodeType.AVAILABLE_SERVER);
             zkClient.subscribeChildChanges(serverTypePath, zkChildListener);
@@ -191,11 +191,11 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
     protected List<URL> discoverService(URL url) {
         try {
             String parentPath = ZkUtils.toNodeTypePath(url, ZkNodeType.AVAILABLE_SERVER);
-            List<String> currentChilds = new ArrayList<String>();
+            List<String> currentChilds = new ArrayList<>();
             if (zkClient.exists(parentPath)) {
                 currentChilds = zkClient.getChildren(parentPath);
             }
-            return nodeChildsToUrls(parentPath, currentChilds);
+            return nodeChildsToUrls(url, parentPath, currentChilds);
         } catch (Throwable e) {
             throw new MotanFrameworkException(String.format("Failed to discover service %s from zookeeper(%s), cause: %s", url, getUrl(), e.getMessage()), e);
         }
@@ -245,7 +245,7 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
 
     @Override
     protected void doAvailable(URL url) {
-        try{
+        try {
             serverLock.lock();
             if (url == null) {
                 availableServices.addAll(getRegisteredServiceUrls());
@@ -267,7 +267,7 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
 
     @Override
     protected void doUnavailable(URL url) {
-        try{
+        try {
             serverLock.lock();
             if (url == null) {
                 availableServices.removeAll(getRegisteredServiceUrls());
@@ -287,18 +287,45 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
         }
     }
 
-    private List<URL> nodeChildsToUrls(String parentPath, List<String> currentChilds) {
-        List<URL> urls = new ArrayList<URL>();
+    private List<URL> nodeChildsToUrls(URL url, String parentPath, List<String> currentChilds) {
+        List<URL> urls = new ArrayList<>();
         if (currentChilds != null) {
             for (String node : currentChilds) {
                 String nodePath = parentPath + MotanConstants.PATH_SEPARATOR + node;
-                String data = zkClient.readData(nodePath, true);
+                String data = null;
                 try {
-                    URL url = URL.valueOf(data);
-                    urls.add(url);
+                    data = zkClient.readData(nodePath, true);
                 } catch (Exception e) {
-                    LoggerUtil.warn(String.format("Found malformed urls from ZookeeperRegistry, path=%s", nodePath), e);
+                    LoggerUtil.warn("get zkdata fail!" + e.getMessage());
                 }
+                URL newurl = null;
+                if (StringUtils.isNotBlank(data)) {
+                    try {
+                        newurl = URL.valueOf(data);
+                    } catch (Exception e) {
+                        LoggerUtil.warn(String.format("Found malformed urls from ZookeeperRegistry, path=%s", nodePath), e);
+                    }
+                }
+                if (newurl == null) {
+                    newurl = url.createCopy();
+                    String host = "";
+                    int port = 80;
+                    if (node.indexOf(":") > -1) {
+                        String[] hp = node.split(":");
+                        if (hp.length > 1) {
+                            host = hp[0];
+                            try {
+                                port = Integer.parseInt(hp[1]);
+                            } catch (Exception ignore) {
+                            }
+                        }
+                    } else {
+                        host = node;
+                    }
+                    newurl.setHost(host);
+                    newurl.setPort(port);
+                }
+                urls.add(newurl);
             }
         }
         return urls;
@@ -318,7 +345,7 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
             zkClient.delete(nodePath);
         }
     }
-    
+
     private void reconnectService() {
         Collection<URL> allRegisteredServices = getRegisteredServiceUrls();
         if (allRegisteredServices != null && !allRegisteredServices.isEmpty()) {

@@ -16,11 +16,6 @@
 
 package com.weibo.api.motan.cluster;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jmock.Expectations;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.cluster.ha.FailoverHaStrategy;
 import com.weibo.api.motan.cluster.loadbalance.RandomLoadBalance;
@@ -30,12 +25,12 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.protocol.example.IHello;
 import com.weibo.api.motan.registry.RegistryService;
-import com.weibo.api.motan.rpc.DefaultRequest;
-import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.NetUtils;
+import org.jmock.Expectations;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 
@@ -70,6 +65,8 @@ public class ClusterSpiTest extends BaseTestCase {
                     will(returnValue(true));
                     atLeast(0).of(ref).getUrl();
                     will(returnValue(url));
+                    atLeast(0).of(ref).getServiceUrl();
+                    will(returnValue(url));
                     atLeast(1).of(ref).destroy();
                 }
             }
@@ -99,6 +96,8 @@ public class ClusterSpiTest extends BaseTestCase {
                     atLeast(0).of(ref).isAvailable();
                     will(returnValue(true));
                     atLeast(0).of(ref).getUrl();
+                    will(returnValue(url));
+                    atLeast(0).of(ref).getServiceUrl();
                     will(returnValue(url));
                     atLeast(1).of(ref).destroy();
                 }
