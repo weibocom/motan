@@ -6,31 +6,33 @@ import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.RpcContext;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.NetUtils;
+import com.weibo.api.motan.util.StatisticCallback;
 import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author sunnights
  */
-public class NettyChannelHandler extends ChannelDuplexHandler {
+public class NettyChannelHandler extends ChannelDuplexHandler implements StatisticCallback {
     private ThreadPoolExecutor threadPoolExecutor;
     private MessageHandler messageHandler;
     private Channel channel;
     private Codec codec;
+    private AtomicInteger rejectCounter = new AtomicInteger(0);
 
     public NettyChannelHandler(Channel channel, MessageHandler messageHandler) {
         this.channel = channel;
@@ -99,6 +101,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             LoggerUtil.error("process thread pool is full, reject, active={} poolSize={} corePoolSize={} maxPoolSize={} taskCount={} requestId={}",
                     threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(), threadPoolExecutor.getCorePoolSize(),
                     threadPoolExecutor.getMaximumPoolSize(), threadPoolExecutor.getTaskCount(), msg.getRequestId());
+            rejectCounter.incrementAndGet();
         }
     }
 
@@ -108,7 +111,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         try {
             result = codec.decode(channel, remoteIp, msg.getData());
         } catch (Exception e) {
-            LoggerUtil.error("NettyDecoder decode fail! requestid" + msg.getRequestId() + ", size:" + msg.getData().length, e);
+            LoggerUtil.error("NettyDecoder decode fail! requestid" + msg.getRequestId() + ", size:" + msg.getData().length + ", ip:" + remoteIp + ", e:" + e.getMessage());
             if (msg.isRequest()) {
                 Response response = buildExceptionResponse(msg.getRequestId(), e);
                 sendResponse(ctx, response);
@@ -118,9 +121,16 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             }
             return;
         }
+
         if (result instanceof Request) {
+            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), "receive rpc request: " + MotanFrameworkUtil.getFullMethodString((Request) result), msg.getStartTime());
+            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), "after decode rpc request: " + MotanFrameworkUtil.getFullMethodString((Request) result), System.currentTimeMillis());
+            if (result instanceof TraceableRequest) {
+                ((TraceableRequest) result).setStartTime(msg.getStartTime());
+            }
             processRequest(ctx, (Request) result);
         } else if (result instanceof Response) {
+            MotanFrameworkUtil.logRequestEvent(((Response) result).getRequestId(), "receive rpc response " + channel.getUrl().getServerPortStr(), msg.getStartTime());
             processResponse(result);
         }
     }
@@ -132,7 +142,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         return response;
     }
 
-    private void processRequest(final ChannelHandlerContext ctx, Request request) {
+    private void processRequest(final ChannelHandlerContext ctx, final Request request) {
         request.setAttachment(URLParamType.host.getName(), NetUtils.getHostName(ctx.channel().remoteAddress()));
         final long processStartTime = System.currentTimeMillis();
         try {
@@ -144,6 +154,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
                 LoggerUtil.error("NettyChannelHandler processRequest fail! request:" + MotanFrameworkUtil.toString(request), e);
                 result = MotanFrameworkUtil.buildErrorResponse(request.getRequestId(), new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
             }
+            MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after invoke biz method: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
             DefaultResponse response;
             if (result instanceof DefaultResponse) {
                 response = (DefaultResponse) result;
@@ -153,17 +164,27 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             response.setRequestId(request.getRequestId());
             response.setProcessTime(System.currentTimeMillis() - processStartTime);
 
-            sendResponse(ctx, response);
+            ChannelFuture channelFuture = sendResponse(ctx, response);
+            if (channelFuture != null && request instanceof TraceableRequest) {
+                channelFuture.addListener(new ChannelFutureListener() {
+                    @Override
+                    public void operationComplete(ChannelFuture future) throws Exception {
+                        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after send rpc response: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
+                        ((TraceableRequest) request).onFinish();
+                    }
+                });
+            }
         } finally {
             RpcContext.destroy();
         }
     }
 
-    private void sendResponse(ChannelHandlerContext ctx, Response response) {
+    private ChannelFuture sendResponse(ChannelHandlerContext ctx, Response response) {
         byte[] msg = CodecUtil.encodeObjectToBytes(channel, codec, response);
         if (ctx.channel().isActive()) {
-            ctx.channel().writeAndFlush(msg);
+            return ctx.channel().writeAndFlush(msg);
         }
+        return null;
     }
 
     private void processResponse(Object msg) {
@@ -186,5 +207,15 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         LoggerUtil.error("NettyChannelHandler exceptionCaught: remote={} local={} event={}", ctx.channel().remoteAddress(), ctx.channel().localAddress(), cause.getMessage(), cause);
         ctx.channel().close();
+    }
+
+    @Override
+    public String statisticCallback() {
+        int count = rejectCounter.getAndSet(0);
+        if (count > 0) {
+            return String.format("type: motan name: reject_request_pool total_count: %s reject_count: %s", threadPoolExecutor.getPoolSize(), count);
+        } else {
+            return null;
+        }
     }
 }

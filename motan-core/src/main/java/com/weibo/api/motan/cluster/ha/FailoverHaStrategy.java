@@ -27,6 +27,7 @@ import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.ExceptionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +70,7 @@ public class FailoverHaStrategy<T> extends AbstractHaStrategy<T> {
             Referer<T> refer = referers.get(i % referers.size());
             try {
                 request.setRetries(i);
+                MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "start retry " + i + " " + refer.getServiceUrl().getServerPortStr(), System.currentTimeMillis());
                 return refer.call(request);
             } catch (RuntimeException e) {
                 // 对于业务异常，直接抛出

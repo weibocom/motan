@@ -30,6 +30,7 @@ import com.weibo.api.motan.transport.ProviderProtectedMessageRouter;
 import com.weibo.api.motan.transport.Server;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
+import com.weibo.api.motan.util.StatsUtil;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,10 +39,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DefaultRpcExporter<T> extends AbstractExporter<T> {
 
-    protected Server server;
-    protected EndpointFactory endpointFactory;
     protected final ConcurrentHashMap<String, ProviderMessageRouter> ipPort2RequestRouter;
     protected final ConcurrentHashMap<String, Exporter<?>> exporterMap;
+    protected Server server;
+    protected EndpointFactory endpointFactory;
 
     public DefaultRpcExporter(Provider<T> provider, URL url, ConcurrentHashMap<String, ProviderMessageRouter> ipPort2RequestRouter,
                               ConcurrentHashMap<String, Exporter<?>> exporterMap) {
@@ -63,12 +64,11 @@ public class DefaultRpcExporter<T> extends AbstractExporter<T> {
         String ipPort = url.getServerPortStr();
 
         Exporter<T> exporter = (Exporter<T>) exporterMap.remove(protocolKey);
-
         if (exporter != null) {
             exporter.destroy();
         }
-        ProviderMessageRouter requestRouter = ipPort2RequestRouter.get(ipPort);
 
+        ProviderMessageRouter requestRouter = ipPort2RequestRouter.get(ipPort);
         if (requestRouter != null) {
             requestRouter.removeProvider(provider);
         }
@@ -78,9 +78,7 @@ public class DefaultRpcExporter<T> extends AbstractExporter<T> {
 
     @Override
     protected boolean doInit() {
-        boolean result = server.open();
-
-        return result;
+        return server.open();
     }
 
     @Override
@@ -91,7 +89,7 @@ public class DefaultRpcExporter<T> extends AbstractExporter<T> {
     @Override
     public void destroy() {
         endpointFactory.safeReleaseResource(server, url);
-        LoggerUtil.info("DefaultRpcExporter destory Success: url={}", url);
+        LoggerUtil.info("DefaultRpcExporter destroy Success: url={}", url);
     }
 
     protected ProviderMessageRouter initRequestRouter(URL url) {
@@ -99,7 +97,9 @@ public class DefaultRpcExporter<T> extends AbstractExporter<T> {
         ProviderMessageRouter requestRouter = ipPort2RequestRouter.get(ipPort);
 
         if (requestRouter == null) {
-            ipPort2RequestRouter.putIfAbsent(ipPort, new ProviderProtectedMessageRouter());
+            ProviderProtectedMessageRouter router = new ProviderProtectedMessageRouter();
+            StatsUtil.registryStatisticCallback(router);
+            ipPort2RequestRouter.putIfAbsent(ipPort, router);
             requestRouter = ipPort2RequestRouter.get(ipPort);
         }
         requestRouter.addProvider(provider);

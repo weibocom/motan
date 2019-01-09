@@ -1,6 +1,7 @@
 package com.weibo.utils;
 
 import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.registry.zookeeper.StringSerializer;
 import org.I0Itec.zkclient.ZkClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -22,7 +23,7 @@ public class ZkClientWrapper {
     @PostConstruct
     void init() {
         try {
-            zkClient = new ZkClient(registryUrl, 10000);
+            zkClient = new ZkClient(registryUrl, 10000, 10000, new StringSerializer());
         } catch (Exception e) {
             throw new MotanFrameworkException("Fail to connect zookeeper, cause: " + e.getMessage());
         }

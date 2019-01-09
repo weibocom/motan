@@ -13,7 +13,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>motan</artifactId>
     <groupId>com.weibo</groupId>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>1.1.4-SNAPSHOT</version>
     <packaging>pom</packaging>
     <scm>
         <connection>scm:git:https://github.com/weibocom/motan.git</connection>
@@ -59,7 +59,7 @@
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
-                <version>1.1.30</version>
+                <version>1.2.49</version>
             </dependency>
             <dependency>
                 <groupId>com.codahale.metrics</groupId>
@@ -176,6 +176,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.9.1</version>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>

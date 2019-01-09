@@ -24,6 +24,7 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.util.ByteUtil;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MotanFrameworkUtil;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -46,12 +47,14 @@ public class NettyEncoder extends OneToOneEncoder {
 
     @Override
     protected Object encode(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
+        Object obj;
         if (codec instanceof MotanV2Codec) {
-            return encodev2(ctx, nettyChannel, message);
+            obj = encodev2(ctx, nettyChannel, message);
         } else {
-            return encodev1(ctx, nettyChannel, message);
+            obj = encodev1(ctx, nettyChannel, message);
         }
-
+        MotanFrameworkUtil.logRequestEvent(getRequestId(message), "after encode rpc " + (message instanceof Request ? "request " : "response ") + this.client.getUrl().getServerPortStr(), System.currentTimeMillis());
+        return obj;
     }
 
     private Object encodev2(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
@@ -60,7 +63,7 @@ public class NettyEncoder extends OneToOneEncoder {
 
     private Object encodev1(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
         long requestId = getRequestId(message);
-        byte[] data =  encodeMessage(message);
+        byte[] data = encodeMessage(message);
 
         byte[] transportHeader = new byte[MotanConstants.NETTY_HEADER];
         ByteUtil.short2bytes(MotanConstants.NETTY_MAGIC_TYPE, transportHeader, 0);

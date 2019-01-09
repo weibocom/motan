@@ -1,5 +1,31 @@
 # Change Log
 
+## [1.1.3](https://github.com/weibocom/motan/tree/1.1.3) (2018-12-24)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.2...1.1.3)
+
+**Fixed bugs:**
+
+- fix: compatible with zookeeper string serializer [\#707](https://github.com/weibocom/motan/pull/781) ([sunnights](https://github.com/sunnights))
+
+## [1.1.2](https://github.com/weibocom/motan/tree/1.1.2) (2018-12-18)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.1...1.1.2)
+
+**Implemented enhancements:**
+
+- improvement: nettyclient scheduledExecutor optimization [\#709](https://github.com/weibocom/motan/pull/709) ([sunnights](https://github.com/sunnights))
+- improvement: getChannelKey when necessary [\#711](https://github.com/weibocom/motan/pull/711) ([pifuant](https://github.com/pifuant))
+- improvement: LocalSwitcherService registerListener and unRegisterListener optimization [\#713](https://github.com/weibocom/motan/pull/713) ([pifuant](https://github.com/pifuant))
+- optimize exception stack and log level [\#730](https://github.com/weibocom/motan/pull/730) ([sunnights](https://github.com/sunnights))
+- optimize zookeeper serialization method [\#732](https://github.com/weibocom/motan/pull/732) ([Zha-Zha](https://github.com/Zha-Zha))
+- update dependency for potential security vulnerability [\#762](https://github.com/weibocom/motan/pull/762) ([rayzhang0603](https://github.com/rayzhang0603))
+- add traceable request and statistic message [\#740](https://github.com/weibocom/motan/pull/740) ([sunnights](https://github.com/sunnights))
+
+**Fixed bugs:**
+
+- netty4 add channel manage [\#707](https://github.com/weibocom/motan/pull/707) ([sunnights](https://github.com/sunnights))
+- fix consul read timeout [\#746](https://github.com/weibocom/motan/pull/746) ([sunnights](https://github.com/sunnights))
+- fix get channel error [\#776](https://github.com/weibocom/motan/pull/776) ([caorong](https://github.com/caorong))
+
 ## [1.1.1](https://github.com/weibocom/motan/tree/1.1.1) (2018-05-17)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.1.0...1.1.1)
 

@@ -47,7 +47,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 
  */
 public class ProviderMessageRouter implements MessageHandler {
-    protected Map<String, Provider<?>> providers = new HashMap<String, Provider<?>>();
+    protected Map<String, Provider<?>> providers = new HashMap<>();
 
     // 所有暴露出去的方法计数
     // 比如：messageRouter 里面涉及2个Service: ServiceA 有5个public method，ServiceB
