@@ -13,6 +13,8 @@
  */
 package com.weibo.api.motan.filter.opentracing;
 
+import brave.opentracing.BraveSpan;
+import brave.propagation.TraceContext;
 import io.opentracing.NoopTracer;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
@@ -34,6 +36,7 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
+import org.slf4j.MDC;
 
 /**
  * 
@@ -91,6 +94,15 @@ public class OpenTracingFilter implements Filter {
         Exception ex = null;
         boolean exception = true;
         try {
+            if(span instanceof BraveSpan) {
+                //opentracing  slf4j log variable optimization
+                BraveSpan braveSpan = (BraveSpan)span;
+                TraceContext traceContext = braveSpan.context().unwrap();
+                MDC.put("requestId",String.valueOf(request.getRequestId()));
+                MDC.put("traceId",traceContext.traceIdString());
+                MDC.put("spanId",traceContext.spanIdString());
+                MDC.put("parentId",traceContext.parentIdString());
+            }
             Response response = caller.call(request);
             if (response.getException() != null) {
                 ex = response.getException();
@@ -112,6 +124,8 @@ public class OpenTracingFilter implements Filter {
             } catch (Exception e) {
                 LoggerUtil.error("opentracing span finish error!", e);
             }
+
+            MDC.clear();
         }
     }
 

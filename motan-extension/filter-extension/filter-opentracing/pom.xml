@@ -39,6 +39,11 @@
             <artifactId>opentracing-impl</artifactId>
             <version>${opentracing.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.opentracing.brave</groupId>
+            <artifactId>brave-opentracing</artifactId>
+            <version>0.33.9</version>
+        </dependency>
 
         <!-- for test -->
         <dependency>
@@ -47,12 +52,7 @@
             <version>${opentracing.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>io.opentracing.brave</groupId>
-            <artifactId>brave-opentracing</artifactId>
-            <version>0.16.0</version>
-            <scope>test</scope>
-        </dependency>
+
         <dependency>
             <groupId>io.zipkin.brave</groupId>
             <artifactId>brave-spancollector-http</artifactId>
