@@ -44,7 +44,7 @@ import java.util.Map;
  */
 @SpiMeta(name = "motan")
 public class DefaultRpcCodec extends AbstractCodec {
-    private static final short MAGIC = (short) 0xF0F0;
+    public static final short MAGIC = (short) 0xF0F0;
 
     private static final byte MASK = 0x07;
 

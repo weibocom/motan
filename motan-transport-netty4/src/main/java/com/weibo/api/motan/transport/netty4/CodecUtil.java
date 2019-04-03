@@ -4,7 +4,8 @@ import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
-import com.weibo.api.motan.protocol.v2motan.MotanV2Codec;
+import com.weibo.api.motan.protocol.rpc.DefaultRpcCodec;
+import com.weibo.api.motan.protocol.v2motan.MotanV2Header;
 import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
@@ -18,27 +19,26 @@ import java.io.IOException;
 /**
  * @author sunnights
  */
+@SuppressWarnings("all")
 public class CodecUtil {
-
     public static byte[] encodeObjectToBytes(Channel channel, Codec codec, Object msg) {
         try {
-            if (codec instanceof MotanV2Codec) {
-                return encodeV2(channel, codec, msg);
+            byte[] data = encodeMessage(channel, codec, msg);
+            short type = ByteUtil.bytes2short(data, 0);
+            if (type == DefaultRpcCodec.MAGIC) {
+                return encodeV1(msg, data);
+            } else if (type == MotanV2Header.MAGIC) {
+                return data;
             } else {
-                return encodeV1(channel, codec, msg);
+                throw new MotanFrameworkException("can not encode message, unknown magic:" + type);
             }
         } catch (IOException e) {
             throw new MotanFrameworkException("encode error: isResponse=" + (msg instanceof Response), e, MotanErrorMsgConstant.FRAMEWORK_ENCODE_ERROR);
         }
     }
 
-    private static byte[] encodeV2(Channel channel, Codec codec, Object msg) throws IOException {
-        return encodeMessage(channel, codec, msg);
-    }
-
-    private static byte[] encodeV1(Channel channel, Codec codec, Object msg) throws IOException {
+    private static byte[] encodeV1(Object msg, byte[] data) throws IOException {
         long requestId = getRequestId(msg);
-        byte[] data = encodeMessage(channel, codec, msg);
         byte[] result = new byte[MotanConstants.NETTY_HEADER + data.length];
         ByteUtil.short2bytes(MotanConstants.NETTY_MAGIC_TYPE, result, 0);
         result[3] = getType(msg);

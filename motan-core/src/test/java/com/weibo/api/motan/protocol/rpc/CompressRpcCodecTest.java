@@ -133,7 +133,7 @@ public class CompressRpcCodecTest extends DefaultRpcCodecTest {
     }
 
     public void testCodecResponse(Response respose) throws Exception {
-        respose.setRpcProtocolVersion(RpcProtocolVersion.VERSION_2.getVersion());
+        respose.setRpcProtocolVersion(RpcProtocolVersion.VERSION_1_Compress.getVersion());
         byte[] bytes = rpcCodec.encode(channel, respose);
         assertTrue(isCompressVersion(bytes));
         Response result = (Response) rpcCodec.decode(channel, "", bytes);
@@ -172,7 +172,7 @@ public class CompressRpcCodecTest extends DefaultRpcCodecTest {
     }
 
     private boolean isCompressVersion(byte[] bytes) {
-        return bytes[2] == RpcProtocolVersion.VERSION_2.getVersion();
+        return bytes[2] == RpcProtocolVersion.VERSION_1_Compress.getVersion();
     }
 
     private boolean isGzip(byte[] bytes) {

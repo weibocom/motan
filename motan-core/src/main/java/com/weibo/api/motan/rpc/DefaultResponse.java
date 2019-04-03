@@ -16,18 +16,17 @@
 
 package com.weibo.api.motan.rpc;
 
+import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
-
 /**
- * 
  * Response received via rpc.
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-16
  */
@@ -43,8 +42,10 @@ public class DefaultResponse implements Response, Serializable {
     private Map<String, String> attachments;// rpc协议版本兼容时可以回传一些额外的信息
 
     private byte rpcProtocolVersion = RpcProtocolVersion.VERSION_1.getVersion();
+    private int serializeNumber = 0;// default serialization is hession2
 
-    public DefaultResponse() {}
+    public DefaultResponse() {
+    }
 
     public DefaultResponse(long requestId) {
         this.requestId = requestId;
@@ -134,6 +135,16 @@ public class DefaultResponse implements Response, Serializable {
 
     public void setRpcProtocolVersion(byte rpcProtocolVersion) {
         this.rpcProtocolVersion = rpcProtocolVersion;
+    }
+
+    @Override
+    public void setSerializeNumber(int number) {
+        this.serializeNumber = number;
+    }
+
+    @Override
+    public int getSerializeNumber() {
+        return serializeNumber;
     }
 
 }

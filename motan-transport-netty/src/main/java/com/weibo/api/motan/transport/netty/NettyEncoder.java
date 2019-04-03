@@ -18,7 +18,9 @@ package com.weibo.api.motan.transport.netty;
 
 import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.protocol.v2motan.MotanV2Codec;
+import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.protocol.rpc.DefaultRpcCodec;
+import com.weibo.api.motan.protocol.v2motan.MotanV2Header;
 import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
@@ -36,6 +38,7 @@ import java.io.IOException;
  * @author maijunsheng
  * @version 创建时间：2013-5-31
  */
+@SuppressWarnings("all")
 public class NettyEncoder extends OneToOneEncoder {
     private Codec codec;
     private com.weibo.api.motan.transport.Channel client;
@@ -47,30 +50,31 @@ public class NettyEncoder extends OneToOneEncoder {
 
     @Override
     protected Object encode(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
+        byte[] data = encodeMessage(message);
         Object obj;
-        if (codec instanceof MotanV2Codec) {
-            obj = encodev2(ctx, nettyChannel, message);
+        short type = ByteUtil.bytes2short(data, 0);
+        if (type == DefaultRpcCodec.MAGIC) {
+            obj = encodeV1(message, data);
+        } else if (type == MotanV2Header.MAGIC) {
+            obj = encodeV2(data);
         } else {
-            obj = encodev1(ctx, nettyChannel, message);
+            throw new MotanFrameworkException("can not encode message, unknown magic:" + type);
         }
         MotanFrameworkUtil.logRequestEvent(getRequestId(message), "after encode rpc " + (message instanceof Request ? "request " : "response ") + this.client.getUrl().getServerPortStr(), System.currentTimeMillis());
         return obj;
     }
 
-    private Object encodev2(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
-        return ChannelBuffers.wrappedBuffer(encodeMessage(message));
+    private Object encodeV2(byte[] data) throws Exception {
+        return ChannelBuffers.wrappedBuffer(data);
     }
 
-    private Object encodev1(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
+    private Object encodeV1(Object message, byte[] data) throws Exception {
         long requestId = getRequestId(message);
-        byte[] data = encodeMessage(message);
-
         byte[] transportHeader = new byte[MotanConstants.NETTY_HEADER];
         ByteUtil.short2bytes(MotanConstants.NETTY_MAGIC_TYPE, transportHeader, 0);
         transportHeader[3] = getType(message);
         ByteUtil.long2bytes(requestId, transportHeader, 4);
         ByteUtil.int2bytes(data.length, transportHeader, 12);
-
         return ChannelBuffers.wrappedBuffer(transportHeader, data);
     }
 

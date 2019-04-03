@@ -309,4 +309,13 @@ public class DefaultResponseFuture implements ResponseFuture {
     public byte getRpcProtocolVersion() {
         return RpcProtocolVersion.VERSION_1.getVersion();
     }
+
+    @Override
+    public void setSerializeNumber(int number) {
+    }
+
+    @Override
+    public int getSerializeNumber() {
+        return 0;
+    }
 }

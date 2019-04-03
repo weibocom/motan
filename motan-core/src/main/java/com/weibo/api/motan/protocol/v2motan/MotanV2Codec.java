@@ -24,6 +24,7 @@ import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
 import com.weibo.api.motan.rpc.DefaultRequest;
 import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
@@ -48,7 +49,6 @@ import static com.weibo.api.motan.common.MotanConstants.*;
 
 @SpiMeta(name = "motan2")
 public class MotanV2Codec extends AbstractCodec {
-
     private static final byte MASK = 0x07;
     private static final int HEADER_SIZE = 13;
 
@@ -68,13 +68,7 @@ public class MotanV2Codec extends AbstractCodec {
             }
             MotanV2Header header = new MotanV2Header();
             byte[] body = null;
-            String serialName = channel.getUrl().getParameter(URLParamType.serialize.getName(), URLParamType.serialize.getValue());
-            Serialization serialization = ExtensionLoader.getExtensionLoader(Serialization.class).getExtension(serialName);
-            if (serialization == null) {
-                throw new MotanServiceException("can not found serialization " + serialName);
-            }
-            header.setSerialize(serialization.getSerializationNumber());
-
+            Serialization serialization;
             GrowableByteBuffer buf = new GrowableByteBuffer(4096);
             //meta
             int index = HEADER_SIZE;
@@ -82,6 +76,12 @@ public class MotanV2Codec extends AbstractCodec {
             buf.putInt(0);//metasize
 
             if (message instanceof Request) {
+                String serialName = channel.getUrl().getParameter(URLParamType.serialize.getName(), URLParamType.serialize.getValue());
+                serialization = ExtensionLoader.getExtensionLoader(Serialization.class).getExtension(serialName);
+                if (serialization == null) {
+                    throw new MotanServiceException("can not found serialization " + serialName);
+                }
+                header.setSerialize(serialization.getSerializationNumber());
                 Request request = (Request) message;
                 putString(buf, M2_PATH);
                 putString(buf, request.getInterfaceName());
@@ -104,6 +104,9 @@ public class MotanV2Codec extends AbstractCodec {
 
             } else if (message instanceof Response) {
                 Response response = (Response) message;
+                serialization = getSerializationByNum(response.getSerializeNumber());
+                header.setSerialize(serialization.getSerializationNumber());
+
                 putString(buf, M2_PROCESS_TIME);
                 putString(buf, String.valueOf(response.getProcessTime()));
                 if (response.getException() != null) {
@@ -246,6 +249,8 @@ public class MotanV2Codec extends AbstractCodec {
                 request.setMethodName(metaMap.remove(M2_METHOD));
                 request.setParamtersDesc(metaMap.remove(M2_METHOD_DESC));
                 request.setAttachments(metaMap);
+                request.setRpcProtocolVersion(RpcProtocolVersion.VERSION_2.getVersion());
+                request.setSerializeNumber(header.getSerialize());
                 if (obj != null) {
                     request.setArguments(new Object[]{obj});
                 }

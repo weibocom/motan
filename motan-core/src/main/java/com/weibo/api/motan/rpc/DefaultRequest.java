@@ -41,6 +41,7 @@ public class DefaultRequest extends AbstractTraceableRequest implements Serializ
     private int retries = 0;
     private long requestId;
     private byte rpcProtocolVersion = RpcProtocolVersion.VERSION_1.getVersion();
+    private int serializeNumber = 0;// default serialization is hession2
 
     @Override
     public String getInterfaceName() {
@@ -131,5 +132,14 @@ public class DefaultRequest extends AbstractTraceableRequest implements Serializ
         this.rpcProtocolVersion = rpcProtocolVersion;
     }
 
+    @Override
+    public void setSerializeNumber(int number) {
+        this.serializeNumber = number;
+    }
+
+    @Override
+    public int getSerializeNumber() {
+        return serializeNumber;
+    }
 
 }
