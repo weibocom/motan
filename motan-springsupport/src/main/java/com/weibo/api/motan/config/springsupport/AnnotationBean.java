@@ -137,7 +137,7 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                             method.invoke(bean, new Object[]{value});
                         }
                     }
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     throw new BeanInitializationException("Failed to init remote service reference at method " + name
                             + " in class " + bean.getClass().getName(), e);
                 }
