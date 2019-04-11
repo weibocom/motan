@@ -50,12 +50,12 @@
         </dependency>
         <dependency>
             <groupId>com.weibo</groupId>
-            <artifactId>motan-transport-netty</artifactId>
+            <artifactId>motan-registry-zookeeper</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.weibo</groupId>
-            <artifactId>motan-registry-zookeeper</artifactId>
+            <artifactId>motan-transport-netty</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
