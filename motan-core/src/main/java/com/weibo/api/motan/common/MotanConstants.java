@@ -71,6 +71,7 @@ public class MotanConstants {
     public static final String ASYNC_SUFFIX = "Async";// suffix for async call.
     public static final String APPLICATION_STATISTIC = "statisitic";
     public static final String REQUEST_REMOTE_ADDR = "requestRemoteAddress";
+    public static final String CONTENT_LENGTH = "Content-Length";
 
     /**
      * netty channel constants start

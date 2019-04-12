@@ -1,12 +1,7 @@
 package com.weibo.api.motan.config.springsupport;
 
 import com.weibo.api.motan.cluster.support.ClusterSupport;
-import com.weibo.api.motan.config.BasicRefererInterfaceConfig;
-import com.weibo.api.motan.config.BasicServiceInterfaceConfig;
-import com.weibo.api.motan.config.ConfigUtil;
-import com.weibo.api.motan.config.ExtConfig;
-import com.weibo.api.motan.config.ProtocolConfig;
-import com.weibo.api.motan.config.RegistryConfig;
+import com.weibo.api.motan.config.*;
 import com.weibo.api.motan.config.springsupport.annotation.MotanReferer;
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import com.weibo.api.motan.config.springsupport.util.SpringBeanUtil;
@@ -14,7 +9,6 @@ import com.weibo.api.motan.rpc.init.Initializable;
 import com.weibo.api.motan.rpc.init.InitializationFactory;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -137,9 +131,9 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                             method.invoke(bean, new Object[]{value});
                         }
                     }
-                } catch (Exception e) {
+                } catch (Throwable t) {
                     throw new BeanInitializationException("Failed to init remote service reference at method " + name
-                            + " in class " + bean.getClass().getName(), e);
+                            + " in class " + bean.getClass().getName(), t);
                 }
             }
         }
@@ -158,9 +152,9 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                         field.set(bean, value);
                     }
                 }
-            } catch (Exception e) {
+            } catch (Throwable t) {
                 throw new BeanInitializationException("Failed to init remote service reference at filed " + field.getName()
-                        + " in class " + bean.getClass().getName(), e);
+                        + " in class " + bean.getClass().getName(), t);
             }
         }
         return bean;
