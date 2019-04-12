@@ -25,6 +25,7 @@ import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.util.ByteUtil;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -47,21 +48,24 @@ public class NettyEncoder extends OneToOneEncoder {
 
     @Override
     protected Object encode(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
-        Object obj;
+        ChannelBuffer channelBuffer;
         if (codec instanceof MotanV2Codec) {
-            obj = encodev2(ctx, nettyChannel, message);
+            channelBuffer = encodev2(ctx, nettyChannel, message);
         } else {
-            obj = encodev1(ctx, nettyChannel, message);
+            channelBuffer = encodev1(ctx, nettyChannel, message);
+        }
+        if (message instanceof Response) {
+            ((Response) message).setAttachment(MotanConstants.CONTENT_LENGTH, String.valueOf(channelBuffer.readableBytes()));
         }
         MotanFrameworkUtil.logRequestEvent(getRequestId(message), "after encode rpc " + (message instanceof Request ? "request " : "response ") + this.client.getUrl().getServerPortStr(), System.currentTimeMillis());
-        return obj;
+        return channelBuffer;
     }
 
-    private Object encodev2(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
+    private ChannelBuffer encodev2(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
         return ChannelBuffers.wrappedBuffer(encodeMessage(message));
     }
 
-    private Object encodev1(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
+    private ChannelBuffer encodev1(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
         long requestId = getRequestId(message);
         byte[] data = encodeMessage(message);
 
