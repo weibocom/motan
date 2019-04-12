@@ -1,6 +1,7 @@
 package com.weibo.api.motan.transport.netty4;
 
 import com.weibo.api.motan.codec.Codec;
+import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
@@ -181,6 +182,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler implements Statist
 
     private ChannelFuture sendResponse(ChannelHandlerContext ctx, Response response) {
         byte[] msg = CodecUtil.encodeObjectToBytes(channel, codec, response);
+        response.setAttachment(MotanConstants.CONTENT_LENGTH, String.valueOf(msg.length));
         if (ctx.channel().isActive()) {
             return ctx.channel().writeAndFlush(msg);
         }
