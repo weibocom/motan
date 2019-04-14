@@ -23,7 +23,7 @@
     <!-- 注册中心配置 使用不同注册中心需要依赖对应的jar包。-->
     <!--<motan:registry regProtocol="local" name="registry"/>-->
     <!--<motan:registry regProtocol="consul" name="registry" address="127.0.0.1:8500"/>-->
-    <!--<motan:registry regProtocol="zookeeper" name="registry" address="127.0.0.1:2181" connectTimeout="2000"/>-->
+    <!--<motan:registry regProtocol="zk" name="registry" address="127.0.0.1:2181" connectTimeout="2000"/>-->
 
     <motan:registry regProtocol="direct" name="registry" address="127.0.0.1:8001"/>
 

@@ -15,7 +15,7 @@
     <parent>
         <groupId>com.weibo</groupId>
         <artifactId>motan-extension</artifactId>
-        <version>1.1.2-SNAPSHOT</version>
+        <version>1.1.4-SNAPSHOT</version>
     </parent>
     <artifactId>serialization-extension</artifactId>
     <name>serialization-extension</name>

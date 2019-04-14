@@ -29,7 +29,7 @@ import java.util.Map;
  * @author fishermen
  * @version V1.0 created at: 2013-5-16
  */
-public class DefaultRequest implements Serializable, Request {
+public class DefaultRequest extends AbstractTraceableRequest implements Serializable {
 
     private static final long serialVersionUID = 1168814620391610215L;
 
@@ -39,9 +39,7 @@ public class DefaultRequest implements Serializable, Request {
     private Object[] arguments;
     private Map<String, String> attachments;
     private int retries = 0;
-
     private long requestId;
-
     private byte rpcProtocolVersion = RpcProtocolVersion.VERSION_1.getVersion();
 
     @Override
@@ -132,5 +130,6 @@ public class DefaultRequest implements Serializable, Request {
     public void setRpcProtocolVersion(byte rpcProtocolVersion) {
         this.rpcProtocolVersion = rpcProtocolVersion;
     }
+
 
 }

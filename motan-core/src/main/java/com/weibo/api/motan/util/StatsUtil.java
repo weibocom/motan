@@ -27,6 +27,7 @@ import com.weibo.api.motan.util.StatsUtil.AccessStatus;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.DecimalFormat;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -35,18 +36,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.weibo.api.motan.common.MotanConstants.APPLICATION_STATISTIC;
 
 /**
- * 
  * @author maijunsheng
  * @version 创建时间：2013-6-24
  */
 public class StatsUtil {
 
+    public static final String HISTOGRAM_NAME = MetricRegistry.name(AccessStatisticItem.class, "costTimeMillis");
     public static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+    public static String SEPARATE = "\\|";
     protected static ConcurrentMap<String, AccessStatisticItem> accessStatistics = new ConcurrentHashMap<String, AccessStatisticItem>();
     protected static List<StatisticCallback> statisticCallbacks = new CopyOnWriteArrayList<StatisticCallback>();
-    public static String SEPARATE = "\\|";
     protected static ScheduledFuture<?> scheduledFuture;
-    public static final String HISTOGRAM_NAME = MetricRegistry.name(AccessStatisticItem.class, "costTimeMillis");
 
     static {
         scheduledFuture = executorService.scheduleAtFixedRate(new Runnable() {
@@ -64,11 +64,15 @@ public class StatsUtil {
         ShutDownHook.registerShutdownHook(new Closable() {
             @Override
             public void close() {
-                if(!executorService.isShutdown()){
+                if (!executorService.isShutdown()) {
                     executorService.shutdown();
                 }
             }
         });
+    }
+
+    public static List<StatisticCallback> getStatisticCallbacks() {
+        return statisticCallbacks;
     }
 
     public static void registryStatisticCallback(StatisticCallback callback) {
@@ -87,6 +91,15 @@ public class StatsUtil {
         }
 
         statisticCallbacks.remove(callback);
+    }
+
+    public static void unRegistryStatisticCallbacks(Collection<StatisticCallback> callbacks) {
+        if (CollectionUtil.isEmpty(callbacks)) {
+            LoggerUtil.warn("StatsUtil unRegistryStatisticCallbacks is empty");
+            return;
+        }
+
+        statisticCallbacks.removeAll(callbacks);
     }
 
     /**
@@ -113,7 +126,7 @@ public class StatsUtil {
         if (StringUtils.isBlank(application)) {
             application = URLParamType.application.getValue();
         }
-        if (StringUtils.isBlank(module)){
+        if (StringUtils.isBlank(module)) {
             module = URLParamType.module.getValue();
         }
 
@@ -213,7 +226,6 @@ public class StatsUtil {
                 appResult = totalResults.get(key);
             }
 
-
             appResult.totalCount += result.totalCount;
             appResult.bizExceptionCount += result.bizExceptionCount;
             appResult.slowCount += result.slowCount;
@@ -221,32 +233,24 @@ public class StatsUtil {
             appResult.bizTime += result.bizTime;
             appResult.otherExceptionCount += result.otherExceptionCount;
 
-            Snapshot snapshot =
-                    InternalMetricsFactory.getRegistryInstance(entry.getKey())
-                            .histogram(HISTOGRAM_NAME).getSnapshot();
+            Snapshot snapshot = InternalMetricsFactory.getRegistryInstance(entry.getKey())
+                    .histogram(HISTOGRAM_NAME).getSnapshot();
 
             if (application.equals(APPLICATION_STATISTIC)) {
                 continue;
             }
             if (result.totalCount == 0) {
-                LoggerUtil
-                        .accessStatsLog("[motan-accessStatistic] app: "
-                                + application
-                                + " module: "
-                                + module
-                                + " item: "
-                                + keys[0]
-                                + " total_count: 0 slow_count: 0 biz_excp: 0 other_excp: 0 avg_time: 0.00ms biz_time: 0.00ms avg_tps: 0 max_tps: 0 min_tps: 0");
+                LoggerUtil.accessStatsLog("[motan-accessStatistic] app: " + application + " module: " + module + " item: " + keys[0]
+                        + " total_count: 0 slow_count: 0 biz_excp: 0 other_excp: 0 avg_time: 0.00ms biz_time: 0.00ms avg_tps: 0 max_tps: 0 min_tps: 0");
             } else {
-                LoggerUtil
-                        .accessStatsLog(
-                                "[motan-accessStatistic] app: {} module: {} item: {} total_count: {} slow_count: {} p75: {} p95: {} p98: {} p99: {} p999: {} biz_excp: {} other_excp: {} avg_time: {}ms biz_time: {}ms avg_tps: {} max_tps: {} min_tps: {} ",
-                                application, module, keys[0], result.totalCount, result.slowCount,
-                                mbFormat.format(snapshot.get75thPercentile()), mbFormat.format(snapshot.get95thPercentile()),
-                                mbFormat.format(snapshot.get98thPercentile()), mbFormat.format(snapshot.get99thPercentile()),
-                                mbFormat.format(snapshot.get999thPercentile()), result.bizExceptionCount, result.otherExceptionCount,
-                                mbFormat.format(result.costTime / result.totalCount), mbFormat.format(result.bizTime / result.totalCount),
-                                (result.totalCount / MotanConstants.STATISTIC_PEROID), result.maxCount, result.minCount);
+                LoggerUtil.accessStatsLog(
+                        "[motan-accessStatistic] app: {} module: {} item: {} total_count: {} slow_count: {} p75: {} p95: {} p98: {} p99: {} p999: {} biz_excp: {} other_excp: {} avg_time: {}ms biz_time: {}ms avg_tps: {} max_tps: {} min_tps: {} ",
+                        application, module, keys[0], result.totalCount, result.slowCount,
+                        mbFormat.format(snapshot.get75thPercentile()), mbFormat.format(snapshot.get95thPercentile()),
+                        mbFormat.format(snapshot.get98thPercentile()), mbFormat.format(snapshot.get99thPercentile()),
+                        mbFormat.format(snapshot.get999thPercentile()), result.bizExceptionCount, result.otherExceptionCount,
+                        mbFormat.format(result.costTime / result.totalCount), mbFormat.format(result.bizTime / result.totalCount),
+                        (result.totalCount / MotanConstants.STATISTIC_PEROID), result.maxCount, result.minCount);
             }
 
         }
@@ -260,16 +264,15 @@ public class StatsUtil {
                         InternalMetricsFactory.getRegistryInstance(entry.getKey())
                                 .histogram(HISTOGRAM_NAME).getSnapshot();
                 if (totalResult.totalCount > 0) {
-                    LoggerUtil
-                            .accessStatsLog(
-                                    "[motan-totalAccessStatistic] app: {} module: {} total_count: {} slow_count: {} p75: {} p95: {} p98: {} p99: {} p999: {} biz_excp: {} other_excp: {} avg_time: {}ms biz_time: {}ms avg_tps: {}",
-                                    application, module, totalResult.totalCount, totalResult.slowCount,
-                                    mbFormat.format(snapshot.get75thPercentile()), mbFormat.format(snapshot.get95thPercentile()),
-                                    mbFormat.format(snapshot.get98thPercentile()), mbFormat.format(snapshot.get99thPercentile()),
-                                    mbFormat.format(snapshot.get999thPercentile()), totalResult.bizExceptionCount,
-                                    totalResult.otherExceptionCount, mbFormat.format(totalResult.costTime / totalResult.totalCount),
-                                    mbFormat.format(totalResult.bizTime / totalResult.totalCount),
-                                    (totalResult.totalCount / MotanConstants.STATISTIC_PEROID));
+                    LoggerUtil.accessStatsLog(
+                            "[motan-totalAccessStatistic] app: {} module: {} total_count: {} slow_count: {} p75: {} p95: {} p98: {} p99: {} p999: {} biz_excp: {} other_excp: {} avg_time: {}ms biz_time: {}ms avg_tps: {}",
+                            application, module, totalResult.totalCount, totalResult.slowCount,
+                            mbFormat.format(snapshot.get75thPercentile()), mbFormat.format(snapshot.get95thPercentile()),
+                            mbFormat.format(snapshot.get98thPercentile()), mbFormat.format(snapshot.get99thPercentile()),
+                            mbFormat.format(snapshot.get999thPercentile()), totalResult.bizExceptionCount,
+                            totalResult.otherExceptionCount, mbFormat.format(totalResult.costTime / totalResult.totalCount),
+                            mbFormat.format(totalResult.bizTime / totalResult.totalCount),
+                            (totalResult.totalCount / MotanConstants.STATISTIC_PEROID));
                 } else {
                     LoggerUtil.accessStatsLog("[motan-totalAccessStatistic] app: " + application + " module: " + module
                             + " total_count: 0 slow_count: 0 biz_excp: 0 other_excp: 0 avg_time: 0.00ms biz_time: 0.00ms avg_tps: 0");
@@ -277,8 +280,7 @@ public class StatsUtil {
 
             }
         } else {
-            LoggerUtil.accessStatsLog("[motan-totalAccessStatistic] app: " + URLParamType.application.getValue() + " module: "
-                    + URLParamType.module.getValue()
+            LoggerUtil.accessStatsLog("[motan-totalAccessStatistic] app: " + URLParamType.application.getValue() + " module: " + URLParamType.module.getValue()
                     + " total_count: 0 slow_count: 0 biz_excp: 0 other_excp: 0 avg_time: 0.00ms biz_time: 0.00ms avg_tps: 0");
         }
 

@@ -40,7 +40,7 @@ public class DefaultResponseFuture implements ResponseFuture {
 
     protected volatile FutureState state = FutureState.DOING;
 
-    protected Object lock = new Object();
+    protected final Object lock = new Object();
 
     protected Object result = null;
     protected Exception exception = null;

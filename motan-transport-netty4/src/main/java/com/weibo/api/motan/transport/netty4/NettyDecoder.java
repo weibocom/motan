@@ -55,6 +55,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
     }
 
     private void decodeV2(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        long startTime = System.currentTimeMillis();
         in.resetReaderIndex();
         if (in.readableBytes() < 21) {
             return;
@@ -91,7 +92,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
         byte[] data = new byte[size];
         in.resetReaderIndex();
         in.readBytes(data);
-        decode(data, out, isRequest, requestId);
+        decode(data, out, isRequest, requestId).setStartTime(startTime);
     }
 
     private boolean isV2Request(byte b) {
@@ -99,6 +100,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
     }
 
     private void decodeV1(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        long startTime = System.currentTimeMillis();
         in.resetReaderIndex();
         in.skipBytes(2);// skip magic num
         byte messageType = (byte) in.readShort();
@@ -113,7 +115,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
         checkMaxContext(dataLength, ctx, messageType == MotanConstants.FLAG_REQUEST, requestId);
         byte[] data = new byte[dataLength];
         in.readBytes(data);
-        decode(data, out, messageType == MotanConstants.FLAG_REQUEST, requestId);
+        decode(data, out, messageType == MotanConstants.FLAG_REQUEST, requestId).setStartTime(startTime);
     }
 
     private void checkMaxContext(int dataLength, ChannelHandlerContext ctx, boolean isRequest, long requestId) throws Exception {
@@ -132,8 +134,10 @@ public class NettyDecoder extends ByteToMessageDecoder {
         }
     }
 
-    private void decode(byte[] data, List<Object> out, boolean isRequest, long requestId) {
-        out.add(new NettyMessage(isRequest, requestId, data));
+    private NettyMessage decode(byte[] data, List<Object> out, boolean isRequest, long requestId) {
+        NettyMessage message = new NettyMessage(isRequest, requestId, data);
+        out.add(message);
+        return message;
     }
 
     private Response buildExceptionResponse(long requestId, Exception e) {
