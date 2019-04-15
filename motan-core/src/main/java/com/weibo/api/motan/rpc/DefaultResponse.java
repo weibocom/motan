@@ -57,6 +57,8 @@ public class DefaultResponse implements Response, Serializable {
         this.requestId = response.getRequestId();
         this.processTime = response.getProcessTime();
         this.timeout = response.getTimeout();
+        this.rpcProtocolVersion = response.getRpcProtocolVersion();
+        this.serializeNumber = response.getSerializeNumber();
     }
 
     public DefaultResponse(Object value) {

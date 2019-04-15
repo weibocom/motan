@@ -113,9 +113,7 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
                 }
             });
         } catch (RejectedExecutionException rejectException) {
-            DefaultResponse response = new DefaultResponse();
-            response.setRequestId(request.getRequestId());
-            response.setException(new MotanServiceException("process thread pool is full, reject",
+            DefaultResponse response = MotanFrameworkUtil.buildErrorResponse(request, new MotanServiceException("process thread pool is full, reject",
                     MotanErrorMsgConstant.SERVICE_REJECT));
             response.setProcessTime(System.currentTimeMillis() - processStartTime);
             e.getChannel().write(response);
@@ -134,7 +132,7 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
             result = messageHandler.handle(serverChannel, request);
         } catch (Exception e) {
             LoggerUtil.error("NettyChannelHandler processRequest fail!request:" + MotanFrameworkUtil.toString(request), e);
-            result = MotanFrameworkUtil.buildErrorResponse(request.getRequestId(), new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
+            result = MotanFrameworkUtil.buildErrorResponse(request, new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
         }
 
         MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after invoke biz method: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
