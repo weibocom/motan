@@ -102,8 +102,6 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
                 ExceptionUtil.setMockStackTrace(response.getException().getCause());
             }
         }
-        response.setRpcProtocolVersion(request.getRpcProtocolVersion());
-        response.setSerializeNumber(request.getSerializeNumber());
         response.setAttachments(request.getAttachments());
         return response;
     }

@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * TODO 可配置化策略
  * <p>
  * provider 消息处理分发：支持一定程度的自我防护
- *
+ * <p>
  * <pre>
  *
  * 		1) 如果接口只有一个方法，那么直接return true
@@ -75,7 +75,7 @@ public class ProviderProtectedMessageRouter extends ProviderMessageRouter implem
                 return super.call(request, provider);
             } else {
                 // reject request
-                return reject(request.getInterfaceName() + "." + request.getMethodName(), requestCounter, totalCounter, maxThread);
+                return reject(request.getInterfaceName() + "." + request.getMethodName(), requestCounter, totalCounter, maxThread, request);
             }
 
         } finally {
@@ -84,12 +84,11 @@ public class ProviderProtectedMessageRouter extends ProviderMessageRouter implem
         }
     }
 
-    private Response reject(String method, int requestCounter, int totalCounter, int maxThread) {
-        DefaultResponse response = new DefaultResponse();
+    private Response reject(String method, int requestCounter, int totalCounter, int maxThread, Request request) {
         MotanServiceException exception = new MotanServiceException("ThreadProtectedRequestRouter reject request: request_counter=" + requestCounter
                 + " total_counter=" + totalCounter + " max_thread=" + maxThread, MotanErrorMsgConstant.SERVICE_REJECT);
         exception.setStackTrace(new StackTraceElement[0]);
-        response.setException(exception);
+        DefaultResponse response = MotanFrameworkUtil.buildErrorResponse(request, exception);
         LoggerUtil.error("ThreadProtectedRequestRouter reject request: request_method=" + method + " request_counter=" + requestCounter
                 + " =" + totalCounter + " max_thread=" + maxThread);
         rejectCounter.incrementAndGet();

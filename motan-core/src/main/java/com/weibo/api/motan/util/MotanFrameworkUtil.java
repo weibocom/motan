@@ -20,6 +20,7 @@ import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RegistryConfig;
+import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
 import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
@@ -98,7 +99,7 @@ public class MotanFrameworkUtil {
 
     /**
      * 根据Request得到 interface.method(paramDesc) 的 desc
-     *
+     * <p>
      * <pre>
      * 		比如：
      * 			package com.weibo.api.motan;
@@ -123,7 +124,7 @@ public class MotanFrameworkUtil {
 
     /**
      * 判断url:source和url:target是否可以使用共享的service channel(port) 对外提供服务
-     *
+     * <p>
      * <pre>
      * 		1） protocol
      * 		2） codec
@@ -180,7 +181,7 @@ public class MotanFrameworkUtil {
 
     /**
      * 判断url:source和url:target是否可以使用共享的client channel(port) 对外提供服务
-     *
+     * <p>
      * <pre>
      * 		1） protocol
      * 		2） codec
@@ -265,8 +266,26 @@ public class MotanFrameworkUtil {
         return path;
     }
 
+    @Deprecated
+    // do not use this method again, it may cause protocol version compatible problem.
     public static Response buildErrorResponse(long requestId, Exception e) {
         DefaultResponse response = new DefaultResponse(requestId);
+        response.setException(e);
+        return response;
+    }
+
+    public static DefaultResponse buildErrorResponse(Request request, Exception e) {
+        DefaultResponse response = new DefaultResponse(request.getRequestId());
+        response.setSerializeNumber(request.getSerializeNumber());
+        response.setRpcProtocolVersion(request.getRpcProtocolVersion());
+        response.setException(e);
+        return response;
+    }
+
+    public static Response buildExceptionResponse(long requestId, RpcProtocolVersion version, Exception e) {
+        DefaultResponse response = new DefaultResponse();
+        response.setRequestId(requestId);
+        response.setRpcProtocolVersion(version.getVersion());
         response.setException(e);
         return response;
     }
