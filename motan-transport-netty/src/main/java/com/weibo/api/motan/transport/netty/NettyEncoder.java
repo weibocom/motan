@@ -27,6 +27,7 @@ import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.util.ByteUtil;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -51,24 +52,28 @@ public class NettyEncoder extends OneToOneEncoder {
     @Override
     protected Object encode(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
         byte[] data = encodeMessage(message);
-        Object obj;
+        ChannelBuffer channelBuffer;
         short type = ByteUtil.bytes2short(data, 0);
         if (type == DefaultRpcCodec.MAGIC) {
-            obj = encodeV1(message, data);
+            channelBuffer = encodeV1(message, data);
         } else if (type == MotanV2Header.MAGIC) {
-            obj = encodeV2(data);
+            channelBuffer  = encodeV2(data);
         } else {
             throw new MotanFrameworkException("can not encode message, unknown magic:" + type);
         }
+        if (message instanceof Response) {
+            ((Response) message).setAttachment(MotanConstants.CONTENT_LENGTH, String.valueOf(channelBuffer.readableBytes()));
+        }
         MotanFrameworkUtil.logRequestEvent(getRequestId(message), "after encode rpc " + (message instanceof Request ? "request " : "response ") + this.client.getUrl().getServerPortStr(), System.currentTimeMillis());
-        return obj;
+        return channelBuffer;
     }
 
-    private Object encodeV2(byte[] data) throws Exception {
+
+    private ChannelBuffer encodeV2(byte[] data) throws Exception {
         return ChannelBuffers.wrappedBuffer(data);
     }
 
-    private Object encodeV1(Object message, byte[] data) throws Exception {
+    private ChannelBuffer encodeV1(Object message, byte[] data) throws Exception {
         long requestId = getRequestId(message);
         byte[] transportHeader = new byte[MotanConstants.NETTY_HEADER];
         ByteUtil.short2bytes(MotanConstants.NETTY_MAGIC_TYPE, transportHeader, 0);
