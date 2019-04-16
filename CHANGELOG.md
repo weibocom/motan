@@ -1,5 +1,17 @@
 # Change Log
 
+## [1.1.4](https://github.com/weibocom/motan/tree/1.1.4) (2018-12-18)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.3...1.1.4)
+
+**Implemented enhancements:**
+
+- add Content-Length header & fix #812 [\#816](https://github.com/weibocom/motan/pull/816) ([sunnights](https://github.com/sunnights))
+
+**Fixed bugs:**
+
+- fix dependency conflict issue [\#802](https://github.com/weibocom/motan/pull/802) ([HelloCoCooo](https://github.com/HelloCoCooo))
+- fix dependency conflict issue [\#815](https://github.com/weibocom/motan/pull/815) ([HelloCoCooo](https://github.com/HelloCoCooo))
+
 ## [1.1.3](https://github.com/weibocom/motan/tree/1.1.3) (2018-12-24)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.1.2...1.1.3)
 
