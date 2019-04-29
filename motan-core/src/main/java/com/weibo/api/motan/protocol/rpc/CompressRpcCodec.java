@@ -16,22 +16,6 @@
 
 package com.weibo.api.motan.protocol.rpc;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.weibo.api.motan.codec.AbstractCodec;
 import com.weibo.api.motan.codec.Serialization;
 import com.weibo.api.motan.common.MotanConstants;
@@ -40,21 +24,20 @@ import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
-import com.weibo.api.motan.rpc.DefaultRequest;
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.rpc.Provider;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.support.DefaultRpcHeartbeatFactory;
-import com.weibo.api.motan.util.ByteUtil;
-import com.weibo.api.motan.util.ConcurrentHashSet;
-import com.weibo.api.motan.util.ExceptionUtil;
-import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.MotanDigestUtil;
-import com.weibo.api.motan.util.MotanFrameworkUtil;
-import com.weibo.api.motan.util.MotanSwitcherUtil;
-import com.weibo.api.motan.util.ReflectUtil;
+import com.weibo.api.motan.util.*;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.*;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * 压缩协议codec，支持开启gzip压缩。
@@ -425,20 +408,20 @@ public class CompressRpcCodec extends AbstractCodec {
             serialize(output, value.getValue(), serialization);
             // v2版本可以在response中添加attachment
             Map<String, String> attachments = value.getAttachments();
+            Map<String, String> responseAttachments = new HashMap<>();
             if (attachments != null) {
                 String signed = attachments.get(ATTACHMENT_SIGN);
                 String unSigned = attachments.get(UN_ATTACHMENT_SIGN);
-                attachments.clear(); // 除了attachment签名外不返回其他信息。
 
                 if (StringUtils.isNotBlank(signed)) {
-                    attachments.put(ATTACHMENT_SIGN, signed);
+                    responseAttachments.put(ATTACHMENT_SIGN, signed);
                 }
                 if (StringUtils.isNotBlank(unSigned)) {
-                    attachments.put(UN_ATTACHMENT_SIGN, unSigned);
+                    responseAttachments.put(UN_ATTACHMENT_SIGN, unSigned);
                 }
             }
-            if (attachments != null && !attachments.isEmpty()) {// 需要回传附加数据
-                addAttachment(output, attachments);
+            if (!responseAttachments.isEmpty()) {// 需要回传附加数据
+                addAttachment(output, responseAttachments);
             } else {
                 // empty attachments
                 output.writeShort(0);
