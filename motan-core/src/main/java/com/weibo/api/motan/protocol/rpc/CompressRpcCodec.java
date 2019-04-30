@@ -344,7 +344,7 @@ public class CompressRpcCodec extends AbstractCodec {
         // attachment中的固定参数使用签名方式传递。首次跟server建立链接时传全部信息，之后只传签名。
         AttachmentInfo info = getAttachmentInfoMap(attachments);
         if (info != null) {
-            String sign = info.getAttachmetnSign();
+            String sign = info.getAttachmentSign();
             if (sign != null) {
                 attachments.put(ATTACHMENT_SIGN, sign);
 
@@ -706,7 +706,6 @@ public class CompressRpcCodec extends AbstractCodec {
     private void removeAttachmentInfoMap(Map<String, String> attachments) {
         if (attachments != null) {
             attachments.remove(URLParamType.group.name());
-            attachments.remove(URLParamType.application.name());
             attachments.remove(URLParamType.module.name());
             attachments.remove(URLParamType.version.name());
         }
@@ -914,13 +913,13 @@ public class CompressRpcCodec extends AbstractCodec {
             this.version = version;
         }
 
-        public String getAttachmetnSign() {
+        public String getAttachmentSign() {
             String signstr = group + application + module + version;
             String hashcodeStr = null;
             try {
                 hashcodeStr = MotanDigestUtil.md5LowerCase(signstr).substring(8, 12); // 取md5中的四个字符。
             } catch (Exception e) {
-                LoggerUtil.warn("getAttachmetnSign fail!" + e.getMessage());
+                LoggerUtil.warn("getAttachmentSign fail!" + e.getMessage());
             }
             return hashcodeStr;
         }

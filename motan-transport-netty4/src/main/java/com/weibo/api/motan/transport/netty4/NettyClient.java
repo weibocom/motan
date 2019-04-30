@@ -205,32 +205,32 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
 
     @Override
     public synchronized void close(int timeout) {
-        if (state.isCloseState()) {
-            LoggerUtil.info("NettyClient close fail: already close, url={}", url.getUri());
-            return;
-        }
-
-        // 如果当前nettyClient还没有初始化，那么就没有close的理由。
-        if (state.isUnInitState()) {
-            LoggerUtil.info("NettyClient close Fail: don't need to close because node is unInit state: url={}", url.getUri());
-            return;
-        }
-
         try {
-            // 取消定期的回收任务
-            timeMonitorFuture.cancel(true);
-            // 清空callback
-            callbackMap.clear();
+            if (state.isCloseState() || state.isUnInitState()) {
+                LoggerUtil.info("NettyClient close fail: state={}, url={}", state.value, url.getUri());
+                cleanup();
+                return;
+            }
+
+            cleanup();
             // 设置close状态
             state = ChannelState.CLOSE;
-            // 关闭client持有的channel
-            closeAllChannels();
-            // 解除统计回调的注册
-            StatsUtil.unRegistryStatisticCallback(this);
             LoggerUtil.info("NettyClient close Success: url={}", url.getUri());
         } catch (Exception e) {
             LoggerUtil.error("NettyClient close Error: url=" + url.getUri(), e);
+        } finally {
+            // 解除统计回调的注册
+            StatsUtil.unRegistryStatisticCallback(this);
         }
+    }
+
+    public void cleanup() {
+        // 取消定期的回收任务
+        timeMonitorFuture.cancel(true);
+        // 清空callback
+        callbackMap.clear();
+        // 关闭client持有的channel
+        closeAllChannels();
     }
 
     @Override

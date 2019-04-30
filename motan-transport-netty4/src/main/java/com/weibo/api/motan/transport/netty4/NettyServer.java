@@ -118,41 +118,41 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
 
     @Override
     public synchronized void close(int timeout) {
-        if (state.isCloseState()) {
-            LoggerUtil.info("NettyServer close fail: already close, url={}", url.getUri());
-            return;
-        }
-
-        if (state.isUnInitState()) {
-            LoggerUtil.info("NettyServer close Fail: don't need to close because node is unInit state: url={}", url.getUri());
-            return;
-        }
-
         try {
-            // close listen socket
-            if (serverChannel != null) {
-                serverChannel.close();
-                bossGroup.shutdownGracefully();
-                workerGroup.shutdownGracefully();
-                bossGroup = null;
-                workerGroup = null;
+            if (state.isCloseState() || state.isUnInitState()) {
+                LoggerUtil.info("NettyServer close fail: state={}, url={}", state.value, url.getUri());
+                cleanup();
+                return;
             }
-            // close all clients's channel
-            if (channelManage != null) {
-                channelManage.close();
-            }
-            // shutdown the threadPool
-            if (standardThreadExecutor != null) {
-                standardThreadExecutor.shutdownNow();
-            }
+
+            cleanup();
             // 设置close状态
             state = ChannelState.CLOSE;
-            // 取消统计回调的注册
-            clearStatisticCallback();
             LoggerUtil.info("NettyServer close Success: url={}", url.getUri());
         } catch (Exception e) {
             LoggerUtil.error("NettyServer close Error: url=" + url.getUri(), e);
         }
+    }
+
+    public void cleanup() {
+        // close listen socket
+        if (serverChannel != null) {
+            serverChannel.close();
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
+            bossGroup = null;
+            workerGroup = null;
+        }
+        // close all clients's channel
+        if (channelManage != null) {
+            channelManage.close();
+        }
+        // shutdown the threadPool
+        if (standardThreadExecutor != null) {
+            standardThreadExecutor.shutdownNow();
+        }
+        // 取消统计回调的注册
+        clearStatisticCallback();
     }
 
     @Override

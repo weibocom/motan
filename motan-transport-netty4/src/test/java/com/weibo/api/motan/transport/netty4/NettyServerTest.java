@@ -100,7 +100,6 @@ public class NettyServerTest {
 
         Assert.assertTrue(StatsUtil.getStatisticCallbacks().size() >= minClientConnection + 1);
         nettyServer.close();
-        Thread.sleep(100);
         Assert.assertEquals(0, StatsUtil.getStatisticCallbacks().size());
     }
 
