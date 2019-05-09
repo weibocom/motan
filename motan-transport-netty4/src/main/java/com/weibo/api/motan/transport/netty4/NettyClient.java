@@ -41,6 +41,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
     protected ConcurrentMap<Long, ResponseFuture> callbackMap = new ConcurrentHashMap<>();
     private ScheduledFuture<?> timeMonitorFuture = null;
     private Bootstrap bootstrap;
+    private int maxClientConnection;
     /**
      * 连续失败次数
      */
@@ -48,6 +49,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
 
     public NettyClient(URL url) {
         super(url);
+        maxClientConnection = url.getIntParameter(URLParamType.maxClientConnection.getName(), URLParamType.maxClientConnection.getIntValue());
         timeMonitorFuture = scheduledExecutor.scheduleWithFixedDelay(
                 new TimeoutMonitor("timeout_monitor_" + url.getHost() + "_" + url.getPort()),
                 MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD, MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD,
@@ -273,11 +275,11 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
         long count = errorCount.incrementAndGet();
 
         // 如果节点是可用状态，同时当前连续失败的次数超过连接数，那么把该节点标示为不可用
-        if (count >= connections && state.isAliveState()) {
+        if (count >= maxClientConnection && state.isAliveState()) {
             synchronized (this) {
                 count = errorCount.longValue();
 
-                if (count >= connections && state.isAliveState()) {
+                if (count >= maxClientConnection && state.isAliveState()) {
                     LoggerUtil.error("NettyClient unavailable Error: url=" + url.getIdentity() + " "
                             + url.getServerPortStr());
                     state = ChannelState.UNALIVE;
@@ -309,7 +311,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
                 long count = errorCount.longValue();
 
                 // 过程中有其他并发更新errorCount的，因此这里需要进行一次判断
-                if (count < connections) {
+                if (count < maxClientConnection) {
                     state = ChannelState.ALIVE;
                     LoggerUtil.info("NettyClient recover available: url=" + url.getIdentity() + " "
                             + url.getServerPortStr());
