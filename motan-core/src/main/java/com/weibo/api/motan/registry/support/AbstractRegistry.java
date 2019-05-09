@@ -210,9 +210,7 @@ public abstract class AbstractRegistry implements Registry {
         }
 
         // refresh local urls cache
-        for (String nodeType : nodeTypeUrlsInRs.keySet()) {
-            curls.put(nodeType, nodeTypeUrlsInRs.get(nodeType));
-        }
+        curls.putAll(nodeTypeUrlsInRs);
 
         for (List<URL> us : nodeTypeUrlsInRs.values()) {
             listener.notify(getUrl(), us);
