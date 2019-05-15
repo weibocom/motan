@@ -180,8 +180,7 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel {
 				channel.close();
 			}
 		} catch (Exception e) {
-			LoggerUtil
-					.error("NettyChannel close Error: " + nettyClient.getUrl().getUri() + " local=" + localAddress, e);
+			LoggerUtil.error("NettyChannel close Error: " + nettyClient.getUrl().getUri() + " local=" + localAddress, e);
 		}
 	}
 
@@ -202,7 +201,7 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel {
 
 	@Override
 	public boolean isAvailable() {
-		return state.isAliveState();
+		return state.isAliveState() && channel != null && channel.isConnected();
 	}
 
 	@Override

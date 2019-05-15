@@ -13,7 +13,6 @@ import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.NetUtils;
-import com.weibo.api.motan.util.StatisticCallback;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -23,17 +22,15 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author sunnights
  */
-public class NettyChannelHandler extends ChannelDuplexHandler implements StatisticCallback {
+public class NettyChannelHandler extends ChannelDuplexHandler {
     private ThreadPoolExecutor threadPoolExecutor;
     private MessageHandler messageHandler;
     private Channel channel;
     private Codec codec;
-    private AtomicInteger rejectCounter = new AtomicInteger(0);
 
     public NettyChannelHandler(Channel channel, MessageHandler messageHandler) {
         this.channel = channel;
@@ -99,7 +96,9 @@ public class NettyChannelHandler extends ChannelDuplexHandler implements Statist
             LoggerUtil.error("process thread pool is full, reject, active={} poolSize={} corePoolSize={} maxPoolSize={} taskCount={} requestId={}",
                     threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(), threadPoolExecutor.getCorePoolSize(),
                     threadPoolExecutor.getMaximumPoolSize(), threadPoolExecutor.getTaskCount(), msg.getRequestId());
-            rejectCounter.incrementAndGet();
+            if (channel instanceof NettyServer) {
+                ((NettyServer) channel).getRejectCounter().incrementAndGet();
+            }
         }
     }
 
@@ -198,15 +197,5 @@ public class NettyChannelHandler extends ChannelDuplexHandler implements Statist
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         LoggerUtil.error("NettyChannelHandler exceptionCaught: remote={} local={} event={}", ctx.channel().remoteAddress(), ctx.channel().localAddress(), cause.getMessage(), cause);
         ctx.channel().close();
-    }
-
-    @Override
-    public String statisticCallback() {
-        int count = rejectCounter.getAndSet(0);
-        if (count > 0) {
-            return String.format("type: motan name: reject_request_pool total_count: %s reject_count: %s", threadPoolExecutor.getPoolSize(), count);
-        } else {
-            return null;
-        }
     }
 }

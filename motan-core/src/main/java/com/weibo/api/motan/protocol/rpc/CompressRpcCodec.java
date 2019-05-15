@@ -342,7 +342,7 @@ public class CompressRpcCodec extends AbstractCodec {
         // attachment中的固定参数使用签名方式传递。首次跟server建立链接时传全部信息，之后只传签名。
         AttachmentInfo info = getAttachmentInfoMap(attachments);
         if (info != null) {
-            String sign = info.getAttachmetnSign();
+            String sign = info.getAttachmentSign();
             if (sign != null) {
                 attachments.put(ATTACHMENT_SIGN, sign);
 
@@ -406,20 +406,20 @@ public class CompressRpcCodec extends AbstractCodec {
             serialize(output, value.getValue(), serialization);
             // v2版本可以在response中添加attachment
             Map<String, String> attachments = value.getAttachments();
+            Map<String, String> responseAttachments = new HashMap<>();
             if (attachments != null) {
                 String signed = attachments.get(ATTACHMENT_SIGN);
                 String unSigned = attachments.get(UN_ATTACHMENT_SIGN);
-                attachments.clear(); // 除了attachment签名外不返回其他信息。
 
                 if (StringUtils.isNotBlank(signed)) {
-                    attachments.put(ATTACHMENT_SIGN, signed);
+                    responseAttachments.put(ATTACHMENT_SIGN, signed);
                 }
                 if (StringUtils.isNotBlank(unSigned)) {
-                    attachments.put(UN_ATTACHMENT_SIGN, unSigned);
+                    responseAttachments.put(UN_ATTACHMENT_SIGN, unSigned);
                 }
             }
-            if (attachments != null && !attachments.isEmpty()) {// 需要回传附加数据
-                addAttachment(output, attachments);
+            if (!responseAttachments.isEmpty()) {// 需要回传附加数据
+                addAttachment(output, responseAttachments);
             } else {
                 // empty attachments
                 output.writeShort(0);
@@ -702,7 +702,6 @@ public class CompressRpcCodec extends AbstractCodec {
     private void removeAttachmentInfoMap(Map<String, String> attachments) {
         if (attachments != null) {
             attachments.remove(URLParamType.group.name());
-            attachments.remove(URLParamType.application.name());
             attachments.remove(URLParamType.module.name());
             attachments.remove(URLParamType.version.name());
         }
@@ -910,13 +909,13 @@ public class CompressRpcCodec extends AbstractCodec {
             this.version = version;
         }
 
-        public String getAttachmetnSign() {
+        public String getAttachmentSign() {
             String signstr = group + application + module + version;
             String hashcodeStr = null;
             try {
                 hashcodeStr = MotanDigestUtil.md5LowerCase(signstr).substring(8, 12); // 取md5中的四个字符。
             } catch (Exception e) {
-                LoggerUtil.warn("getAttachmetnSign fail!" + e.getMessage());
+                LoggerUtil.warn("getAttachmentSign fail!" + e.getMessage());
             }
             return hashcodeStr;
         }

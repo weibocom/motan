@@ -14,9 +14,11 @@ public interface SharedObjectFactory<T> {
 
     /**
      * 重建对象
+     *
      * @param obj
+     * @param async
      * @return
      */
-    boolean rebuildObject(T obj);
+    boolean rebuildObject(T obj, boolean async);
 
 }
