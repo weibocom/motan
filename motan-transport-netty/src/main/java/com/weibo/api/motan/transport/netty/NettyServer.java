@@ -160,14 +160,17 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
 
     @Override
     public synchronized void close(int timeout) {
+        if (state.isCloseState()) {
+            return;
+        }
+
         try {
-            if (state.isCloseState() || state.isUnInitState()) {
+            cleanup();
+            if (state.isUnInitState()) {
                 LoggerUtil.info("NettyServer close fail: state={}, url={}", state.value, url.getUri());
-                cleanup();
                 return;
             }
 
-            cleanup();
             // 设置close状态
             state = ChannelState.CLOSE;
             LoggerUtil.info("NettyServer close Success: url={}", url.getUri());

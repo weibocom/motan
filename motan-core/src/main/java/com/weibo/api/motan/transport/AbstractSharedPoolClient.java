@@ -21,6 +21,7 @@ import com.weibo.api.motan.core.DefaultThreadFactory;
 import com.weibo.api.motan.core.StandardThreadExecutor;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MathUtil;
 
@@ -103,8 +104,10 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
     }
 
     protected void closeAllChannels() {
-        for (Channel channel : channels) {
-            channel.close();
+        if (!CollectionUtil.isEmpty(channels)) {
+            for (Channel channel : channels) {
+                channel.close();
+            }
         }
     }
 }

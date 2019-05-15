@@ -207,22 +207,22 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
 
     @Override
     public synchronized void close(int timeout) {
+        if (state.isCloseState()) {
+            return;
+        }
+
         try {
-            if (state.isCloseState() || state.isUnInitState()) {
+            cleanup();
+            if (state.isUnInitState()) {
                 LoggerUtil.info("NettyClient close fail: state={}, url={}", state.value, url.getUri());
-                cleanup();
                 return;
             }
 
-            cleanup();
             // 设置close状态
             state = ChannelState.CLOSE;
             LoggerUtil.info("NettyClient close Success: url={}", url.getUri());
         } catch (Exception e) {
             LoggerUtil.error("NettyClient close Error: url=" + url.getUri(), e);
-        } finally {
-            // 解除统计回调的注册
-            StatsUtil.unRegistryStatisticCallback(this);
         }
     }
 
@@ -233,6 +233,8 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
         callbackMap.clear();
         // 关闭client持有的channel
         closeAllChannels();
+        // 解除统计回调的注册
+        StatsUtil.unRegistryStatisticCallback(this);
     }
 
     @Override

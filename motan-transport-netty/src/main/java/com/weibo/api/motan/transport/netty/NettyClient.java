@@ -285,14 +285,17 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
      */
     @Override
     public synchronized void close(int timeout) {
+        if (state.isCloseState()) {
+            return;
+        }
+
         try {
-            if (state.isCloseState() || state.isUnInitState()) {
+            cleanup();
+            if (state.isUnInitState()) {
                 LoggerUtil.info("NettyClient close fail: state={}, url={}", state.value, url.getUri());
-                cleanup();
                 return;
             }
 
-            cleanup();
             // 设置close状态
             state = ChannelState.CLOSE;
             LoggerUtil.info("NettyClient close Success: url={}", url.getUri());

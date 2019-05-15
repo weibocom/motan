@@ -27,7 +27,6 @@ import com.weibo.api.motan.util.StatsUtil.AccessStatus;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.DecimalFormat;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -71,10 +70,6 @@ public class StatsUtil {
         });
     }
 
-    public static List<StatisticCallback> getStatisticCallbacks() {
-        return statisticCallbacks;
-    }
-
     public static void registryStatisticCallback(StatisticCallback callback) {
         if (callback == null) {
             LoggerUtil.warn("StatsUtil registryStatisticCallback is null");
@@ -91,15 +86,6 @@ public class StatsUtil {
         }
 
         statisticCallbacks.remove(callback);
-    }
-
-    public static void unRegistryStatisticCallbacks(Collection<StatisticCallback> callbacks) {
-        if (CollectionUtil.isEmpty(callbacks)) {
-            LoggerUtil.warn("StatsUtil unRegistryStatisticCallbacks is empty");
-            return;
-        }
-
-        statisticCallbacks.removeAll(callbacks);
     }
 
     /**

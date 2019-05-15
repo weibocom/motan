@@ -22,8 +22,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author sunnights
@@ -35,7 +34,12 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
     private Channel serverChannel;
     private MessageHandler messageHandler;
     private StandardThreadExecutor standardThreadExecutor = null;
-    private List<StatisticCallback> statisticCallbackList = new ArrayList<>();
+
+    private AtomicInteger rejectCounter = new AtomicInteger(0);
+
+    public AtomicInteger getRejectCounter() {
+        return rejectCounter;
+    }
 
     public NettyServer(URL url, MessageHandler messageHandler) {
         super(url);
@@ -97,7 +101,6 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
                         pipeline.addLast("encoder", new NettyEncoder());
                         NettyChannelHandler handler = new NettyChannelHandler(NettyServer.this, messageHandler, standardThreadExecutor);
                         pipeline.addLast("handler", handler);
-                        addStatisticCallback(handler);
                     }
                 });
         serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);
@@ -106,7 +109,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
         channelFuture.syncUninterruptibly();
         serverChannel = channelFuture.channel();
         state = ChannelState.ALIVE;
-        addStatisticCallback(this);
+        StatsUtil.registryStatisticCallback(this);
         LoggerUtil.info("NettyServer ServerChannel finish Open: url=" + url);
         return state.isAliveState();
     }
@@ -118,14 +121,17 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
 
     @Override
     public synchronized void close(int timeout) {
+        if (state.isCloseState()) {
+            return;
+        }
+
         try {
-            if (state.isCloseState() || state.isUnInitState()) {
+            cleanup();
+            if (state.isUnInitState()) {
                 LoggerUtil.info("NettyServer close fail: state={}, url={}", state.value, url.getUri());
-                cleanup();
                 return;
             }
 
-            cleanup();
             // 设置close状态
             state = ChannelState.CLOSE;
             LoggerUtil.info("NettyServer close Success: url={}", url.getUri());
@@ -138,9 +144,13 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
         // close listen socket
         if (serverChannel != null) {
             serverChannel.close();
+        }
+        if (bossGroup != null) {
             bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
             bossGroup = null;
+        }
+        if (workerGroup != null) {
+            workerGroup.shutdownGracefully();
             workerGroup = null;
         }
         // close all clients's channel
@@ -152,7 +162,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
             standardThreadExecutor.shutdownNow();
         }
         // 取消统计回调的注册
-        clearStatisticCallback();
+        StatsUtil.unRegistryStatisticCallback(this);
     }
 
     @Override
@@ -172,18 +182,9 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
 
     @Override
     public String statisticCallback() {
-        return String.format("identity: %s connectionCount: %s taskCount: %s queueCount: %s maxThreadCount: %s maxTaskCount: %s",
+        return String.format("identity: %s connectionCount: %s taskCount: %s queueCount: %s maxThreadCount: %s maxTaskCount: %s executorRejectCount: %s",
                 url.getIdentity(), channelManage.getChannels().size(), standardThreadExecutor.getSubmittedTasksCount(),
                 standardThreadExecutor.getQueue().size(), standardThreadExecutor.getMaximumPoolSize(),
-                standardThreadExecutor.getMaxSubmittedTaskCount());
-    }
-
-    private void addStatisticCallback(StatisticCallback callback) {
-        StatsUtil.registryStatisticCallback(callback);
-        statisticCallbackList.add(callback);
-    }
-
-    private void clearStatisticCallback() {
-        StatsUtil.unRegistryStatisticCallbacks(statisticCallbackList);
+                standardThreadExecutor.getMaxSubmittedTaskCount(), rejectCounter.getAndSet(0));
     }
 }
