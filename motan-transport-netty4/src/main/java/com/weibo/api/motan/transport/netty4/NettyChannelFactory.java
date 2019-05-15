@@ -31,14 +31,22 @@ public class NettyChannelFactory implements SharedObjectFactory<NettyChannel> {
     }
 
     @Override
-    public boolean rebuildObject(NettyChannel nettyChannel) {
+    public boolean rebuildObject(NettyChannel nettyChannel, boolean async) {
         ReentrantLock lock = nettyChannel.getLock();
         if (lock.tryLock()) {
             try {
                 if (!nettyChannel.isAvailable() && !nettyChannel.isReconnect()) {
                     nettyChannel.reconnect();
-                    rebuildExecutorService.submit(new RebuildTask(nettyChannel));
+                    if (async) {
+                        rebuildExecutorService.submit(new RebuildTask(nettyChannel));
+                    } else {
+                        nettyChannel.close();
+                        nettyChannel.open();
+                        LoggerUtil.info("rebuild channel success: " + nettyChannel.getUrl());
+                    }
                 }
+            } catch (Exception e) {
+                LoggerUtil.error("rebuild error: " + this.toString() + ", " + nettyChannel.getUrl(), e);
             } finally {
                 lock.unlock();
             }
