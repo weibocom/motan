@@ -125,7 +125,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
                     dataLength, maxContentLength, ctx.channel().remoteAddress(), ctx.channel().localAddress());
             Exception e = new MotanServiceException("NettyDecoder transport data content length over of limit, size: " + dataLength + " > " + maxContentLength);
             if (isRequest) {
-                Response response = MotanFrameworkUtil.buildExceptionResponse(requestId, version, e);
+                Response response = MotanFrameworkUtil.buildErrorResponse(requestId, version.getVersion(), e);
                 byte[] msg = CodecUtil.encodeObjectToBytes(channel, codec, response);
                 ctx.channel().writeAndFlush(msg);
                 throw e;

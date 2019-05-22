@@ -96,7 +96,9 @@ public class DefaultRpcHeartbeatFactory implements HeartbeatFactory {
         @Override
         public Object handle(Channel channel, Object message) {
             if (isHeartbeatRequest(message)) {
-                return getDefaultHeartbeatResponse(((Request)message).getRequestId());
+                Response response = getDefaultHeartbeatResponse(((Request)message).getRequestId());
+                response.setRpcProtocolVersion(((Request) message).getRpcProtocolVersion());
+                return response;
             }
             return messageHandler.handle(channel, message);
         }

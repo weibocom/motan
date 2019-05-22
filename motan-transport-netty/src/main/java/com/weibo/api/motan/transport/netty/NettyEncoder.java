@@ -21,7 +21,6 @@ import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.protocol.rpc.DefaultRpcCodec;
 import com.weibo.api.motan.protocol.v2motan.MotanV2Header;
-import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.util.ByteUtil;
@@ -91,7 +90,7 @@ public class NettyEncoder extends OneToOneEncoder {
             } catch (Exception e) {
                 LoggerUtil.error("NettyEncoder encode error, identity=" + client.getUrl().getIdentity(), e);
                 long requestId = getRequestId(message);
-                Response response = buildExceptionResponse(requestId, e);
+                Response response = MotanFrameworkUtil.buildErrorResponse(requestId, ((Response) message).getRpcProtocolVersion(), e);
                 data = codec.encode(client, response);
             }
         } else {
@@ -118,12 +117,5 @@ public class NettyEncoder extends OneToOneEncoder {
         } else {
             return MotanConstants.FLAG_OTHER;
         }
-    }
-
-    private Response buildExceptionResponse(long requestId, Exception e) {
-        DefaultResponse response = new DefaultResponse();
-        response.setRequestId(requestId);
-        response.setException(e);
-        return response;
     }
 }

@@ -163,7 +163,7 @@ public class NettyDecoder extends FrameDecoder {
                     dataLength, maxContentLength, ctx.getChannel().getRemoteAddress(), ctx.getChannel().getLocalAddress());
             Exception e = new MotanServiceException("NettyDecoder transport data content length over of limit, size: " + dataLength + " > " + maxContentLength);
             if (isRequest) {
-                Response response = MotanFrameworkUtil.buildExceptionResponse(requestId, version, e);
+                Response response = MotanFrameworkUtil.buildErrorResponse(requestId, version.getVersion(), e);
                 channel.write(response);
                 throw e;
             } else {
@@ -179,11 +179,11 @@ public class NettyDecoder extends FrameDecoder {
         } catch (Exception e) {
             LoggerUtil.error("NettyDecoder decode fail! requestid=" + requestId + ", size:" + data.length + ", ip:" + remoteIp + ", e:" + e.getMessage());
             if (isRequest) {
-                Response response = MotanFrameworkUtil.buildExceptionResponse(requestId, version, e);
+                Response response = MotanFrameworkUtil.buildErrorResponse(requestId, version.getVersion(), e);
                 channel.write(response);
                 return null;
             } else {
-                return MotanFrameworkUtil.buildExceptionResponse(requestId, version, e);
+                return MotanFrameworkUtil.buildErrorResponse(requestId, version.getVersion(), e);
             }
         }
     }

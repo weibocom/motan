@@ -140,6 +140,7 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
 
         if (!(result instanceof DefaultResponse)) {
             response = new DefaultResponse(result);
+            response.setRpcProtocolVersion(request.getRpcProtocolVersion());
         } else {
             response = (DefaultResponse) result;
         }

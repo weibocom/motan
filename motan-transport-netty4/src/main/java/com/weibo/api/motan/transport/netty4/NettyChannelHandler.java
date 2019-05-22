@@ -109,7 +109,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             result = codec.decode(channel, remoteIp, msg.getData());
         } catch (Exception e) {
             LoggerUtil.error("NettyDecoder decode fail! requestid" + msg.getRequestId() + ", size:" + msg.getData().length + ", ip:" + remoteIp + ", e:" + e.getMessage());
-            Response response = MotanFrameworkUtil.buildExceptionResponse(msg.getRequestId(), msg.getVersion(), e);
+            Response response = MotanFrameworkUtil.buildErrorResponse(msg.getRequestId(), msg.getVersion().getVersion(), e);
             if (msg.isRequest()) {
                 sendResponse(ctx, response);
             } else {
@@ -147,6 +147,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             DefaultResponse response;
             if (result instanceof DefaultResponse) {
                 response = (DefaultResponse) result;
+                response.setRpcProtocolVersion(request.getRpcProtocolVersion());
             } else {
                 response = new DefaultResponse(result);
             }

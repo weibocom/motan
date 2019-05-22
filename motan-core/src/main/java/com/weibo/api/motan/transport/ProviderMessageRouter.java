@@ -111,7 +111,7 @@ public class ProviderMessageRouter implements MessageHandler {
                 Object[] args = ((DeserializableObject) request.getArguments()[0]).deserializeMulti(method.getParameterTypes());
                 ((DefaultRequest) request).setArguments(args);
             } catch (IOException e) {
-                throw new MotanFrameworkException("deserialize parameters fail: " + request.toString());
+                throw new MotanFrameworkException("deserialize parameters fail: " + request.toString() + ", error:" + e.getMessage());
             }
         }
     }

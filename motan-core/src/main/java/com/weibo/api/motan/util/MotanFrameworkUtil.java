@@ -20,10 +20,8 @@ import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RegistryConfig;
-import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
 import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 import org.apache.commons.lang3.StringUtils;
 
@@ -266,26 +264,14 @@ public class MotanFrameworkUtil {
         return path;
     }
 
-    @Deprecated
-    // do not use this method again, it may cause protocol version compatible problem.
-    public static Response buildErrorResponse(long requestId, Exception e) {
-        DefaultResponse response = new DefaultResponse(requestId);
-        response.setException(e);
-        return response;
-    }
-
     public static DefaultResponse buildErrorResponse(Request request, Exception e) {
-        DefaultResponse response = new DefaultResponse(request.getRequestId());
-        response.setSerializeNumber(request.getSerializeNumber());
-        response.setRpcProtocolVersion(request.getRpcProtocolVersion());
-        response.setException(e);
-        return response;
+        return buildErrorResponse(request.getRequestId(), request.getRpcProtocolVersion(), e);
     }
 
-    public static Response buildExceptionResponse(long requestId, RpcProtocolVersion version, Exception e) {
+    public static DefaultResponse buildErrorResponse(long requestId, byte version, Exception e) {
         DefaultResponse response = new DefaultResponse();
         response.setRequestId(requestId);
-        response.setRpcProtocolVersion(version.getVersion());
+        response.setRpcProtocolVersion(version);
         response.setException(e);
         return response;
     }
