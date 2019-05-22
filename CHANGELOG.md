@@ -1,5 +1,17 @@
 # Change Log
 
+## [1.1.5](https://github.com/weibocom/motan/tree/1.1.5) (2019-05-16)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.4...1.1.5)
+
+**Implemented enhancements:**
+
+- decouple attachments for request & response [\#827](https://github.com/weibocom/motan/pull/827) ([sunnights](https://github.com/sunnights))
+- optimize getChannel in SharedPoolClient [\#827](https://github.com/weibocom/motan/pull/827) ([sunnights](https://github.com/sunnights))
+
+**Fixed bugs:**
+
+- fix #829, available check in transport-netty [\#827](https://github.com/weibocom/motan/pull/827) ([sunnights](https://github.com/sunnights))
+
 ## [1.1.4](https://github.com/weibocom/motan/tree/1.1.4) (2018-12-18)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.1.3...1.1.4)
 
