@@ -241,7 +241,9 @@ public class MotanV2Codec extends AbstractCodec {
         }
         if (header.isRequest()) {
             if (header.isHeartbeat()) {
-                return DefaultRpcHeartbeatFactory.getDefaultHeartbeatRequest(header.getRequestId());
+                Request request = DefaultRpcHeartbeatFactory.getDefaultHeartbeatRequest(header.getRequestId());
+                request.setRpcProtocolVersion(RpcProtocolVersion.VERSION_2.getVersion());
+                return request;
             } else {
                 DefaultRequest request = new DefaultRequest();
                 request.setRequestId(header.getRequestId());
