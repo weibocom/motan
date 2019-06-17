@@ -93,6 +93,7 @@ public class ClusterTest extends BaseTestCase {
                 will(returnValue(rs));
                 allowing(any(Request.class)).method("getRequestId").withNoArguments();
                 will(returnValue(0L));
+                allowing(request).setAttachment(with(any(String.class)), with(any(String.class)));
 
                 atLeast(0).of(request).setRetries(0);
                 will(returnValue(null));

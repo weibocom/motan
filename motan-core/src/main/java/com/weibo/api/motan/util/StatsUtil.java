@@ -105,6 +105,11 @@ public class StatsUtil {
 
     public static void accessStatistic(String name, String application, String module, long currentTimeMillis, long costTimeMillis,
                                        long bizProcessTime, AccessStatus accessStatus) {
+        accessStatistic(name, application, module, currentTimeMillis, costTimeMillis, bizProcessTime, MotanConstants.SLOW_COST, accessStatus);
+    }
+
+    public static void accessStatistic(String name, String application, String module, long currentTimeMillis, long costTimeMillis,
+                                       long bizProcessTime, int slowCost, AccessStatus accessStatus) {
         if (name == null || name.isEmpty()) {
             return;
         }
@@ -121,7 +126,7 @@ public class StatsUtil {
         try {
             AccessStatisticItem item = getStatisticItem(name, currentTimeMillis);
 
-            item.statistic(currentTimeMillis, costTimeMillis, bizProcessTime, accessStatus);
+            item.statistic(currentTimeMillis, costTimeMillis, bizProcessTime, slowCost, accessStatus);
         } catch (Exception e) {
         }
     }
@@ -368,7 +373,7 @@ class AccessStatisticItem {
      * @param bizProcessTime
      * @param accessStatus
      */
-    void statistic(long currentTimeMillis, long costTimeMillis, long bizProcessTime, AccessStatus accessStatus) {
+    void statistic(long currentTimeMillis, long costTimeMillis, long bizProcessTime, int slowCost, AccessStatus accessStatus) {
         int tempIndex = getIndex(currentTimeMillis, length);
 
         if (currentIndex != tempIndex) {
@@ -385,7 +390,7 @@ class AccessStatisticItem {
         bizProcessTimes[currentIndex].addAndGet((int) bizProcessTime);
         totalCounter[currentIndex].incrementAndGet();
 
-        if (costTimeMillis >= MotanConstants.SLOW_COST) {
+        if (costTimeMillis >= slowCost) {
             slowCounter[currentIndex].incrementAndGet();
         }
 

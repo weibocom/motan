@@ -28,10 +28,7 @@ import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by zhanglei28 on 2017/9/11.
@@ -48,6 +45,7 @@ public class DefaultResponseFuture implements ResponseFuture {
     protected long createTime = System.currentTimeMillis();
     protected int timeout = 0;
     protected long processTime = 0;
+    private Map<String, String> attachments;// rpc协议版本兼容时可以回传一些额外的信息
 
     protected Request request;
     protected List<FutureListener> listeners;
@@ -60,6 +58,7 @@ public class DefaultResponseFuture implements ResponseFuture {
         this.serverUrl = serverUrl;
     }
 
+    @Override
     public void onSuccess(Response response) {
         this.result = response.getValue();
         this.processTime = response.getProcessTime();
@@ -67,6 +66,7 @@ public class DefaultResponseFuture implements ResponseFuture {
         done();
     }
 
+    @Override
     public void onFailure(Response response) {
         this.exception = response.getException();
         this.processTime = response.getProcessTime();
@@ -186,6 +186,7 @@ public class DefaultResponseFuture implements ResponseFuture {
         }
     }
 
+    @Override
     public long getCreateTime() {
         return createTime;
     }
@@ -257,6 +258,7 @@ public class DefaultResponseFuture implements ResponseFuture {
         return true;
     }
 
+    @Override
     public long getRequestId() {
         return this.request.getRequestId();
     }
@@ -287,18 +289,22 @@ public class DefaultResponseFuture implements ResponseFuture {
         this.processTime = time;
     }
 
+    @Override
     public int getTimeout() {
         return timeout;
     }
 
     @Override
     public Map<String, String> getAttachments() {
-        // 不需要使用
-        return Collections.EMPTY_MAP;
+        return attachments != null ? attachments : Collections.EMPTY_MAP;
     }
 
     @Override
     public void setAttachment(String key, String value) {
+        if (this.attachments == null) {
+            this.attachments = new HashMap<>();
+        }
+        this.attachments.put(key, value);
     }
 
     @Override

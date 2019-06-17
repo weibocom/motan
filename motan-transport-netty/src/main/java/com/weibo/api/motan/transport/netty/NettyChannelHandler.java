@@ -16,6 +16,7 @@
 
 package com.weibo.api.motan.transport.netty;
 
+import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
@@ -137,8 +138,12 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
             result = MotanFrameworkUtil.buildErrorResponse(request.getRequestId(), new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
         }
 
-        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after invoke biz method: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
-        DefaultResponse response = null;
+        long time = System.currentTimeMillis();
+        if (result instanceof Response) {
+            ((Response) result).setAttachment(MotanConstants.TRACE_BIZ, String.valueOf(time));
+        }
+        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after invoke biz method: " + MotanFrameworkUtil.getFullMethodString(request), time);
+        final DefaultResponse response;
 
         if (!(result instanceof DefaultResponse)) {
             response = new DefaultResponse(result);
@@ -155,6 +160,8 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
                 channelFuture.addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
+                        long time = System.currentTimeMillis();
+                        response.setAttachment(MotanConstants.TRACE_SSEND, String.valueOf(time));
                         MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after send rpc response: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
                         ((TraceableRequest) request).onFinish();
                     }

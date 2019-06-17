@@ -120,6 +120,7 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
                 allowing(cluster).getUrl();
                 will(returnValue(u));
                 allowing(response).setReturnType(with(any(Class.class)));
+                allowing(response).setAttachment(with(any(String.class)), with(any(String.class)));
             }
         });
 

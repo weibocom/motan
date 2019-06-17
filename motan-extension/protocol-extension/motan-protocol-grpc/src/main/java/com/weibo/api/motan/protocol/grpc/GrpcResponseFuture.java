@@ -36,6 +36,7 @@ public class GrpcResponseFuture<RespT> extends DefaultResponseFuture implements 
         this.call = call;
     }
 
+    @Override
     public boolean cancel() {
         call.cancel("GrpcResponseFuture was cancelled", null);
         return super.cancel();

@@ -82,12 +82,16 @@ public class NettyDecoder extends FrameDecoder {
         }
 
         if (result instanceof Request) {
+            ((Request) result).setAttachment(MotanConstants.TRACE_SRECEIVE, String.valueOf(requestStart));
             MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), "receive rpc request: " + MotanFrameworkUtil.getFullMethodString((Request) result), requestStart);
-            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), "after decode rpc request: " + MotanFrameworkUtil.getFullMethodString((Request) result), System.currentTimeMillis());
+            long time = System.currentTimeMillis();
+            ((Request) result).setAttachment(MotanConstants.TRACE_SDECODE, String.valueOf(time));
+            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), "after decode rpc request: " + MotanFrameworkUtil.getFullMethodString((Request) result), time);
             if (result instanceof TraceableRequest) {
                 ((TraceableRequest) result).setStartTime(requestStart);
             }
         } else if (result instanceof Response) {
+            ((Response) result).setAttachment(MotanConstants.TRACE_CRECEIVE, String.valueOf(requestStart));
             MotanFrameworkUtil.logRequestEvent(((Response) result).getRequestId(), "receive rpc response " + this.client.getUrl().getServerPortStr(), requestStart);
         }
         return result;

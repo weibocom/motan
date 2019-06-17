@@ -103,7 +103,9 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
         try {
             // return channel or throw exception(timeout or connection_fail)
             channel = getChannel();
-            MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after get server connection " + this.getUrl().getServerPortStr(), System.currentTimeMillis());
+            long time = System.currentTimeMillis();
+            request.setAttachment(MotanConstants.TRACE_CONNECTION, String.valueOf(time));
+            MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after get server connection " + this.getUrl().getServerPortStr(), time);
             if (channel == null) {
                 LoggerUtil.error("NettyClient borrowObject null: url=" + url.getUri() + " " + MotanFrameworkUtil.toString(request));
                 return null;

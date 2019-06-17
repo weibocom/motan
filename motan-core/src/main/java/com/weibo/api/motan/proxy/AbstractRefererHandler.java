@@ -70,10 +70,12 @@ public class AbstractRefererHandler<T> {
             request.setAttachment(URLParamType.application.getName(), cluster.getUrl().getApplication());
             request.setAttachment(URLParamType.module.getName(), cluster.getUrl().getModule());
 
-            Response response;
+            Response response = null;
             boolean throwException = Boolean.parseBoolean(cluster.getUrl().getParameter(URLParamType.throwException.getName(), URLParamType.throwException.getValue()));
             try {
-                MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "invoke rpc request: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
+                long time = System.currentTimeMillis();
+                request.setAttachment(MotanConstants.TRACE_INVOKE, String.valueOf(time));
+                MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "invoke rpc request: " + MotanFrameworkUtil.getFullMethodString(request), time);
                 response = cluster.call(request);
                 if (async) {
                     if (response instanceof ResponseFuture) {
@@ -119,7 +121,11 @@ public class AbstractRefererHandler<T> {
                     throw e;
                 }
             } finally {
-                MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "rpc finish", System.currentTimeMillis());
+                long time = System.currentTimeMillis();
+                if (response instanceof ResponseFuture) {
+                    response.setAttachment(MotanConstants.TRACE_FSN, String.valueOf(time));
+                }
+                MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "rpc finish", time);
             }
         }
         throw new MotanServiceException("Referer call Error: cluster not exist, interface=" + interfaceName + " " + MotanFrameworkUtil.toString(request), MotanErrorMsgConstant.SERVICE_UNFOUND);
