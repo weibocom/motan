@@ -17,6 +17,7 @@
 package com.weibo.api.motan.filter;
 
 import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.ExceptionUtil;
@@ -62,8 +63,9 @@ public class AccessStatisticFilter implements Filter {
             }
 
             final String statName = caller.getUrl().getProtocol() + MotanConstants.PROTOCOL_SEPARATOR + MotanFrameworkUtil.getGroupMethodString(request);
+            final int slowCost = caller.getUrl().getIntParameter(URLParamType.slowThreshold.getName(), URLParamType.slowThreshold.getIntValue());
             if (caller instanceof Provider) {
-                StatsUtil.accessStatistic(statName, APPLICATION_STATISTIC, RPC_SERVICE, end, end - start, bizProcessTime, accessStatus);
+                StatsUtil.accessStatistic(statName, APPLICATION_STATISTIC, RPC_SERVICE, end, end - start, bizProcessTime, slowCost, accessStatus);
                 if (request instanceof TraceableRequest) {
                     final AccessStatus finalAccessStatus = accessStatus;
                     ((TraceableRequest) request).addFinishCallback(new Runnable() {
@@ -71,12 +73,12 @@ public class AccessStatisticFilter implements Filter {
                         public void run() {
                             long requestEnd = ((TraceableRequest) request).getEndTime();
                             long requestStart = ((TraceableRequest) request).getStartTime();
-                            StatsUtil.accessStatistic(statName + "_WHOLE", caller.getUrl().getApplication(), caller.getUrl().getModule(), requestEnd, requestEnd - requestStart, bizProcessTime, finalAccessStatus);
+                            StatsUtil.accessStatistic(statName + "_WHOLE", caller.getUrl().getApplication(), caller.getUrl().getModule(), requestEnd, requestEnd - requestStart, bizProcessTime, slowCost, finalAccessStatus);
                         }
                     }, null);
                 }
             }
-            StatsUtil.accessStatistic(statName, caller.getUrl().getApplication(), caller.getUrl().getModule(), end, end - start, bizProcessTime, accessStatus);
+            StatsUtil.accessStatistic(statName, caller.getUrl().getApplication(), caller.getUrl().getModule(), end, end - start, bizProcessTime, slowCost, accessStatus);
         }
     }
 }

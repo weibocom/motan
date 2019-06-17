@@ -72,7 +72,7 @@ public class FailoverHaStrategy<T> extends AbstractHaStrategy<T> {
             try {
                 request.setRetries(i);
                 long time = System.currentTimeMillis();
-                request.setAttachment(MotanConstants.TRACE_RETRY + "_" + i, String.valueOf(time));
+                request.setAttachment(MotanConstants.TRACE_RETRY, String.valueOf(time));
                 MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "start retry " + i + " " + refer.getServiceUrl().getServerPortStr(), time);
                 return refer.call(request);
             } catch (RuntimeException e) {

@@ -128,6 +128,7 @@ public class AbstractInterfaceConfig extends AbstractConfig {
     // 是否需要传输rpc server 端业务异常栈。默认true
     protected Boolean transExceptionStack;
 
+    protected Integer slowThreshold;
 
     public Integer getRetries() {
         return retries;
@@ -471,4 +472,11 @@ public class AbstractInterfaceConfig extends AbstractConfig {
                 MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
     }
 
+    public Integer getSlowThreshold() {
+        return slowThreshold;
+    }
+
+    public void setSlowThreshold(int slowThreshold) {
+        this.slowThreshold = slowThreshold;
+    }
 }

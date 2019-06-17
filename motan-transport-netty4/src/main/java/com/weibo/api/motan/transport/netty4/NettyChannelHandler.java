@@ -133,7 +133,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             }
             processRequest(ctx, (Request) result);
         } else if (result instanceof Response) {
-            ((Response) result).setAttachment(MotanConstants.TRACE_SRECEIVE, String.valueOf(msg.getStartTime()));
+            ((Response) result).setAttachment(MotanConstants.TRACE_CRECEIVE, String.valueOf(msg.getStartTime()));
             MotanFrameworkUtil.logRequestEvent(((Response) result).getRequestId(), "receive rpc response " + channel.getUrl().getServerPortStr(), msg.getStartTime());
             processResponse(result);
         }

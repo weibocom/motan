@@ -115,6 +115,7 @@ public enum URLParamType {
     check("check", "true"), 
     directUrl("directUrl", ""), 
     registrySessionTimeout("registrySessionTimeout", 1 * MotanConstants.MINUTE_MILLS),
+    slowThreshold("slowThreshold", 200),
 
     register("register", true), 
     subscribe("subscribe", true), 
