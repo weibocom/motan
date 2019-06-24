@@ -59,11 +59,10 @@ public class NettyEncoder extends OneToOneEncoder {
         }
         long time = System.currentTimeMillis();
         if (message instanceof Request) {
-            ((Request) message).setAttachment(MotanConstants.TRACE_CENCODE, String.valueOf(time));
+            MotanFrameworkUtil.logEvent((Request) message, MotanConstants.TRACE_CENCODE, time);
         } else if (message instanceof Response) {
-            ((Response) message).setAttachment(MotanConstants.TRACE_SENCODE, String.valueOf(time));
+            MotanFrameworkUtil.logEvent((Response) message, MotanConstants.TRACE_SENCODE, time);
         }
-        MotanFrameworkUtil.logRequestEvent(getRequestId(message), "after encode rpc " + (message instanceof Request ? "request " : "response ") + this.client.getUrl().getServerPortStr(), time);
         return channelBuffer;
     }
 

@@ -64,11 +64,10 @@ public class CodecUtil {
         }
         long time = System.currentTimeMillis();
         if (msg instanceof Request) {
-            ((Request) msg).setAttachment(MotanConstants.TRACE_CENCODE, String.valueOf(time));
+            MotanFrameworkUtil.logEvent((Request) msg, MotanConstants.TRACE_CENCODE, time);
         } else if (msg instanceof Response) {
-            ((Response) msg).setAttachment(MotanConstants.TRACE_SENCODE, String.valueOf(time));
+            MotanFrameworkUtil.logEvent((Response) msg, MotanConstants.TRACE_SENCODE, time);
         }
-        MotanFrameworkUtil.logRequestEvent(getRequestId(msg), "after encode rpc " + (msg instanceof Request ? "request " : "response ") + channel.getUrl().getServerPortStr(), time);
         return data;
     }
 

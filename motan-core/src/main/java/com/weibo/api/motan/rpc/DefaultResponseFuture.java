@@ -62,6 +62,7 @@ public class DefaultResponseFuture implements ResponseFuture {
     public void onSuccess(Response response) {
         this.result = response.getValue();
         this.processTime = response.getProcessTime();
+        this.attachments = response.getAttachments();
 
         done();
     }

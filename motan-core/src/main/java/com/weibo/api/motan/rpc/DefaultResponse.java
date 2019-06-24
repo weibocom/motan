@@ -16,13 +16,13 @@
 
 package com.weibo.api.motan.rpc;
 
+import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
 
 /**
  * 
@@ -56,6 +56,7 @@ public class DefaultResponse implements Response, Serializable {
         this.requestId = response.getRequestId();
         this.processTime = response.getProcessTime();
         this.timeout = response.getTimeout();
+        this.attachments = response.getAttachments();
     }
 
     public DefaultResponse(Object value) {

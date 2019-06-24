@@ -99,6 +99,7 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
         request.setAttachment(URLParamType.host.getName(), NetUtils.getHostName(ctx.getChannel().getRemoteAddress()));
 
         final long processStartTime = System.currentTimeMillis();
+        MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_SIO_END, processStartTime);
 
         // 使用线程池方式处理
         try {
@@ -107,6 +108,7 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
                 public void run() {
                     try {
                         RpcContext.init(request);
+                        MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_SEXECUTOR_START, System.currentTimeMillis());
                         processRequest(ctx, request, processStartTime);
                     } finally {
                         RpcContext.destroy();
@@ -138,11 +140,9 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
             result = MotanFrameworkUtil.buildErrorResponse(request.getRequestId(), new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
         }
 
-        long time = System.currentTimeMillis();
         if (result instanceof Response) {
-            ((Response) result).setAttachment(MotanConstants.TRACE_BIZ, String.valueOf(time));
+            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_BIZ, System.currentTimeMillis());
         }
-        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after invoke biz method: " + MotanFrameworkUtil.getFullMethodString(request), time);
         final DefaultResponse response;
 
         if (!(result instanceof DefaultResponse)) {
@@ -160,9 +160,7 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
                 channelFuture.addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        long time = System.currentTimeMillis();
-                        response.setAttachment(MotanConstants.TRACE_SSEND, String.valueOf(time));
-                        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after send rpc response: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
+                        MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SSEND, System.currentTimeMillis());
                         ((TraceableRequest) request).onFinish();
                     }
                 });

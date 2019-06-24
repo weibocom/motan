@@ -17,7 +17,6 @@
 package com.weibo.api.motan.cluster.ha;
 
 import com.weibo.api.motan.cluster.LoadBalance;
-import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanFrameworkException;
@@ -28,7 +27,6 @@ import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.ExceptionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,9 +69,6 @@ public class FailoverHaStrategy<T> extends AbstractHaStrategy<T> {
             Referer<T> refer = referers.get(i % referers.size());
             try {
                 request.setRetries(i);
-                long time = System.currentTimeMillis();
-                request.setAttachment(MotanConstants.TRACE_RETRY, String.valueOf(time));
-                MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "start retry " + i + " " + refer.getServiceUrl().getServerPortStr(), time);
                 return refer.call(request);
             } catch (RuntimeException e) {
                 // 对于业务异常，直接抛出

@@ -271,9 +271,15 @@ public class MotanFrameworkUtil {
         return response;
     }
 
-    public static void logRequestEvent(long requestId, String event, long time) {
-        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.REQUEST_TRACK_LOG_SWITCHER, false)) {
-            LoggerUtil.info("[motan-track-log] | " + requestId + " | " + event + " | " + time);
+    public static void logEvent(Request request, String event, long time) {
+        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_REQUEST_TRACE_SWITCHER, false)) {
+            request.setAttachment(event, String.valueOf(time));
+        }
+    }
+
+    public static void logEvent(Response response, String event, long time) {
+        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_REQUEST_TRACE_SWITCHER, false)) {
+            response.setAttachment(event, String.valueOf(time));
         }
     }
 }
