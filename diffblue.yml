@@ -1,4 +1,4 @@
-buildCmd: mvn -e -X -Dlicense.skip=true -Dmaven.enforcer.skip=true  -Denforcer.skip=true -Dair.check.skip-all=true -Dmaven.test.skip=true compile
+buildCmd: mvn -e -X -Dmaven.enforcer.skip=true -Denforcer.skip=true -Dair.check.skip-all=true -Dmaven.test.skip=true compile
 testCmd: true
 skipVerification: true
 cbmcArguments:
@@ -176,43 +176,6 @@ phases:
 units:
  - target:
    - dir: motan-core/target/classes
-     file: com/weibo/api/motan/cluster/loadbalance/LocalFirstLoadBalance.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/cluster/loadbalance/LocalFirstLoadBalance.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/rpc/Referer.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/rpc/Referer.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/util/NetUtils.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/util/NetUtils.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/log/LogService.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/log/LogService.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/rpc/URL.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/rpc/URL.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/cluster/loadbalance/AbstractLoadBalance.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/cluster/loadbalance/AbstractLoadBalance.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/cluster/loadbalance/LocalFirstLoadBalance$LowActivePriorityComparator.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/cluster/loadbalance/LocalFirstLoadBalance.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/util/LoggerUtil.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/util/LoggerUtil.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/rpc/Request.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/rpc/Request.java
- - target:
-   - dir: motan-core/target/classes
      file: com/weibo/api/motan/util/ByteUtil.class
      sourceDir: motan-core/src/main/java
      sourceFile: com/weibo/api/motan/util/ByteUtil.java
@@ -221,55 +184,6 @@ units:
      file: com/weibo/api/motan/util/ReflectUtil.class
      sourceDir: motan-core/src/main/java
      sourceFile: com/weibo/api/motan/util/ReflectUtil.java
- - target:
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/transport/support/DefaultRpcHeartbeatFactory.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/transport/support/DefaultRpcHeartbeatFactory.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/rpc/DefaultRequest.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/rpc/DefaultRequest.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/transport/MessageHandler.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/transport/MessageHandler.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/transport/support/DefaultRpcHeartbeatFactory$HeartbeatResponse.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/transport/support/DefaultRpcHeartbeatFactory.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/protocol/rpc/RpcProtocolVersion.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/protocol/rpc/RpcProtocolVersion.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/transport/support/DefaultRpcHeartbeatFactory$HeartbeatRequest.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/transport/support/DefaultRpcHeartbeatFactory.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/transport/support/DefaultRpcHeartbeatFactory$HeartMessageHandleWrapper.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/transport/support/DefaultRpcHeartbeatFactory.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/rpc/AbstractTraceableRequest.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/rpc/AbstractTraceableRequest.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/util/RequestIdGenerator.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/util/RequestIdGenerator.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/rpc/Request.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/rpc/Request.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/rpc/Response.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/rpc/Response.java
-   - dir: motan-core/target/classes
-     file: com/weibo/api/motan/rpc/DefaultResponse.class
-     sourceDir: motan-core/src/main/java
-     sourceFile: com/weibo/api/motan/rpc/DefaultResponse.java
  - target:
    - dir: motan-core/target/classes
      file: com/weibo/api/motan/util/MotanFrameworkUtil.class
