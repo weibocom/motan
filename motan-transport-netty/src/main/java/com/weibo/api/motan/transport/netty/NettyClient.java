@@ -150,7 +150,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
         try {
             // return channel or throw exception(timeout or connection_fail)
             channel = borrowObject();
-            MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_CONNECTION, System.currentTimeMillis());
+            MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_CONNECTION);
 
             if (channel == null) {
                 LoggerUtil.error("NettyClient borrowObject null: url=" + url.getUri() + " "

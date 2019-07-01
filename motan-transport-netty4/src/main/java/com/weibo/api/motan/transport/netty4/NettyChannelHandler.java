@@ -7,7 +7,10 @@ import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.rpc.DefaultResponse;
+import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.RpcContext;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.LoggerUtil;
@@ -106,6 +109,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
     }
 
     private void processMessage(ChannelHandlerContext ctx, NettyMessage msg) {
+        long startTime = System.currentTimeMillis();
         String remoteIp = getRemoteIp(ctx);
         Object result;
         try {
@@ -124,13 +128,12 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
 
         if (result instanceof Request) {
             MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SRECEIVE, msg.getStartTime());
-            MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SDECODE, System.currentTimeMillis());
-            if (result instanceof TraceableRequest) {
-                ((TraceableRequest) result).setStartTime(msg.getStartTime());
-            }
+            MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SEXECUTOR_START, startTime);
+            MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SDECODE);
             processRequest(ctx, (Request) result);
         } else if (result instanceof Response) {
-            ((Response) result).setAttachment(MotanConstants.TRACE_CRECEIVE, String.valueOf(msg.getStartTime()));
+            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CRECEIVE, msg.getStartTime());
+            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CDECODE);
             processResponse(result);
         }
     }
@@ -155,7 +158,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
                 result = MotanFrameworkUtil.buildErrorResponse(request.getRequestId(), new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
             }
             if (result instanceof Response) {
-                MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_BIZ, System.currentTimeMillis());
+                MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CALL);
             }
             final DefaultResponse response;
             if (result instanceof DefaultResponse) {
@@ -167,12 +170,12 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             response.setProcessTime(System.currentTimeMillis() - processStartTime);
 
             ChannelFuture channelFuture = sendResponse(ctx, response);
-            if (channelFuture != null && request instanceof TraceableRequest) {
+            if (channelFuture != null) {
                 channelFuture.addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SSEND, System.currentTimeMillis());
-                        ((TraceableRequest) request).onFinish();
+                        MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SSEND);
+                        response.onFinish();
                     }
                 });
             }

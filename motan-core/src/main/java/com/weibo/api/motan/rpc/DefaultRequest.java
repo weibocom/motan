@@ -29,7 +29,7 @@ import java.util.Map;
  * @author fishermen
  * @version V1.0 created at: 2013-5-16
  */
-public class DefaultRequest extends AbstractTraceableRequest implements Serializable {
+public class DefaultRequest implements Request, Traceable, Serializable {
 
     private static final long serialVersionUID = 1168814620391610215L;
 
@@ -41,6 +41,7 @@ public class DefaultRequest extends AbstractTraceableRequest implements Serializ
     private int retries = 0;
     private long requestId;
     private byte rpcProtocolVersion = RpcProtocolVersion.VERSION_1.getVersion();
+    private TraceableContext traceableContext = new TraceableContext();
 
     @Override
     public String getInterfaceName() {
@@ -79,9 +80,8 @@ public class DefaultRequest extends AbstractTraceableRequest implements Serializ
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<String, String> getAttachments() {
-        return attachments != null ? attachments : Collections.EMPTY_MAP;
+        return attachments != null ? attachments : Collections.<String, String>emptyMap();
     }
 
     public void setAttachments(Map<String, String> attachments) {
@@ -131,5 +131,8 @@ public class DefaultRequest extends AbstractTraceableRequest implements Serializ
         this.rpcProtocolVersion = rpcProtocolVersion;
     }
 
-
+    @Override
+    public TraceableContext getTraceableContext() {
+        return traceableContext;
+    }
 }

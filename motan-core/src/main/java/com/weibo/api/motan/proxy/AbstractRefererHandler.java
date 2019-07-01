@@ -73,7 +73,7 @@ public class AbstractRefererHandler<T> {
             Response response = null;
             boolean throwException = Boolean.parseBoolean(cluster.getUrl().getParameter(URLParamType.throwException.getName(), URLParamType.throwException.getValue()));
             try {
-                MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_INVOKE, System.currentTimeMillis());
+                MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_INVOKE);
                 response = cluster.call(request);
                 if (async) {
                     if (response instanceof ResponseFuture) {

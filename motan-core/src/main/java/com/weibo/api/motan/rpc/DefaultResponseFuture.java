@@ -33,24 +33,22 @@ import java.util.*;
 /**
  * Created by zhanglei28 on 2017/9/11.
  */
-public class DefaultResponseFuture implements ResponseFuture {
-
-    protected volatile FutureState state = FutureState.DOING;
+public class DefaultResponseFuture implements ResponseFuture, Traceable {
 
     protected final Object lock = new Object();
-
+    protected volatile FutureState state = FutureState.DOING;
     protected Object result = null;
     protected Exception exception = null;
 
     protected long createTime = System.currentTimeMillis();
     protected int timeout = 0;
     protected long processTime = 0;
-    private Map<String, String> attachments;// rpc协议版本兼容时可以回传一些额外的信息
-
     protected Request request;
     protected List<FutureListener> listeners;
     protected URL serverUrl;
     protected Class returnType;
+    private Map<String, String> attachments;// rpc协议版本兼容时可以回传一些额外的信息
+    private TraceableContext traceableContext = new TraceableContext();
 
     public DefaultResponseFuture(Request requestObj, int timeout, URL serverUrl) {
         this.request = requestObj;
@@ -63,6 +61,10 @@ public class DefaultResponseFuture implements ResponseFuture {
         this.result = response.getValue();
         this.processTime = response.getProcessTime();
         this.attachments = response.getAttachments();
+        if (response instanceof Traceable) {
+            traceableContext.setReceiveTime(((Traceable) response).getTraceableContext().getReceiveTime());
+            traceableContext.traceInfoMap = ((Traceable) response).getTraceableContext().getTraceInfoMap();
+        }
 
         done();
     }
@@ -175,7 +177,7 @@ public class DefaultResponseFuture implements ResponseFuture {
                 notifyNow = true;
             } else {
                 if (listeners == null) {
-                    listeners = new ArrayList<FutureListener>(1);
+                    listeners = new ArrayList<>(1);
                 }
 
                 listeners.add(listener);
@@ -297,7 +299,7 @@ public class DefaultResponseFuture implements ResponseFuture {
 
     @Override
     public Map<String, String> getAttachments() {
-        return attachments != null ? attachments : Collections.EMPTY_MAP;
+        return attachments != null ? attachments : Collections.<String, String>emptyMap();
     }
 
     @Override
@@ -309,11 +311,16 @@ public class DefaultResponseFuture implements ResponseFuture {
     }
 
     @Override
+    public byte getRpcProtocolVersion() {
+        return RpcProtocolVersion.VERSION_1.getVersion();
+    }
+
+    @Override
     public void setRpcProtocolVersion(byte rpcProtocolVersion) {
     }
 
     @Override
-    public byte getRpcProtocolVersion() {
-        return RpcProtocolVersion.VERSION_1.getVersion();
+    public TraceableContext getTraceableContext() {
+        return traceableContext;
     }
 }

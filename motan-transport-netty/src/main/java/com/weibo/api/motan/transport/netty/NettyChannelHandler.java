@@ -21,7 +21,10 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.rpc.DefaultResponse;
+import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.RpcContext;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.LoggerUtil;
@@ -99,7 +102,6 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
         request.setAttachment(URLParamType.host.getName(), NetUtils.getHostName(ctx.getChannel().getRemoteAddress()));
 
         final long processStartTime = System.currentTimeMillis();
-        MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_SIO_END, processStartTime);
 
         // 使用线程池方式处理
         try {
@@ -107,8 +109,8 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
                 @Override
                 public void run() {
                     try {
+                        MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_SEXECUTOR_START);
                         RpcContext.init(request);
-                        MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_SEXECUTOR_START, System.currentTimeMillis());
                         processRequest(ctx, request, processStartTime);
                     } finally {
                         RpcContext.destroy();
@@ -141,7 +143,7 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
         }
 
         if (result instanceof Response) {
-            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_BIZ, System.currentTimeMillis());
+            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CALL);
         }
         final DefaultResponse response;
 
@@ -156,12 +158,12 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
 
         if (ctx.getChannel().isConnected()) {
             ChannelFuture channelFuture = ctx.getChannel().write(response);
-            if (channelFuture != null && request instanceof TraceableRequest) {
+            if (channelFuture != null) {
                 channelFuture.addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SSEND, System.currentTimeMillis());
-                        ((TraceableRequest) request).onFinish();
+                        MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SSEND);
+                        response.onFinish();
                     }
                 });
             }

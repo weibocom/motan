@@ -145,12 +145,14 @@ public class MotanConstants {
     public static final String TRACE_CSEND = "TRACE_CSEND";
     public static final String TRACE_SRECEIVE = "TRACE_SRECEIVE";
     public static final String TRACE_SDECODE = "TRACE_SDECODE";
-    public static final String TRACE_SIO_END = "TRACE_SIO_END";
     public static final String TRACE_SEXECUTOR_START = "TRACE_SEXECUTOR_START";
-    public static final String TRACE_BIZ = "TRACE_BIZ";
+    public static final String TRACE_BEFORE_BIZ = "TRACE_BEFORE_BIZ";
+    public static final String TRACE_AFTER_BIZ = "TRACE_AFTER_BIZ";
+    public static final String TRACE_CALL = "TRACE_CALL";
     public static final String TRACE_SENCODE = "TRACE_SENCODE";
     public static final String TRACE_SSEND = "TRACE_SSEND";
     public static final String TRACE_CRECEIVE = "TRACE_CRECEIVE";
+    public static final String TRACE_CDECODE = "TRACE_CDECODE";
 
     private MotanConstants() {
     }

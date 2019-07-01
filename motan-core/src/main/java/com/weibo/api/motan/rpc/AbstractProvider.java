@@ -16,6 +16,8 @@
 
 package com.weibo.api.motan.rpc;
 
+import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.ReflectUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -46,7 +48,9 @@ public abstract class AbstractProvider<T> implements Provider<T> {
 
     @Override
     public Response call(Request request) {
+        MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_BEFORE_BIZ);
         Response response = invoke(request);
+        MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_AFTER_BIZ);
 
         return response;
     }

@@ -23,7 +23,6 @@ import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.TraceableRequest;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -83,12 +82,10 @@ public class NettyDecoder extends FrameDecoder {
 
         if (result instanceof Request) {
             MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SRECEIVE, requestStart);
-            MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SDECODE, System.currentTimeMillis());
-            if (result instanceof TraceableRequest) {
-                ((TraceableRequest) result).setStartTime(requestStart);
-            }
+            MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SDECODE);
         } else if (result instanceof Response) {
-            ((Response) result).setAttachment(MotanConstants.TRACE_CRECEIVE, String.valueOf(requestStart));
+            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CRECEIVE, requestStart);
+            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CDECODE);
         }
         return result;
     }

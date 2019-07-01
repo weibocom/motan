@@ -515,6 +515,11 @@
                     <xsd:documentation><![CDATA[ The method retry times. ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
+            <xsd:attribute name="slowThreshold" type="xsd:string" use="optional">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[ 慢请求阈值 ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
         </xsd:complexType>
     </xsd:element>
     <xsd:element name="service">

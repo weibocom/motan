@@ -62,11 +62,10 @@ public class CodecUtil {
         } else {
             data = codec.encode(channel, msg);
         }
-        long time = System.currentTimeMillis();
         if (msg instanceof Request) {
-            MotanFrameworkUtil.logEvent((Request) msg, MotanConstants.TRACE_CENCODE, time);
+            MotanFrameworkUtil.logEvent((Request) msg, MotanConstants.TRACE_CENCODE);
         } else if (msg instanceof Response) {
-            MotanFrameworkUtil.logEvent((Response) msg, MotanConstants.TRACE_SENCODE, time);
+            MotanFrameworkUtil.logEvent((Response) msg, MotanConstants.TRACE_SENCODE);
         }
         return data;
     }

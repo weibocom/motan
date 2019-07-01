@@ -64,16 +64,19 @@ public class AccessStatisticFilter implements Filter {
 
             final String statName = caller.getUrl().getProtocol() + MotanConstants.PROTOCOL_SEPARATOR + MotanFrameworkUtil.getGroupMethodString(request);
             final int slowCost = caller.getUrl().getIntParameter(URLParamType.slowThreshold.getName(), URLParamType.slowThreshold.getIntValue());
+            final Response finalResponse = response;
             if (caller instanceof Provider) {
                 StatsUtil.accessStatistic(statName, APPLICATION_STATISTIC, RPC_SERVICE, end, end - start, bizProcessTime, slowCost, accessStatus);
-                if (request instanceof TraceableRequest) {
+                if (response instanceof Callbackable) {
                     final AccessStatus finalAccessStatus = accessStatus;
-                    ((TraceableRequest) request).addFinishCallback(new Runnable() {
+                    ((Callbackable) response).addFinishCallback(new Runnable() {
                         @Override
                         public void run() {
-                            long requestEnd = ((TraceableRequest) request).getEndTime();
-                            long requestStart = ((TraceableRequest) request).getStartTime();
-                            StatsUtil.accessStatistic(statName + "_WHOLE", caller.getUrl().getApplication(), caller.getUrl().getModule(), requestEnd, requestEnd - requestStart, bizProcessTime, slowCost, finalAccessStatus);
+                            if (request instanceof Traceable && finalResponse instanceof Traceable) {
+                                long responseSend = ((Traceable) finalResponse).getTraceableContext().getSendTime();
+                                long requestReceive = ((Traceable) request).getTraceableContext().getReceiveTime();
+                                StatsUtil.accessStatistic(statName + "_WHOLE", caller.getUrl().getApplication(), caller.getUrl().getModule(), responseSend, responseSend - requestReceive, bizProcessTime, slowCost, finalAccessStatus);
+                            }
                         }
                     }, null);
                 }
