@@ -269,7 +269,7 @@ public class MotanFrameworkUtil {
     }
 
     public static void logEvent(Request request, String event) {
-        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_REQUEST_TRACE_SWITCHER, false)) {
+        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_TRACE_INFO_SWITCHER, false)) {
             logEvent(request, event, System.currentTimeMillis());
         }
     }
@@ -287,13 +287,13 @@ public class MotanFrameworkUtil {
             context.setReceiveTime(time);
             return;
         }
-        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_REQUEST_TRACE_SWITCHER, false)) {
+        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_TRACE_INFO_SWITCHER, false)) {
             context.addTraceInfo(event, String.valueOf(time));
         }
     }
 
     public static void logEvent(Response response, String event) {
-        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_REQUEST_TRACE_SWITCHER, false)) {
+        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_TRACE_INFO_SWITCHER, false)) {
             logEvent(response, event, System.currentTimeMillis());
         }
     }
@@ -311,7 +311,7 @@ public class MotanFrameworkUtil {
             context.setReceiveTime(time);
             return;
         }
-        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_REQUEST_TRACE_SWITCHER, false)) {
+        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_TRACE_INFO_SWITCHER, false)) {
             context.addTraceInfo(event, String.valueOf(time));
         }
     }

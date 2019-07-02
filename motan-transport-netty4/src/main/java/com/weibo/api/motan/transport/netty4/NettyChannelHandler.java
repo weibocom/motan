@@ -158,7 +158,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
                 result = MotanFrameworkUtil.buildErrorResponse(request.getRequestId(), new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
             }
             if (result instanceof Response) {
-                MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CALL);
+                MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_PROCESS);
             }
             final DefaultResponse response;
             if (result instanceof DefaultResponse) {
@@ -174,7 +174,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
                 channelFuture.addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SSEND);
+                        MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SSEND, System.currentTimeMillis());
                         response.onFinish();
                     }
                 });

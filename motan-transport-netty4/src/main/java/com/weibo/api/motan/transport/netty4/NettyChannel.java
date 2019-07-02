@@ -62,7 +62,7 @@ public class NettyChannel implements Channel {
         boolean result = writeFuture.awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
 
         if (result && writeFuture.isSuccess()) {
-            MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_CSEND);
+            MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_CSEND, System.currentTimeMillis());
             response.addListener(new FutureListener() {
                 @Override
                 public void operationComplete(Future future) throws Exception {

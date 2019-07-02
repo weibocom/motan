@@ -1,5 +1,7 @@
 package com.weibo.api.motan.rpc;
 
+import com.alibaba.fastjson.JSON;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -40,4 +42,8 @@ public class TraceableContext {
         return traceInfoMap;
     }
 
+    @Override
+    public String toString() {
+        return "send: " + sendTime + ", receive: " + receiveTime + ", info: " + JSON.toJSONString(traceInfoMap);
+    }
 }

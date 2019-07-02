@@ -118,7 +118,7 @@ public class MotanConstants {
     public static final String ZOOKEEPER_REGISTRY_COMMAND = "/command";
 
     public static final String REGISTRY_HEARTBEAT_SWITCHER = "feature.configserver.heartbeat";
-    public static final String MOTAN_REQUEST_TRACE_SWITCHER = "feature.motan.request.trace";
+    public static final String MOTAN_TRACE_INFO_SWITCHER = "feature.motan.trace.info";
 
     /**
      * 默认的consistent的hash的数量
@@ -148,7 +148,7 @@ public class MotanConstants {
     public static final String TRACE_SEXECUTOR_START = "TRACE_SEXECUTOR_START";
     public static final String TRACE_BEFORE_BIZ = "TRACE_BEFORE_BIZ";
     public static final String TRACE_AFTER_BIZ = "TRACE_AFTER_BIZ";
-    public static final String TRACE_CALL = "TRACE_CALL";
+    public static final String TRACE_PROCESS = "TRACE_PROCESS";
     public static final String TRACE_SENCODE = "TRACE_SENCODE";
     public static final String TRACE_SSEND = "TRACE_SSEND";
     public static final String TRACE_CRECEIVE = "TRACE_CRECEIVE";

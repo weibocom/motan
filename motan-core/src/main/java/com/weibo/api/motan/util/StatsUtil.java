@@ -43,8 +43,8 @@ public class StatsUtil {
     public static final String HISTOGRAM_NAME = MetricRegistry.name(AccessStatisticItem.class, "costTimeMillis");
     public static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
     public static String SEPARATE = "\\|";
-    protected static ConcurrentMap<String, AccessStatisticItem> accessStatistics = new ConcurrentHashMap<String, AccessStatisticItem>();
-    protected static List<StatisticCallback> statisticCallbacks = new CopyOnWriteArrayList<StatisticCallback>();
+    protected static ConcurrentMap<String, AccessStatisticItem> accessStatistics = new ConcurrentHashMap<>();
+    protected static List<StatisticCallback> statisticCallbacks = new CopyOnWriteArrayList<>();
     protected static ScheduledFuture<?> scheduledFuture;
 
     static {
@@ -153,7 +153,7 @@ public class StatsUtil {
 
         long currentTimeMillis = System.currentTimeMillis();
 
-        ConcurrentMap<String, AccessStatisticResult> totalResults = new ConcurrentHashMap<String, AccessStatisticResult>();
+        ConcurrentMap<String, AccessStatisticResult> totalResults = new ConcurrentHashMap<>();
 
         for (Map.Entry<String, AccessStatisticItem> entry : accessStatistics.entrySet()) {
             AccessStatisticItem item = entry.getValue();
@@ -192,7 +192,7 @@ public class StatsUtil {
         DecimalFormat mbFormat = new DecimalFormat("#0.00");
         long currentTimeMillis = System.currentTimeMillis();
 
-        ConcurrentMap<String, AccessStatisticResult> totalResults = new ConcurrentHashMap<String, AccessStatisticResult>();
+        ConcurrentMap<String, AccessStatisticResult> totalResults = new ConcurrentHashMap<>();
 
         for (Map.Entry<String, AccessStatisticItem> entry : accessStatistics.entrySet()) {
             AccessStatisticItem item = entry.getValue();

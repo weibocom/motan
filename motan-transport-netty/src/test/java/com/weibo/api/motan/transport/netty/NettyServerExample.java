@@ -69,12 +69,12 @@ public class NettyServerExample {
         parameters.put("requestTimeout", "500");
         URL url = new URL("netty", "localhost", 18080, interfaceName, parameters);
 
-        MotanSwitcherUtil.setSwitcherValue(MotanConstants.MOTAN_REQUEST_TRACE_SWITCHER, true);
+        MotanSwitcherUtil.setSwitcherValue(MotanConstants.MOTAN_TRACE_INFO_SWITCHER, true);
         final Set<String> serverTraceKey = new HashSet<>();
         serverTraceKey.add(MotanConstants.TRACE_SRECEIVE);
         serverTraceKey.add(MotanConstants.TRACE_SDECODE);
         serverTraceKey.add(MotanConstants.TRACE_SEXECUTOR_START);
-        serverTraceKey.add(MotanConstants.TRACE_CALL);
+        serverTraceKey.add(MotanConstants.TRACE_PROCESS);
         serverTraceKey.add(MotanConstants.TRACE_SENCODE);
         serverTraceKey.add(MotanConstants.TRACE_SSEND);
 

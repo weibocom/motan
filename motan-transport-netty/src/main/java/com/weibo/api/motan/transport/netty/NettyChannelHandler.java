@@ -143,7 +143,7 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
         }
 
         if (result instanceof Response) {
-            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CALL);
+            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_PROCESS);
         }
         final DefaultResponse response;
 
@@ -162,7 +162,7 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
                 channelFuture.addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SSEND);
+                        MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SSEND, System.currentTimeMillis());
                         response.onFinish();
                     }
                 });

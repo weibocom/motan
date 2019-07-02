@@ -113,7 +113,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
             // async request
             response = channel.request(request);
         } catch (Exception e) {
-            LoggerUtil.error("NettyClient request Error: url=" + url.getUri() + " " + MotanFrameworkUtil.toString(request), e);
+            LoggerUtil.error("NettyClient request Error: url=" + url.getUri() + " " + MotanFrameworkUtil.toString(request) + ", " + e.getMessage());
 
             if (e instanceof MotanAbstractException) {
                 throw (MotanAbstractException) e;
