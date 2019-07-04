@@ -79,10 +79,7 @@ public class DefaultRpcHeartbeatFactory implements HeartbeatFactory {
     }
 
     public static boolean isHeartbeatResponse(Object message){
-        if(message instanceof HeartbeatResponse){
-            return true;
-        }
-        return false;
+        return message instanceof HeartbeatResponse;
     }
 
 

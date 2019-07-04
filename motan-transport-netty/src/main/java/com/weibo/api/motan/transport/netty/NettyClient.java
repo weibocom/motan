@@ -119,8 +119,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
         LoggerUtil.info("NettyClient heartbeat request: url={}", url.getUri());
 
         try {
-            // async request后，如果service is
-            // available，那么将会自动把该client设置成可用
+            // async request后，如果service is available，那么将会自动把该client设置成可用
             request(request, true);
         } catch (Exception e) {
             LoggerUtil.error("NettyClient heartbeat Error: url=" + url.getUri() + ", " + e.getMessage());
@@ -150,7 +149,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
         try {
             // return channel or throw exception(timeout or connection_fail)
             channel = borrowObject();
-            MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after get server connection " + this.getUrl().getServerPortStr(), System.currentTimeMillis());
+            MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_CONNECTION);
 
             if (channel == null) {
                 LoggerUtil.error("NettyClient borrowObject null: url=" + url.getUri() + " "
@@ -163,11 +162,9 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
             // return channel to pool
             returnObject(channel);
         } catch (Exception e) {
-            LoggerUtil.error(
-                    "NettyClient request Error: url=" + url.getUri() + " " + MotanFrameworkUtil.toString(request) + ", " + e.getMessage());
+            LoggerUtil.error("NettyClient request Error: url=" + url.getUri() + " " + MotanFrameworkUtil.toString(request) + ", " + e.getMessage());
             //TODO 对特定的异常回收channel
             invalidateObject(channel);
-
             if (e instanceof MotanAbstractException) {
                 throw (MotanAbstractException) e;
             } else {

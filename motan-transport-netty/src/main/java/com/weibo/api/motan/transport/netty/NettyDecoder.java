@@ -23,7 +23,6 @@ import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.TraceableRequest;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -82,13 +81,11 @@ public class NettyDecoder extends FrameDecoder {
         }
 
         if (result instanceof Request) {
-            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), "receive rpc request: " + MotanFrameworkUtil.getFullMethodString((Request) result), requestStart);
-            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), "after decode rpc request: " + MotanFrameworkUtil.getFullMethodString((Request) result), System.currentTimeMillis());
-            if (result instanceof TraceableRequest) {
-                ((TraceableRequest) result).setStartTime(requestStart);
-            }
+            MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SRECEIVE, requestStart);
+            MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SDECODE);
         } else if (result instanceof Response) {
-            MotanFrameworkUtil.logRequestEvent(((Response) result).getRequestId(), "receive rpc response " + this.client.getUrl().getServerPortStr(), requestStart);
+            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CRECEIVE, requestStart);
+            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CDECODE);
         }
         return result;
     }
