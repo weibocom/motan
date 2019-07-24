@@ -16,29 +16,8 @@
 
 package com.weibo.api.motan.config.springsupport;
 
-import java.util.ArrayList;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
-
-import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.config.BasicServiceInterfaceConfig;
 import com.weibo.api.motan.config.ProtocolConfig;
-import com.weibo.api.motan.config.RegistryConfig;
-import com.weibo.api.motan.config.ServiceConfig;
-import com.weibo.api.motan.exception.MotanErrorMsgConstant;
-import com.weibo.api.motan.exception.MotanFrameworkException;
-import com.weibo.api.motan.util.CollectionUtil;
-import com.weibo.api.motan.util.MathUtil;
-import com.weibo.api.motan.util.MotanFrameworkUtil;
+import org.springframework.beans.factory.BeanNameAware;
 
 /**
  * @author fld
