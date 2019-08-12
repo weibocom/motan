@@ -17,6 +17,7 @@
 package com.weibo.api.motan.transport.netty;
 
 import com.weibo.api.motan.common.ChannelState;
+import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
@@ -67,7 +68,7 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel {
 		boolean result = writeFuture.awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
 
 		if (result && writeFuture.isSuccess()) {
-			MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after send rpc request " + nettyClient.getUrl().getServerPortStr(), System.currentTimeMillis());
+			MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_CSEND, System.currentTimeMillis());
 			response.addListener(new FutureListener() {
 				@Override
 				public void operationComplete(Future future) throws Exception {

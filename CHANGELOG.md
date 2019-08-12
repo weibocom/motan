@@ -1,5 +1,17 @@
 # Change Log
 
+## [1.1.6](https://github.com/weibocom/motan/tree/1.1.6) (2019-07-04)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.5...1.1.6)
+
+**Implemented enhancements:**
+
+- add trace tag in request&response [\#836](https://github.com/weibocom/motan/pull/836) ([sunnights](https://github.com/sunnights))
+- support custom slow threshold [\#836](https://github.com/weibocom/motan/pull/836) ([sunnights](https://github.com/sunnights))
+
+**Fixed bugs:**
+
+- remove request exception stacktrace in transport-netty4 [\#836](https://github.com/weibocom/motan/pull/836) ([sunnights](https://github.com/sunnights))
+
 ## [1.1.5](https://github.com/weibocom/motan/tree/1.1.5) (2019-05-16)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.1.4...1.1.5)
 

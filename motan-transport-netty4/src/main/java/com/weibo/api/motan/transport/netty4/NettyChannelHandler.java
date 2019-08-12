@@ -7,7 +7,10 @@ import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.rpc.DefaultResponse;
+import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.RpcContext;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.LoggerUtil;
@@ -103,6 +106,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
     }
 
     private void processMessage(ChannelHandlerContext ctx, NettyMessage msg) {
+        long startTime = System.currentTimeMillis();
         String remoteIp = getRemoteIp(ctx);
         Object result;
         try {
@@ -119,14 +123,13 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         }
 
         if (result instanceof Request) {
-            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), "receive rpc request: " + MotanFrameworkUtil.getFullMethodString((Request) result), msg.getStartTime());
-            MotanFrameworkUtil.logRequestEvent(((Request) result).getRequestId(), "after decode rpc request: " + MotanFrameworkUtil.getFullMethodString((Request) result), System.currentTimeMillis());
-            if (result instanceof TraceableRequest) {
-                ((TraceableRequest) result).setStartTime(msg.getStartTime());
-            }
+            MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SRECEIVE, msg.getStartTime());
+            MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SEXECUTOR_START, startTime);
+            MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SDECODE);
             processRequest(ctx, (Request) result);
         } else if (result instanceof Response) {
-            MotanFrameworkUtil.logRequestEvent(((Response) result).getRequestId(), "receive rpc response " + channel.getUrl().getServerPortStr(), msg.getStartTime());
+            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CRECEIVE, msg.getStartTime());
+            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CDECODE);
             processResponse(result);
         }
     }
@@ -143,8 +146,10 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
                 LoggerUtil.error("NettyChannelHandler processRequest fail! request:" + MotanFrameworkUtil.toString(request), e);
                 result = MotanFrameworkUtil.buildErrorResponse(request, new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
             }
-            MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after invoke biz method: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
-            DefaultResponse response;
+            if (result instanceof Response) {
+                MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_PROCESS);
+            }
+            final DefaultResponse response;
             if (result instanceof DefaultResponse) {
                 response = (DefaultResponse) result;
                 response.setRpcProtocolVersion(request.getRpcProtocolVersion());
@@ -155,12 +160,12 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             response.setProcessTime(System.currentTimeMillis() - processStartTime);
 
             ChannelFuture channelFuture = sendResponse(ctx, response);
-            if (channelFuture != null && request instanceof TraceableRequest) {
+            if (channelFuture != null) {
                 channelFuture.addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after send rpc response: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
-                        ((TraceableRequest) request).onFinish();
+                        MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SSEND, System.currentTimeMillis());
+                        response.onFinish();
                     }
                 });
             }
