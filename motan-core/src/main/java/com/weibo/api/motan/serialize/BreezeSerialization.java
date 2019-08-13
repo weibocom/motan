@@ -31,9 +31,11 @@ import java.io.IOException;
  */
 @SpiMeta(name = "breeze")
 public class BreezeSerialization implements Serialization {
+    public static int DEFAULT_BUFFER_SIZE = 1024;
+
     @Override
     public byte[] serialize(Object o) throws IOException {
-        BreezeBuffer buffer = new BreezeBuffer(512);
+        BreezeBuffer buffer = new BreezeBuffer(DEFAULT_BUFFER_SIZE);
         BreezeWriter.writeObject(buffer, o);
         buffer.flip();
         return buffer.getBytes();
@@ -47,7 +49,7 @@ public class BreezeSerialization implements Serialization {
 
     @Override
     public byte[] serializeMulti(Object[] objects) throws IOException {
-        BreezeBuffer buffer = new BreezeBuffer(512);
+        BreezeBuffer buffer = new BreezeBuffer(DEFAULT_BUFFER_SIZE);
         for (Object o: objects){
             BreezeWriter.writeObject(buffer, o);
         }
