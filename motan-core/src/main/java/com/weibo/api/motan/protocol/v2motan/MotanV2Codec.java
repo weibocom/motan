@@ -264,6 +264,14 @@ public class MotanV2Codec extends AbstractCodec {
                     request.setAttachment(URLParamType.version.getName(), metaMap.get(M2_VERSION));
                 }
 
+                if (StringUtils.isNotBlank(metaMap.get(M2_SOURCE))) {
+                    request.setAttachment(URLParamType.application.getName(), metaMap.get(M2_SOURCE));
+                }
+
+                if (StringUtils.isNotBlank(metaMap.get(M2_MODULE))) {
+                    request.setAttachment(URLParamType.module.getName(), metaMap.get(M2_MODULE));
+                }
+
                 return request;
             }
 
