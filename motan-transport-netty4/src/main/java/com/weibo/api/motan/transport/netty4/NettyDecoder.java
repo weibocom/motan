@@ -4,10 +4,11 @@ import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.DefaultResponse;
+import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MotanFrameworkUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -80,7 +81,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
             return;
         }
         int bodySize = in.readInt();
-        checkMaxContext(bodySize, ctx, isRequest, requestId);
+        checkMaxContext(bodySize, ctx, isRequest, requestId, RpcProtocolVersion.VERSION_2);
         size += 4;
         if (bodySize > 0) {
             size += bodySize;
@@ -92,7 +93,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
         byte[] data = new byte[size];
         in.resetReaderIndex();
         in.readBytes(data);
-        decode(data, out, isRequest, requestId).setStartTime(startTime);
+        decode(data, out, isRequest, requestId, RpcProtocolVersion.VERSION_2).setStartTime(startTime);
     }
 
     private boolean isV2Request(byte b) {
@@ -112,19 +113,19 @@ public class NettyDecoder extends ByteToMessageDecoder {
             in.resetReaderIndex();
             return;
         }
-        checkMaxContext(dataLength, ctx, messageType == MotanConstants.FLAG_REQUEST, requestId);
+        checkMaxContext(dataLength, ctx, messageType == MotanConstants.FLAG_REQUEST, requestId, RpcProtocolVersion.VERSION_1);
         byte[] data = new byte[dataLength];
         in.readBytes(data);
-        decode(data, out, messageType == MotanConstants.FLAG_REQUEST, requestId).setStartTime(startTime);
+        decode(data, out, messageType == MotanConstants.FLAG_REQUEST, requestId, RpcProtocolVersion.VERSION_1).setStartTime(startTime);
     }
 
-    private void checkMaxContext(int dataLength, ChannelHandlerContext ctx, boolean isRequest, long requestId) throws Exception {
+    private void checkMaxContext(int dataLength, ChannelHandlerContext ctx, boolean isRequest, long requestId, RpcProtocolVersion version) throws Exception {
         if (maxContentLength > 0 && dataLength > maxContentLength) {
             LoggerUtil.warn("NettyDecoder transport data content length over of limit, size: {}  > {}. remote={} local={}",
                     dataLength, maxContentLength, ctx.channel().remoteAddress(), ctx.channel().localAddress());
             Exception e = new MotanServiceException("NettyDecoder transport data content length over of limit, size: " + dataLength + " > " + maxContentLength);
             if (isRequest) {
-                Response response = buildExceptionResponse(requestId, e);
+                Response response = MotanFrameworkUtil.buildErrorResponse(requestId, version.getVersion(), e);
                 byte[] msg = CodecUtil.encodeObjectToBytes(channel, codec, response);
                 ctx.channel().writeAndFlush(msg);
                 throw e;
@@ -134,17 +135,10 @@ public class NettyDecoder extends ByteToMessageDecoder {
         }
     }
 
-    private NettyMessage decode(byte[] data, List<Object> out, boolean isRequest, long requestId) {
-        NettyMessage message = new NettyMessage(isRequest, requestId, data);
+    private NettyMessage decode(byte[] data, List<Object> out, boolean isRequest, long requestId, RpcProtocolVersion version) {
+        NettyMessage message = new NettyMessage(isRequest, requestId, data, version);
         out.add(message);
         return message;
-    }
-
-    private Response buildExceptionResponse(long requestId, Exception e) {
-        DefaultResponse response = new DefaultResponse();
-        response.setRequestId(requestId);
-        response.setException(e);
-        return response;
     }
 
 }

@@ -323,4 +323,13 @@ public class DefaultResponseFuture implements ResponseFuture, Traceable {
     public TraceableContext getTraceableContext() {
         return traceableContext;
     }
+
+    @Override
+    public void setSerializeNumber(int number) {
+    }
+
+    @Override
+    public int getSerializeNumber() {
+        return 0;
+    }
 }

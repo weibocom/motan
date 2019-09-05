@@ -102,8 +102,6 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
                 ExceptionUtil.setMockStackTrace(response.getException().getCause());
             }
         }
-        // 传递rpc版本和attachment信息方便不同rpc版本的codec使用。
-        response.setRpcProtocolVersion(request.getRpcProtocolVersion());
         response.setAttachments(request.getAttachments());
         return response;
     }

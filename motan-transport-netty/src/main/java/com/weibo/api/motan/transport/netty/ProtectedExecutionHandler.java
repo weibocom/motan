@@ -16,19 +16,18 @@
 
 package com.weibo.api.motan.transport.netty;
 
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
-
+import com.weibo.api.motan.exception.MotanErrorMsgConstant;
+import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.rpc.DefaultResponse;
+import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.util.LoggerUtil;
 import org.jboss.netty.channel.ChannelEvent;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 
-import com.weibo.api.motan.exception.MotanErrorMsgConstant;
-import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.util.LoggerUtil;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author maijunsheng
@@ -56,6 +55,7 @@ public class ProtectedExecutionHandler extends ExecutionHandler {
 					Request request = (Request) ((MessageEvent) e).getMessage();
 					DefaultResponse response = new DefaultResponse();
 					response.setRequestId(request.getRequestId());
+					response.setRpcProtocolVersion(request.getRpcProtocolVersion());
 					response.setException(new MotanServiceException("process thread pool is full, reject",
 							MotanErrorMsgConstant.SERVICE_REJECT));
 					e.getChannel().write(response);

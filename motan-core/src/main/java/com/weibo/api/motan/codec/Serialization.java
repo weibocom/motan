@@ -26,7 +26,7 @@ import java.io.IOException;
  * @version 创建时间：2013-5-22
  * 
  */
-@Spi(scope=Scope.PROTOTYPE)
+@Spi(scope=Scope.SINGLETON)
 public interface Serialization {
 
 	byte[] serialize(Object obj) throws IOException;

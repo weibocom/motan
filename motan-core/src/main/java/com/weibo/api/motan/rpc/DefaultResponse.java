@@ -42,6 +42,7 @@ public class DefaultResponse implements Response, Traceable, Callbackable, Seria
     private int timeout;
     private Map<String, String> attachments;// rpc协议版本兼容时可以回传一些额外的信息
     private byte rpcProtocolVersion = RpcProtocolVersion.VERSION_1.getVersion();
+    private int serializeNumber = 0;// default serialization is hession2
     private List<Pair<Runnable, Executor>> taskList = new ArrayList<>();
     private AtomicBoolean isFinished = new AtomicBoolean();
     private TraceableContext traceableContext = new TraceableContext();
@@ -59,6 +60,8 @@ public class DefaultResponse implements Response, Traceable, Callbackable, Seria
         this.requestId = response.getRequestId();
         this.processTime = response.getProcessTime();
         this.timeout = response.getTimeout();
+        this.rpcProtocolVersion = response.getRpcProtocolVersion();
+        this.serializeNumber = response.getSerializeNumber();
         this.attachments = response.getAttachments();
         if (response instanceof Traceable) {
             traceableContext.setReceiveTime(((Traceable) response).getTraceableContext().getReceiveTime());
@@ -150,6 +153,15 @@ public class DefaultResponse implements Response, Traceable, Callbackable, Seria
     }
 
     @Override
+    public void setSerializeNumber(int number) {
+        this.serializeNumber = number;
+    }
+
+    @Override
+    public int getSerializeNumber() {
+        return serializeNumber;
+    }
+
     public void addFinishCallback(Runnable runnable, Executor executor) {
         if (!isFinished.get()) {
             taskList.add(Pair.of(runnable, executor));

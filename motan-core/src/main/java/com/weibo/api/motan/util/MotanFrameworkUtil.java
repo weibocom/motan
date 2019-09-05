@@ -95,7 +95,7 @@ public class MotanFrameworkUtil {
 
     /**
      * 根据Request得到 interface.method(paramDesc) 的 desc
-     *
+     * <p>
      * <pre>
      * 		比如：
      * 			package com.weibo.api.motan;
@@ -120,7 +120,7 @@ public class MotanFrameworkUtil {
 
     /**
      * 判断url:source和url:target是否可以使用共享的service channel(port) 对外提供服务
-     *
+     * <p>
      * <pre>
      * 		1） protocol
      * 		2） codec
@@ -177,7 +177,7 @@ public class MotanFrameworkUtil {
 
     /**
      * 判断url:source和url:target是否可以使用共享的client channel(port) 对外提供服务
-     *
+     * <p>
      * <pre>
      * 		1） protocol
      * 		2） codec
@@ -262,8 +262,14 @@ public class MotanFrameworkUtil {
         return path;
     }
 
-    public static Response buildErrorResponse(long requestId, Exception e) {
-        DefaultResponse response = new DefaultResponse(requestId);
+    public static DefaultResponse buildErrorResponse(Request request, Exception e) {
+        return buildErrorResponse(request.getRequestId(), request.getRpcProtocolVersion(), e);
+    }
+
+    public static DefaultResponse buildErrorResponse(long requestId, byte version, Exception e) {
+        DefaultResponse response = new DefaultResponse();
+        response.setRequestId(requestId);
+        response.setRpcProtocolVersion(version);
         response.setException(e);
         return response;
     }

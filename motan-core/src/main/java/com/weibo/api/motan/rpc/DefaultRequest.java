@@ -41,6 +41,7 @@ public class DefaultRequest implements Request, Traceable, Serializable {
     private int retries = 0;
     private long requestId;
     private byte rpcProtocolVersion = RpcProtocolVersion.VERSION_1.getVersion();
+    private int serializeNumber = 0;// default serialization is hession2
     private TraceableContext traceableContext = new TraceableContext();
 
     @Override
@@ -132,6 +133,15 @@ public class DefaultRequest implements Request, Traceable, Serializable {
     }
 
     @Override
+    public void setSerializeNumber(int number) {
+        this.serializeNumber = number;
+    }
+
+    @Override
+    public int getSerializeNumber() {
+        return serializeNumber;
+    }
+
     public TraceableContext getTraceableContext() {
         return traceableContext;
     }

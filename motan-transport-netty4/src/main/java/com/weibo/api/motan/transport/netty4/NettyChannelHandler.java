@@ -94,10 +94,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
 
     private void rejectMessage(ChannelHandlerContext ctx, NettyMessage msg) {
         if (msg.isRequest()) {
-            DefaultResponse response = new DefaultResponse();
-            response.setRequestId(msg.getRequestId());
-            response.setException(new MotanServiceException("process thread pool is full, reject by server: " + ctx.channel().localAddress(), MotanErrorMsgConstant.SERVICE_REJECT));
-            sendResponse(ctx, response);
+            sendResponse(ctx, MotanFrameworkUtil.buildErrorResponse((Request) msg, new MotanServiceException("process thread pool is full, reject by server: " + ctx.channel().localAddress(), MotanErrorMsgConstant.SERVICE_REJECT)));
 
             LoggerUtil.error("process thread pool is full, reject, active={} poolSize={} corePoolSize={} maxPoolSize={} taskCount={} requestId={}",
                     threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(), threadPoolExecutor.getCorePoolSize(),
@@ -116,11 +113,10 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             result = codec.decode(channel, remoteIp, msg.getData());
         } catch (Exception e) {
             LoggerUtil.error("NettyDecoder decode fail! requestid" + msg.getRequestId() + ", size:" + msg.getData().length + ", ip:" + remoteIp + ", e:" + e.getMessage());
+            Response response = MotanFrameworkUtil.buildErrorResponse(msg.getRequestId(), msg.getVersion().getVersion(), e);
             if (msg.isRequest()) {
-                Response response = buildExceptionResponse(msg.getRequestId(), e);
                 sendResponse(ctx, response);
             } else {
-                Response response = buildExceptionResponse(msg.getRequestId(), e);
                 processResponse(response);
             }
             return;
@@ -138,13 +134,6 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         }
     }
 
-    private Response buildExceptionResponse(long requestId, Exception e) {
-        DefaultResponse response = new DefaultResponse();
-        response.setRequestId(requestId);
-        response.setException(e);
-        return response;
-    }
-
     private void processRequest(final ChannelHandlerContext ctx, final Request request) {
         request.setAttachment(URLParamType.host.getName(), NetUtils.getHostName(ctx.channel().remoteAddress()));
         final long processStartTime = System.currentTimeMillis();
@@ -155,7 +144,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
                 result = messageHandler.handle(channel, request);
             } catch (Exception e) {
                 LoggerUtil.error("NettyChannelHandler processRequest fail! request:" + MotanFrameworkUtil.toString(request), e);
-                result = MotanFrameworkUtil.buildErrorResponse(request.getRequestId(), new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
+                result = MotanFrameworkUtil.buildErrorResponse(request, new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
             }
             if (result instanceof Response) {
                 MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_PROCESS);
@@ -163,6 +152,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             final DefaultResponse response;
             if (result instanceof DefaultResponse) {
                 response = (DefaultResponse) result;
+                response.setRpcProtocolVersion(request.getRpcProtocolVersion());
             } else {
                 response = new DefaultResponse(result);
             }

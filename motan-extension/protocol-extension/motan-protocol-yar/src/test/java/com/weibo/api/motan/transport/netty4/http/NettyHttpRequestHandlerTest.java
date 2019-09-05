@@ -13,18 +13,14 @@
  */
 package com.weibo.api.motan.transport.netty4.http;
 
-import static org.junit.Assert.*;
+import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.transport.Channel;
+import com.weibo.api.motan.transport.MessageHandler;
+import com.weibo.api.motan.util.MotanSwitcherUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.DefaultHttpHeaders;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
-
+import io.netty.handler.codec.http.*;
 import org.jmock.Expectations;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -34,10 +30,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.transport.Channel;
-import com.weibo.api.motan.transport.MessageHandler;
-import com.weibo.api.motan.util.MotanSwitcherUtil;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * 
@@ -84,7 +78,7 @@ public class NettyHttpRequestHandlerTest {
                 allowing(ctx).close();
                 will(returnValue(null));
 
-                atLeast(1).of(messageHandler).handle(with(any(Channel.class)), with(anything()));
+                atLeast(1).of(messageHandler).handle(with(any(Channel.class)), with(any(Object.class)));
                 will(returnValue(response));
                 allowing(response).headers();
                 will(returnValue(new DefaultHttpHeaders()));
@@ -115,7 +109,7 @@ public class NettyHttpRequestHandlerTest {
                 allowing(ctx).close();
                 will(returnValue(null));
 
-                allowing(messageHandler).handle(with(any(Channel.class)), with(anything()));
+                allowing(messageHandler).handle(with(any(Channel.class)), with(any(Object.class)));
                 will(returnValue(null));
             }
         });
