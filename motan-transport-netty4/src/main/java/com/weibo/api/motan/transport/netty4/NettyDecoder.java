@@ -38,7 +38,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
         in.markReaderIndex();
         short type = in.readShort();
         if (type != MotanConstants.NETTY_MAGIC_TYPE) {
-            in.resetReaderIndex();
+            in.skipBytes(in.readableBytes());
             throw new MotanFrameworkException("NettyDecoder transport header not support, type: " + type);
         }
         in.skipBytes(1);
