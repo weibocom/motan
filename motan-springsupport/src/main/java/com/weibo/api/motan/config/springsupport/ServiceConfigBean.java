@@ -46,7 +46,6 @@ import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 public class ServiceConfigBean<T> extends ServiceConfig<T>
         implements
-        BeanPostProcessor,
         BeanFactoryAware,
         InitializingBean,
         DisposableBean,
@@ -76,17 +75,6 @@ public class ServiceConfigBean<T> extends ServiceConfig<T>
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
         this.beanFactory = beanFactory;
-    }
-
-    // 为了让serviceBean最早加载
-    @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        return bean;
-    }
-
-    @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        return bean;
     }
 
     @Override
