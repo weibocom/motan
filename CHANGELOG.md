@@ -1,5 +1,18 @@
 # Change Log
 
+## [1.1.7](https://github.com/weibocom/motan/tree/1.1.7) (2019-12-05)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.6...1.1.7)
+
+**Implemented enhancements:**
+
+- support breeze serialization [\#822](https://github.com/weibocom/motan/pull/822) ([Ray](https://github.com/rayzhang0603))
+- update yar-java [\#872](https://github.com/weibocom/motan/pull/872) ([Ray](https://github.com/rayzhang0603))
+- remove BeanPostProcessor in ServiceConfigBean [\#875](https://github.com/weibocom/motan/pull/875) ([Wshoway](https://github.com/Wshoway))
+
+**Fixed bugs:**
+
+- remove request exception stacktrace in transport-netty4 [\#836](https://github.com/weibocom/motan/pull/836) ([sunnights](https://github.com/sunnights))
+
 ## [1.1.6](https://github.com/weibocom/motan/tree/1.1.6) (2019-07-04)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.1.5...1.1.6)
 
