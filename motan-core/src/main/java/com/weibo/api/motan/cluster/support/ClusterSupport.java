@@ -16,6 +16,8 @@
 
 package com.weibo.api.motan.cluster.support;
 
+import com.weibo.api.motan.closable.Closable;
+import com.weibo.api.motan.closable.ShutDownHook;
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.cluster.HaStrategy;
 import com.weibo.api.motan.cluster.LoadBalance;
@@ -33,13 +35,16 @@ import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MotanSwitcherUtil;
 import com.weibo.api.motan.util.StringTools;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Notify cluster the referers have changed.
@@ -50,14 +55,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ClusterSupport<T> implements NotifyListener {
 
-    private static ConcurrentHashMap<String, Protocol> protocols = new ConcurrentHashMap<String, Protocol>();
+    private static ConcurrentHashMap<String, Protocol> protocols = new ConcurrentHashMap<>();
     private Cluster<T> cluster;
     private List<URL> registryUrls;
     private URL url;
     private Class<T> interfaceClass;
     private Protocol protocol;
-    private ConcurrentHashMap<URL, List<Referer<T>>> registryReferers = new ConcurrentHashMap<URL, List<Referer<T>>>();
+    private ConcurrentHashMap<URL, List<Referer<T>>> registryReferers = new ConcurrentHashMap<>();
+    public ScheduledExecutorService executorService;
 
+    protected ConcurrentHashMap<URL, List<URL>> registryUrlsMap = new ConcurrentHashMap<>();
+    protected ConcurrentHashMap<URL, List<URL>> registryActiveUrlsMap = new ConcurrentHashMap<>();
+    private int clientCount;
 
     public ClusterSupport(Class<T> interfaceClass, List<URL> registryUrls) {
         this.registryUrls = registryUrls;
@@ -65,6 +74,26 @@ public class ClusterSupport<T> implements NotifyListener {
         String urlStr = StringTools.urlDecode(registryUrls.get(0).getParameter(URLParamType.embed.getName()));
         this.url = URL.valueOf(urlStr);
         protocol = getDecorateProtocol(url.getProtocol());
+        int connectionCount = this.url.getIntParameter(URLParamType.clientConnectionCount.getName(), URLParamType.clientConnectionCount.getIntValue());
+        int minClientConnection = this.url.getIntParameter(URLParamType.minClientConnection.getName(), URLParamType.minClientConnection.getIntValue());
+        clientCount = connectionCount / minClientConnection;
+
+        executorService = Executors.newScheduledThreadPool(1);
+        executorService.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                checkReferers();
+            }
+        }, MotanConstants.CHECK_PERIOD, MotanConstants.CHECK_PERIOD, TimeUnit.SECONDS);
+
+        ShutDownHook.registerShutdownHook(new Closable() {
+            @Override
+            public void close() {
+                if (!executorService.isShutdown()) {
+                    executorService.shutdown();
+                }
+            }
+        });
     }
 
     public void init() {
@@ -152,7 +181,6 @@ public class ClusterSupport<T> implements NotifyListener {
             onRegistryEmpty(registryUrl);
             LoggerUtil.warn("ClusterSupport config change notify, urls is empty: registry={} service={} urls=[]", registryUrl.getUri(),
                     url.getIdentity());
-
             return;
         }
 
@@ -165,8 +193,13 @@ public class ClusterSupport<T> implements NotifyListener {
         // 判断urls中是否包含权重信息，并通知loadbalance。
         processWeights(urls);
 
-        List<Referer<T>> newReferers = new ArrayList<Referer<T>>();
-        for (URL u : urls) {
+        registryUrlsMap.put(registryUrl, urls);
+        List<URL> serviceUrls = urls;
+        if (MotanSwitcherUtil.switcherIsOpenWithDefault("feature.motan.partial.server", true)) {
+            serviceUrls = selectUrls(registryUrl, urls);
+        }
+        List<Referer<T>> newReferers = new ArrayList<>();
+        for (URL u : serviceUrls) {
             if (!u.canServe(url)) {
                 continue;
             }
@@ -190,6 +223,87 @@ public class ClusterSupport<T> implements NotifyListener {
         // 此处不销毁referers，由cluster进行销毁
         registryReferers.put(registryUrl, newReferers);
         refreshCluster();
+    }
+
+    protected List<URL> selectUrls(URL registryUrl, List<URL> urls) {
+        Map<String, List<URL>> groupUrlsMap = new HashMap<>();
+        for (URL u : urls) {
+            String group = u.getGroup();
+            if (!groupUrlsMap.containsKey(group)) {
+                groupUrlsMap.put(group, new ArrayList<URL>());
+            }
+            if (u.canServe(url)) {
+                groupUrlsMap.get(group).add(u);
+            }
+        }
+        List<URL> result = new ArrayList<>();
+        for (Map.Entry<String, List<URL>> entry : groupUrlsMap.entrySet()) {
+            result.addAll(selectUrlsByGroup(registryUrl, entry.getKey(), entry.getValue()));
+        }
+        registryActiveUrlsMap.put(registryUrl, result);
+        return result;
+    }
+
+    protected List<URL> selectUrlsByGroup(URL registryUrl, String group, List<URL> notifyUrls) {
+        if (notifyUrls.size() <= clientCount) {
+            LoggerUtil.info("ClusterSupport config change notify: registry={} service={} group={} size={} non increased",
+                    registryUrl.getUri(), url.getIdentity(), group, notifyUrls.size());
+            return notifyUrls;
+        }
+
+        List<URL> result = new ArrayList<>();
+        List<URL> activeUrls = registryActiveUrlsMap.get(registryUrl);
+        if (activeUrls == null) {
+            activeUrls = new ArrayList<>();
+        }
+
+        List<URL> sameUrls = new ArrayList<>(notifyUrls);
+        sameUrls.retainAll(activeUrls);
+        List<URL> newUrls = new ArrayList<>(notifyUrls);
+        newUrls.removeAll(activeUrls);
+
+        List<URL> groupUrls = new ArrayList<>();
+        // 计算重用server的数量
+        int remainCount = clientCount - clientCount * newUrls.size() / notifyUrls.size();
+        // 至少三分之一的节点参与随机选择
+        remainCount = Math.min(remainCount, clientCount / 3);
+        if (sameUrls.size() > remainCount) {
+            Collections.shuffle(sameUrls);
+            List<URL> randomUrls = new ArrayList<>();
+            randomUrls.addAll(newUrls);
+            randomUrls.addAll(sameUrls.subList(remainCount, sameUrls.size()));
+            Collections.shuffle(randomUrls);
+
+            groupUrls.addAll(sameUrls.subList(0, remainCount));
+            groupUrls.addAll(randomUrls);
+        } else {
+            groupUrls.addAll(sameUrls);
+            groupUrls.addAll(newUrls);
+        }
+        if (groupUrls.size() > clientCount) {
+            result.addAll(groupUrls.subList(0, clientCount));
+        } else {
+            result.addAll(groupUrls);
+        }
+        LoggerUtil.info("ClusterSupport config change notify: registry={} service={} group={} size={} urls={}",
+                registryUrl.getUri(), url.getIdentity(), group, result.size(), getIdentities(result));
+        return result;
+    }
+
+    public void checkReferers() {
+        for (Map.Entry<URL, List<Referer<T>>> entry : registryReferers.entrySet()) {
+            URL registryUrl = entry.getKey();
+            int available = 0;
+            for (Referer<T> referer : entry.getValue()) {
+                if (referer.isAvailable()) {
+                    available++;
+                }
+            }
+            List<URL> activeUrls = registryUrlsMap.get(registryUrl);
+            if (activeUrls.size() > clientCount && available < clientCount) {
+                notify(registryUrl, activeUrls);
+            }
+        }
     }
 
     /**
@@ -259,7 +373,7 @@ public class ClusterSupport<T> implements NotifyListener {
     }
 
     private void refreshCluster() {
-        List<Referer<T>> referers = new ArrayList<Referer<T>>();
+        List<Referer<T>> referers = new ArrayList<>();
         for (List<Referer<T>> refs : registryReferers.values()) {
             referers.addAll(refs);
         }
@@ -307,7 +421,7 @@ public class ClusterSupport<T> implements NotifyListener {
 
     private List<URL> parseDirectUrls(String directUrlStr) {
         String[] durlArr = MotanConstants.COMMA_SPLIT_PATTERN.split(directUrlStr);
-        List<URL> directUrls = new ArrayList<URL>();
+        List<URL> directUrls = new ArrayList<>();
         for (String dus : durlArr) {
             URL du = URL.valueOf(StringTools.urlDecode(dus));
             if (du != null) {
