@@ -16,9 +16,9 @@
 
 package com.weibo.api.motan.config;
 
-import java.util.Map;
-
 import com.weibo.api.motan.config.annotation.ConfigDesc;
+
+import java.util.Map;
 
 /**
  * 
@@ -48,6 +48,7 @@ public class ProtocolConfig extends AbstractConfig {
     protected Integer minClientConnection;
     // client最大连接数
     protected Integer maxClientConnection;
+    protected Integer maxConnectionPerGroup;
     // 最小工作pool线程数
     protected Integer minWorkerThread;
     // 最大工作pool线程数
@@ -162,6 +163,14 @@ public class ProtocolConfig extends AbstractConfig {
 
     public void setMaxClientConnection(Integer maxClientConnection) {
         this.maxClientConnection = maxClientConnection;
+    }
+
+    public Integer getMaxConnectionPerGroup() {
+        return maxConnectionPerGroup;
+    }
+
+    public void setMaxConnectionPerGroup(Integer maxConnectionPerGroup) {
+        this.maxConnectionPerGroup = maxConnectionPerGroup;
     }
 
     public Integer getMinWorkerThread() {

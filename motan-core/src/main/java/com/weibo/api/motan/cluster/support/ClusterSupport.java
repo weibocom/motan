@@ -66,7 +66,6 @@ public class ClusterSupport<T> implements NotifyListener {
 
     protected ConcurrentHashMap<URL, List<URL>> registryUrlsMap = new ConcurrentHashMap<>();
     protected ConcurrentHashMap<URL, List<URL>> registryActiveUrlsMap = new ConcurrentHashMap<>();
-    protected ConcurrentHashMap<String, List<URL>> groupUrlsMap = new ConcurrentHashMap<>();
     private int selectNodeCount;
 
     public ClusterSupport(Class<T> interfaceClass, List<URL> registryUrls) {
@@ -75,9 +74,9 @@ public class ClusterSupport<T> implements NotifyListener {
         String urlStr = StringTools.urlDecode(registryUrls.get(0).getParameter(URLParamType.embed.getName()));
         this.url = URL.valueOf(urlStr);
         protocol = getDecorateProtocol(url.getProtocol());
-        int connectionCount = this.url.getIntParameter(URLParamType.clientConnectionCount.getName(), URLParamType.clientConnectionCount.getIntValue());
+        int maxConnectionCount = this.url.getIntParameter(URLParamType.maxConnectionPerGroup.getName(), URLParamType.maxConnectionPerGroup.getIntValue());
         int maxClientConnection = this.url.getIntParameter(URLParamType.maxClientConnection.getName(), URLParamType.maxClientConnection.getIntValue());
-        selectNodeCount = connectionCount / maxClientConnection;
+        selectNodeCount = maxConnectionCount / maxClientConnection;
 
         if (selectNodeCount != 0) {
             executorService = Executors.newScheduledThreadPool(1);
@@ -196,7 +195,6 @@ public class ClusterSupport<T> implements NotifyListener {
         // 判断urls中是否包含权重信息，并通知loadbalance。
         processWeights(urls);
 
-        registryUrlsMap.put(registryUrl, urls);
         List<URL> serviceUrls = urls;
         if (selectNodeCount > 0 && MotanSwitcherUtil.switcherIsOpenWithDefault("feature.motan.partial.server", true)) {
             serviceUrls = selectUrls(registryUrl, urls);
@@ -243,9 +241,8 @@ public class ClusterSupport<T> implements NotifyListener {
         for (Map.Entry<String, List<URL>> entry : groupUrlsMap.entrySet()) {
             result.addAll(selectUrlsByGroup(registryUrl, entry.getKey(), entry.getValue()));
         }
+        registryUrlsMap.put(registryUrl, urls);
         registryActiveUrlsMap.put(registryUrl, result);
-        this.groupUrlsMap.clear();
-        this.groupUrlsMap.putAll(groupUrlsMap);
         return result;
     }
 
@@ -261,21 +258,21 @@ public class ClusterSupport<T> implements NotifyListener {
         if (activeUrls == null) {
             activeUrls = new ArrayList<>();
         }
-        List<URL> oldNotifyUrls = groupUrlsMap.get(group);
-        if (oldNotifyUrls == null) {
-            oldNotifyUrls = new ArrayList<>();
+        List<URL> lastNotifyUrls = registryUrlsMap.get(registryUrl);
+        if (lastNotifyUrls == null) {
+            lastNotifyUrls = new ArrayList<>();
         }
 
         List<URL> sameUrls = new ArrayList<>(notifyUrls);
         sameUrls.retainAll(activeUrls);
         Collections.shuffle(sameUrls);
         List<URL> addedUrls = new ArrayList<>(notifyUrls);
-        addedUrls.removeAll(oldNotifyUrls);
+        addedUrls.removeAll(lastNotifyUrls);
         Collections.shuffle(addedUrls);
 
         List<URL> groupUrls = new ArrayList<>();
         // 计算重用节点数量
-        int newCount = Math.round((float) selectNodeCount * addedUrls.size() / (oldNotifyUrls.size() + addedUrls.size()));
+        int newCount = Math.round((float) selectNodeCount * addedUrls.size() / notifyUrls.size());
         int remainCount = selectNodeCount - newCount;
         // 至少三分之一的节点参与随机选择
         remainCount = Math.min(remainCount, 2 * selectNodeCount / 3);
@@ -307,6 +304,8 @@ public class ClusterSupport<T> implements NotifyListener {
     public void checkReferers() {
         for (Map.Entry<URL, List<Referer<T>>> entry : registryReferers.entrySet()) {
             URL registryUrl = entry.getKey();
+            LoggerUtil.info("ClusterSupport checkReferers: registry={} service={}",
+                    registryUrl.getUri(), url.getIdentity());
             int available = 0;
             for (Referer<T> referer : entry.getValue()) {
                 if (referer.isAvailable()) {

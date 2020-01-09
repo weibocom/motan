@@ -50,7 +50,7 @@ public enum URLParamType {
      * pool max conn number
      **/
     maxClientConnection("maxClientConnection", 10),
-    clientConnectionCount("clientConnectionCount", 0),
+    maxConnectionPerGroup("maxConnectionPerGroup", 0),
     /**
      * pool max conn number
      **/

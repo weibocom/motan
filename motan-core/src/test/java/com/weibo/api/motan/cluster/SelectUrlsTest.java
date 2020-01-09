@@ -39,7 +39,7 @@ public class SelectUrlsTest {
     private static List<URL> mockRegistryUrls() {
         URL refUrl = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, IHello.class.getName());
         refUrl.addParameter(URLParamType.check.getName(), "false");
-        refUrl.addParameter(URLParamType.clientConnectionCount.getName(), String.valueOf(count * URLParamType.maxClientConnection.getIntValue()));
+        refUrl.addParameter(URLParamType.maxConnectionPerGroup.getName(), String.valueOf(count * URLParamType.maxClientConnection.getIntValue()));
 
         URL url1 = new URL("reg_1", "192.168.1.1", 18081, RegistryService.class.getName());
         url1.addParameter(URLParamType.embed.getName(), StringTools.urlEncode(refUrl.toFullStr()));
