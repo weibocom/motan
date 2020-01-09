@@ -20,113 +20,91 @@ import com.weibo.api.motan.cluster.support.ClusterSupport;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.protocol.example.IHello;
-import com.weibo.api.motan.registry.NotifyListener;
-import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.registry.RegistryService;
-import com.weibo.api.motan.rpc.Protocol;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.StringTools;
 import junit.framework.Assert;
-import org.jmock.Expectations;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class SelectUrlsTest {
-
-    private static JUnit4Mockery mockery = new JUnit4Mockery() {
-        {
-            setImposteriser(ClassImposteriser.INSTANCE);
-        }
-    };
-
-    private static ClusterSupportMask<IHello> clusterSupport;
-    private static Protocol protocol = mockery.mock(Protocol.class);
-    private static Map<String, Registry> registries = new HashMap<>();
-    private static String regProtocol1 = "reg_1";
-    private static String regProtocol2 = "reg_2";
-    private static int count = 10;
+    private static int count = 20;
 
     private static List<URL> mockRegistryUrls() {
         URL refUrl = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, IHello.class.getName());
         refUrl.addParameter(URLParamType.check.getName(), "false");
-        refUrl.addParameter(URLParamType.clientConnectionCount.getName(), String.valueOf(count * 2));
+        refUrl.addParameter(URLParamType.clientConnectionCount.getName(), String.valueOf(count * URLParamType.maxClientConnection.getIntValue()));
 
-        URL url1 = new URL(regProtocol1, "192.168.1.1", 18081, RegistryService.class.getName());
+        URL url1 = new URL("reg_1", "192.168.1.1", 18081, RegistryService.class.getName());
         url1.addParameter(URLParamType.embed.getName(), StringTools.urlEncode(refUrl.toFullStr()));
-
-        URL url2 = new URL(regProtocol2, "192.168.1.2", 8082, RegistryService.class.getName());
-        url2.addParameter(URLParamType.embed.getName(), StringTools.urlEncode(refUrl.toFullStr()));
 
         List<URL> urls = new ArrayList<>();
         urls.add(url1);
-        urls.add(url2);
         return urls;
     }
 
-    @BeforeClass
-    public static void initCluster() {
-        clusterSupport = new ClusterSupportMask<>(IHello.class, mockRegistryUrls());
-
-        registries.put(regProtocol1, mockery.mock(Registry.class, regProtocol1));
-        registries.put(regProtocol2, mockery.mock(Registry.class, regProtocol2));
-
-        mockery.checking(new Expectations() {
-            {
-                allowing(any(Registry.class)).method("register").with(any(URL.class));
-                allowing(any(Registry.class)).method("subscribe").with(any(URL.class), any(NotifyListener.class));
-            }
-        });
-
-        clusterSupport.init();
-    }
-
+    /**
+     * 节点不变时，每次更新应返回固定的20个url
+     */
     @Test
-    public void testSelectUrlsAvgCount() {
+    public void testSelectUrls() {
+        ClusterSupportMask<IHello> clusterSupport = new ClusterSupportMask<>(IHello.class, mockRegistryUrls());
         List<URL> urls = new ArrayList<>();
         int notifyCount = 60;
         urls.addAll(mockUrls(notifyCount, "group1"));
         urls.addAll(mockUrls(notifyCount, "group2"));
-        int clientCount = 1000;
         List<URL> finalUrls = new ArrayList<>();
-        for (int i = 0; i < clientCount; i++) {
+        for (int i = 0; i < 10; i++) {
             finalUrls.addAll(clusterSupport.selectUrls(clusterSupport.getUrl(), urls));
         }
         Map<String, List<URL>> result = finalUrls.stream().collect(Collectors.groupingBy(URL::toSimpleString));
-        Assert.assertEquals(notifyCount * 2, result.size());
-        int avgCount = clientCount * count / notifyCount;
-        for (Map.Entry<String, List<URL>> entry : result.entrySet()) {
-            Assert.assertTrue(entry.getValue().size() > avgCount - 50);
-            Assert.assertTrue(entry.getValue().size() < avgCount + 50);
+        Assert.assertEquals(count * 2, result.size());
+    }
+
+    /**
+     * 新增节点时，验证每次更新后来自新增节点的数量是否符合预期
+     */
+    @Test
+    public void testSelectUrls2() {
+        int notifyCount = 60;
+        for (int i = count; i < notifyCount; i++) {
+            checkCount(notifyCount, i);
         }
     }
 
+    public void checkCount(int notifyCount, int split) {
+        ClusterSupportMask<IHello> clusterSupport = new ClusterSupportMask<>(IHello.class, mockRegistryUrls());
+        List<URL> urls = mockUrls(notifyCount, "group1");
+
+        clusterSupport.selectUrls(clusterSupport.getUrl(), urls.subList(0, split));
+        List<URL> selectUrls = new ArrayList<>();
+        selectUrls.addAll(clusterSupport.selectUrls(clusterSupport.getUrl(), urls));
+        List<URL> addedUrls = new ArrayList<>(selectUrls);
+        addedUrls.retainAll(urls.subList(split, notifyCount));
+
+        int expect = Math.round((float) (notifyCount - split) / notifyCount * count);
+        Assert.assertTrue(addedUrls.size() - expect >= 0);
+    }
+
+    /**
+     * 删除节点时，每次更新应返回固定的20个url
+     */
     @Test
-    public void testSelectUrls() {
-        List<URL> urls = mockUrls(count + 100, "group1");
-        URL mockRegistryUrl = mockRegistryUrls().get(0);
-        boolean success = false;
-        Set<URL> result = new HashSet<>();
-        int[] arr = new int[]{1, 10, 100};
-        for (int cnt : arr) {
-            clusterSupport.activeUrlsMap.clear();
-            for (int i = 0; i < 1000; i++) {
-                int expect = count + cnt;
-                result.addAll(clusterSupport.selectUrls(mockRegistryUrl, urls.subList(0, expect)));
-                if (result.size() == expect) {
-//                    System.out.println(i);
-                    success = true;
-                    break;
-                }
-            }
-            Assert.assertTrue(success);
-        }
+    public void testSelectUrls3() {
+        int notifyCount = 60;
+        ClusterSupportMask<IHello> clusterSupport = new ClusterSupportMask<>(IHello.class, mockRegistryUrls());
+        List<URL> urls = mockUrls(notifyCount, "group1");
+
+        clusterSupport.selectUrls(clusterSupport.getUrl(), urls);
+        List<URL> selectUrls = new ArrayList<>();
+        selectUrls.addAll(clusterSupport.selectUrls(clusterSupport.getUrl(), urls.subList(30, notifyCount)));
+        Assert.assertEquals(count, selectUrls.size());
     }
 
     private List<URL> mockUrls(int size, String group) {
@@ -150,16 +128,6 @@ public class SelectUrlsTest {
         @Override
         public List<URL> selectUrls(URL registryUrl, List<URL> urls) {
             return super.selectUrls(registryUrl, urls);
-        }
-
-        @Override
-        protected Protocol getDecorateProtocol(String protocolName) {
-            return protocol;
-        }
-
-        @Override
-        protected Registry getRegistry(URL url) {
-            return registries.get(url.getProtocol());
         }
 
     }

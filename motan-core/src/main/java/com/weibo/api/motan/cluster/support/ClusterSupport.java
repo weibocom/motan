@@ -66,7 +66,8 @@ public class ClusterSupport<T> implements NotifyListener {
 
     protected ConcurrentHashMap<URL, List<URL>> registryUrlsMap = new ConcurrentHashMap<>();
     protected ConcurrentHashMap<URL, List<URL>> registryActiveUrlsMap = new ConcurrentHashMap<>();
-    private int clientCount;
+    protected ConcurrentHashMap<String, List<URL>> groupUrlsMap = new ConcurrentHashMap<>();
+    private int selectNodeCount;
 
     public ClusterSupport(Class<T> interfaceClass, List<URL> registryUrls) {
         this.registryUrls = registryUrls;
@@ -75,25 +76,27 @@ public class ClusterSupport<T> implements NotifyListener {
         this.url = URL.valueOf(urlStr);
         protocol = getDecorateProtocol(url.getProtocol());
         int connectionCount = this.url.getIntParameter(URLParamType.clientConnectionCount.getName(), URLParamType.clientConnectionCount.getIntValue());
-        int minClientConnection = this.url.getIntParameter(URLParamType.minClientConnection.getName(), URLParamType.minClientConnection.getIntValue());
-        clientCount = connectionCount / minClientConnection;
+        int maxClientConnection = this.url.getIntParameter(URLParamType.maxClientConnection.getName(), URLParamType.maxClientConnection.getIntValue());
+        selectNodeCount = connectionCount / maxClientConnection;
 
-        executorService = Executors.newScheduledThreadPool(1);
-        executorService.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                checkReferers();
-            }
-        }, MotanConstants.CHECK_PERIOD, MotanConstants.CHECK_PERIOD, TimeUnit.SECONDS);
-
-        ShutDownHook.registerShutdownHook(new Closable() {
-            @Override
-            public void close() {
-                if (!executorService.isShutdown()) {
-                    executorService.shutdown();
+        if (selectNodeCount != 0) {
+            executorService = Executors.newScheduledThreadPool(1);
+            executorService.scheduleAtFixedRate(new Runnable() {
+                @Override
+                public void run() {
+                    checkReferers();
                 }
-            }
-        });
+            }, MotanConstants.CHECK_PERIOD, MotanConstants.CHECK_PERIOD, TimeUnit.SECONDS);
+
+            ShutDownHook.registerShutdownHook(new Closable() {
+                @Override
+                public void close() {
+                    if (!executorService.isShutdown()) {
+                        executorService.shutdown();
+                    }
+                }
+            });
+        }
     }
 
     public void init() {
@@ -179,7 +182,7 @@ public class ClusterSupport<T> implements NotifyListener {
     public synchronized void notify(URL registryUrl, List<URL> urls) {
         if (CollectionUtil.isEmpty(urls)) {
             onRegistryEmpty(registryUrl);
-            LoggerUtil.warn("ClusterSupport config change notify, urls is empty: registry={} service={} urls=[]", registryUrl.getUri(),
+            LoggerUtil.warn("ClusterSupport config change notify, urls is empty: registry={} service={} urls={}", registryUrl.getUri(),
                     url.getIdentity());
             return;
         }
@@ -195,7 +198,7 @@ public class ClusterSupport<T> implements NotifyListener {
 
         registryUrlsMap.put(registryUrl, urls);
         List<URL> serviceUrls = urls;
-        if (MotanSwitcherUtil.switcherIsOpenWithDefault("feature.motan.partial.server", true)) {
+        if (selectNodeCount > 0 && MotanSwitcherUtil.switcherIsOpenWithDefault("feature.motan.partial.server", true)) {
             serviceUrls = selectUrls(registryUrl, urls);
         }
         List<Referer<T>> newReferers = new ArrayList<>();
@@ -241,11 +244,13 @@ public class ClusterSupport<T> implements NotifyListener {
             result.addAll(selectUrlsByGroup(registryUrl, entry.getKey(), entry.getValue()));
         }
         registryActiveUrlsMap.put(registryUrl, result);
+        this.groupUrlsMap.clear();
+        this.groupUrlsMap.putAll(groupUrlsMap);
         return result;
     }
 
     protected List<URL> selectUrlsByGroup(URL registryUrl, String group, List<URL> notifyUrls) {
-        if (notifyUrls.size() <= clientCount) {
+        if (notifyUrls.size() <= selectNodeCount) {
             LoggerUtil.info("ClusterSupport config change notify: registry={} service={} group={} size={} non increased",
                     registryUrl.getUri(), url.getIdentity(), group, notifyUrls.size());
             return notifyUrls;
@@ -256,32 +261,41 @@ public class ClusterSupport<T> implements NotifyListener {
         if (activeUrls == null) {
             activeUrls = new ArrayList<>();
         }
+        List<URL> oldNotifyUrls = groupUrlsMap.get(group);
+        if (oldNotifyUrls == null) {
+            oldNotifyUrls = new ArrayList<>();
+        }
 
         List<URL> sameUrls = new ArrayList<>(notifyUrls);
         sameUrls.retainAll(activeUrls);
-        List<URL> newUrls = new ArrayList<>(notifyUrls);
-        newUrls.removeAll(activeUrls);
+        Collections.shuffle(sameUrls);
+        List<URL> addedUrls = new ArrayList<>(notifyUrls);
+        addedUrls.removeAll(oldNotifyUrls);
+        Collections.shuffle(addedUrls);
 
         List<URL> groupUrls = new ArrayList<>();
-        // 计算重用server的数量
-        int remainCount = clientCount - clientCount * newUrls.size() / notifyUrls.size();
+        // 计算重用节点数量
+        int newCount = Math.round((float) selectNodeCount * addedUrls.size() / (oldNotifyUrls.size() + addedUrls.size()));
+        int remainCount = selectNodeCount - newCount;
         // 至少三分之一的节点参与随机选择
-        remainCount = Math.min(remainCount, clientCount / 3);
+        remainCount = Math.min(remainCount, 2 * selectNodeCount / 3);
         if (sameUrls.size() > remainCount) {
-            Collections.shuffle(sameUrls);
-            List<URL> randomUrls = new ArrayList<>();
-            randomUrls.addAll(newUrls);
-            randomUrls.addAll(sameUrls.subList(remainCount, sameUrls.size()));
-            Collections.shuffle(randomUrls);
-
             groupUrls.addAll(sameUrls.subList(0, remainCount));
-            groupUrls.addAll(randomUrls);
+            groupUrls.addAll(addedUrls.subList(0, newCount));
+            groupUrls.addAll(sameUrls.subList(remainCount, sameUrls.size()));
         } else {
             groupUrls.addAll(sameUrls);
-            groupUrls.addAll(newUrls);
+            groupUrls.addAll(addedUrls.subList(0, newCount));
         }
-        if (groupUrls.size() > clientCount) {
-            result.addAll(groupUrls.subList(0, clientCount));
+        if (groupUrls.size() < selectNodeCount) {
+            List<URL> oUrls = new ArrayList<>(notifyUrls);
+            oUrls.removeAll(groupUrls);
+            Collections.shuffle(oUrls);
+            groupUrls.addAll(oUrls);
+        }
+
+        if (groupUrls.size() >= selectNodeCount) {
+            result.addAll(groupUrls.subList(0, selectNodeCount));
         } else {
             result.addAll(groupUrls);
         }
@@ -300,7 +314,7 @@ public class ClusterSupport<T> implements NotifyListener {
                 }
             }
             List<URL> activeUrls = registryUrlsMap.get(registryUrl);
-            if (activeUrls.size() > clientCount && available < clientCount) {
+            if (activeUrls.size() > selectNodeCount && available < selectNodeCount) {
                 notify(registryUrl, activeUrls);
             }
         }

@@ -50,7 +50,7 @@ public enum URLParamType {
      * pool max conn number
      **/
     maxClientConnection("maxClientConnection", 10),
-    clientConnectionCount("clientConnectionCount", 100),
+    clientConnectionCount("clientConnectionCount", 0),
     /**
      * pool max conn number
      **/
@@ -70,16 +70,25 @@ public enum URLParamType {
      **/
     shareChannel("shareChannel", false),
     asyncInitConnection("asyncInitConnection", false),
+    fusingThreshold("fusingThreshold", 10),
 
     /************************** SPI start ******************************/
 
-    /** serialize **/
+    /**
+     * serialize
+     **/
     serialize("serialization", "hessian2"),
-    /** codec **/
+    /**
+     * codec
+     **/
     codec("codec", "motan"),
-    /** endpointFactory **/
+    /**
+     * endpointFactory
+     **/
     endpointFactory("endpointFactory", "motan"),
-    /** heartbeatFactory **/
+    /**
+     * heartbeatFactory
+     **/
     heartbeatFactory("heartbeatFactory", "motan"),
     /** switcherService **/
     switcherService("switcherService", "localSwitcherService"),
