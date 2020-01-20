@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ConsulEcwidClient extends MotanConsulClient {
-    public static ConsulClient client;
+    protected ConsulClient client;
 
     public ConsulEcwidClient(String host, int port) {
         super(host, port);
