@@ -16,7 +16,6 @@
 
 package com.weibo.api.motan.cluster.support;
 
-import com.weibo.api.motan.closable.Closable;
 import com.weibo.api.motan.closable.ShutDownHook;
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.cluster.HaStrategy;
@@ -56,16 +55,31 @@ import java.util.concurrent.TimeUnit;
 public class ClusterSupport<T> implements NotifyListener {
 
     private static ConcurrentHashMap<String, Protocol> protocols = new ConcurrentHashMap<>();
+    private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+    private static Set<ClusterSupport> refreshSet = new HashSet<>();
+
+    static {
+        executorService.scheduleAtFixedRate(() -> {
+            for (ClusterSupport clusterSupport : refreshSet) {
+                clusterSupport.refreshReferers();
+            }
+        }, MotanConstants.REFRESH_PERIOD, MotanConstants.REFRESH_PERIOD, TimeUnit.SECONDS);
+
+        ShutDownHook.registerShutdownHook(() -> {
+            if (!executorService.isShutdown()) {
+                executorService.shutdown();
+            }
+        });
+    }
+
+    protected ConcurrentHashMap<URL, List<URL>> registryUrlsMap = new ConcurrentHashMap<>();
+    protected ConcurrentHashMap<URL, List<URL>> registryActiveUrlsMap = new ConcurrentHashMap<>();
     private Cluster<T> cluster;
     private List<URL> registryUrls;
     private URL url;
     private Class<T> interfaceClass;
     private Protocol protocol;
     private ConcurrentHashMap<URL, List<Referer<T>>> registryReferers = new ConcurrentHashMap<>();
-    public ScheduledExecutorService executorService;
-
-    protected ConcurrentHashMap<URL, List<URL>> registryUrlsMap = new ConcurrentHashMap<>();
-    protected ConcurrentHashMap<URL, List<URL>> registryActiveUrlsMap = new ConcurrentHashMap<>();
     private int selectNodeCount;
 
     public ClusterSupport(Class<T> interfaceClass, List<URL> registryUrls) {
@@ -77,25 +91,6 @@ public class ClusterSupport<T> implements NotifyListener {
         int maxConnectionCount = this.url.getIntParameter(URLParamType.maxConnectionPerGroup.getName(), URLParamType.maxConnectionPerGroup.getIntValue());
         int maxClientConnection = this.url.getIntParameter(URLParamType.maxClientConnection.getName(), URLParamType.maxClientConnection.getIntValue());
         selectNodeCount = maxConnectionCount / maxClientConnection;
-
-        if (selectNodeCount != 0) {
-            executorService = Executors.newScheduledThreadPool(1);
-            executorService.scheduleAtFixedRate(new Runnable() {
-                @Override
-                public void run() {
-                    checkReferers();
-                }
-            }, MotanConstants.CHECK_PERIOD, MotanConstants.CHECK_PERIOD, TimeUnit.SECONDS);
-
-            ShutDownHook.registerShutdownHook(new Closable() {
-                @Override
-                public void close() {
-                    if (!executorService.isShutdown()) {
-                        executorService.shutdown();
-                    }
-                }
-            });
-        }
     }
 
     public void init() {
@@ -181,7 +176,7 @@ public class ClusterSupport<T> implements NotifyListener {
     public synchronized void notify(URL registryUrl, List<URL> urls) {
         if (CollectionUtil.isEmpty(urls)) {
             onRegistryEmpty(registryUrl);
-            LoggerUtil.warn("ClusterSupport config change notify, urls is empty: registry={} service={} urls={}", registryUrl.getUri(),
+            LoggerUtil.warn("ClusterSupport config change notify, urls is empty: registry={} service={} urls=[]", registryUrl.getUri(),
                     url.getIdentity());
             return;
         }
@@ -197,7 +192,10 @@ public class ClusterSupport<T> implements NotifyListener {
 
         List<URL> serviceUrls = urls;
         if (selectNodeCount > 0 && MotanSwitcherUtil.switcherIsOpenWithDefault("feature.motan.partial.server", true)) {
+            refreshSet.add(this);
             serviceUrls = selectUrls(registryUrl, urls);
+        } else {
+            refreshSet.remove(this);
         }
         List<Referer<T>> newReferers = new ArrayList<>();
         for (URL u : serviceUrls) {
@@ -301,20 +299,19 @@ public class ClusterSupport<T> implements NotifyListener {
         return result;
     }
 
-    public void checkReferers() {
+    public void refreshReferers() {
         for (Map.Entry<URL, List<Referer<T>>> entry : registryReferers.entrySet()) {
             URL registryUrl = entry.getKey();
-            LoggerUtil.info("ClusterSupport checkReferers: registry={} service={}",
-                    registryUrl.getUri(), url.getIdentity());
+            LoggerUtil.info("ClusterSupport refreshReferers: registry={} service={}", registryUrl.getUri(), url.getIdentity());
             int available = 0;
             for (Referer<T> referer : entry.getValue()) {
                 if (referer.isAvailable()) {
                     available++;
                 }
             }
-            List<URL> activeUrls = registryUrlsMap.get(registryUrl);
-            if (activeUrls.size() > selectNodeCount && available < selectNodeCount) {
-                notify(registryUrl, activeUrls);
+            List<URL> urls = registryUrlsMap.get(registryUrl);
+            if (urls.size() > selectNodeCount && available < selectNodeCount) {
+                notify(registryUrl, urls);
             }
         }
     }

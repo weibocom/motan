@@ -68,7 +68,7 @@ public class MotanConstants {
     public static final String DEFAULT_CHARACTER = "utf-8";
     public static final int SLOW_COST = 50; // 50ms
     public static final int STATISTIC_PEROID = 30; // 30 seconds
-    public static final int CHECK_PERIOD = 60;
+    public static final int REFRESH_PERIOD = 60;
     public static final String ASYNC_SUFFIX = "Async";// suffix for async call.
     public static final String APPLICATION_STATISTIC = "statisitic";
     public static final String REQUEST_REMOTE_ADDR = "requestRemoteAddress";
