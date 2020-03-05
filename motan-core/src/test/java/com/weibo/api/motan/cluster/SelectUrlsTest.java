@@ -72,10 +72,8 @@ public class SelectUrlsTest {
      */
     @Test
     public void testSelectUrls2() {
-        int notifyCount = 60;
-        for (int i = count; i < notifyCount; i++) {
-            checkCount(notifyCount, i);
-        }
+        int notifyCount = 100;
+        checkCount(notifyCount, 60);
     }
 
     public void checkCount(int notifyCount, int split) {
@@ -88,8 +86,13 @@ public class SelectUrlsTest {
         List<URL> addedUrls = new ArrayList<>(selectUrls);
         addedUrls.retainAll(urls.subList(split, notifyCount));
 
-        int expect = Math.round((float) (notifyCount - split) / notifyCount * count);
-        Assert.assertTrue(addedUrls.size() - expect >= 0);
+        double p = (double)(notifyCount - split) / notifyCount;
+        //假设认定新加入的url都有p的可能性被选中，即每个url是否被选中独立服从0-1分布
+        //进而，根据中心极限定理可知下式 近似 服从标准正态分布
+        double z = (addedUrls.size() - p * count) / (Math.sqrt((notifyCount - split) * p * (1 - p)));
+
+        //查表知在n=40的情况下，如满足条件则|z| < 2.7045的可能性为99%。这样的话此用例将有<1%的概率失败
+        Assert.assertTrue(Math.abs(z) < 2.7045);
     }
 
     /**
@@ -119,7 +122,6 @@ public class SelectUrlsTest {
     }
 
     private static class ClusterSupportMask<T> extends ClusterSupport<T> {
-        public ConcurrentHashMap<URL, List<URL>> activeUrlsMap = super.registryActiveUrlsMap;
 
         public ClusterSupportMask(Class<T> interfaceClass, List<URL> registryUrls) {
             super(interfaceClass, registryUrls);

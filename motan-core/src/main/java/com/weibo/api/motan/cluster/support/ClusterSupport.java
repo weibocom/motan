@@ -43,6 +43,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -72,8 +73,6 @@ public class ClusterSupport<T> implements NotifyListener {
         });
     }
 
-    protected ConcurrentHashMap<URL, List<URL>> registryUrlsMap = new ConcurrentHashMap<>();
-    protected ConcurrentHashMap<URL, List<URL>> registryActiveUrlsMap = new ConcurrentHashMap<>();
     private Cluster<T> cluster;
     private List<URL> registryUrls;
     private URL url;
@@ -81,6 +80,7 @@ public class ClusterSupport<T> implements NotifyListener {
     private Protocol protocol;
     private ConcurrentHashMap<URL, List<Referer<T>>> registryReferers = new ConcurrentHashMap<>();
     private int selectNodeCount;
+    private ConcurrentHashMap<URL, Map<String, GroupUrlsSelector>> registryGroupUrlsSelectorMap = new ConcurrentHashMap<>();
 
     public ClusterSupport(Class<T> interfaceClass, List<URL> registryUrls) {
         this.registryUrls = registryUrls;
@@ -90,7 +90,7 @@ public class ClusterSupport<T> implements NotifyListener {
         protocol = getDecorateProtocol(url.getProtocol());
         int maxConnectionCount = this.url.getIntParameter(URLParamType.maxConnectionPerGroup.getName(), URLParamType.maxConnectionPerGroup.getIntValue());
         int maxClientConnection = this.url.getIntParameter(URLParamType.maxClientConnection.getName(), URLParamType.maxClientConnection.getIntValue());
-        selectNodeCount = maxConnectionCount / maxClientConnection;
+        selectNodeCount = (int)Math.ceil(1.0 * maxConnectionCount / maxClientConnection);
     }
 
     public void init() {
@@ -197,6 +197,10 @@ public class ClusterSupport<T> implements NotifyListener {
         } else {
             refreshSet.remove(this);
         }
+        doRefreshReferersByUrls(registryUrl, serviceUrls);
+    }
+
+    private void doRefreshReferersByUrls(URL registryUrl, List<URL> serviceUrls) {
         List<Referer<T>> newReferers = new ArrayList<>();
         for (URL u : serviceUrls) {
             if (!u.canServe(url)) {
@@ -235,83 +239,88 @@ public class ClusterSupport<T> implements NotifyListener {
                 groupUrlsMap.get(group).add(u);
             }
         }
-        List<URL> result = new ArrayList<>();
+        Map<String, GroupUrlsSelector> selectorMap = registryGroupUrlsSelectorMap.computeIfAbsent(registryUrl, k -> new HashMap<>());
+
         for (Map.Entry<String, List<URL>> entry : groupUrlsMap.entrySet()) {
-            result.addAll(selectUrlsByGroup(registryUrl, entry.getKey(), entry.getValue()));
+            GroupUrlsSelector groupUrlsSelector = selectorMap.computeIfAbsent(entry.getKey(), k -> new GroupUrlsSelector());
+            if (entry.getValue().size() <= selectNodeCount) {
+                LoggerUtil.info("ClusterSupport config change notify: registry={} service={} group={} size={} non increased",
+                        registryUrl.getUri(), url.getIdentity(), entry.getKey(), entry.getValue().size());
+            }
+            groupUrlsSelector.updateBaseUrls(entry.getValue());
         }
-        registryUrlsMap.put(registryUrl, urls);
-        registryActiveUrlsMap.put(registryUrl, result);
-        return result;
+        //去掉多余的group
+        Set<String> removeGroups = new HashSet<>(selectorMap.keySet());
+        removeGroups.removeAll(groupUrlsMap.keySet());
+        if (!CollectionUtil.isEmpty(removeGroups)) {
+            for (String removeGroup : removeGroups) {
+                selectorMap.remove(removeGroup);
+            }
+        }
+
+        return doSelectUrls(registryUrl);
     }
 
-    protected List<URL> selectUrlsByGroup(URL registryUrl, String group, List<URL> notifyUrls) {
-        if (notifyUrls.size() <= selectNodeCount) {
-            LoggerUtil.info("ClusterSupport config change notify: registry={} service={} group={} size={} non increased",
-                    registryUrl.getUri(), url.getIdentity(), group, notifyUrls.size());
-            return notifyUrls;
-        }
-
+    private List<URL> doSelectUrls(URL registryUrl) {
         List<URL> result = new ArrayList<>();
-        List<URL> activeUrls = registryActiveUrlsMap.get(registryUrl);
-        if (activeUrls == null) {
-            activeUrls = new ArrayList<>();
-        }
-        List<URL> lastNotifyUrls = registryUrlsMap.get(registryUrl);
-        if (lastNotifyUrls == null) {
-            lastNotifyUrls = new ArrayList<>();
+        Map<String, GroupUrlsSelector> selectors = registryGroupUrlsSelectorMap.getOrDefault(registryUrl, Collections.emptyMap());
+        for (Map.Entry<String, GroupUrlsSelector> entry : selectors.entrySet()) {
+            List<URL> urls = entry.getValue().selectUrls();
+            result.addAll(urls);
+
+            LoggerUtil.info("ClusterSupport select group urls: registry={} service={} group={} size={} urls={}",
+                    registryUrl.getUri(), url.getIdentity(), entry.getKey(), result.size(), getIdentities(result));
         }
 
-        List<URL> sameUrls = new ArrayList<>(notifyUrls);
-        sameUrls.retainAll(activeUrls);
-        Collections.shuffle(sameUrls);
-        List<URL> addedUrls = new ArrayList<>(notifyUrls);
-        addedUrls.removeAll(lastNotifyUrls);
-        Collections.shuffle(addedUrls);
-
-        List<URL> groupUrls = new ArrayList<>();
-        // 计算重用节点数量
-        int newCount = Math.round((float) selectNodeCount * addedUrls.size() / notifyUrls.size());
-        int remainCount = selectNodeCount - newCount;
-        // 至少三分之一的节点参与随机选择
-        remainCount = Math.min(remainCount, 2 * selectNodeCount / 3);
-        if (sameUrls.size() > remainCount) {
-            groupUrls.addAll(sameUrls.subList(0, remainCount));
-            groupUrls.addAll(addedUrls.subList(0, newCount));
-            groupUrls.addAll(sameUrls.subList(remainCount, sameUrls.size()));
-        } else {
-            groupUrls.addAll(sameUrls);
-            groupUrls.addAll(addedUrls.subList(0, newCount));
-        }
-        if (groupUrls.size() < selectNodeCount) {
-            List<URL> oUrls = new ArrayList<>(notifyUrls);
-            oUrls.removeAll(groupUrls);
-            Collections.shuffle(oUrls);
-            groupUrls.addAll(oUrls);
-        }
-
-        if (groupUrls.size() >= selectNodeCount) {
-            result.addAll(groupUrls.subList(0, selectNodeCount));
-        } else {
-            result.addAll(groupUrls);
-        }
-        LoggerUtil.info("ClusterSupport config change notify: registry={} service={} group={} size={} urls={}",
-                registryUrl.getUri(), url.getIdentity(), group, result.size(), getIdentities(result));
         return result;
     }
 
-    public void refreshReferers() {
+    protected void refreshReferers() {
         for (Map.Entry<URL, List<Referer<T>>> entry : registryReferers.entrySet()) {
             URL registryUrl = entry.getKey();
             LoggerUtil.info("ClusterSupport refreshReferers: registry={} service={}", registryUrl.getUri(), url.getIdentity());
-            int available = 0;
+            Map<String, GroupUrlsSelector> groupSelectorMap = registryGroupUrlsSelectorMap.get(registryUrl);
+            if (groupSelectorMap == null || groupSelectorMap.size() == 0) {
+                LoggerUtil.warn("ClusterSupport refreshReferers, groupSelectorMap is empty: registry={} service={}", registryUrl.getUri(), url.getIdentity());
+                continue;
+            }
+            Map<String, Integer> groupAvailableCounter = new HashMap<>(groupSelectorMap.size());
             for (Referer<T> referer : entry.getValue()) {
+                String group = referer.getUrl().getGroup();
                 if (referer.isAvailable()) {
-                    available++;
+                    groupAvailableCounter.put(group, groupAvailableCounter.getOrDefault(group, 0) + 1);
                 }
             }
-            List<URL> urls = registryUrlsMap.get(registryUrl);
-            if (urls.size() > selectNodeCount && available < selectNodeCount) {
-                notify(registryUrl, urls);
+
+            boolean needRefresh = false;
+            for (Map.Entry<String, Integer> counter : groupAvailableCounter.entrySet()) {
+                String group = counter.getKey();
+                int available = counter.getValue();
+
+                GroupUrlsSelector selector = groupSelectorMap.get(group);
+                if (selector == null) {
+                    LoggerUtil.warn("ClusterSupport refreshReferers ,urls selector is null: registry={} service={} group={}", registryUrl.getUri(), url.getIdentity(), group);
+                    continue;
+                }
+                int selectSize = selector.getSelectSize();
+
+                int newSize = selectSize;
+                //将有效referer的数量保持在一个范围内, 如果小于selectNodeCount的2/3或大于selectNodeCount的4/3
+                // 则试图将可用数量恢复成selectNodeCount个
+                if (available <= 1.0 * selectNodeCount * 2 / 3 && selector.getBaseUrlsSize() > selectSize) {
+                    newSize = Math.min(selectSize + (selectNodeCount - available), selector.getBaseUrlsSize());
+                } else if (available >= 1.0 * selectNodeCount * 4 / 3) {
+                    newSize = selectSize - (available - selectNodeCount);
+                }
+                if (newSize != selectSize) {
+                    needRefresh = true;
+                    selector.setSelectSize(newSize);
+                    LoggerUtil.info("ClusterSupport refreshReferers selectSize changed: registry={} service={} group={} newSize={} oldSize={}", registryUrl.getUri(), url.getIdentity(), group, newSize, selectSize);
+                }
+            }
+            if (needRefresh) {
+                List<URL> urls = doSelectUrls(registryUrl);
+                doRefreshReferersByUrls(registryUrl, urls);
             }
         }
     }
@@ -439,5 +448,49 @@ public class ClusterSupport<T> implements NotifyListener {
             }
         }
         return directUrls;
+    }
+
+    private class GroupUrlsSelector {
+        private List<URL> baseUrls;
+        private int selectSize;
+
+        GroupUrlsSelector(){
+            baseUrls = new ArrayList<>();
+            selectSize = selectNodeCount;
+        }
+
+        void updateBaseUrls(List<URL> newBaseUrls){
+            baseUrls.retainAll(newBaseUrls);
+
+            Set<URL> addedUrls = new HashSet<>(newBaseUrls);
+            addedUrls.removeAll(baseUrls);
+
+            for (URL addedUrl : addedUrls) {
+                int addPosition = ThreadLocalRandom.current().nextInt(baseUrls.size() + 1);
+                baseUrls.add(addPosition, addedUrl);
+            }
+        }
+
+        List<URL> selectUrls() {
+            List<URL> result = new ArrayList<>(selectSize);
+            if (baseUrls.size() >= selectSize) {
+                result.addAll(baseUrls.subList(0, selectSize));
+            } else {
+                result.addAll(baseUrls);
+            }
+            return result;
+        }
+
+        int getSelectSize() {
+            return selectSize;
+        }
+
+        void setSelectSize(int selectSize) {
+            this.selectSize = selectSize;
+        }
+
+        int getBaseUrlsSize(){
+            return baseUrls.size();
+        }
     }
 }
