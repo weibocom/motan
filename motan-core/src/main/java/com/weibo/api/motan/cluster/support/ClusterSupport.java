@@ -268,8 +268,8 @@ public class ClusterSupport<T> implements NotifyListener {
             List<URL> urls = entry.getValue().selectUrls();
             result.addAll(urls);
 
-            LoggerUtil.info("ClusterSupport select group urls: registry={} service={} group={} size={} urls={}",
-                    registryUrl.getUri(), url.getIdentity(), entry.getKey(), result.size(), getIdentities(result));
+            LoggerUtil.info("ClusterSupport select group urls: registry={} service={} group={} expectSize={} size={} urls={}",
+                    registryUrl.getUri(), url.getIdentity(), entry.getKey(), entry.getValue().getSelectSize(), urls.size(), getIdentities(urls));
         }
 
         return result;
@@ -286,7 +286,7 @@ public class ClusterSupport<T> implements NotifyListener {
             }
             Map<String, Integer> groupAvailableCounter = new HashMap<>(groupSelectorMap.size());
             for (Referer<T> referer : entry.getValue()) {
-                String group = referer.getUrl().getGroup();
+                String group = referer.getServiceUrl().getGroup();
                 if (referer.isAvailable()) {
                     groupAvailableCounter.put(group, groupAvailableCounter.getOrDefault(group, 0) + 1);
                 }
