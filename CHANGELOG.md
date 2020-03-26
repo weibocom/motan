@@ -1,5 +1,19 @@
 # Change Log
 
+## [1.1.8](https://github.com/weibocom/motan/tree/1.1.8) (2020-03-26)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.7...1.1.8)
+
+**Merged pull requests:**
+
+- Bump tomcat-embed-core from 7.0.91 to 7.0.99 [\#881](https://github.com/weibocom/motan/pull/881) ([dependabot](https://github.com/dependabot))
+- add reject profile detail [\#883](https://github.com/weibocom/motan/pull/883) ([sunnights](https://github.com/sunnights))
+- limit client total connections [\#885](https://github.com/weibocom/motan/pull/885) ([Wshoway](https://github.com/Wshoway))
+- improve README:fix typo and improve format [\#890](https://github.com/weibocom/motan/pull/890) ([oldratlee](https://github.com/oldratlee))
+
+**Fixed bugs:**
+
+- fix multi consul registry [\#885](https://github.com/weibocom/motan/pull/885) ([Ray](https://github.com/rayzhang0603))
+
 ## [1.1.7](https://github.com/weibocom/motan/tree/1.1.7) (2019-12-05)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.1.6...1.1.7)
 
