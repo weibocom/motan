@@ -74,19 +74,17 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
     private ScheduledFuture<?> timeMonitorFuture = null;
 
-
     // 连续失败次数
     private AtomicLong errorCount = new AtomicLong(0);
-    // 最大连接数
-    private int maxClientConnection = 0;
+    private int fusingThreshold;
 
     private ClientBootstrap bootstrap;
 
     public NettyClient(URL url) {
         super(url);
 
-        maxClientConnection = url.getIntParameter(URLParamType.maxClientConnection.getName(),
-                URLParamType.maxClientConnection.getIntValue());
+        fusingThreshold = url.getIntParameter(URLParamType.fusingThreshold.getName(),
+                URLParamType.fusingThreshold.getIntValue());
 
         timeMonitorFuture = scheduledExecutor.scheduleWithFixedDelay(
                 new TimeoutMonitor("timeout_monitor_" + url.getHost() + "_" + url.getPort()),
@@ -347,12 +345,12 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
     void incrErrorCount() {
         long count = errorCount.incrementAndGet();
 
-        // 如果节点是可用状态，同时当前连续失败的次数超过限制maxClientConnection次，那么把该节点标示为不可用
-        if (count >= maxClientConnection && state.isAliveState()) {
+        // 如果节点是可用状态，同时当前连续失败的次数超过熔断阈值，那么把该节点标示为不可用
+        if (count >= fusingThreshold && state.isAliveState()) {
             synchronized (this) {
                 count = errorCount.longValue();
 
-                if (count >= maxClientConnection && state.isAliveState()) {
+                if (count >= fusingThreshold && state.isAliveState()) {
                     LoggerUtil.error("NettyClient unavailable Error: url=" + url.getIdentity() + " "
                             + url.getServerPortStr());
                     state = ChannelState.UNALIVE;
@@ -385,7 +383,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
                 long count = errorCount.longValue();
 
                 // 过程中有其他并发更新errorCount的，因此这里需要进行一次判断
-                if (count < maxClientConnection) {
+                if (count < fusingThreshold) {
                     state = ChannelState.ALIVE;
                     LoggerUtil.info("NettyClient recover available: url=" + url.getIdentity() + " "
                             + url.getServerPortStr());

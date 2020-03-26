@@ -16,14 +16,12 @@
 
 package com.weibo.api.motan.transport;
 
-import junit.framework.TestCase;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.weibo.api.motan.rpc.DefaultProvider;
 import com.weibo.api.motan.rpc.Provider;
 import com.weibo.api.motan.rpc.URL;
+import junit.framework.TestCase;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author maijunsheng
@@ -50,26 +48,26 @@ public class ProviderProtectedMessageRouterTest extends TestCase {
         int maxThread = 40;
 
         for (int i = 1; i <= maxThread; i++) {
-            Assert.assertTrue(providerMessageRouter.isAllowRequest(i, i, maxThread, null));
+            Assert.assertTrue(providerMessageRouter.isAllowRequest(i, i, maxThread));
         }
 
         providerMessageRouter.addProvider(providerB);
 
         for (int i = 1; i <= (maxThread * 3 / 4); i++) {
-            Assert.assertTrue(providerMessageRouter.isAllowRequest(i, i, maxThread, null));
+            Assert.assertTrue(providerMessageRouter.isAllowRequest(i, i, maxThread));
         }
 
-        Assert.assertTrue(providerMessageRouter.isAllowRequest(maxThread / 2, maxThread * 3 / 4 + 1, maxThread, null));
-        Assert.assertFalse(providerMessageRouter.isAllowRequest(maxThread / 2 + 1, maxThread * 3 / 4 + 1, maxThread, null));
+        Assert.assertTrue(providerMessageRouter.isAllowRequest(maxThread / 2, maxThread * 3 / 4 + 1, maxThread));
+        Assert.assertFalse(providerMessageRouter.isAllowRequest(maxThread / 2 + 1, maxThread * 3 / 4 + 1, maxThread));
 
         providerMessageRouter.removeProvider(providerB);
         providerMessageRouter.addProvider(providerC);
 
         for (int i = 1; i <= (maxThread * 3 / 4); i++) {
-            Assert.assertTrue(providerMessageRouter.isAllowRequest(i, i, maxThread, null));
+            Assert.assertTrue(providerMessageRouter.isAllowRequest(i, i, maxThread));
         }
 
-        Assert.assertTrue(providerMessageRouter.isAllowRequest(maxThread / 4, maxThread * 3 / 4 + 1, maxThread, null));
-        Assert.assertFalse(providerMessageRouter.isAllowRequest(maxThread / 4 + 1, maxThread * 3 / 4 + 1, maxThread, null));
+        Assert.assertTrue(providerMessageRouter.isAllowRequest(maxThread / 4, maxThread * 3 / 4 + 1, maxThread));
+        Assert.assertFalse(providerMessageRouter.isAllowRequest(maxThread / 4 + 1, maxThread * 3 / 4 + 1, maxThread));
     }
 }

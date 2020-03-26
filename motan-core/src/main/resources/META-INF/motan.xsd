@@ -350,6 +350,11 @@
                         <xsd:documentation><![CDATA[ maxClientConnection ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
+                <xsd:attribute name="maxConnectionPerGroup" type="xsd:string" use="optional">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[ maxConnectionPerGroup ]]></xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
 
                 <xsd:attribute name="minWorkerThread" type="xsd:string" use="optional">
                     <xsd:annotation>

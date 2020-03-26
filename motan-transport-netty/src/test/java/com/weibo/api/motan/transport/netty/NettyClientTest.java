@@ -135,7 +135,7 @@ public class NettyClientTest {
         }
 
         // 模拟失败连接的次数大于或者等于设置的次数，client期望为不可用
-        url.addParameter(URLParamType.maxClientConnection.getName(), "1");
+        url.addParameter(URLParamType.fusingThreshold.getName(), "1");
         url.addParameter(URLParamType.requestTimeout.getName(), "1");
         nettyClient = new NettyClient(url);
         nettyClient.open();

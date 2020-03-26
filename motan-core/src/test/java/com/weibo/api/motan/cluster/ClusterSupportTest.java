@@ -39,8 +39,12 @@ import com.weibo.api.motan.registry.RegistryService;
 import com.weibo.api.motan.rpc.Protocol;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.util.MotanSwitcherUtil;
 import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.StringTools;
+import org.hamcrest.Description;
+import org.jmock.api.Action;
+import org.jmock.api.Invocation;
 
 /**
  * 
@@ -58,20 +62,25 @@ public class ClusterSupportTest {
         }
     };
 
-    private static ClusterSupport<IHello> clusterSupport;
+    private static ClusterSupportMask<IHello> clusterSupport;
     private static Protocol protocol = mockery.mock(Protocol.class);
     private static Map<String, Registry> registries = new HashMap<String, Registry>();
     private static String regProtocol1 = "reg_1";
     private static String regProtocol2 = "reg_2";
+    private static String maxConnectionPerGroup = "40"; //clusterSupport.selectNodeCount=4
     private static String localAddress = NetUtils.getLocalAddress().getHostAddress();
     private static Map<String, Referer<IHello>> portReferers = new HashMap<String, Referer<IHello>>();
+    private static List<URL> serviceUrls1 = new ArrayList<URL>();
+    private static Map<String, Boolean> availableMap = new HashMap<>();
+
+    static {
+        registries.put(regProtocol1, mockery.mock(Registry.class, regProtocol1));
+        registries.put(regProtocol2, mockery.mock(Registry.class, regProtocol2));
+    }
 
     @Before
     public void initCluster() {
         clusterSupport = new ClusterSupportMask<IHello>(IHello.class, mockRegistryUrls());
-
-        registries.put(regProtocol1, mockery.mock(Registry.class, regProtocol1));
-        registries.put(regProtocol2, mockery.mock(Registry.class, regProtocol2));
 
         mockery.checking(new Expectations() {
             {
@@ -81,15 +90,8 @@ public class ClusterSupportTest {
         });
 
         clusterSupport.init();
-    }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Test
-    public void testNotify() {
-
-        // 先利用registry1 通知新增2个url
-        final int urlsCount = 5;
-        final List<URL> serviceUrls1 = new ArrayList<URL>();
+        final int urlsCount = 10;
         for (int i = 0; i < urlsCount; i++) {
             URL url = new URL(MotanConstants.PROTOCOL_MOTAN, localAddress, 1000 + i, IHello.class.getName());
             url.addParameter(URLParamType.nodeType.getName(), MotanConstants.NODE_TYPE_SERVICE);
@@ -112,6 +114,7 @@ public class ClusterSupportTest {
                     refererUrl.addParameter(URLParamType.application.getName(), application);
                     refererUrl.addParameter(URLParamType.module.getName(), module);
                     refererUrl.addParameter(URLParamType.check.getName(), "false");
+                    refererUrl.addParameter(URLParamType.maxConnectionPerGroup.getName(), maxConnectionPerGroup);
 
                     atLeast(1).of(protocol).refer(IHello.class, refererUrl, serviceUrl);
                     will(returnValue(mockReferer(refererUrl)));
@@ -119,6 +122,18 @@ public class ClusterSupportTest {
                     will(returnValue(serviceUrls1.get(i)));
                     atLeast(1).of(mockReferer(refererUrl)).getServiceUrl();
                     will(returnValue(serviceUrls1.get(i)));
+                    atLeast(1).of(mockReferer(refererUrl)).isAvailable();
+                    will(new Action() {
+                        @Override
+                        public void describeTo(Description description) {
+                            description.appendText("returns ");
+                            description.appendValue(availableMap.getOrDefault(refererUrl.toString(), true));
+                        }
+                        @Override
+                        public Object invoke(Invocation invocation) throws Throwable {
+                            return availableMap.getOrDefault(refererUrl.toString(), true);
+                        }
+                    });
                 }
 
                 for (int i = 0; i < 3; i++) {
@@ -131,8 +146,16 @@ public class ClusterSupportTest {
                 will(returnValue(reg2Url));
             }
         });
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Test
+    public void testNotify() {
+        //不限制总连接数
+        MotanSwitcherUtil.setSwitcherValue("feature.motan.partial.server", false);
         List copy = new ArrayList<URL>();
 
+        // 先利用registry1 通知新增2个url
         clusterSupport.notify(registries.get(regProtocol1).getUrl(), copy(copy, serviceUrls1.subList(0, 2)));
         Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 2);
 
@@ -172,14 +195,33 @@ public class ClusterSupportTest {
 
         for (Referer<IHello> referer : clusterSupport.getCluster().getReferers()) {
             if (!oldReferers.contains(referer)) {
-                Assert.assertTrue(false);
+                Assert.fail();
             }
         }
+
+        //限制总连接数
+        MotanSwitcherUtil.setSwitcherValue("feature.motan.partial.server", true);
+
+        clusterSupport.notify(registries.get(regProtocol2).getUrl(), copy(copy, serviceUrls1.subList(0, 2)));
+        Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 2);
+        // 再利用registr2 通知有5个 预期有4个
+        clusterSupport.notify(registries.get(regProtocol2).getUrl(), copy(copy, serviceUrls1.subList(0, 5)));
+        Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 4);
+
+        // 再利用registr2 通知有0个
+        clusterSupport.notify(registries.get(regProtocol2).getUrl(), copy(copy, serviceUrls1.subList(0, 0)));
+        Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 4);
+
+        // 再利用registry2 通知有1个
+        clusterSupport.notify(registries.get(regProtocol2).getUrl(), copy(copy, serviceUrls1.subList(3, 4)));
+        Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 1);
 
     }
 
     private static List<URL> mockRegistryUrls() {
-        URL refUrl = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, IHello.class.getName());
+        Map<String, String> params = new HashMap<>();
+        params.put(URLParamType.maxConnectionPerGroup.getName(), maxConnectionPerGroup);
+        URL refUrl = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, IHello.class.getName(), params);
         refUrl.addParameter(URLParamType.check.getName(), "false");
 
         URL url1 = new URL(regProtocol1, "192.168.1.1", 18081, RegistryService.class.getName());
@@ -194,6 +236,52 @@ public class ClusterSupportTest {
         return urls;
     }
 
+    @Test
+    public void testRefreshReferers(){
+        MotanSwitcherUtil.setSwitcherValue("feature.motan.partial.server", true);
+        List<URL> copy = new ArrayList<URL>();
+        clusterSupport.notify(registries.get(regProtocol1).getUrl(), copy(copy, serviceUrls1.subList(0, 2)));
+        clusterSupport.notify(registries.get(regProtocol2).getUrl(), null);
+        Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 2);
+        clusterSupport.refreshReferers();
+        Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 2);
+
+        clusterSupport.notify(registries.get(regProtocol1).getUrl(), copy(copy, serviceUrls1.subList(0, 6)));
+        Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 4);
+        Assert.assertEquals(getAvailableReferersCount(),4);
+        //设置1节点不可用，未小于阈值，不触发refresh
+        availableMap.put(clusterSupport.getCluster().getReferers().get(0).getUrl().toString(), false);
+        clusterSupport.refreshReferers();
+        Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 4);
+        Assert.assertEquals(getAvailableReferersCount(),3);
+        //设置2节点不可用，小于阈值，触发refresh
+        availableMap.put(clusterSupport.getCluster().getReferers().get(1).getUrl().toString(), false);
+
+        clusterSupport.refreshReferers();
+        Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 6);
+        Assert.assertEquals(getAvailableReferersCount(),4);
+
+        //设置1节点恢复，未大于阈值，不触发refresh
+        availableMap.put(clusterSupport.getCluster().getReferers().get(1).getUrl().toString(), true);
+        clusterSupport.refreshReferers();
+        Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 6);
+        Assert.assertEquals(getAvailableReferersCount(),5);
+        //设置0节点恢复，大于阈值，触发refresh
+        availableMap.put(clusterSupport.getCluster().getReferers().get(0).getUrl().toString(), true);
+        clusterSupport.refreshReferers();
+        Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 4);
+        Assert.assertEquals(getAvailableReferersCount(),4);
+    }
+
+    private int getAvailableReferersCount() {
+        int result = 0;
+        for (Referer<IHello> referer : clusterSupport.getCluster().getReferers()) {
+            if (referer.isAvailable()) {
+                result++;
+            }
+        }
+        return result;
+    }
     private static class ClusterSupportMask<T> extends ClusterSupport<T> {
         public ClusterSupportMask(Class<T> interfaceClass, List<URL> registryUrls) {
             super(interfaceClass, registryUrls);
@@ -209,6 +297,10 @@ public class ClusterSupportTest {
             return registries.get(url.getProtocol());
         }
 
+        @Override
+        public void refreshReferers(){
+            super.refreshReferers();
+        }
     }
 
     @SuppressWarnings("unchecked")
