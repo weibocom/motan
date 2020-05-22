@@ -20,3 +20,4 @@ com.weibo.api.motan.cluster.loadbalance.ActiveWeightLoadBalance
 com.weibo.api.motan.cluster.loadbalance.RoundRobinLoadBalance
 com.weibo.api.motan.cluster.loadbalance.LocalFirstLoadBalance
 com.weibo.api.motan.cluster.loadbalance.ConfigurableWeightLoadBalance
+com.weibo.api.motan.cluster.loadbalance.IpHashLoadBalance
