@@ -409,7 +409,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
         if (this.callbackMap.size() >= MotanConstants.NETTY_CLIENT_MAX_REQUEST) {
             // reject request, prevent from OutOfMemoryError
             throw new MotanServiceException("NettyClient over of max concurrent request, drop request, url: "
-                    + url.getUri() + " requestId=" + requestId, MotanErrorMsgConstant.SERVICE_REJECT);
+                    + url.getUri() + " requestId=" + requestId, MotanErrorMsgConstant.SERVICE_REJECT, false);
         }
 
         this.callbackMap.put(requestId, nettyResponseFuture);

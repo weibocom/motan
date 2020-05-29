@@ -94,7 +94,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
 
     private void rejectMessage(ChannelHandlerContext ctx, NettyMessage msg) {
         if (msg.isRequest()) {
-            sendResponse(ctx, MotanFrameworkUtil.buildErrorResponse((Request) msg, new MotanServiceException("process thread pool is full, reject by server: " + ctx.channel().localAddress(), MotanErrorMsgConstant.SERVICE_REJECT)));
+            sendResponse(ctx, MotanFrameworkUtil.buildErrorResponse((Request) msg, new MotanServiceException("process thread pool is full, reject by server: " + ctx.channel().localAddress(), MotanErrorMsgConstant.SERVICE_REJECT, false)));
 
             LoggerUtil.error("process thread pool is full, reject, active={} poolSize={} corePoolSize={} maxPoolSize={} taskCount={} requestId={}",
                     threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize(), threadPoolExecutor.getCorePoolSize(),

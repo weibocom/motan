@@ -57,7 +57,7 @@ public class ProtectedExecutionHandler extends ExecutionHandler {
 					response.setRequestId(request.getRequestId());
 					response.setRpcProtocolVersion(request.getRpcProtocolVersion());
 					response.setException(new MotanServiceException("process thread pool is full, reject",
-							MotanErrorMsgConstant.SERVICE_REJECT));
+							MotanErrorMsgConstant.SERVICE_REJECT, false));
 					e.getChannel().write(response);
 
 					LoggerUtil

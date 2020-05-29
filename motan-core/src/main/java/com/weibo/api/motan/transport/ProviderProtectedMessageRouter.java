@@ -89,8 +89,7 @@ public class ProviderProtectedMessageRouter extends ProviderMessageRouter implem
     private Response reject(String method, int requestCounter, int totalCounter, int maxThread, Request request) {
         String message = "ThreadProtectedRequestRouter reject request: request_method=" + method + " request_counter=" + requestCounter
                 + " total_counter=" + totalCounter + " max_thread=" + maxThread;
-        MotanServiceException exception = new MotanServiceException(message, MotanErrorMsgConstant.SERVICE_REJECT);
-        exception.setStackTrace(new StackTraceElement[0]);
+        MotanServiceException exception = new MotanServiceException(message, MotanErrorMsgConstant.SERVICE_REJECT, false);
         DefaultResponse response = MotanFrameworkUtil.buildErrorResponse(request, exception);
         LoggerUtil.error(exception.getMessage());
         incrCounter(method, rejectCounters);

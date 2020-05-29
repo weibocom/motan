@@ -119,7 +119,7 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
             });
         } catch (RejectedExecutionException rejectException) {
             DefaultResponse response = MotanFrameworkUtil.buildErrorResponse(request, new MotanServiceException("process thread pool is full, reject",
-                    MotanErrorMsgConstant.SERVICE_REJECT));
+                    MotanErrorMsgConstant.SERVICE_REJECT, false));
             response.setProcessTime(System.currentTimeMillis() - processStartTime);
             e.getChannel().write(response);
 
