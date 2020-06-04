@@ -289,7 +289,7 @@ public class MotanV2Codec extends AbstractCodec {
                 String errmsg = metaMap.remove(M2_ERROR);
                 Exception e = ExceptionUtil.fromMessage(errmsg);
                 if (e == null) {
-                    e = (Exception) new MotanServiceException("default remote exception. remote errmsg:" + errmsg);
+                    e = (Exception) new MotanServiceException("default remote exception. remote errmsg:" + errmsg, false);
                 }
                 response.setException(e);
             }

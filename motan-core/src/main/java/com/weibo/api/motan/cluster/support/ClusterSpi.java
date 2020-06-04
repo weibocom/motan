@@ -76,7 +76,8 @@ public class ClusterSpi<T> implements Cluster<T> {
                 return callFalse(request, e);
             }
         }
-        return callFalse(request, new MotanServiceException(MotanErrorMsgConstant.SERVICE_UNFOUND));
+        throw new MotanServiceException(String.format("ClusterSpi Call false for request: %s, ClusterSpi not created or destroyed", request),
+                MotanErrorMsgConstant.SERVICE_UNFOUND, false);
     }
 
     @Override

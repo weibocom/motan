@@ -109,7 +109,7 @@ public class AbstractRefererHandler<T> {
                         throw t;
                     } else {
                         String msg = t == null ? "biz exception cause is null. origin error msg : " + e.getMessage() : ("biz exception cause is throwable error:" + t.getClass() + ", errmsg:" + t.getMessage());
-                        throw new MotanServiceException(msg, MotanErrorMsgConstant.SERVICE_DEFAULT_ERROR);
+                        throw new MotanServiceException(msg);
                     }
                 } else if (!throwException) {
                     LoggerUtil.warn("RefererInvocationHandler invoke false, so return default value: uri=" + cluster.getUrl().getUri() + " " + MotanFrameworkUtil.toString(request), e);
@@ -120,7 +120,7 @@ public class AbstractRefererHandler<T> {
                 }
             }
         }
-        throw new MotanServiceException("Referer call Error: cluster not exist, interface=" + interfaceName + " " + MotanFrameworkUtil.toString(request), MotanErrorMsgConstant.SERVICE_UNFOUND);
+        throw new MotanServiceException("Referer call Error: cluster not exist, interface=" + interfaceName + " " + MotanFrameworkUtil.toString(request), MotanErrorMsgConstant.SERVICE_UNFOUND, false);
     }
 
     private Object getDefaultReturnValue(Class<?> returnType) {

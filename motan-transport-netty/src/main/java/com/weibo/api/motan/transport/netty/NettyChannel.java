@@ -101,7 +101,7 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel {
 		} else {
 			throw new MotanServiceException("NettyChannel send request to server Timeout: url="
 					+ nettyClient.getUrl().getUri() + " local=" + localAddress + " "
-					+ MotanFrameworkUtil.toString(request));
+					+ MotanFrameworkUtil.toString(request), false);
 		}
 	}
 
@@ -150,7 +150,7 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel {
 			} else {
 				channelFuture.cancel();
                 throw new MotanServiceException("NettyChannel connect to server timeout url: "
-                        + nettyClient.getUrl().getUri() + ", cost: " + (System.currentTimeMillis() - start) + ", result: " + result + ", success: " + success + ", connected: " + connected);
+                        + nettyClient.getUrl().getUri() + ", cost: " + (System.currentTimeMillis() - start) + ", result: " + result + ", success: " + success + ", connected: " + connected, false);
             }
 		} catch (MotanServiceException e) {
 			throw e;

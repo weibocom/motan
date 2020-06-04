@@ -93,7 +93,7 @@ public class NettyChannel implements Channel {
         } else {
             throw new MotanServiceException("NettyChannel send request to server Timeout: url="
                     + nettyClient.getUrl().getUri() + " local=" + localAddress + " "
-                    + MotanFrameworkUtil.toString(request));
+                    + MotanFrameworkUtil.toString(request), false);
         }
     }
 
@@ -134,7 +134,7 @@ public class NettyChannel implements Channel {
                 throw new MotanServiceException("NettyChannel failed to connect to server, url: " + nettyClient.getUrl().getUri() + ", result: " + result + ", success: " + success + ", connected: " + connected, channelFuture.cause());
             } else {
                 channelFuture.cancel(true);
-                throw new MotanServiceException("NettyChannel connect to server timeout url: " + nettyClient.getUrl().getUri() + ", cost: " + (System.currentTimeMillis() - start) + ", result: " + result + ", success: " + success + ", connected: " + connected);
+                throw new MotanServiceException("NettyChannel connect to server timeout url: " + nettyClient.getUrl().getUri() + ", cost: " + (System.currentTimeMillis() - start) + ", result: " + result + ", success: " + success + ", connected: " + connected, false);
             }
         } catch (MotanServiceException e) {
             throw e;
