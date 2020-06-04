@@ -53,6 +53,9 @@ public class RefererInvocationHandler<T> extends AbstractRefererHandler<T> imple
             if ("equals".equals(method.getName())) {
                 return proxyEquals(args[0]);
             }
+            if ("hashCode".equals(method.getName())) {
+                return this.clusters == null ? 0 : this.clusters.hashCode();
+            }
             throw new MotanServiceException("can not invoke local method:" + method.getName());
         }
 
