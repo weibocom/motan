@@ -20,8 +20,9 @@ import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.Provider;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.Channel;
-import com.weibo.api.motan.transport.ProviderProtectedMessageRouter;
+import com.weibo.api.motan.transport.ProviderMessageRouter;
 import com.weibo.yar.YarRequest;
 import com.weibo.yar.YarResponse;
 /**
@@ -31,8 +32,16 @@ import com.weibo.yar.YarResponse;
  * @date 2016-6-8
  *
  */
-public class YarMessageRouter extends ProviderProtectedMessageRouter {
+public class YarMessageRouter extends ProviderMessageRouter {
     protected ConcurrentHashMap<String, Provider<?>> providerMap = new ConcurrentHashMap<String, Provider<?>>();
+
+    public YarMessageRouter() {
+        super();
+    }
+
+    public YarMessageRouter(URL url) {
+        super(url);
+    }
 
     @Override
     public Object handle(Channel channel, Object message) {
@@ -45,7 +54,7 @@ public class YarMessageRouter extends ProviderProtectedMessageRouter {
         }
         Class<?> clazz = provider.getInterface();
         Request request = YarProtocolUtil.convert(yarRequest, clazz);
-        Response response = call(request, provider);
+        Response response = super.call(request, provider);
         YarResponse yarResponse = YarProtocolUtil.convert(response, packagerName);
         return yarResponse;
     }
