@@ -16,7 +16,10 @@ import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.StatisticCallback;
 import com.weibo.api.motan.util.StatsUtil;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -63,8 +66,8 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
             return state.isAliveState();
         }
         if (bossGroup == null) {
-            bossGroup = new NioEventLoopGroup(1);
-            workerGroup = new NioEventLoopGroup();
+            bossGroup = epollIsAvailable()?new EpollEventLoopGroup(1):new NioEventLoopGroup(1);
+            workerGroup = epollIsAvailable()?new EpollEventLoopGroup():new NioEventLoopGroup();
         }
 
         LoggerUtil.info("NettyServer ServerChannel start Open: url=" + url);
@@ -103,6 +106,8 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
                         pipeline.addLast("handler", handler);
                     }
                 });
+        serverBootstrap.option(ChannelOption.SO_LINGER,-1);
+        serverBootstrap.option(ChannelOption.SO_BACKLOG,128);
         serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);
         serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
         ChannelFuture channelFuture = serverBootstrap.bind(new InetSocketAddress(url.getPort()));
@@ -112,6 +117,23 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
         StatsUtil.registryStatisticCallback(this);
         LoggerUtil.info("NettyServer ServerChannel finish Open: url=" + url);
         return state.isAliveState();
+    }
+
+    private static boolean epollIsAvailable() {
+        boolean available;
+        try {
+            available = Epoll.isAvailable();
+        } catch (NoClassDefFoundError e) {
+            LoggerUtil.debug("Epoll is unavailable, skipping", e);
+            return false;
+        } catch (RuntimeException | Error e) {
+            LoggerUtil.warn("Epoll is unavailable, skipping", e);
+            return false;
+        }
+        if (!available) {
+            LoggerUtil.debug("Epoll is unavailable, skipping", Epoll.unavailabilityCause());
+        }
+        return available;
     }
 
     @Override
