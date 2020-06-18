@@ -16,10 +16,10 @@ import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.StatisticCallback;
 import com.weibo.api.motan.util.StatsUtil;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -37,6 +37,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
     private Channel serverChannel;
     private MessageHandler messageHandler;
     private StandardThreadExecutor standardThreadExecutor = null;
+    private Class<? extends ServerChannel> channelType;
 
     private AtomicInteger rejectCounter = new AtomicInteger(0);
 
@@ -66,8 +67,8 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
             return state.isAliveState();
         }
         if (bossGroup == null) {
-            bossGroup = epollIsAvailable()?new EpollEventLoopGroup(1):new NioEventLoopGroup(1);
-            workerGroup = epollIsAvailable()?new EpollEventLoopGroup():new NioEventLoopGroup();
+            bossGroup = epollIsAvailable() ? new EpollEventLoopGroup(1) : new NioEventLoopGroup(1);
+            workerGroup = epollIsAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
         }
 
         LoggerUtil.info("NettyServer ServerChannel start Open: url=" + url);
@@ -92,9 +93,11 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
 
         channelManage = new NettyServerChannelManage(maxServerConnection);
 
+        channelType = epollIsAvailable() ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
+
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap.group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel.class)
+                .channel(channelType)
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
@@ -106,8 +109,8 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
                         pipeline.addLast("handler", handler);
                     }
                 });
-        serverBootstrap.option(ChannelOption.SO_LINGER,-1);
-        serverBootstrap.option(ChannelOption.SO_BACKLOG,128);
+        serverBootstrap.option(ChannelOption.SO_LINGER, -1);
+        serverBootstrap.option(ChannelOption.SO_BACKLOG, 128);
         serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);
         serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
         ChannelFuture channelFuture = serverBootstrap.bind(new InetSocketAddress(url.getPort()));
