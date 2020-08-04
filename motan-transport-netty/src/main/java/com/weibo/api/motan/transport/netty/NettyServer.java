@@ -91,6 +91,10 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
         initServerBootstrap();
 
         serverChannel = bootstrap.bind(new InetSocketAddress(url.getPort()));
+        setLocalAddress((InetSocketAddress) serverChannel.getLocalAddress());
+        if (url.getPort() == 0){
+            url.setPort(getLocalAddress().getPort());
+        }
         state = ChannelState.ALIVE;
 
         StatsUtil.registryStatisticCallback(this);

@@ -82,11 +82,10 @@ public class ClusterSupport<T> implements NotifyListener {
     private int selectNodeCount;
     private ConcurrentHashMap<URL, Map<String, GroupUrlsSelector>> registryGroupUrlsSelectorMap = new ConcurrentHashMap<>();
 
-    public ClusterSupport(Class<T> interfaceClass, List<URL> registryUrls) {
+    public ClusterSupport(Class<T> interfaceClass, List<URL> registryUrls, URL refUrl) {
         this.registryUrls = registryUrls;
         this.interfaceClass = interfaceClass;
-        String urlStr = StringTools.urlDecode(registryUrls.get(0).getParameter(URLParamType.embed.getName()));
-        this.url = URL.valueOf(urlStr);
+        this.url = refUrl;
         protocol = getDecorateProtocol(url.getProtocol());
         int maxConnectionCount = this.url.getIntParameter(URLParamType.maxConnectionPerGroup.getName(), URLParamType.maxConnectionPerGroup.getIntValue());
         int maxClientConnection = this.url.getIntParameter(URLParamType.maxClientConnection.getName(), URLParamType.maxClientConnection.getIntValue());

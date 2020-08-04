@@ -16,19 +16,6 @@
 
 package com.weibo.api.motan.cluster;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import junit.framework.Assert;
-
-import org.jmock.Expectations;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.weibo.api.motan.cluster.support.ClusterSupport;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
@@ -41,10 +28,20 @@ import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
 import com.weibo.api.motan.util.NetUtils;
-import com.weibo.api.motan.util.StringTools;
+import junit.framework.Assert;
 import org.hamcrest.Description;
+import org.jmock.Expectations;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 
@@ -80,7 +77,7 @@ public class ClusterSupportTest {
 
     @Before
     public void initCluster() {
-        clusterSupport = new ClusterSupportMask<IHello>(IHello.class, mockRegistryUrls());
+        clusterSupport = new ClusterSupportMask<IHello>(IHello.class, mockRegistryUrls(), mockRefUrl());
 
         mockery.checking(new Expectations() {
             {
@@ -219,21 +216,20 @@ public class ClusterSupportTest {
     }
 
     private static List<URL> mockRegistryUrls() {
-        Map<String, String> params = new HashMap<>();
-        params.put(URLParamType.maxConnectionPerGroup.getName(), maxConnectionPerGroup);
-        URL refUrl = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, IHello.class.getName(), params);
-        refUrl.addParameter(URLParamType.check.getName(), "false");
-
         URL url1 = new URL(regProtocol1, "192.168.1.1", 18081, RegistryService.class.getName());
-        url1.addParameter(URLParamType.embed.getName(), StringTools.urlEncode(refUrl.toFullStr()));
-
         URL url2 = new URL(regProtocol2, "192.168.1.2", 8082, RegistryService.class.getName());
-        url2.addParameter(URLParamType.embed.getName(), StringTools.urlEncode(refUrl.toFullStr()));
-
         List<URL> urls = new ArrayList<URL>();
         urls.add(url1);
         urls.add(url2);
         return urls;
+    }
+
+    private static URL mockRefUrl(){
+        Map<String, String> params = new HashMap<>();
+        params.put(URLParamType.maxConnectionPerGroup.getName(), maxConnectionPerGroup);
+        URL refUrl = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, IHello.class.getName(), params);
+        refUrl.addParameter(URLParamType.check.getName(), "false");
+        return refUrl;
     }
 
     @Test
@@ -283,8 +279,8 @@ public class ClusterSupportTest {
         return result;
     }
     private static class ClusterSupportMask<T> extends ClusterSupport<T> {
-        public ClusterSupportMask(Class<T> interfaceClass, List<URL> registryUrls) {
-            super(interfaceClass, registryUrls);
+        public ClusterSupportMask(Class<T> interfaceClass, List<URL> registryUrls, URL refUrl) {
+            super(interfaceClass, registryUrls, refUrl);
         }
 
         @Override

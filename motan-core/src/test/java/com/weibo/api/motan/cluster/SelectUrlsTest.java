@@ -23,30 +23,29 @@ import com.weibo.api.motan.protocol.example.IHello;
 import com.weibo.api.motan.registry.RegistryService;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.NetUtils;
-import com.weibo.api.motan.util.StringTools;
 import junit.framework.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class SelectUrlsTest {
     private static int count = 20;
 
     private static List<URL> mockRegistryUrls() {
-        URL refUrl = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, IHello.class.getName());
-        refUrl.addParameter(URLParamType.check.getName(), "false");
-        refUrl.addParameter(URLParamType.maxConnectionPerGroup.getName(), String.valueOf(count * URLParamType.maxClientConnection.getIntValue()));
-
         URL url1 = new URL("reg_1", "192.168.1.1", 18081, RegistryService.class.getName());
-        url1.addParameter(URLParamType.embed.getName(), StringTools.urlEncode(refUrl.toFullStr()));
-
         List<URL> urls = new ArrayList<>();
         urls.add(url1);
         return urls;
+    }
+
+    private static URL mockRefUrl(){
+        URL refUrl = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, IHello.class.getName());
+        refUrl.addParameter(URLParamType.check.getName(), "false");
+        refUrl.addParameter(URLParamType.maxConnectionPerGroup.getName(), String.valueOf(count * URLParamType.maxClientConnection.getIntValue()));
+        return refUrl;
     }
 
     /**
@@ -54,7 +53,7 @@ public class SelectUrlsTest {
      */
     @Test
     public void testSelectUrls() {
-        ClusterSupportMask<IHello> clusterSupport = new ClusterSupportMask<>(IHello.class, mockRegistryUrls());
+        ClusterSupportMask<IHello> clusterSupport = new ClusterSupportMask<>(IHello.class, mockRegistryUrls(), mockRefUrl());
         List<URL> urls = new ArrayList<>();
         int notifyCount = 60;
         urls.addAll(mockUrls(notifyCount, "group1"));
@@ -77,7 +76,7 @@ public class SelectUrlsTest {
     }
 
     public void checkCount(int notifyCount, int split) {
-        ClusterSupportMask<IHello> clusterSupport = new ClusterSupportMask<>(IHello.class, mockRegistryUrls());
+        ClusterSupportMask<IHello> clusterSupport = new ClusterSupportMask<>(IHello.class, mockRegistryUrls(), mockRefUrl());
         List<URL> urls = mockUrls(notifyCount, "group1");
 
         clusterSupport.selectUrls(clusterSupport.getUrl(), urls.subList(0, split));
@@ -101,7 +100,7 @@ public class SelectUrlsTest {
     @Test
     public void testSelectUrls3() {
         int notifyCount = 60;
-        ClusterSupportMask<IHello> clusterSupport = new ClusterSupportMask<>(IHello.class, mockRegistryUrls());
+        ClusterSupportMask<IHello> clusterSupport = new ClusterSupportMask<>(IHello.class, mockRegistryUrls(), mockRefUrl());
         List<URL> urls = mockUrls(notifyCount, "group1");
 
         clusterSupport.selectUrls(clusterSupport.getUrl(), urls);
@@ -123,8 +122,8 @@ public class SelectUrlsTest {
 
     private static class ClusterSupportMask<T> extends ClusterSupport<T> {
 
-        public ClusterSupportMask(Class<T> interfaceClass, List<URL> registryUrls) {
-            super(interfaceClass, registryUrls);
+        public ClusterSupportMask(Class<T> interfaceClass, List<URL> registryUrls, URL refUrl) {
+            super(interfaceClass, registryUrls, refUrl);
         }
 
         @Override

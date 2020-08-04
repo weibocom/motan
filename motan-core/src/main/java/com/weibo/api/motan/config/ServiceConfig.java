@@ -30,7 +30,6 @@ import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.NetUtils;
-import com.weibo.api.motan.util.StringTools;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -56,9 +55,6 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     private Class<T> interfaceClass;
     private BasicServiceInterfaceConfig basicService;
     private AtomicBoolean exported = new AtomicBoolean(false);
-    // service的用于注册的url，用于管理service注册的生命周期，url为regitry url，内部嵌套service url。
-    private ConcurrentHashSet<URL> registereUrls = new ConcurrentHashSet<URL>();
-
     public static ConcurrentHashSet<String> getExistingServices() {
         return existingServices;
     }
@@ -114,7 +110,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
         checkInterfaceAndMethods(interfaceClass, methods);
 
-        List<URL> registryUrls = loadRegistryUrls();
+        loadRegistryUrls();
         if (registryUrls == null || registryUrls.size() == 0) {
             throw new IllegalStateException("Should set registry config for service:" + interfaceClass.getName());
         }
@@ -126,7 +122,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                 throw new MotanServiceException(String.format("Unknow port in service:%s, protocol:%s", interfaceClass.getName(),
                         protocolConfig.getId()));
             }
-            doExport(protocolConfig, port, registryUrls);
+            doExport(protocolConfig, port);
         }
 
         afterExport();
@@ -139,14 +135,14 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         try {
             ConfigHandler configHandler =
                     ExtensionLoader.getExtensionLoader(ConfigHandler.class).getExtension(MotanConstants.DEFAULT_VALUE);
-            configHandler.unexport(exporters, registereUrls);
+            configHandler.unexport(exporters, registryUrls);
         } finally {
             afterUnexport();
         }
     }
 
     @SuppressWarnings("unchecked")
-    private void doExport(ProtocolConfig protocolConfig, int port, List<URL> registryURLs) {
+    private void doExport(ProtocolConfig protocolConfig, int port) {
         String protocolName = protocolConfig.getName();
         if (protocolName == null || protocolName.length() == 0) {
             protocolName = URLParamType.protocol.getValue();
@@ -157,7 +153,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             hostAddress = basicService.getHost();
         }
         if (NetUtils.isInvalidLocalHost(hostAddress)) {
-            hostAddress = getLocalHostAddress(registryURLs);
+            hostAddress = getLocalHostAddress();
         }
 
         Map<String, String> map = new HashMap<String, String>();
@@ -182,7 +178,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         // injvm 协议只支持注册到本地，其他协议可以注册到local、remote
         if (MotanConstants.PROTOCOL_INJVM.equals(protocolConfig.getId())) {
             URL localRegistryUrl = null;
-            for (URL ru : registryURLs) {
+            for (URL ru : registryUrls) {
                 if (MotanConstants.REGISTRY_PROTOCOL_LOCAL.equals(ru.getProtocol())) {
                     localRegistryUrl = ru.createCopy();
                     break;
@@ -196,19 +192,14 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
             urls.add(localRegistryUrl);
         } else {
-            for (URL ru : registryURLs) {
+            for (URL ru : registryUrls) {
                 urls.add(ru.createCopy());
             }
         }
 
-        for (URL u : urls) {
-            u.addParameter(URLParamType.embed.getName(), StringTools.urlEncode(serviceUrl.toFullStr()));
-            registereUrls.add(u.createCopy());
-        }
-
         ConfigHandler configHandler = ExtensionLoader.getExtensionLoader(ConfigHandler.class).getExtension(MotanConstants.DEFAULT_VALUE);
 
-        exporters.add(configHandler.export(interfaceClass, ref, urls));
+        exporters.add(configHandler.export(interfaceClass, ref, urls, serviceUrl));
     }
 
     private void afterExport() {
@@ -222,10 +213,8 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         exported.set(false);
         for (Exporter<T> ep : exporters) {
             existingServices.remove(ep.getProvider().getUrl().getIdentity());
-            exporters.remove(ep);
         }
         exporters.clear();
-        registereUrls.clear();
     }
 
     @ConfigDesc(excluded = true)
@@ -256,9 +245,4 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     public AtomicBoolean getExported() {
         return exported;
     }
-
-    public ConcurrentHashSet<URL> getRegistereUrls() {
-        return registereUrls;
-    }
-
 }

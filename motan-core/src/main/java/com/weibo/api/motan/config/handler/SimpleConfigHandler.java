@@ -31,7 +31,6 @@ import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.registry.RegistryFactory;
 import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.StringTools;
 
 import java.util.Collection;
 import java.util.List;
@@ -49,8 +48,8 @@ import java.util.List;
 public class SimpleConfigHandler implements ConfigHandler {
 
     @Override
-    public <T> ClusterSupport<T> buildClusterSupport(Class<T> interfaceClass, List<URL> registryUrls) {
-        ClusterSupport<T> clusterSupport = new ClusterSupport<T>(interfaceClass, registryUrls);
+    public <T> ClusterSupport<T> buildClusterSupport(Class<T> interfaceClass, List<URL> registryUrls, URL refUrl) {
+        ClusterSupport<T> clusterSupport = new ClusterSupport<T>(interfaceClass, registryUrls, refUrl);
         clusterSupport.init();
 
         return clusterSupport;
@@ -63,11 +62,7 @@ public class SimpleConfigHandler implements ConfigHandler {
     }
 
     @Override
-    public <T> Exporter<T> export(Class<T> interfaceClass, T ref, List<URL> registryUrls) {
-
-        String serviceStr = StringTools.urlDecode(registryUrls.get(0).getParameter(URLParamType.embed.getName()));
-        URL serviceUrl = URL.valueOf(serviceStr);
-
+    public <T> Exporter<T> export(Class<T> interfaceClass, T ref, List<URL> registryUrls, URL serviceUrl) {
         // export service
         // 利用protocol decorator来增加filter特性
         String protocolName = serviceUrl.getParameter(URLParamType.protocol.getName(), URLParamType.protocol.getValue());
@@ -93,17 +88,13 @@ public class SimpleConfigHandler implements ConfigHandler {
 
     @Override
     public <T> void unexport(List<Exporter<T>> exporters, Collection<URL> registryUrls) {
-        try {
-            unRegister(registryUrls);
-        } catch (Exception e1) {
-            LoggerUtil.warn("Exception when unregister urls:" + registryUrls);
-        }
-        try {
-            for (Exporter<T> exporter : exporters) {
+        for (Exporter<T> exporter : exporters) {
+            try {
+                unRegister(registryUrls, exporter.getUrl());
                 exporter.unexport();
+            } catch (Exception e) {
+                LoggerUtil.warn("Exception when unexport exporters:" + exporters);
             }
-        } catch (Exception e) {
-            LoggerUtil.warn("Exception when unexport exporters:" + exporters);
         }
     }
 
@@ -122,13 +113,10 @@ public class SimpleConfigHandler implements ConfigHandler {
         }
     }
 
-    private void unRegister(Collection<URL> registryUrls) {
+    private void unRegister(Collection<URL> registryUrls, URL serviceUrl) {
         for (URL url : registryUrls) {
             // 不管check的设置如何，做完所有unregistry，做好清理工作
             try {
-                String serviceStr = StringTools.urlDecode(url.getParameter(URLParamType.embed.getName()));
-                URL serviceUrl = URL.valueOf(serviceStr);
-
                 RegistryFactory registryFactory = ExtensionLoader.getExtensionLoader(RegistryFactory.class).getExtension(url.getProtocol());
                 Registry registry = registryFactory.getRegistry(url);
                 registry.unregister(serviceUrl);

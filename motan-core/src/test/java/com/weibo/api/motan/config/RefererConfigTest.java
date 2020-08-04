@@ -16,16 +16,14 @@
 
 package com.weibo.api.motan.config;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Test;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.protocol.example.IWorld;
 import com.weibo.api.motan.protocol.example.MockWorld;
-import com.weibo.api.motan.rpc.URL;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 
@@ -142,7 +140,7 @@ public class RefererConfigTest extends BaseTestCase {
         List<RegistryConfig> registries =
                 getMultiRegister(MotanConstants.REGISTRY_PROTOCOL_LOCAL, MotanConstants.REGISTRY_PROTOCOL_ZOOKEEPER);
         refererConfig.setRegistries(registries);
-        List<URL> registryUrls = refererConfig.loadRegistryUrls();
-        assertEquals(registries.size(), registryUrls.size());
+        refererConfig.loadRegistryUrls();
+        assertEquals(registries.size(), refererConfig.getRegistryUrls().size());
     }
 }
