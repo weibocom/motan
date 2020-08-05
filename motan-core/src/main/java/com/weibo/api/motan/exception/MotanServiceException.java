@@ -37,8 +37,16 @@ public class MotanServiceException extends MotanAbstractException {
         super(message, MotanErrorMsgConstant.SERVICE_DEFAULT_ERROR);
     }
 
+    public MotanServiceException(String message, boolean writableStackTrace) {
+        super(message, MotanErrorMsgConstant.SERVICE_DEFAULT_ERROR, writableStackTrace);
+    }
+
     public MotanServiceException(String message, MotanErrorMsg motanErrorMsg) {
         super(message, motanErrorMsg);
+    }
+
+    public MotanServiceException(String message, MotanErrorMsg motanErrorMsg, boolean writableStackTrace) {
+        super(message, motanErrorMsg, writableStackTrace);
     }
 
     public MotanServiceException(String message, Throwable cause) {
@@ -47,6 +55,10 @@ public class MotanServiceException extends MotanAbstractException {
 
     public MotanServiceException(String message, Throwable cause, MotanErrorMsg motanErrorMsg) {
         super(message, cause, motanErrorMsg);
+    }
+
+    public MotanServiceException(String message, Throwable cause, MotanErrorMsg motanErrorMsg, boolean writableStackTrace) {
+        super(message, cause, motanErrorMsg, writableStackTrace);
     }
 
     public MotanServiceException(Throwable cause) {

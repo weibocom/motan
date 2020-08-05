@@ -416,6 +416,11 @@
                         <xsd:documentation><![CDATA[ acceptConnections  ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
+                <xsd:attribute name="providerProtectedStrategy" type="xsd:string" use="optional">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[ providerProtectedStrategy  ]]></xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
 
                 <xsd:attribute name="proxy" type="xsd:string" use="optional">
                     <xsd:annotation>

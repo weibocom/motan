@@ -54,4 +54,14 @@ public interface CommonHandler {
      * @return
      */
     Request buildRequest(String methodName, Object[] arguments);
+
+    /**
+     * build request with interfaceName, methodName and arguments
+     *
+     * @param interfaceName
+     * @param methodName
+     * @param arguments
+     * @return
+     */
+    Request buildRequest(String interfaceName, String methodName, Object[] arguments);
 }

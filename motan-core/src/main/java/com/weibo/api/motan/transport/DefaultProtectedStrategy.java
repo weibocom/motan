@@ -17,6 +17,7 @@
 package com.weibo.api.motan.transport;
 
 import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.DefaultResponse;
@@ -26,6 +27,7 @@ import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.StatisticCallback;
+import com.weibo.api.motan.util.StatsUtil;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,22 +51,25 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author maijunsheng
  * @version 创建时间：2013-6-7
  */
-public class ProviderProtectedMessageRouter extends ProviderMessageRouter implements StatisticCallback {
+@SpiMeta(name = "motan")
+public class DefaultProtectedStrategy implements ProviderProtectedStrategy, StatisticCallback {
     protected ConcurrentMap<String, AtomicInteger> requestCounters = new ConcurrentHashMap<>();
     protected ConcurrentMap<String, AtomicInteger> rejectCounters = new ConcurrentHashMap<>();
     protected AtomicInteger totalCounter = new AtomicInteger(0);
     protected AtomicInteger rejectCounter = new AtomicInteger(0);
+    protected AtomicInteger methodCounter = new AtomicInteger(1);
 
-    public ProviderProtectedMessageRouter() {
-        super();
-    }
-
-    public ProviderProtectedMessageRouter(Provider<?> provider) {
-        super(provider);
+    public DefaultProtectedStrategy() {
+        StatsUtil.registryStatisticCallback(this);
     }
 
     @Override
-    protected Response call(Request request, Provider<?> provider) {
+    public void setMethodCounter(AtomicInteger methodCounter) {
+        this.methodCounter = methodCounter;
+    }
+
+    @Override
+    public Response call(Request request, Provider<?> provider) {
         // 支持的最大worker thread数
         int maxThread = provider.getUrl().getIntParameter(URLParamType.maxWorkerThread.getName(), URLParamType.maxWorkerThread.getIntValue());
 
@@ -74,12 +79,11 @@ public class ProviderProtectedMessageRouter extends ProviderMessageRouter implem
             int requestCounter = incrCounter(requestKey, requestCounters);
             int totalCounter = incrTotalCounter();
             if (isAllowRequest(requestCounter, totalCounter, maxThread)) {
-                return super.call(request, provider);
+                return provider.call(request);
             } else {
                 // reject request
                 return reject(request.getInterfaceName() + "." + request.getMethodName(), requestCounter, totalCounter, maxThread, request);
             }
-
         } finally {
             decrTotalCounter();
             decrCounter(requestKey, requestCounters);
@@ -89,8 +93,7 @@ public class ProviderProtectedMessageRouter extends ProviderMessageRouter implem
     private Response reject(String method, int requestCounter, int totalCounter, int maxThread, Request request) {
         String message = "ThreadProtectedRequestRouter reject request: request_method=" + method + " request_counter=" + requestCounter
                 + " total_counter=" + totalCounter + " max_thread=" + maxThread;
-        MotanServiceException exception = new MotanServiceException(message, MotanErrorMsgConstant.SERVICE_REJECT);
-        exception.setStackTrace(new StackTraceElement[0]);
+        MotanServiceException exception = new MotanServiceException(message, MotanErrorMsgConstant.SERVICE_REJECT, false);
         DefaultResponse response = MotanFrameworkUtil.buildErrorResponse(request, exception);
         LoggerUtil.error(exception.getMessage());
         incrCounter(method, rejectCounters);
@@ -124,13 +127,10 @@ public class ProviderProtectedMessageRouter extends ProviderMessageRouter implem
         return totalCounter.decrementAndGet();
     }
 
-    protected boolean isAllowRequest(int requestCounter, int totalCounter, int maxThread) {
-        if (methodCounter.get() == 1) {
-            return true;
-        }
+    public boolean isAllowRequest(int requestCounter, int totalCounter, int maxThread) {
 
-        // 该方法第一次请求，直接return true
-        if (requestCounter == 1) {
+        // 方法总数为1或该方法第一次请求, 直接return true
+        if (methodCounter.get() == 1 || requestCounter == 1) {
             return true;
         }
 

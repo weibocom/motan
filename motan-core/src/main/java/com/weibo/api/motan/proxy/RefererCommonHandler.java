@@ -51,6 +51,11 @@ public class RefererCommonHandler<T> extends AbstractRefererHandler<T> implement
 
     @Override
     public Request buildRequest(String methodName, Object[] arguments) {
+        return buildRequest(interfaceName, methodName, arguments);
+    }
+
+    @Override
+    public Request buildRequest(String interfaceName, String methodName, Object[] arguments) {
         DefaultRequest request = new DefaultRequest();
         request.setRequestId(RequestIdGenerator.getRequestId());
         request.setInterfaceName(interfaceName);

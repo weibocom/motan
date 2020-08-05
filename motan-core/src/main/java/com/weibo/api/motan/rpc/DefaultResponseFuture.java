@@ -219,7 +219,7 @@ public class DefaultResponseFuture implements ResponseFuture, Traceable {
             exception =
                     new MotanServiceException(this.getClass().getName() + " request timeout: serverPort=" + serverUrl.getServerPortStr()
                             + " " + MotanFrameworkUtil.toString(request) + " cost=" + (System.currentTimeMillis() - createTime),
-                            MotanErrorMsgConstant.SERVICE_TIMEOUT);
+                            MotanErrorMsgConstant.SERVICE_TIMEOUT, false);
 
             lock.notifyAll();
         }

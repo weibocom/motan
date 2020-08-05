@@ -53,7 +53,7 @@ public class YarRpcProtocol extends AbstractProtocol {
         String ipPort = url.getServerPortStr();
         ProviderMessageRouter requestRouter = ipPort2RequestRouter.get(ipPort);
         if (requestRouter == null) {
-            ipPort2RequestRouter.putIfAbsent(ipPort, new YarMessageRouter());
+            ipPort2RequestRouter.putIfAbsent(ipPort, new YarMessageRouter(url));
             requestRouter = ipPort2RequestRouter.get(ipPort);
         }
         requestRouter.addProvider(provider);

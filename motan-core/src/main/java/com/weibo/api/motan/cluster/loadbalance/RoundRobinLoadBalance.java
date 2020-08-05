@@ -46,6 +46,7 @@ public class RoundRobinLoadBalance<T> extends AbstractLoadBalance<T> {
             if (ref.isAvailable()) {
                 return ref;
             }
+            idx.incrementAndGet();
         }
         return null;
     }

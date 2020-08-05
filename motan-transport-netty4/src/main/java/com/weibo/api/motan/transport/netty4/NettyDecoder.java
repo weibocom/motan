@@ -38,7 +38,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
         in.markReaderIndex();
         short type = in.readShort();
         if (type != MotanConstants.NETTY_MAGIC_TYPE) {
-            in.resetReaderIndex();
+            in.skipBytes(in.readableBytes());
             throw new MotanFrameworkException("NettyDecoder transport header not support, type: " + type);
         }
         in.skipBytes(1);
@@ -69,6 +69,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
         int metaSize = in.readInt();
         size += 4;
         if (metaSize > 0) {
+            checkMaxContext(metaSize, ctx, in, isRequest, requestId, RpcProtocolVersion.VERSION_2);
             size += metaSize;
             if (in.readableBytes() < metaSize) {
                 in.resetReaderIndex();
@@ -81,9 +82,9 @@ public class NettyDecoder extends ByteToMessageDecoder {
             return;
         }
         int bodySize = in.readInt();
-        checkMaxContext(bodySize, ctx, isRequest, requestId, RpcProtocolVersion.VERSION_2);
         size += 4;
         if (bodySize > 0) {
+            checkMaxContext(bodySize, ctx, in, isRequest, requestId, RpcProtocolVersion.VERSION_2);
             size += bodySize;
             if (in.readableBytes() < bodySize) {
                 in.resetReaderIndex();
@@ -108,21 +109,23 @@ public class NettyDecoder extends ByteToMessageDecoder {
         long requestId = in.readLong();
         int dataLength = in.readInt();
 
-        // FIXME 如果dataLength过大，可能导致问题
+        checkMaxContext(dataLength, ctx, in, messageType == MotanConstants.FLAG_REQUEST, requestId, RpcProtocolVersion.VERSION_1);
         if (in.readableBytes() < dataLength) {
             in.resetReaderIndex();
             return;
         }
-        checkMaxContext(dataLength, ctx, messageType == MotanConstants.FLAG_REQUEST, requestId, RpcProtocolVersion.VERSION_1);
         byte[] data = new byte[dataLength];
         in.readBytes(data);
         decode(data, out, messageType == MotanConstants.FLAG_REQUEST, requestId, RpcProtocolVersion.VERSION_1).setStartTime(startTime);
     }
 
-    private void checkMaxContext(int dataLength, ChannelHandlerContext ctx, boolean isRequest, long requestId, RpcProtocolVersion version) throws Exception {
+    private void checkMaxContext(int dataLength, ChannelHandlerContext ctx, ByteBuf byteBuf, boolean isRequest, long requestId, RpcProtocolVersion version) throws Exception {
         if (maxContentLength > 0 && dataLength > maxContentLength) {
             LoggerUtil.warn("NettyDecoder transport data content length over of limit, size: {}  > {}. remote={} local={}",
                     dataLength, maxContentLength, ctx.channel().remoteAddress(), ctx.channel().localAddress());
+            // skip all readable Bytes in order to release this no-readable bytebuf in super.channelRead()
+            // that avoid this.decode() being invoked again after channel.close()
+            byteBuf.skipBytes(byteBuf.readableBytes());
             Exception e = new MotanServiceException("NettyDecoder transport data content length over of limit, size: " + dataLength + " > " + maxContentLength);
             if (isRequest) {
                 Response response = MotanFrameworkUtil.buildErrorResponse(requestId, version.getVersion(), e);

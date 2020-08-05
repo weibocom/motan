@@ -53,7 +53,7 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
         if (method == null) {
             MotanServiceException exception =
                     new MotanServiceException("Service method not exist: " + request.getInterfaceName() + "." + request.getMethodName()
-                            + "(" + request.getParamtersDesc() + ")", MotanErrorMsgConstant.SERVICE_UNFOUND);
+                            + "(" + request.getParamtersDesc() + ")", MotanErrorMsgConstant.SERVICE_UNFOUND, false);
 
             response.setException(exception);
             return response;
