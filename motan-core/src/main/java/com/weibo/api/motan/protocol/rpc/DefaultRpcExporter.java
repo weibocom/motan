@@ -26,11 +26,9 @@ import com.weibo.api.motan.rpc.Provider;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.EndpointFactory;
 import com.weibo.api.motan.transport.ProviderMessageRouter;
-import com.weibo.api.motan.transport.ProviderProtectedMessageRouter;
 import com.weibo.api.motan.transport.Server;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
-import com.weibo.api.motan.util.StatsUtil;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -97,8 +95,7 @@ public class DefaultRpcExporter<T> extends AbstractExporter<T> {
         ProviderMessageRouter requestRouter = ipPort2RequestRouter.get(ipPort);
 
         if (requestRouter == null) {
-            ProviderProtectedMessageRouter router = new ProviderProtectedMessageRouter();
-            StatsUtil.registryStatisticCallback(router);
+            ProviderMessageRouter router = new ProviderMessageRouter(url);
             ipPort2RequestRouter.putIfAbsent(ipPort, router);
             requestRouter = ipPort2RequestRouter.get(ipPort);
         }

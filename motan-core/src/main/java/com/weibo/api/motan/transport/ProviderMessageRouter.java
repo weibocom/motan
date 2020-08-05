@@ -16,6 +16,8 @@
 
 package com.weibo.api.motan.transport;
 
+import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanBizException;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
@@ -53,7 +55,17 @@ public class ProviderMessageRouter implements MessageHandler {
     // 有10个public method，那么就是15
     protected AtomicInteger methodCounter = new AtomicInteger(0);
 
+    protected ProviderProtectedStrategy strategy;
+
     public ProviderMessageRouter() {
+        strategy = ExtensionLoader.getExtensionLoader(ProviderProtectedStrategy.class).getExtension(URLParamType.providerProtectedStrategy.getValue());
+        strategy.setMethodCounter(methodCounter);
+    }
+
+    public ProviderMessageRouter(URL url) {
+        String providerProtectedStrategy = url.getParameter(URLParamType.providerProtectedStrategy.getName(), URLParamType.providerProtectedStrategy.getValue());
+        strategy = ExtensionLoader.getExtensionLoader(ProviderProtectedStrategy.class).getExtension(providerProtectedStrategy);
+        strategy.setMethodCounter(methodCounter);
     }
 
     public ProviderMessageRouter(Provider<?> provider) {
@@ -97,7 +109,7 @@ public class ProviderMessageRouter implements MessageHandler {
 
     protected Response call(Request request, Provider<?> provider) {
         try {
-            return provider.call(request);
+            return strategy.call(request, provider);
         } catch (Exception e) {
             return MotanFrameworkUtil.buildErrorResponse(request, new MotanBizException("provider call process error", e));
         }
@@ -157,4 +169,5 @@ public class ProviderMessageRouter implements MessageHandler {
     public int getPublicMethodCount() {
         return methodCounter.get();
     }
+
 }

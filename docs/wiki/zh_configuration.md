@@ -3,44 +3,44 @@
 
 \<motan:protocol/>
 
-| Property name       | Type    | Default               | Comment                                                               |
-|---------------------|---------|-----------------------|-----------------------------------------------------------------------|
-| name                | String  |                       | 服务协议名                                                            |
-| serialization       | String  | hessian2              | 序列化方式                                                            |
-| payload             | int     |                       | 最大请求数据长度                                                      |
-| buffer              | int     |                       | 缓存区大小                                                            |
-| heartbeat           | int     |                       | 心跳间隔                                                              |
-| transporter         | String  |                       | 网络传输方式                                                          |
-| threads             | int     |                       | 线程池大小                                                            |
-| iothreads           | int     | availableProcessors+1 | IO线程池大小                                                          |
-| requestTimeout      | int     | 200                   | 请求超时                                                              |
-| minClientConnection | int     | 2                     | client最小连接数                                                      |
-| maxClientConnection | int     | 10                    | client最大连接数                                                      |
-| minWorkerThread     | int     | 20                    | 最小工作pool线程数                                                    |
-| maxWorkerThread     | int     | 200                   | 最大工作pool线程数                                                    |
-| maxContentLength    | int     | 10M                   | 请求响应包的最大长度限制                                              |
-| maxServerConnection | int     | 100000                | server支持的最大连接数                                                |
-| poolLifo            | boolean | true                  | 连接池管理方式，是否lifo                                              |
-| lazyInit            | boolean | false                 | 是否延迟init                                                          |
-| endpointFactory     | boolean | motan                 | endpoint factory                                                      |
-| cluster             | String  | default               | 采用哪种cluster的实现                                                 |
-| loadbalance         | String  | activeWeight          | 负载均衡策略                                                          |
-| haStrategy          | String  | failover              | 高可用策略                                                            |
-| workerQueueSize     | String  | 0                     | Server工作队列大小                                                    |
-| acceptConnections   | int     | 0                     | Server可接受连接数                                                    |
-| proxy               | String  | jdk                   | proxy type, like jdk or javassist                                     |
-| filter              | String  |                       | filter, 多个filter用","分割，blank String 表示采用默认的filter配置    |
-| retries             | int     | 0                     | 调用失败时重试次数                                                    |
-| async               | boolean | false                 | if the request is called async, a taskFuture result will be sent back |
-| queueSize           | Int     |                       | 线程池队列大小                                                        |
-| accepts             | Int     |                       | 最大接收连接数                                                        |
-| dispatcher          | String  |                       | 信息线程模型派发方式                                                  |
-| server              | String  |                       | 服务器端实现                                                          |
-| client              | String  |                       | 客户端端实现                                                          |
-| default             | boolean |                       | 是否缺省的配置                                                        |
-| switcherService     | String  | localSwitcherService  |                                                                       |
-| heartbeatFactory    | String  | motan                 |                                                                       |
-
+| Property name             | Type    | Default               | Comment                                                               |
+|---------------------------|---------|-----------------------|-----------------------------------------------------------------------|
+| name                      | String  |                       | 服务协议名                                                              |
+| serialization             | String  | hessian2              | 序列化方式                                                              |
+| payload                   | int     |                       | 最大请求数据长度                                                         |
+| buffer                    | int     |                       | 缓存区大小                                                              |
+| heartbeat                 | int     |                       | 心跳间隔                                                                |
+| transporter               | String  |                       | 网络传输方式                                                            |
+| threads                   | int     |                       | 线程池大小                                                              |
+| iothreads                 | int     | availableProcessors+1 | IO线程池大小                                                            |
+| requestTimeout            | int     | 200                   | 请求超时                                                                |
+| minClientConnection       | int     | 2                     | client最小连接数                                                        |
+| maxClientConnection       | int     | 10                    | client最大连接数                                                        |
+| minWorkerThread           | int     | 20                    | 最小工作pool线程数                                                       |
+| maxWorkerThread           | int     | 200                   | 最大工作pool线程数                                                       |
+| maxContentLength          | int     | 10M                   | 请求响应包的最大长度限制                                                   |
+| maxServerConnection       | int     | 100000                | server支持的最大连接数                                                   |
+| poolLifo                  | boolean | true                  | 连接池管理方式，是否lifo                                                  |
+| lazyInit                  | boolean | false                 | 是否延迟init                                                            |
+| endpointFactory           | boolean | motan                 | endpoint factory                                                      |
+| cluster                   | String  | default               | 采用哪种cluster的实现                                                    |
+| loadbalance               | String  | activeWeight          | 负载均衡策略                                                            |
+| haStrategy                | String  | failover              | 高可用策略                                                              |
+| workerQueueSize           | String  | 0                     | Server工作队列大小                                                      |
+| acceptConnections         | int     | 0                     | Server可接受连接数                                                      |
+| proxy                     | String  | jdk                   | proxy type, like jdk or javassist                                     |
+| filter                    | String  |                       | filter, 多个filter用","分割，blank String 表示采用默认的filter配置          |
+| retries                   | int     | 0                     | 调用失败时重试次数                                                        |
+| async                     | boolean | false                 | if the request is called async, a taskFuture result will be sent back  |
+| queueSize                 | Int     |                       | 线程池队列大小                                                           |
+| accepts                   | Int     |                       | 最大接收连接数                                                           |
+| dispatcher                | String  |                       | 信息线程模型派发方式                                                      |
+| server                    | String  |                       | 服务器端实现                                                             |
+| client                    | String  |                       | 客户端端实现                                                             |
+| default                   | boolean |                       | 是否缺省的配置                                                           |
+| switcherService           | String  | localSwitcherService  |                                                                        |
+| heartbeatFactory          | String  | motan                 |                                                                        |
+| providerProtectedStrategy | String  | motan                 |消息处理分发策略,默认支持一定程度的自我防护                                     |
 
 
 ## 注册中心配置列表

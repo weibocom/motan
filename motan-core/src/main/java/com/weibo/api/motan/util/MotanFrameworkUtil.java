@@ -130,6 +130,7 @@ public class MotanFrameworkUtil {
      * 		6） maxWorkerThread
      * 		7） workerQueueSize
      * 		8） heartbeatFactory
+     * 	    9） providerProtectedStrategy
      * </pre>
      *
      * @param source
@@ -170,8 +171,13 @@ public class MotanFrameworkUtil {
             return false;
         }
 
-        return StringUtils.equals(source.getParameter(URLParamType.heartbeatFactory.getName()),
-                target.getParameter(URLParamType.heartbeatFactory.getName()));
+        if (!StringUtils.equals(source.getParameter(URLParamType.heartbeatFactory.getName()),
+                target.getParameter(URLParamType.heartbeatFactory.getName()))) {
+            return false;
+        }
+
+        return StringUtils.equals(source.getParameter(URLParamType.providerProtectedStrategy.getName()),
+                target.getParameter(URLParamType.providerProtectedStrategy.getName()));
 
     }
 

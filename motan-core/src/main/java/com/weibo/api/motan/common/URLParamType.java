@@ -158,7 +158,10 @@ public enum URLParamType {
     backupRequestMaxRetryRatio("backupRequestMaxRetryRatio", "0.15"),
 
     // 切换group时，各个group的权重比。默认无权重
-    weights("weights", "");
+    weights("weights", ""),
+
+    // 消息处理分发策略
+    providerProtectedStrategy("providerProtectedStrategy", "motan");
 
     private String name;
     private String value;
