@@ -65,6 +65,7 @@ public abstract class AbstractProtocol implements Protocol {
             exporter = createExporter(provider, url);
             exporter.init();
 
+            protocolKey =  MotanFrameworkUtil.getProtocolKey(url);// rebuild protocolKey，maybe port change when using random port
             exporterMap.put(protocolKey, exporter);
 
             LoggerUtil.info(this.getClass().getSimpleName() + " export Success: url=" + url);

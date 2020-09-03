@@ -108,6 +108,11 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
         ChannelFuture channelFuture = serverBootstrap.bind(new InetSocketAddress(url.getPort()));
         channelFuture.syncUninterruptibly();
         serverChannel = channelFuture.channel();
+        setLocalAddress((InetSocketAddress) serverChannel.localAddress());
+        if (url.getPort() == 0){
+            url.setPort(getLocalAddress().getPort());
+        }
+
         state = ChannelState.ALIVE;
         StatsUtil.registryStatisticCallback(this);
         LoggerUtil.info("NettyServer ServerChannel finish Open: url=" + url);

@@ -122,8 +122,8 @@ public class RefererConfig<T> extends AbstractRefererConfig {
 
         ConfigHandler configHandler = ExtensionLoader.getExtensionLoader(ConfigHandler.class).getExtension(MotanConstants.DEFAULT_VALUE);
 
-        List<URL> registryUrls = loadRegistryUrls();
-        String localIp = getLocalHostAddress(registryUrls);
+        loadRegistryUrls();
+        String localIp = getLocalHostAddress();
         for (ProtocolConfig protocol : protocols) {
             Map<String, String> params = new HashMap<>();
             params.put(URLParamType.nodeType.getName(), MotanConstants.NODE_TYPE_REFERER);
@@ -135,7 +135,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
 
             String path = StringUtils.isBlank(serviceInterface) ? interfaceClass.getName() : serviceInterface;
             URL refUrl = new URL(protocol.getName(), localIp, MotanConstants.DEFAULT_INT_VALUE, path, params);
-            ClusterSupport<T> clusterSupport = createClusterSupport(refUrl, configHandler, registryUrls);
+            ClusterSupport<T> clusterSupport = createClusterSupport(refUrl, configHandler);
 
             clusterSupports.add(clusterSupport);
             clusters.add(clusterSupport.getCluster());
@@ -151,7 +151,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
         initialized.set(true);
     }
 
-    private ClusterSupport<T> createClusterSupport(URL refUrl, ConfigHandler configHandler, List<URL> registryUrls) {
+    private ClusterSupport<T> createClusterSupport(URL refUrl, ConfigHandler configHandler) {
         List<URL> regUrls = new ArrayList<>();
 
         // 如果用户指定directUrls 或者 injvm协议访问，则使用local registry
@@ -190,10 +190,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
             }
         }
 
-        for (URL url : regUrls) {
-            url.addParameter(URLParamType.embed.getName(), StringTools.urlEncode(refUrl.toFullStr()));
-        }
-        return configHandler.buildClusterSupport(interfaceClass, regUrls);
+        return configHandler.buildClusterSupport(interfaceClass, regUrls, refUrl);
     }
 
     public synchronized void destroy() {

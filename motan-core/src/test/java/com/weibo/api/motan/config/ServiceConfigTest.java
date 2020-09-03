@@ -16,19 +16,17 @@
 
 package com.weibo.api.motan.config;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Test;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.protocol.example.IWorld;
 import com.weibo.api.motan.rpc.URL;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 
  * Service config test
  *
  * @author fishermen zhanglei
@@ -62,7 +60,7 @@ public class ServiceConfigTest extends BaseTestCase {
 
         assertTrue(serviceConfig.getExported().get());
         assertEquals(serviceConfig.getExporters().size(), 1);
-        assertEquals(serviceConfig.getRegistereUrls().size(), 1);
+        assertEquals(serviceConfig.getRegistryUrls().size(), 1);
 
     }
 
@@ -134,7 +132,7 @@ public class ServiceConfigTest extends BaseTestCase {
         serviceConfig.setMethods(methods);
         serviceConfig.export();
         assertEquals(serviceConfig.getExporters().size(), 1);
-        assertEquals(serviceConfig.getRegistereUrls().size(), 1);
+        assertEquals(serviceConfig.getRegistryUrls().size(), 1);
         URL serviceUrl = serviceConfig.getExporters().get(0).getUrl();
         assertEquals(
                 123,
@@ -165,8 +163,8 @@ public class ServiceConfigTest extends BaseTestCase {
     @Test
     public void testMultiRegitstry() {
         serviceConfig.setRegistries(getMultiRegister(MotanConstants.REGISTRY_PROTOCOL_LOCAL, MotanConstants.REGISTRY_PROTOCOL_ZOOKEEPER));
-        List<URL> registryUrls = serviceConfig.loadRegistryUrls();
-        assertEquals(2, registryUrls.size());
+        serviceConfig.loadRegistryUrls();
+        assertEquals(2, serviceConfig.getRegistryUrls().size());
     }
 
     @Test
@@ -175,7 +173,6 @@ public class ServiceConfigTest extends BaseTestCase {
         serviceConfig.unexport();
         assertFalse(serviceConfig.getExported().get());
         assertEquals(serviceConfig.getExporters().size(), 0);
-        assertEquals(serviceConfig.getRegistereUrls().size(), 0);
     }
 
 

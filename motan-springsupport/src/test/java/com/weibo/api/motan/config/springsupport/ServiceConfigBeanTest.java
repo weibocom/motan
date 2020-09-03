@@ -16,20 +16,16 @@
 
 package com.weibo.api.motan.config.springsupport;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
+import com.weibo.api.motan.config.ServiceConfig;
+import com.weibo.api.motan.rpc.Exporter;
+import com.weibo.api.motan.rpc.URL;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.weibo.api.motan.config.ServiceConfig;
-import com.weibo.api.motan.rpc.Exporter;
-import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.util.ConcurrentHashSet;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 public class ServiceConfigBeanTest extends BaseTest {
     ServiceConfig<ITest> serviceTest;
@@ -84,23 +80,6 @@ public class ServiceConfigBeanTest extends BaseTest {
         assertEquals("motan", url.getProtocol());
         assertEquals(18080, url.getPort().intValue());
 
-    }
-
-    @Test
-    public void testGetRegistereUrls() {
-        ConcurrentHashSet<URL> registries = serviceTest.getRegistereUrls();
-        assertEquals(3, registries.size());// 每种协议在每个注册中心都会导出，injvm协议只导出localregistry。
-        boolean local = false;
-        boolean mock = false;
-        for (URL url : registries) {
-            if ("local".equals(url.getProtocol())) {
-                local = true;
-            }
-            if ("mockRegistry".equals(url.getProtocol())) {
-                mock = true;
-            }
-        }
-        assertTrue(local && mock);
     }
 
 }

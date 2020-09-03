@@ -20,6 +20,7 @@ package com.weibo.api.motan.protocol.rpc;
 
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
+import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.AbstractExporter;
 import com.weibo.api.motan.rpc.Exporter;
 import com.weibo.api.motan.rpc.Provider;
@@ -76,7 +77,16 @@ public class DefaultRpcExporter<T> extends AbstractExporter<T> {
 
     @Override
     protected boolean doInit() {
-        return server.open();
+        boolean result = server.open();
+        if (result && getUrl().getPort() == 0){ // use random port
+            ProviderMessageRouter requestRouter = this.ipPort2RequestRouter.remove(getUrl().getServerPortStr());
+            if (requestRouter == null){
+                throw new MotanFrameworkException("can not find message router. url:" + getUrl().getIdentity());
+            }
+            updateRealServerPort(server.getLocalAddress().getPort());
+            this.ipPort2RequestRouter.put(getUrl().getServerPortStr(), requestRouter);
+        }
+        return result;
     }
 
     @Override
