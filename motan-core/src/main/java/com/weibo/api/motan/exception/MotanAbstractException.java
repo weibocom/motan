@@ -40,8 +40,7 @@ public abstract class MotanAbstractException extends RuntimeException {
     }
 
     public MotanAbstractException(String message) {
-        super(message);
-        this.errorMsg = message;
+        this(message, (MotanErrorMsg) null);
     }
 
     public MotanAbstractException(String message, MotanErrorMsg motanErrorMsg) {
@@ -50,9 +49,18 @@ public abstract class MotanAbstractException extends RuntimeException {
         this.errorMsg = message;
     }
 
-    public MotanAbstractException(String message, Throwable cause) {
-        super(message, cause);
+    public MotanAbstractException(String message, MotanErrorMsg motanErrorMsg, boolean writableStackTrace) {
+        this(message, null, motanErrorMsg, writableStackTrace);
+    }
+
+    public MotanAbstractException(String message, Throwable cause, MotanErrorMsg motanErrorMsg, boolean writableStackTrace) {
+        super(message, cause, false, writableStackTrace);
+        this.motanErrorMsg = motanErrorMsg;
         this.errorMsg = message;
+    }
+
+    public MotanAbstractException(String message, Throwable cause) {
+        this(message, cause, null);
     }
 
     public MotanAbstractException(String message, Throwable cause, MotanErrorMsg motanErrorMsg) {

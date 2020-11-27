@@ -21,7 +21,7 @@ package com.weibo.api.motan.rpc;
  * 
  * @author maijunsheng
  * @version 创建时间：2013-5-21
- * 
+ * AbstractExporter
  */
 public abstract class AbstractExporter<T> extends AbstractNode implements Exporter<T> {
     protected Provider<T> provider;
@@ -38,5 +38,13 @@ public abstract class AbstractExporter<T> extends AbstractNode implements Export
     @Override
     public String desc() {
         return "[" + this.getClass().getSimpleName() + "] url=" + url;
+    }
+
+    /**
+     * update real listened port
+     * @param port
+     */
+    protected void updateRealServerPort(int port){
+        getUrl().setPort(port);
     }
 }

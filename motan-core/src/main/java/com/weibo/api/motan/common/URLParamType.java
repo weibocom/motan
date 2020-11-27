@@ -30,37 +30,65 @@ public enum URLParamType {
     requestTimeout("requestTimeout", 200),
     /** request id from http interface **/
     requestIdFromClient("requestIdFromClient", 0),
-    /** connect timeout **/
+    /**
+     * connect timeout
+     **/
     connectTimeout("connectTimeout", 1000),
-    /** service min worker threads **/
+    /**
+     * service min worker threads
+     **/
     minWorkerThread("minWorkerThread", 20),
-    /** service max worker threads **/
+    /**
+     * service max worker threads
+     **/
     maxWorkerThread("maxWorkerThread", 200),
-    /** pool min conn number **/
+    /**
+     * pool min conn number
+     **/
     minClientConnection("minClientConnection", 2),
-    /** pool max conn number **/
+    /**
+     * pool max conn number
+     **/
     maxClientConnection("maxClientConnection", 10),
-    /** pool max conn number **/
+    maxConnectionPerGroup("maxConnectionPerGroup", 0),
+    /**
+     * pool max conn number
+     **/
     maxContentLength("maxContentLength", 10 * 1024 * 1024),
-    /** max server conn (all clients conn) **/
+    /**
+     * max server conn (all clients conn)
+     **/
     maxServerConnection("maxServerConnection", 100000),
-    /** pool conn manger stragy **/
+    /**
+     * pool conn manger stragy
+     **/
     poolLifo("poolLifo", true),
 
     lazyInit("lazyInit", false),
-    /** multi referer share the same channel **/
+    /**
+     * multi referer share the same channel
+     **/
     shareChannel("shareChannel", false),
     asyncInitConnection("asyncInitConnection", false),
+    fusingThreshold("fusingThreshold", 10),
 
     /************************** SPI start ******************************/
 
-    /** serialize **/
+    /**
+     * serialize
+     **/
     serialize("serialization", "hessian2"),
-    /** codec **/
+    /**
+     * codec
+     **/
     codec("codec", "motan"),
-    /** endpointFactory **/
+    /**
+     * endpointFactory
+     **/
     endpointFactory("endpointFactory", "motan"),
-    /** heartbeatFactory **/
+    /**
+     * heartbeatFactory
+     **/
     heartbeatFactory("heartbeatFactory", "motan"),
     /** switcherService **/
     switcherService("switcherService", "localSwitcherService"),
@@ -115,6 +143,7 @@ public enum URLParamType {
     check("check", "true"), 
     directUrl("directUrl", ""), 
     registrySessionTimeout("registrySessionTimeout", 1 * MotanConstants.MINUTE_MILLS),
+    slowThreshold("slowThreshold", 200),
 
     register("register", true), 
     subscribe("subscribe", true), 
@@ -129,7 +158,10 @@ public enum URLParamType {
     backupRequestMaxRetryRatio("backupRequestMaxRetryRatio", "0.15"),
 
     // 切换group时，各个group的权重比。默认无权重
-    weights("weights", "");
+    weights("weights", ""),
+
+    // 消息处理分发策略
+    providerProtectedStrategy("providerProtectedStrategy", "motan");
 
     private String name;
     private String value;

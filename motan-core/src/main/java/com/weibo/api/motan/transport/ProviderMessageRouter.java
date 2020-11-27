@@ -16,6 +16,8 @@
 
 package com.weibo.api.motan.transport;
 
+import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanBizException;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
@@ -36,15 +38,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * service 消息处理
- * 
+ * <p>
  * <pre>
  * 		1） 多个service的支持
  * 		2） 区分service的方式： group/interface/version
  * </pre>
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-6-4
- * 
  */
 public class ProviderMessageRouter implements MessageHandler {
     protected Map<String, Provider<?>> providers = new HashMap<>();
@@ -54,7 +55,18 @@ public class ProviderMessageRouter implements MessageHandler {
     // 有10个public method，那么就是15
     protected AtomicInteger methodCounter = new AtomicInteger(0);
 
-    public ProviderMessageRouter() {}
+    protected ProviderProtectedStrategy strategy;
+
+    public ProviderMessageRouter() {
+        strategy = ExtensionLoader.getExtensionLoader(ProviderProtectedStrategy.class).getExtension(URLParamType.providerProtectedStrategy.getValue());
+        strategy.setMethodCounter(methodCounter);
+    }
+
+    public ProviderMessageRouter(URL url) {
+        String providerProtectedStrategy = url.getParameter(URLParamType.providerProtectedStrategy.getName(), URLParamType.providerProtectedStrategy.getValue());
+        strategy = ExtensionLoader.getExtensionLoader(ProviderProtectedStrategy.class).getExtension(providerProtectedStrategy);
+        strategy.setMethodCounter(methodCounter);
+    }
 
     public ProviderMessageRouter(Provider<?> provider) {
         addProvider(provider);
@@ -83,23 +95,23 @@ public class ProviderMessageRouter implements MessageHandler {
                     new MotanServiceException(this.getClass().getSimpleName() + " handler Error: provider not exist serviceKey="
                             + serviceKey + " " + MotanFrameworkUtil.toString(request));
 
-            DefaultResponse response = new DefaultResponse();
-            response.setException(exception);
+            DefaultResponse response = MotanFrameworkUtil.buildErrorResponse(request, exception);
             return response;
         }
         Method method = provider.lookupMethod(request.getMethodName(), request.getParamtersDesc());
         fillParamDesc(request, method);
         processLazyDeserialize(request, method);
-        return call(request, provider);
+        Response response = call(request, provider);
+        response.setSerializeNumber(request.getSerializeNumber());
+        response.setRpcProtocolVersion(request.getRpcProtocolVersion());
+        return response;
     }
 
     protected Response call(Request request, Provider<?> provider) {
         try {
-            return provider.call(request);
+            return strategy.call(request, provider);
         } catch (Exception e) {
-            DefaultResponse response = new DefaultResponse();
-            response.setException(new MotanBizException("provider call process error", e));
-            return response;
+            return MotanFrameworkUtil.buildErrorResponse(request, new MotanBizException("provider call process error", e));
         }
     }
 
@@ -111,15 +123,15 @@ public class ProviderMessageRouter implements MessageHandler {
                 Object[] args = ((DeserializableObject) request.getArguments()[0]).deserializeMulti(method.getParameterTypes());
                 ((DefaultRequest) request).setArguments(args);
             } catch (IOException e) {
-                throw new MotanFrameworkException("deserialize parameters fail: " + request.toString());
+                throw new MotanFrameworkException("deserialize parameters fail: " + request.toString() + ", error:" + e.getMessage());
             }
         }
     }
 
-    private void fillParamDesc(Request request, Method method){
-        if(method != null && StringUtils.isBlank(request.getParamtersDesc())
-                && request instanceof DefaultRequest){
-            DefaultRequest dr = (DefaultRequest)request;
+    private void fillParamDesc(Request request, Method method) {
+        if (method != null && StringUtils.isBlank(request.getParamtersDesc())
+                && request instanceof DefaultRequest) {
+            DefaultRequest dr = (DefaultRequest) request;
             dr.setParamtersDesc(ReflectUtil.getMethodParamDesc(method));
             dr.setMethodName(method.getName());
         }
@@ -157,4 +169,5 @@ public class ProviderMessageRouter implements MessageHandler {
     public int getPublicMethodCount() {
         return methodCounter.get();
     }
+
 }

@@ -44,7 +44,7 @@ public class ActiveLimitFilter implements Filter {
             int activeCount = RpcStats.getServiceStat(caller.getUrl()).getActiveCount();
             if (activeCount >= maxAcvitivyCount) {
                 throw new MotanServiceException(String.format("Request(%s) active count exceed the limit (%s), referer:%s", request,
-                        maxAcvitivyCount, caller.getUrl()), MotanErrorMsgConstant.SERVICE_REJECT);
+                        maxAcvitivyCount, caller.getUrl()), MotanErrorMsgConstant.SERVICE_REJECT, false);
             }
         }
 

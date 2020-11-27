@@ -19,10 +19,9 @@ package com.weibo.api.motan.protocol.rpc;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-22
- * 
  */
 public enum RpcProtocolVersion {
-    VERSION_1((byte) 1, 16), VERSION_2((byte) 2, 16);// V2为数据包压缩版本
+    VERSION_1((byte) 1, 16), VERSION_1_Compress((byte) 2, 16), VERSION_2((byte) 3, 13);//
 
     private byte version;
     private int headerLength;

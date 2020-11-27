@@ -20,10 +20,7 @@ import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RegistryConfig;
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -98,7 +95,7 @@ public class MotanFrameworkUtil {
 
     /**
      * 根据Request得到 interface.method(paramDesc) 的 desc
-     *
+     * <p>
      * <pre>
      * 		比如：
      * 			package com.weibo.api.motan;
@@ -123,7 +120,7 @@ public class MotanFrameworkUtil {
 
     /**
      * 判断url:source和url:target是否可以使用共享的service channel(port) 对外提供服务
-     *
+     * <p>
      * <pre>
      * 		1） protocol
      * 		2） codec
@@ -133,6 +130,7 @@ public class MotanFrameworkUtil {
      * 		6） maxWorkerThread
      * 		7） workerQueueSize
      * 		8） heartbeatFactory
+     * 	    9） providerProtectedStrategy
      * </pre>
      *
      * @param source
@@ -173,14 +171,19 @@ public class MotanFrameworkUtil {
             return false;
         }
 
-        return StringUtils.equals(source.getParameter(URLParamType.heartbeatFactory.getName()),
-                target.getParameter(URLParamType.heartbeatFactory.getName()));
+        if (!StringUtils.equals(source.getParameter(URLParamType.heartbeatFactory.getName()),
+                target.getParameter(URLParamType.heartbeatFactory.getName()))) {
+            return false;
+        }
+
+        return StringUtils.equals(source.getParameter(URLParamType.providerProtectedStrategy.getName()),
+                target.getParameter(URLParamType.providerProtectedStrategy.getName()));
 
     }
 
     /**
      * 判断url:source和url:target是否可以使用共享的client channel(port) 对外提供服务
-     *
+     * <p>
      * <pre>
      * 		1） protocol
      * 		2） codec
@@ -265,15 +268,63 @@ public class MotanFrameworkUtil {
         return path;
     }
 
-    public static Response buildErrorResponse(long requestId, Exception e) {
-        DefaultResponse response = new DefaultResponse(requestId);
+    public static DefaultResponse buildErrorResponse(Request request, Exception e) {
+        return buildErrorResponse(request.getRequestId(), request.getRpcProtocolVersion(), e);
+    }
+
+    public static DefaultResponse buildErrorResponse(long requestId, byte version, Exception e) {
+        DefaultResponse response = new DefaultResponse();
+        response.setRequestId(requestId);
+        response.setRpcProtocolVersion(version);
         response.setException(e);
         return response;
     }
 
-    public static void logRequestEvent(long requestId, String event, long time) {
-        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.REQUEST_TRACK_LOG_SWITCHER, false)) {
-            LoggerUtil.info("[motan-track-log] | " + requestId + " | " + event + " | " + time);
+    public static void logEvent(Request request, String event) {
+        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_TRACE_INFO_SWITCHER, false)) {
+            logEvent(request, event, System.currentTimeMillis());
+        }
+    }
+
+    public static void logEvent(Request request, String event, long time) {
+        if (!(request instanceof Traceable)) {
+            return;
+        }
+        TraceableContext context = ((Traceable) request).getTraceableContext();
+        if (MotanConstants.TRACE_CSEND.equals(event)) {
+            context.setSendTime(time);
+            return;
+        }
+        if (MotanConstants.TRACE_SRECEIVE.equals(event)) {
+            context.setReceiveTime(time);
+            return;
+        }
+        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_TRACE_INFO_SWITCHER, false)) {
+            context.addTraceInfo(event, String.valueOf(time));
+        }
+    }
+
+    public static void logEvent(Response response, String event) {
+        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_TRACE_INFO_SWITCHER, false)) {
+            logEvent(response, event, System.currentTimeMillis());
+        }
+    }
+
+    public static void logEvent(Response response, String event, long time) {
+        if (!(response instanceof Traceable)) {
+            return;
+        }
+        TraceableContext context = ((Traceable) response).getTraceableContext();
+        if (MotanConstants.TRACE_SSEND.equals(event)) {
+            context.setSendTime(time);
+            return;
+        }
+        if (MotanConstants.TRACE_CRECEIVE.equals(event)) {
+            context.setReceiveTime(time);
+            return;
+        }
+        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_TRACE_INFO_SWITCHER, false)) {
+            context.addTraceInfo(event, String.valueOf(time));
         }
     }
 }

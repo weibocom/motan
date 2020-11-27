@@ -28,31 +28,27 @@ import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by zhanglei28 on 2017/9/11.
  */
-public class DefaultResponseFuture implements ResponseFuture {
-
-    protected volatile FutureState state = FutureState.DOING;
+public class DefaultResponseFuture implements ResponseFuture, Traceable {
 
     protected final Object lock = new Object();
-
+    protected volatile FutureState state = FutureState.DOING;
     protected Object result = null;
     protected Exception exception = null;
 
     protected long createTime = System.currentTimeMillis();
     protected int timeout = 0;
     protected long processTime = 0;
-
     protected Request request;
     protected List<FutureListener> listeners;
     protected URL serverUrl;
     protected Class returnType;
+    private Map<String, String> attachments;// rpc协议版本兼容时可以回传一些额外的信息
+    private TraceableContext traceableContext = new TraceableContext();
 
     public DefaultResponseFuture(Request requestObj, int timeout, URL serverUrl) {
         this.request = requestObj;
@@ -60,13 +56,20 @@ public class DefaultResponseFuture implements ResponseFuture {
         this.serverUrl = serverUrl;
     }
 
+    @Override
     public void onSuccess(Response response) {
         this.result = response.getValue();
         this.processTime = response.getProcessTime();
+        this.attachments = response.getAttachments();
+        if (response instanceof Traceable) {
+            traceableContext.setReceiveTime(((Traceable) response).getTraceableContext().getReceiveTime());
+            traceableContext.traceInfoMap = ((Traceable) response).getTraceableContext().getTraceInfoMap();
+        }
 
         done();
     }
 
+    @Override
     public void onFailure(Response response) {
         this.exception = response.getException();
         this.processTime = response.getProcessTime();
@@ -174,7 +177,7 @@ public class DefaultResponseFuture implements ResponseFuture {
                 notifyNow = true;
             } else {
                 if (listeners == null) {
-                    listeners = new ArrayList<FutureListener>(1);
+                    listeners = new ArrayList<>(1);
                 }
 
                 listeners.add(listener);
@@ -186,6 +189,7 @@ public class DefaultResponseFuture implements ResponseFuture {
         }
     }
 
+    @Override
     public long getCreateTime() {
         return createTime;
     }
@@ -215,7 +219,7 @@ public class DefaultResponseFuture implements ResponseFuture {
             exception =
                     new MotanServiceException(this.getClass().getName() + " request timeout: serverPort=" + serverUrl.getServerPortStr()
                             + " " + MotanFrameworkUtil.toString(request) + " cost=" + (System.currentTimeMillis() - createTime),
-                            MotanErrorMsgConstant.SERVICE_TIMEOUT);
+                            MotanErrorMsgConstant.SERVICE_TIMEOUT, false);
 
             lock.notifyAll();
         }
@@ -257,6 +261,7 @@ public class DefaultResponseFuture implements ResponseFuture {
         return true;
     }
 
+    @Override
     public long getRequestId() {
         return this.request.getRequestId();
     }
@@ -287,18 +292,27 @@ public class DefaultResponseFuture implements ResponseFuture {
         this.processTime = time;
     }
 
+    @Override
     public int getTimeout() {
         return timeout;
     }
 
     @Override
     public Map<String, String> getAttachments() {
-        // 不需要使用
-        return Collections.EMPTY_MAP;
+        return attachments != null ? attachments : Collections.<String, String>emptyMap();
     }
 
     @Override
     public void setAttachment(String key, String value) {
+        if (this.attachments == null) {
+            this.attachments = new HashMap<>();
+        }
+        this.attachments.put(key, value);
+    }
+
+    @Override
+    public byte getRpcProtocolVersion() {
+        return RpcProtocolVersion.VERSION_1.getVersion();
     }
 
     @Override
@@ -306,7 +320,16 @@ public class DefaultResponseFuture implements ResponseFuture {
     }
 
     @Override
-    public byte getRpcProtocolVersion() {
-        return RpcProtocolVersion.VERSION_1.getVersion();
+    public TraceableContext getTraceableContext() {
+        return traceableContext;
+    }
+
+    @Override
+    public void setSerializeNumber(int number) {
+    }
+
+    @Override
+    public int getSerializeNumber() {
+        return 0;
     }
 }

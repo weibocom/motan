@@ -29,7 +29,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
@@ -46,7 +45,6 @@ import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 public class ServiceConfigBean<T> extends ServiceConfig<T>
         implements
-        BeanPostProcessor,
         BeanFactoryAware,
         InitializingBean,
         DisposableBean,
@@ -76,17 +74,6 @@ public class ServiceConfigBean<T> extends ServiceConfig<T>
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
         this.beanFactory = beanFactory;
-    }
-
-    // 为了让serviceBean最早加载
-    @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        return bean;
-    }
-
-    @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        return bean;
     }
 
     @Override
@@ -190,5 +177,4 @@ public class ServiceConfigBean<T> extends ServiceConfig<T>
             setRegistry(MotanFrameworkUtil.getDefaultRegistryConfig());
         }
     }
-
 }

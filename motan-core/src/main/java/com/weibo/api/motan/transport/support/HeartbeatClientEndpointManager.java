@@ -41,7 +41,7 @@ import java.util.concurrent.*;
  */
 public class HeartbeatClientEndpointManager implements EndpointManager{
 
-    private ConcurrentMap<Client, HeartbeatFactory> endpoints = new ConcurrentHashMap<Client, HeartbeatFactory>();
+    private ConcurrentMap<Client, HeartbeatFactory> endpoints = new ConcurrentHashMap<>();
 
     // 一般这个类创建的实例会比较少，如果共享的话，容易“被影响”，如果某个任务阻塞了
     private ScheduledExecutorService executorService = null;

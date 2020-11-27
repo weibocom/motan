@@ -21,7 +21,7 @@
     <parent>
         <artifactId>motan</artifactId>
         <groupId>com.weibo</groupId>
-        <version>1.1.4-SNAPSHOT</version>
+        <version>1.1.9-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -50,12 +50,12 @@
         </dependency>
         <dependency>
             <groupId>com.weibo</groupId>
-            <artifactId>motan-transport-netty</artifactId>
+            <artifactId>motan-registry-zookeeper</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.weibo</groupId>
-            <artifactId>motan-registry-zookeeper</artifactId>
+            <artifactId>motan-transport-netty</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>

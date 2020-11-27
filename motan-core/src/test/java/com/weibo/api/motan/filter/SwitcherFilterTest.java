@@ -75,6 +75,8 @@ public class SwitcherFilterTest extends BaseTestCase {
                 will(returnValue("mock_class_name"));
                 allowing(request).getAttachments();
                 will(returnValue(attachments));
+                allowing(request).getRequestId();
+                will(returnValue(12345l));
             }
         });
 

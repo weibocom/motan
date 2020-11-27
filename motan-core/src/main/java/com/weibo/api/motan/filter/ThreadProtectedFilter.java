@@ -72,8 +72,7 @@ public class ThreadProtectedFilter implements InitializableFilter {
         DefaultResponse response = new DefaultResponse();
         MotanServiceException exception =
                 new MotanServiceException("ThreadProtectedFilter reject request: request_counter=" + requestCounter + " total_counter="
-                        + totalCounter + " max_thread=" + maxThread, MotanErrorMsgConstant.SERVICE_REJECT);
-        exception.setStackTrace(new StackTraceElement[0]);
+                        + totalCounter + " max_thread=" + maxThread, MotanErrorMsgConstant.SERVICE_REJECT, false);
         response.setException(exception);
         LoggerUtil.error("ThreadProtectedFilter reject request: request_method=" + method + " request_counter=" + requestCounter + " ="
                 + totalCounter + " max_thread=" + maxThread);

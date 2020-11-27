@@ -183,9 +183,7 @@ public class ExtensionLoader<T> {
         if (loader == null) {
             loader = new ExtensionLoader<T>(type);
 
-            extensionLoaders.putIfAbsent(type, loader);
-
-            loader = (ExtensionLoader<T>) extensionLoaders.get(type);
+            extensionLoaders.put(type, loader);
         }
 
         return loader;

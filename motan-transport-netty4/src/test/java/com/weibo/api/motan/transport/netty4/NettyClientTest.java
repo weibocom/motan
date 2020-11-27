@@ -143,7 +143,7 @@ public class NettyClientTest {
     @Test
     public void testAbNormal2() throws InterruptedException {
         // 模拟失败连接的次数大于或者等于设置的次数，client期望为不可用
-        url.addParameter(URLParamType.minClientConnection.getName(), "1");
+        url.addParameter(URLParamType.fusingThreshold.getName(), "1");
         url.addParameter(URLParamType.requestTimeout.getName(), "1");
         NettyTestClient nettyClient = new NettyTestClient(url);
         this.nettyClient = nettyClient;
@@ -154,7 +154,7 @@ public class NettyClientTest {
         } catch (Exception e) {
         }
 
-        Thread.sleep(3000);
+        Thread.sleep(100);
         try {
             nettyClient.request(request);
         } catch (MotanServiceException e) {

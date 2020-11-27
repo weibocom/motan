@@ -213,7 +213,7 @@ public class ConsulRegistry extends CommandFailbackRegistry implements Closable 
 
     private ConcurrentHashMap<String, List<URL>> lookupServiceUpdate(String group) {
         ConcurrentHashMap<String, List<URL>> groupUrls = new ConcurrentHashMap<String, List<URL>>();
-        Long lastConsulIndexId = lookupGroupServices.get(group) == null ? 0 : lookupGroupServices.get(group);
+        Long lastConsulIndexId = lookupGroupServices.get(group) == null ? 0l : lookupGroupServices.get(group);
         ConsulResponse<List<ConsulService>> response = lookupConsulService(group, lastConsulIndexId);
         if (response != null) {
             List<ConsulService> services = response.getValue();

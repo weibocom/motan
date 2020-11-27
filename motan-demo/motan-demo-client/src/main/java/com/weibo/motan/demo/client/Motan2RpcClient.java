@@ -37,13 +37,17 @@ public class Motan2RpcClient {
 
     public static void main(String[] args) throws Throwable {
         ApplicationContext ctx = new ClassPathXmlApplicationContext(new String[]{"classpath:motan2_demo_client.xml"});
-
+        MotanDemoService service;
         // hessian
-        MotanDemoService service = (MotanDemoService) ctx.getBean("motanDemoReferer");
+        service = (MotanDemoService) ctx.getBean("motanDemoReferer");
         print(service);
 
         // simple serialization
         service = (MotanDemoService) ctx.getBean("motanDemoReferer-simple");
+        print(service);
+
+        // breeze serialization
+        service = (MotanDemoService) ctx.getBean("motanDemoReferer-breeze");
         print(service);
 
         // pb serialization
@@ -92,7 +96,8 @@ public class Motan2RpcClient {
         user = (User) client.call(request, User.class);
         System.out.println(user);
 
-        client.call("rename", new Object[]{null, "FFF"}, void.class);
+        // expect throw exception
+//        client.call("rename", new Object[]{null, "FFF"}, void.class);
     }
 
     public static void motan2ApiCommonClientDemo() throws Throwable {

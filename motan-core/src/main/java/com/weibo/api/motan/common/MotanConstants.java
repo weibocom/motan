@@ -68,9 +68,11 @@ public class MotanConstants {
     public static final String DEFAULT_CHARACTER = "utf-8";
     public static final int SLOW_COST = 50; // 50ms
     public static final int STATISTIC_PEROID = 30; // 30 seconds
+    public static final int REFRESH_PERIOD = 60;
     public static final String ASYNC_SUFFIX = "Async";// suffix for async call.
     public static final String APPLICATION_STATISTIC = "statisitic";
     public static final String REQUEST_REMOTE_ADDR = "requestRemoteAddress";
+    public static final String CONTENT_LENGTH = "Content-Length";
 
     /**
      * netty channel constants start
@@ -117,7 +119,7 @@ public class MotanConstants {
     public static final String ZOOKEEPER_REGISTRY_COMMAND = "/command";
 
     public static final String REGISTRY_HEARTBEAT_SWITCHER = "feature.configserver.heartbeat";
-    public static final String REQUEST_TRACK_LOG_SWITCHER = "feature.request.track.log";
+    public static final String MOTAN_TRACE_INFO_SWITCHER = "feature.motan.trace.info";
 
     /**
      * 默认的consistent的hash的数量
@@ -138,6 +140,20 @@ public class MotanConstants {
     public static final String M2_ERROR = "M_e";
     public static final String M2_PROCESS_TIME = "M_pt";
 
+    public static final String TRACE_INVOKE = "TRACE_INVOKE";
+    public static final String TRACE_CONNECTION = "TRACE_CONNECTION";
+    public static final String TRACE_CENCODE = "TRACE_CENCODE";
+    public static final String TRACE_CSEND = "TRACE_CSEND";
+    public static final String TRACE_SRECEIVE = "TRACE_SRECEIVE";
+    public static final String TRACE_SDECODE = "TRACE_SDECODE";
+    public static final String TRACE_SEXECUTOR_START = "TRACE_SEXECUTOR_START";
+    public static final String TRACE_BEFORE_BIZ = "TRACE_BEFORE_BIZ";
+    public static final String TRACE_AFTER_BIZ = "TRACE_AFTER_BIZ";
+    public static final String TRACE_PROCESS = "TRACE_PROCESS";
+    public static final String TRACE_SENCODE = "TRACE_SENCODE";
+    public static final String TRACE_SSEND = "TRACE_SSEND";
+    public static final String TRACE_CRECEIVE = "TRACE_CRECEIVE";
+    public static final String TRACE_CDECODE = "TRACE_CDECODE";
 
     private MotanConstants() {
     }

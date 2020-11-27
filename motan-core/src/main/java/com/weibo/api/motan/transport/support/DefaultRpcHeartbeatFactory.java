@@ -79,10 +79,7 @@ public class DefaultRpcHeartbeatFactory implements HeartbeatFactory {
     }
 
     public static boolean isHeartbeatResponse(Object message){
-        if(message instanceof HeartbeatResponse){
-            return true;
-        }
-        return false;
+        return message instanceof HeartbeatResponse;
     }
 
 
@@ -96,7 +93,9 @@ public class DefaultRpcHeartbeatFactory implements HeartbeatFactory {
         @Override
         public Object handle(Channel channel, Object message) {
             if (isHeartbeatRequest(message)) {
-                return getDefaultHeartbeatResponse(((Request)message).getRequestId());
+                Response response = getDefaultHeartbeatResponse(((Request)message).getRequestId());
+                response.setRpcProtocolVersion(((Request) message).getRpcProtocolVersion());
+                return response;
             }
             return messageHandler.handle(channel, message);
         }

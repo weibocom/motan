@@ -33,6 +33,7 @@ public class MethodConfig extends AbstractConfig {
     private Integer actives;
     // 参数类型（逗号分隔）
     private String argumentTypes;
+    private Integer slowThreshold;
 
     @ConfigDesc(excluded = true)
     public String getName() {
@@ -74,5 +75,13 @@ public class MethodConfig extends AbstractConfig {
 
     public void setArgumentTypes(String argumentTypes) {
         this.argumentTypes = argumentTypes;
+    }
+
+    public Integer getSlowThreshold() {
+        return slowThreshold;
+    }
+
+    public void setSlowThreshold(Integer slowThreshold) {
+        this.slowThreshold = slowThreshold;
     }
 }

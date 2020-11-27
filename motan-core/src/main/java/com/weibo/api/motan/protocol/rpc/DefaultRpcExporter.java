@@ -20,17 +20,16 @@ package com.weibo.api.motan.protocol.rpc;
 
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
+import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.AbstractExporter;
 import com.weibo.api.motan.rpc.Exporter;
 import com.weibo.api.motan.rpc.Provider;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.EndpointFactory;
 import com.weibo.api.motan.transport.ProviderMessageRouter;
-import com.weibo.api.motan.transport.ProviderProtectedMessageRouter;
 import com.weibo.api.motan.transport.Server;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
-import com.weibo.api.motan.util.StatsUtil;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -78,7 +77,16 @@ public class DefaultRpcExporter<T> extends AbstractExporter<T> {
 
     @Override
     protected boolean doInit() {
-        return server.open();
+        boolean result = server.open();
+        if (result && getUrl().getPort() == 0){ // use random port
+            ProviderMessageRouter requestRouter = this.ipPort2RequestRouter.remove(getUrl().getServerPortStr());
+            if (requestRouter == null){
+                throw new MotanFrameworkException("can not find message router. url:" + getUrl().getIdentity());
+            }
+            updateRealServerPort(server.getLocalAddress().getPort());
+            this.ipPort2RequestRouter.put(getUrl().getServerPortStr(), requestRouter);
+        }
+        return result;
     }
 
     @Override
@@ -97,8 +105,7 @@ public class DefaultRpcExporter<T> extends AbstractExporter<T> {
         ProviderMessageRouter requestRouter = ipPort2RequestRouter.get(ipPort);
 
         if (requestRouter == null) {
-            ProviderProtectedMessageRouter router = new ProviderProtectedMessageRouter();
-            StatsUtil.registryStatisticCallback(router);
+            ProviderMessageRouter router = new ProviderMessageRouter(url);
             ipPort2RequestRouter.putIfAbsent(ipPort, router);
             requestRouter = ipPort2RequestRouter.get(ipPort);
         }

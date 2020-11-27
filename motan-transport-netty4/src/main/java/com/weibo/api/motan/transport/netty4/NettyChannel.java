@@ -2,6 +2,7 @@ package com.weibo.api.motan.transport.netty4;
 
 import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.common.ChannelState;
+import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
@@ -61,7 +62,7 @@ public class NettyChannel implements Channel {
         boolean result = writeFuture.awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
 
         if (result && writeFuture.isSuccess()) {
-            MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after send rpc request " + nettyClient.getUrl().getServerPortStr(), System.currentTimeMillis());
+            MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_CSEND, System.currentTimeMillis());
             response.addListener(new FutureListener() {
                 @Override
                 public void operationComplete(Future future) throws Exception {
@@ -92,7 +93,7 @@ public class NettyChannel implements Channel {
         } else {
             throw new MotanServiceException("NettyChannel send request to server Timeout: url="
                     + nettyClient.getUrl().getUri() + " local=" + localAddress + " "
-                    + MotanFrameworkUtil.toString(request));
+                    + MotanFrameworkUtil.toString(request), false);
         }
     }
 
@@ -133,7 +134,7 @@ public class NettyChannel implements Channel {
                 throw new MotanServiceException("NettyChannel failed to connect to server, url: " + nettyClient.getUrl().getUri() + ", result: " + result + ", success: " + success + ", connected: " + connected, channelFuture.cause());
             } else {
                 channelFuture.cancel(true);
-                throw new MotanServiceException("NettyChannel connect to server timeout url: " + nettyClient.getUrl().getUri() + ", cost: " + (System.currentTimeMillis() - start) + ", result: " + result + ", success: " + success + ", connected: " + connected);
+                throw new MotanServiceException("NettyChannel connect to server timeout url: " + nettyClient.getUrl().getUri() + ", cost: " + (System.currentTimeMillis() - start) + ", result: " + result + ", success: " + success + ", connected: " + connected, false);
             }
         } catch (MotanServiceException e) {
             throw e;

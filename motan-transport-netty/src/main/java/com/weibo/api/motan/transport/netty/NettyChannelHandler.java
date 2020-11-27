@@ -16,11 +16,15 @@
 
 package com.weibo.api.motan.transport.netty;
 
+import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.rpc.DefaultResponse;
+import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.RpcContext;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.LoggerUtil;
@@ -105,6 +109,7 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
                 @Override
                 public void run() {
                     try {
+                        MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_SEXECUTOR_START);
                         RpcContext.init(request);
                         processRequest(ctx, request, processStartTime);
                     } finally {
@@ -113,10 +118,8 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
                 }
             });
         } catch (RejectedExecutionException rejectException) {
-            DefaultResponse response = new DefaultResponse();
-            response.setRequestId(request.getRequestId());
-            response.setException(new MotanServiceException("process thread pool is full, reject",
-                    MotanErrorMsgConstant.SERVICE_REJECT));
+            DefaultResponse response = MotanFrameworkUtil.buildErrorResponse(request, new MotanServiceException("process thread pool is full, reject",
+                    MotanErrorMsgConstant.SERVICE_REJECT, false));
             response.setProcessTime(System.currentTimeMillis() - processStartTime);
             e.getChannel().write(response);
 
@@ -134,14 +137,17 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
             result = messageHandler.handle(serverChannel, request);
         } catch (Exception e) {
             LoggerUtil.error("NettyChannelHandler processRequest fail!request:" + MotanFrameworkUtil.toString(request), e);
-            result = MotanFrameworkUtil.buildErrorResponse(request.getRequestId(), new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
+            result = MotanFrameworkUtil.buildErrorResponse(request, new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
         }
 
-        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after invoke biz method: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
-        DefaultResponse response = null;
+        if (result instanceof Response) {
+            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_PROCESS);
+        }
+        final DefaultResponse response;
 
         if (!(result instanceof DefaultResponse)) {
             response = new DefaultResponse(result);
+            response.setRpcProtocolVersion(request.getRpcProtocolVersion());
         } else {
             response = (DefaultResponse) result;
         }
@@ -151,12 +157,12 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
 
         if (ctx.getChannel().isConnected()) {
             ChannelFuture channelFuture = ctx.getChannel().write(response);
-            if (channelFuture != null && request instanceof TraceableRequest) {
+            if (channelFuture != null) {
                 channelFuture.addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
-                        MotanFrameworkUtil.logRequestEvent(request.getRequestId(), "after send rpc response: " + MotanFrameworkUtil.getFullMethodString(request), System.currentTimeMillis());
-                        ((TraceableRequest) request).onFinish();
+                        MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SSEND, System.currentTimeMillis());
+                        response.onFinish();
                     }
                 });
             }

@@ -16,22 +16,23 @@
 
 package com.weibo.api.motan.rpc;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
+import com.weibo.api.motan.util.LoggerUtil;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 
  * Response received via rpc.
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-16
  */
-public class DefaultResponse implements Response, Serializable {
+public class DefaultResponse implements Response, Traceable, Callbackable, Serializable {
     private static final long serialVersionUID = 4281186647291615871L;
 
     private Object value;
@@ -39,12 +40,15 @@ public class DefaultResponse implements Response, Serializable {
     private long requestId;
     private long processTime;
     private int timeout;
-
     private Map<String, String> attachments;// rpc协议版本兼容时可以回传一些额外的信息
-
     private byte rpcProtocolVersion = RpcProtocolVersion.VERSION_1.getVersion();
+    private int serializeNumber = 0;// default serialization is hession2
+    private List<Pair<Runnable, Executor>> taskList = new ArrayList<>();
+    private AtomicBoolean isFinished = new AtomicBoolean();
+    private TraceableContext traceableContext = new TraceableContext();
 
-    public DefaultResponse() {}
+    public DefaultResponse() {
+    }
 
     public DefaultResponse(long requestId) {
         this.requestId = requestId;
@@ -56,6 +60,13 @@ public class DefaultResponse implements Response, Serializable {
         this.requestId = response.getRequestId();
         this.processTime = response.getProcessTime();
         this.timeout = response.getTimeout();
+        this.rpcProtocolVersion = response.getRpcProtocolVersion();
+        this.serializeNumber = response.getSerializeNumber();
+        this.attachments = response.getAttachments();
+        if (response instanceof Traceable) {
+            traceableContext.setReceiveTime(((Traceable) response).getTraceableContext().getReceiveTime());
+            traceableContext.traceInfoMap = ((Traceable) response).getTraceableContext().getTraceInfoMap();
+        }
     }
 
     public DefaultResponse(Object value) {
@@ -66,6 +77,7 @@ public class DefaultResponse implements Response, Serializable {
         this.value = value;
     }
 
+    @Override
     public Object getValue() {
         if (exception != null) {
             throw (exception instanceof RuntimeException) ? (RuntimeException) exception : new MotanServiceException(
@@ -79,6 +91,7 @@ public class DefaultResponse implements Response, Serializable {
         this.value = value;
     }
 
+    @Override
     public Exception getException() {
         return exception;
     }
@@ -87,6 +100,7 @@ public class DefaultResponse implements Response, Serializable {
         this.exception = exception;
     }
 
+    @Override
     public long getRequestId() {
         return requestId;
     }
@@ -105,22 +119,14 @@ public class DefaultResponse implements Response, Serializable {
         this.processTime = time;
     }
 
+    @Override
     public int getTimeout() {
         return this.timeout;
     }
 
-    @SuppressWarnings("unchecked")
-    public Map<String, String> getAttachments() {
-        return attachments != null ? attachments : Collections.EMPTY_MAP;
-    }
-
     @Override
-    public void setAttachment(String key, String value) {
-        if (this.attachments == null) {
-            this.attachments = new HashMap<String, String>();
-        }
-
-        this.attachments.put(key, value);
+    public Map<String, String> getAttachments() {
+        return attachments != null ? attachments : Collections.<String, String>emptyMap();
     }
 
     public void setAttachments(Map<String, String> attachments) {
@@ -128,12 +134,62 @@ public class DefaultResponse implements Response, Serializable {
     }
 
     @Override
+    public void setAttachment(String key, String value) {
+        if (this.attachments == null) {
+            this.attachments = new HashMap<>();
+        }
+
+        this.attachments.put(key, value);
+    }
+
+    @Override
     public byte getRpcProtocolVersion() {
         return rpcProtocolVersion;
     }
 
+    @Override
     public void setRpcProtocolVersion(byte rpcProtocolVersion) {
         this.rpcProtocolVersion = rpcProtocolVersion;
     }
 
+    @Override
+    public void setSerializeNumber(int number) {
+        this.serializeNumber = number;
+    }
+
+    @Override
+    public int getSerializeNumber() {
+        return serializeNumber;
+    }
+
+    public void addFinishCallback(Runnable runnable, Executor executor) {
+        if (!isFinished.get()) {
+            taskList.add(Pair.of(runnable, executor));
+        }
+    }
+
+    @Override
+    public void onFinish() {
+        if (!isFinished.compareAndSet(false, true)) {
+            return;
+        }
+        for (Pair<Runnable, Executor> pair : taskList) {
+            Runnable runnable = pair.getKey();
+            Executor executor = pair.getValue();
+            if (executor == null) {
+                runnable.run();
+            } else {
+                try {
+                    executor.execute(runnable);
+                } catch (Exception e) {
+                    LoggerUtil.error("Callbackable response exec callback task error, e: ", e);
+                }
+            }
+        }
+    }
+
+    @Override
+    public TraceableContext getTraceableContext() {
+        return traceableContext;
+    }
 }

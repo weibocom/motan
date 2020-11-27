@@ -17,6 +17,7 @@
 package com.weibo.api.motan.transport;
 
 import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.DefaultResponse;
@@ -26,7 +27,9 @@ import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.StatisticCallback;
+import com.weibo.api.motan.util.StatsUtil;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,7 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * TODO 可配置化策略
  * <p>
  * provider 消息处理分发：支持一定程度的自我防护
- *
+ * <p>
  * <pre>
  *
  * 		1) 如果接口只有一个方法，那么直接return true
@@ -48,69 +51,68 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author maijunsheng
  * @version 创建时间：2013-6-7
  */
-public class ProviderProtectedMessageRouter extends ProviderMessageRouter implements StatisticCallback {
+@SpiMeta(name = "motan")
+public class DefaultProtectedStrategy implements ProviderProtectedStrategy, StatisticCallback {
     protected ConcurrentMap<String, AtomicInteger> requestCounters = new ConcurrentHashMap<>();
+    protected ConcurrentMap<String, AtomicInteger> rejectCounters = new ConcurrentHashMap<>();
     protected AtomicInteger totalCounter = new AtomicInteger(0);
     protected AtomicInteger rejectCounter = new AtomicInteger(0);
+    protected AtomicInteger methodCounter = new AtomicInteger(1);
 
-    public ProviderProtectedMessageRouter() {
-        super();
-    }
-
-    public ProviderProtectedMessageRouter(Provider<?> provider) {
-        super(provider);
+    public DefaultProtectedStrategy() {
+        StatsUtil.registryStatisticCallback(this);
     }
 
     @Override
-    protected Response call(Request request, Provider<?> provider) {
+    public void setMethodCounter(AtomicInteger methodCounter) {
+        this.methodCounter = methodCounter;
+    }
+
+    @Override
+    public Response call(Request request, Provider<?> provider) {
         // 支持的最大worker thread数
         int maxThread = provider.getUrl().getIntParameter(URLParamType.maxWorkerThread.getName(), URLParamType.maxWorkerThread.getIntValue());
 
         String requestKey = MotanFrameworkUtil.getFullMethodString(request);
 
         try {
-            int requestCounter = incrRequestCounter(requestKey);
+            int requestCounter = incrCounter(requestKey, requestCounters);
             int totalCounter = incrTotalCounter();
-            if (isAllowRequest(requestCounter, totalCounter, maxThread, request)) {
-                return super.call(request, provider);
+            if (isAllowRequest(requestCounter, totalCounter, maxThread)) {
+                return provider.call(request);
             } else {
                 // reject request
-                return reject(request.getInterfaceName() + "." + request.getMethodName(), requestCounter, totalCounter, maxThread);
+                return reject(request.getInterfaceName() + "." + request.getMethodName(), requestCounter, totalCounter, maxThread, request);
             }
-
         } finally {
             decrTotalCounter();
-            decrRequestCounter(requestKey);
+            decrCounter(requestKey, requestCounters);
         }
     }
 
-    private Response reject(String method, int requestCounter, int totalCounter, int maxThread) {
-        DefaultResponse response = new DefaultResponse();
-        MotanServiceException exception = new MotanServiceException("ThreadProtectedRequestRouter reject request: request_counter=" + requestCounter
-                + " total_counter=" + totalCounter + " max_thread=" + maxThread, MotanErrorMsgConstant.SERVICE_REJECT);
-        exception.setStackTrace(new StackTraceElement[0]);
-        response.setException(exception);
-        LoggerUtil.error("ThreadProtectedRequestRouter reject request: request_method=" + method + " request_counter=" + requestCounter
-                + " =" + totalCounter + " max_thread=" + maxThread);
+    private Response reject(String method, int requestCounter, int totalCounter, int maxThread, Request request) {
+        String message = "ThreadProtectedRequestRouter reject request: request_method=" + method + " request_counter=" + requestCounter
+                + " total_counter=" + totalCounter + " max_thread=" + maxThread;
+        MotanServiceException exception = new MotanServiceException(message, MotanErrorMsgConstant.SERVICE_REJECT, false);
+        DefaultResponse response = MotanFrameworkUtil.buildErrorResponse(request, exception);
+        LoggerUtil.error(exception.getMessage());
+        incrCounter(method, rejectCounters);
         rejectCounter.incrementAndGet();
         return response;
     }
 
-    private int incrRequestCounter(String requestKey) {
-        AtomicInteger counter = requestCounters.get(requestKey);
-
+    private int incrCounter(String requestKey, ConcurrentMap<String, AtomicInteger> counters) {
+        AtomicInteger counter = counters.get(requestKey);
         if (counter == null) {
             counter = new AtomicInteger(0);
-            requestCounters.putIfAbsent(requestKey, counter);
-            counter = requestCounters.get(requestKey);
+            counters.putIfAbsent(requestKey, counter);
+            counter = counters.get(requestKey);
         }
-
         return counter.incrementAndGet();
     }
 
-    private int decrRequestCounter(String requestKey) {
-        AtomicInteger counter = requestCounters.get(requestKey);
-
+    private int decrCounter(String requestKey, ConcurrentMap<String, AtomicInteger> counters) {
+        AtomicInteger counter = counters.get(requestKey);
         if (counter == null) {
             return 0;
         }
@@ -125,13 +127,10 @@ public class ProviderProtectedMessageRouter extends ProviderMessageRouter implem
         return totalCounter.decrementAndGet();
     }
 
-    protected boolean isAllowRequest(int requestCounter, int totalCounter, int maxThread, Request request) {
-        if (methodCounter.get() == 1) {
-            return true;
-        }
+    public boolean isAllowRequest(int requestCounter, int totalCounter, int maxThread) {
 
-        // 该方法第一次请求，直接return true
-        if (requestCounter == 1) {
+        // 方法总数为1或该方法第一次请求, 直接return true
+        if (methodCounter.get() == 1 || requestCounter == 1) {
             return true;
         }
 
@@ -143,14 +142,24 @@ public class ProviderProtectedMessageRouter extends ProviderMessageRouter implem
 
         // 如果总体线程数超过 maxThread * 3 / 4个，并且对外的method比较多，那么意味着这个时候整体压力比较大，
         // 那么这个时候如果单method超过 maxThread * 1 / 4，那么reject
-        return !(methodCounter.get() >= 4 && totalCounter > (maxThread * 3 / 4) && requestCounter > (maxThread * 1 / 4));
+        return !(methodCounter.get() >= 4 && totalCounter > (maxThread * 3 / 4) && requestCounter > (maxThread / 4));
     }
 
     @Override
     public String statisticCallback() {
         int count = rejectCounter.getAndSet(0);
         if (count > 0) {
-            return String.format("type: motan name: reject_request total_count: %s reject_count: %s", totalCounter.get(), count);
+            StringBuilder builder = new StringBuilder();
+            builder.append("type:").append("motan").append(" ")
+                    .append("name:").append("reject_request").append(" ")
+                    .append("total_count:").append(totalCounter.get()).append(" ")
+                    .append("reject_count:").append(count).append(" ");
+            for (Map.Entry<String, AtomicInteger> entry : rejectCounters.entrySet()) {
+                String key = entry.getKey();
+                int cnt = entry.getValue().getAndSet(0);
+                builder.append(key).append("_reject:").append(cnt).append(" ");
+            }
+            return builder.toString();
         } else {
             return null;
         }

@@ -99,7 +99,7 @@ public abstract class AbstractCodec implements Codec {
             s = ExtensionLoader.getExtensionLoader(Serialization.class).getExtension(name);
         }
         if (s == null) {
-            throw new MotanServiceException("can not found serialization extention by num " + serializationNum);
+            throw new MotanServiceException("can not found serialization by number " + serializationNum);
         }
         return s;
     }

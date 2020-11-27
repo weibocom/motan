@@ -56,6 +56,9 @@ public class AbstractInterfaceConfig extends AbstractConfig {
     // 注册中心的配置列表
     protected List<RegistryConfig> registries;
 
+    // 解析后的所有注册中心url
+    protected List<URL> registryUrls = new ArrayList<>();
+
     // 扩展配置点
     protected ExtConfig extConfig;
 
@@ -128,6 +131,7 @@ public class AbstractInterfaceConfig extends AbstractConfig {
     // 是否需要传输rpc server 端业务异常栈。默认true
     protected Boolean transExceptionStack;
 
+    protected Integer slowThreshold;
 
     public Integer getRetries() {
         return retries;
@@ -370,8 +374,9 @@ public class AbstractInterfaceConfig extends AbstractConfig {
         this.transExceptionStack = transExceptionStack;
     }
 
-    protected List<URL> loadRegistryUrls() {
-        List<URL> registryList = new ArrayList<URL>();
+    // 解析注册中心URL
+    protected void loadRegistryUrls() {
+        registryUrls.clear();
         if (registries != null && !registries.isEmpty()) {
             for (RegistryConfig config : registries) {
                 String address = config.getAddress();
@@ -398,12 +403,11 @@ public class AbstractInterfaceConfig extends AbstractConfig {
                 if (urls != null && !urls.isEmpty()) {
                     for (URL url : urls) {
                         url.removeParameter(URLParamType.protocol.getName());
-                        registryList.add(url);
+                        registryUrls.add(url);
                     }
                 }
             }
         }
-        return registryList;
     }
 
     protected void checkInterfaceAndMethods(Class<?> interfaceClass, List<MethodConfig> methods) {
@@ -448,12 +452,12 @@ public class AbstractInterfaceConfig extends AbstractConfig {
         }
     }
 
-    protected String getLocalHostAddress(List<URL> registryURLs) {
+    protected String getLocalHostAddress() {
 
         String localAddress = null;
 
         Map<String, Integer> regHostPorts = new HashMap<String, Integer>();
-        for (URL ru : registryURLs) {
+        for (URL ru : registryUrls) {
             if (StringUtils.isNotBlank(ru.getHost()) && ru.getPort() > 0) {
                 regHostPorts.put(ru.getHost(), ru.getPort());
             }
@@ -471,4 +475,15 @@ public class AbstractInterfaceConfig extends AbstractConfig {
                 MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
     }
 
+    public Integer getSlowThreshold() {
+        return slowThreshold;
+    }
+
+    public void setSlowThreshold(int slowThreshold) {
+        this.slowThreshold = slowThreshold;
+    }
+
+    public List<URL> getRegistryUrls() {
+        return registryUrls;
+    }
 }

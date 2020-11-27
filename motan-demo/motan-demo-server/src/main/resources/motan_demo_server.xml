@@ -46,7 +46,7 @@
                    ref="motanDemoServiceImpl" export="demoMotan:8001" basicService="serviceBasicConfig">
     </motan:service>
     <motan:service interface="com.weibo.motan.demo.service.MotanDemoService"
-                   ref="motanDemoServiceImpl" export="demoMotan:8002" basicService="serviceBasicConfig">
+                   ref="motanDemoServiceImpl" export="demoMotan:0" basicService="serviceBasicConfig">
     </motan:service>
 
 </beans>

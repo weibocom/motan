@@ -23,7 +23,6 @@ import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
@@ -39,10 +38,7 @@ public class GrpcPbSerialization implements Serialization {
             throw new IllegalArgumentException("can't serialize null.");
         }
         if (MessageLite.class.isAssignableFrom(obj.getClass())) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            baos.write(((MessageLite) obj).toByteArray());
-            baos.flush();
-            return baos.toByteArray();
+            return ((MessageLite) obj).toByteArray();
         } else {
             throw new IllegalArgumentException("can't serialize " + obj.getClass());
         }

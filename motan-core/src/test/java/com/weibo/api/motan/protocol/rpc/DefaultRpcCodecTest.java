@@ -162,7 +162,7 @@ public class DefaultRpcCodecTest extends TestCase {
     @Test
     public void testException() throws Exception {
         DefaultResponse response = new DefaultResponse();
-        response.setException(new MotanServiceException("process thread pool is full, reject", MotanErrorMsgConstant.SERVICE_REJECT));
+        response.setException(new MotanServiceException("process thread pool is full, reject", MotanErrorMsgConstant.SERVICE_REJECT, false));
 
         byte[] bytes = rpcCodec.encode(channel, response);
 

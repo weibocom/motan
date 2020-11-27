@@ -27,6 +27,7 @@ import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.ExceptionUtil;
+import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,7 +76,8 @@ public class ClusterSpi<T> implements Cluster<T> {
                 return callFalse(request, e);
             }
         }
-        return callFalse(request, new MotanServiceException(MotanErrorMsgConstant.SERVICE_UNFOUND));
+        throw new MotanServiceException(String.format("ClusterSpi Call false for request: %s, ClusterSpi not created or destroyed", request),
+                MotanErrorMsgConstant.SERVICE_UNFOUND, false);
     }
 
     @Override
@@ -193,14 +195,7 @@ public class ClusterSpi<T> implements Cluster<T> {
             }
         }
 
-        return buildErrorResponse(request, cause);
-    }
-
-    private Response buildErrorResponse(Request request, Exception motanException) {
-        DefaultResponse rs = new DefaultResponse();
-        rs.setException(motanException);
-        rs.setRequestId(request.getRequestId());
-        return rs;
+        return MotanFrameworkUtil.buildErrorResponse(request, cause);
     }
 
 }

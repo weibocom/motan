@@ -18,13 +18,15 @@ package com.weibo.api.motan.transport.netty;
 
 import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.protocol.v2motan.MotanV2Codec;
-import com.weibo.api.motan.rpc.DefaultResponse;
+import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.protocol.rpc.DefaultRpcCodec;
+import com.weibo.api.motan.protocol.v2motan.MotanV2Header;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.util.ByteUtil;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -36,6 +38,7 @@ import java.io.IOException;
  * @author maijunsheng
  * @version 创建时间：2013-5-31
  */
+@SuppressWarnings("all")
 public class NettyEncoder extends OneToOneEncoder {
     private Codec codec;
     private com.weibo.api.motan.transport.Channel client;
@@ -47,30 +50,39 @@ public class NettyEncoder extends OneToOneEncoder {
 
     @Override
     protected Object encode(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
-        Object obj;
-        if (codec instanceof MotanV2Codec) {
-            obj = encodev2(ctx, nettyChannel, message);
-        } else {
-            obj = encodev1(ctx, nettyChannel, message);
-        }
-        MotanFrameworkUtil.logRequestEvent(getRequestId(message), "after encode rpc " + (message instanceof Request ? "request " : "response ") + this.client.getUrl().getServerPortStr(), System.currentTimeMillis());
-        return obj;
-    }
-
-    private Object encodev2(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
-        return ChannelBuffers.wrappedBuffer(encodeMessage(message));
-    }
-
-    private Object encodev1(ChannelHandlerContext ctx, Channel nettyChannel, Object message) throws Exception {
-        long requestId = getRequestId(message);
         byte[] data = encodeMessage(message);
+        ChannelBuffer channelBuffer;
+        short type = ByteUtil.bytes2short(data, 0);
+        if (type == DefaultRpcCodec.MAGIC) {
+            channelBuffer = encodeV1(message, data);
+        } else if (type == MotanV2Header.MAGIC) {
+            channelBuffer  = encodeV2(data);
+        } else {
+            throw new MotanFrameworkException("can not encode message, unknown magic:" + type);
+        }
+        if (message instanceof Response) {
+            ((Response) message).setAttachment(MotanConstants.CONTENT_LENGTH, String.valueOf(channelBuffer.readableBytes()));
+        }
+        if (message instanceof Request) {
+            MotanFrameworkUtil.logEvent((Request) message, MotanConstants.TRACE_CENCODE);
+        } else if (message instanceof Response) {
+            MotanFrameworkUtil.logEvent((Response) message, MotanConstants.TRACE_SENCODE);
+        }
+        return channelBuffer;
+    }
 
+
+    private ChannelBuffer encodeV2(byte[] data) throws Exception {
+        return ChannelBuffers.wrappedBuffer(data);
+    }
+
+    private ChannelBuffer encodeV1(Object message, byte[] data) throws Exception {
+        long requestId = getRequestId(message);
         byte[] transportHeader = new byte[MotanConstants.NETTY_HEADER];
         ByteUtil.short2bytes(MotanConstants.NETTY_MAGIC_TYPE, transportHeader, 0);
         transportHeader[3] = getType(message);
         ByteUtil.long2bytes(requestId, transportHeader, 4);
         ByteUtil.int2bytes(data.length, transportHeader, 12);
-
         return ChannelBuffers.wrappedBuffer(transportHeader, data);
     }
 
@@ -82,7 +94,7 @@ public class NettyEncoder extends OneToOneEncoder {
             } catch (Exception e) {
                 LoggerUtil.error("NettyEncoder encode error, identity=" + client.getUrl().getIdentity(), e);
                 long requestId = getRequestId(message);
-                Response response = buildExceptionResponse(requestId, e);
+                Response response = MotanFrameworkUtil.buildErrorResponse(requestId, ((Response) message).getRpcProtocolVersion(), e);
                 data = codec.encode(client, response);
             }
         } else {
@@ -109,12 +121,5 @@ public class NettyEncoder extends OneToOneEncoder {
         } else {
             return MotanConstants.FLAG_OTHER;
         }
-    }
-
-    private Response buildExceptionResponse(long requestId, Exception e) {
-        DefaultResponse response = new DefaultResponse();
-        response.setRequestId(requestId);
-        response.setException(e);
-        return response;
     }
 }

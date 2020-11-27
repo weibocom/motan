@@ -53,7 +53,7 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
         if (method == null) {
             MotanServiceException exception =
                     new MotanServiceException("Service method not exist: " + request.getInterfaceName() + "." + request.getMethodName()
-                            + "(" + request.getParamtersDesc() + ")", MotanErrorMsgConstant.SERVICE_UNFOUND);
+                            + "(" + request.getParamtersDesc() + ")", MotanErrorMsgConstant.SERVICE_UNFOUND, false);
 
             response.setException(exception);
             return response;
@@ -102,8 +102,6 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
                 ExceptionUtil.setMockStackTrace(response.getException().getCause());
             }
         }
-        // 传递rpc版本和attachment信息方便不同rpc版本的codec使用。
-        response.setRpcProtocolVersion(request.getRpcProtocolVersion());
         response.setAttachments(request.getAttachments());
         return response;
     }

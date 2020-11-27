@@ -45,7 +45,12 @@ public class MotanV2Protocol extends AbstractProtocol {
 
     @Override
     protected <T> Exporter<T> createExporter(Provider<T> provider, URL url) {
-        setDefaultCodec(url);
+        String codec = url.getParameter(URLParamType.codec.getName());
+        // motan-compatible as default codec at server end.
+        if (StringUtils.isBlank(codec) || codec.equals("compressMotan")
+                || codec.equals("motan") || codec.equals("motan2")) {
+            url.getParameters().put(URLParamType.codec.getName(), "motan-compatible");
+        }
         return new DefaultRpcExporter<T>(provider, url, this.ipPort2RequestRouter, this.exporterMap);
     }
 
@@ -57,7 +62,7 @@ public class MotanV2Protocol extends AbstractProtocol {
 
     private void setDefaultCodec(URL url) {
         String codec = url.getParameter(URLParamType.codec.getName());
-        if (StringUtils.isBlank(codec)) {
+        if (StringUtils.isBlank(codec) || codec.equals("compressMotan")) {
             url.getParameters().put(URLParamType.codec.getName(), DEFAULT_CODEC);
         }
     }
