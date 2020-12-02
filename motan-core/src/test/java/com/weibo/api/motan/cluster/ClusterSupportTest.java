@@ -245,25 +245,28 @@ public class ClusterSupportTest {
         clusterSupport.notify(registries.get(regProtocol1).getUrl(), copy(copy, serviceUrls1.subList(0, 6)));
         Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 4);
         Assert.assertEquals(getAvailableReferersCount(),4);
+
+        Referer referer1 = clusterSupport.getCluster().getReferers().get(0);
+        Referer referer2 = clusterSupport.getCluster().getReferers().get(1);
         //设置1节点不可用，未小于阈值，不触发refresh
-        availableMap.put(clusterSupport.getCluster().getReferers().get(0).getUrl().toString(), false);
+        availableMap.put(referer1.getUrl().toString(), false);
         clusterSupport.refreshReferers();
         Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 4);
         Assert.assertEquals(getAvailableReferersCount(),3);
         //设置2节点不可用，小于阈值，触发refresh
-        availableMap.put(clusterSupport.getCluster().getReferers().get(1).getUrl().toString(), false);
+        availableMap.put(referer2.getUrl().toString(), false);
 
         clusterSupport.refreshReferers();
         Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 6);
         Assert.assertEquals(getAvailableReferersCount(),4);
 
         //设置1节点恢复，未大于阈值，不触发refresh
-        availableMap.put(clusterSupport.getCluster().getReferers().get(1).getUrl().toString(), true);
+        availableMap.put(referer2.getUrl().toString(), true);
         clusterSupport.refreshReferers();
         Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 6);
         Assert.assertEquals(getAvailableReferersCount(),5);
         //设置0节点恢复，大于阈值，触发refresh
-        availableMap.put(clusterSupport.getCluster().getReferers().get(0).getUrl().toString(), true);
+        availableMap.put(referer1.getUrl().toString(), true);
         clusterSupport.refreshReferers();
         Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 4);
         Assert.assertEquals(getAvailableReferersCount(),4);
