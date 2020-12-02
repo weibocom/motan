@@ -21,7 +21,6 @@ import java.io.Serializable;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-30
- * 
  */
 public class MotanErrorMsg implements Serializable {
     private static final long serialVersionUID = 4909459500370103048L;
@@ -29,6 +28,9 @@ public class MotanErrorMsg implements Serializable {
     private int status;
     private int errorcode;
     private String message;
+
+    public MotanErrorMsg() {
+    }
 
     public MotanErrorMsg(int status, int errorcode, String message) {
         this.status = status;

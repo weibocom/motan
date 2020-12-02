@@ -104,6 +104,7 @@ public class StandardThreadExecutor extends ThreadPoolExecutor {
 		if (count > maxSubmittedTaskCount) {
 			submittedTasksCount.decrementAndGet();
 			getRejectedExecutionHandler().rejectedExecution(command, this);
+			return;
 		}
 
 		try {
