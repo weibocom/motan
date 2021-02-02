@@ -1,5 +1,24 @@
 # Change Log
 
+## [1.1.9](https://github.com/weibocom/motan/tree/1.1.9) (2021-02-02)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.8...1.1.9)
+
+**Merged pull requests:**
+
+- shuffle when loadbalance onrefresh [\#933](https://github.com/weibocom/motan/pull/933) ([Ray](https://github.com/rayzhang0603))
+- update breeze version to 0.1.4 [\#927](https://github.com/weibocom/motan/pull/927) ([Ray](https://github.com/rayzhang0603))
+- support setting export ip from env [\#914](https://github.com/weibocom/motan/pull/914) ([Ray](https://github.com/rayzhang0603))
+- support export at random port [\#912](https://github.com/weibocom/motan/pull/912) ([Ray](https://github.com/rayzhang0603))
+- provider protected strategy support expansion [\#905](https://github.com/weibocom/motan/pull/905) ([X-L-Chen](https://github.com/X-L-Chen))
+- add serverIp in exception information when decode error [\#904](https://github.com/weibocom/motan/pull/904) ([X-L-Chen](https://github.com/X-L-Chen))
+- process in local when method is hashCode [\#903](https://github.com/weibocom/motan/pull/903) ([X-L-Chen](https://github.com/X-L-Chen))
+- change explicit exception such as timeout exception to stackless [\#900](https://github.com/weibocom/motan/pull/900) ([X-L-Chen](https://github.com/X-L-Chen))
+
+**Fixed bugs:**
+
+- fix StandardThreadExecutor reject processing [\#934](https://github.com/weibocom/motan/pull/934) ([Ray](https://github.com/rayzhang0603))
+- fix nettymessage cast [\#918](https://github.com/weibocom/motan/pull/918) ([Ray](https://github.com/rayzhang0603))
+
 ## [1.1.8](https://github.com/weibocom/motan/tree/1.1.8) (2020-03-26)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.1.7...1.1.8)
 
