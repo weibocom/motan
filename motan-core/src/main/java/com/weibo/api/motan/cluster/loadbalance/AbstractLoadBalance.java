@@ -23,6 +23,7 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -40,6 +41,7 @@ public abstract class AbstractLoadBalance<T> implements LoadBalance<T> {
 
     @Override
     public void onRefresh(List<Referer<T>> referers) {
+        Collections.shuffle(referers);
         // 只能引用替换，不能进行referers update。
         this.referers = referers;
     }
