@@ -52,6 +52,7 @@ public class MotanConstants {
     public static final String REGISTRY_PROTOCOL_ZOOKEEPER = "zookeeper";
     public static final String PROTOCOL_INJVM = "injvm";
     public static final String PROTOCOL_MOTAN = "motan";
+    public static final String PROTOCOL_MOTAN2 = "motan2";
     public static final String PROXY_JDK = "jdk";
     public static final String PROXY_COMMON = "common";
     public static final String PROXY_JAVASSIST = "javassist";
@@ -140,20 +141,20 @@ public class MotanConstants {
     public static final String M2_ERROR = "M_e";
     public static final String M2_PROCESS_TIME = "M_pt";
 
-    public static final String TRACE_INVOKE = "TRACE_INVOKE";
-    public static final String TRACE_CONNECTION = "TRACE_CONNECTION";
-    public static final String TRACE_CENCODE = "TRACE_CENCODE";
-    public static final String TRACE_CSEND = "TRACE_CSEND";
-    public static final String TRACE_SRECEIVE = "TRACE_SRECEIVE";
-    public static final String TRACE_SDECODE = "TRACE_SDECODE";
-    public static final String TRACE_SEXECUTOR_START = "TRACE_SEXECUTOR_START";
-    public static final String TRACE_BEFORE_BIZ = "TRACE_BEFORE_BIZ";
-    public static final String TRACE_AFTER_BIZ = "TRACE_AFTER_BIZ";
-    public static final String TRACE_PROCESS = "TRACE_PROCESS";
-    public static final String TRACE_SENCODE = "TRACE_SENCODE";
-    public static final String TRACE_SSEND = "TRACE_SSEND";
-    public static final String TRACE_CRECEIVE = "TRACE_CRECEIVE";
-    public static final String TRACE_CDECODE = "TRACE_CDECODE";
+    public static final String TRACE_INVOKE = "TRACE_INVOKE"; //client 发起请求
+    public static final String TRACE_CONNECTION = "TRACE_CONNECTION"; // client获取链接
+    public static final String TRACE_CENCODE = "TRACE_CENCODE"; //client编码
+    public static final String TRACE_CSEND = "TRACE_CSEND"; //client发送请求
+    public static final String TRACE_SRECEIVE = "TRACE_SRECEIVE"; //server端接收请求
+    public static final String TRACE_SDECODE = "TRACE_SDECODE"; //server端解码
+    public static final String TRACE_SEXECUTOR_START = "TRACE_SEXECUTOR_START"; //server端线程池开始执行
+    public static final String TRACE_BEFORE_BIZ = "TRACE_BEFORE_BIZ"; //server端业务逻辑执行前
+    public static final String TRACE_AFTER_BIZ = "TRACE_AFTER_BIZ"; //server端业务逻辑执行后
+    public static final String TRACE_PROCESS = "TRACE_PROCESS"; //server端处理完成
+    public static final String TRACE_SENCODE = "TRACE_SENCODE"; // server端编码
+    public static final String TRACE_SSEND = "TRACE_SSEND";// server端发送response
+    public static final String TRACE_CRECEIVE = "TRACE_CRECEIVE";// client端接收response
+    public static final String TRACE_CDECODE = "TRACE_CDECODE"; // client端解码response
 
     private MotanConstants() {
     }

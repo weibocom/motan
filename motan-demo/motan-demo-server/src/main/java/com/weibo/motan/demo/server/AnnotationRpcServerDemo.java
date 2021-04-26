@@ -68,6 +68,16 @@ public class AnnotationRpcServerDemo {
     }
 
 
+    @Bean(name="proxy_reg")
+    public RegistryConfigBean registryProxyConfig() {
+        RegistryConfigBean config = new RegistryConfigBean();
+        config.setRegProtocol("weibomesh");
+        config.setProxyRegistryId("registryConfig1");
+        return config;
+    }
+
+
+
     @Bean
     public BasicServiceConfigBean baseServiceConfig() {
         BasicServiceConfigBean config = new BasicServiceConfigBean();

@@ -35,16 +35,12 @@ import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
-import com.weibo.api.motan.util.StringTools;
+import com.weibo.api.motan.util.UrlUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Notify cluster the referers have changed.
@@ -89,7 +85,7 @@ public class ClusterSupport<T> implements NotifyListener {
         protocol = getDecorateProtocol(url.getProtocol());
         int maxConnectionCount = this.url.getIntParameter(URLParamType.maxConnectionPerGroup.getName(), URLParamType.maxConnectionPerGroup.getIntValue());
         int maxClientConnection = this.url.getIntParameter(URLParamType.maxClientConnection.getName(), URLParamType.maxClientConnection.getIntValue());
-        selectNodeCount = (int)Math.ceil(1.0 * maxConnectionCount / maxClientConnection);
+        selectNodeCount = (int) Math.ceil(1.0 * maxConnectionCount / maxClientConnection);
     }
 
     public void init() {
@@ -102,7 +98,7 @@ public class ClusterSupport<T> implements NotifyListener {
             String directUrlStr = ru.getParameter(URLParamType.directUrl.getName());
             // 如果有directUrl，直接使用这些directUrls进行初始化，不用到注册中心discover
             if (StringUtils.isNotBlank(directUrlStr)) {
-                List<URL> directUrls = parseDirectUrls(directUrlStr);
+                List<URL> directUrls = UrlUtils.stringToURLs(directUrlStr);
                 if (!directUrls.isEmpty()) {
                     notify(ru, directUrls);
                     LoggerUtil.info("Use direct urls, refUrl={}, directUrls={}", url, directUrls);
@@ -437,28 +433,16 @@ public class ClusterSupport<T> implements NotifyListener {
         cluster.setUrl(url);
     }
 
-    private List<URL> parseDirectUrls(String directUrlStr) {
-        String[] durlArr = MotanConstants.COMMA_SPLIT_PATTERN.split(directUrlStr);
-        List<URL> directUrls = new ArrayList<>();
-        for (String dus : durlArr) {
-            URL du = URL.valueOf(StringTools.urlDecode(dus));
-            if (du != null) {
-                directUrls.add(du);
-            }
-        }
-        return directUrls;
-    }
-
     private class GroupUrlsSelector {
         private List<URL> baseUrls;
         private int selectSize;
 
-        GroupUrlsSelector(){
+        GroupUrlsSelector() {
             baseUrls = new ArrayList<>();
             selectSize = selectNodeCount;
         }
 
-        void updateBaseUrls(List<URL> newBaseUrls){
+        void updateBaseUrls(List<URL> newBaseUrls) {
             baseUrls.retainAll(newBaseUrls);
 
             Set<URL> addedUrls = new HashSet<>(newBaseUrls);
@@ -488,7 +472,7 @@ public class ClusterSupport<T> implements NotifyListener {
             this.selectSize = selectSize;
         }
 
-        int getBaseUrlsSize(){
+        int getBaseUrlsSize() {
             return baseUrls.size();
         }
     }

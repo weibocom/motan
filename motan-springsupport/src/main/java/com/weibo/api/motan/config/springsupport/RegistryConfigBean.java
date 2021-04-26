@@ -17,13 +17,23 @@
 package com.weibo.api.motan.config.springsupport;
 
 import com.weibo.api.motan.config.RegistryConfig;
+import com.weibo.api.motan.config.springsupport.util.SpringBeanUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.InitializingBean;
+
 /**
  * @author fld
- *
- * Created by fld on 16/5/13.
+ *         <p>
+ *         Created by fld on 16/5/13.
  */
-public class RegistryConfigBean extends RegistryConfig implements BeanNameAware {
+public class RegistryConfigBean extends RegistryConfig implements BeanNameAware, InitializingBean, BeanFactoryAware {
+
+    private String proxyRegistryId;
+    private BeanFactory beanFactory;
 
     @Override
     public void setBeanName(String name) {
@@ -32,4 +42,20 @@ public class RegistryConfigBean extends RegistryConfig implements BeanNameAware 
         MotanNamespaceHandler.registryDefineNames.add(name);
     }
 
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        if (StringUtils.isNotBlank(this.proxyRegistryId)) {
+            setProxyRegistry(beanFactory.getBean(proxyRegistryId, RegistryConfig.class));
+        }
+        SpringBeanUtil.addRegistryParamBean(this, beanFactory);
+    }
+
+    public void setProxyRegistryId(String proxyRegistryId) {
+        this.proxyRegistryId = proxyRegistryId;
+    }
 }

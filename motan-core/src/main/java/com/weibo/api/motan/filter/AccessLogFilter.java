@@ -27,6 +27,7 @@ import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.StringTools;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * <pre>
@@ -36,7 +37,7 @@ import com.weibo.api.motan.util.StringTools;
  * 此filter会对性能产生一定影响，请求量较大时建议关闭。
  *
  * </pre>
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-22
  */
@@ -91,7 +92,11 @@ public class AccessLogFilter implements Filter {
         }
 
         append(builder, success);
-        append(builder, request.getAttachments().get(URLParamType.requestIdFromClient.getName()));
+        String requestId = request.getAttachments().get(URLParamType.requestIdFromClient.getName());
+        if (StringUtils.isBlank(requestId)) {
+            requestId = String.valueOf(request.getRequestId());
+        }
+        append(builder, requestId);
         append(builder, consumeTime);
 
         LoggerUtil.accessLog(builder.substring(0, builder.length() - 1));
