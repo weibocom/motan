@@ -35,178 +35,180 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-31
- *
  */
 public class NettyChannel implements com.weibo.api.motan.transport.Channel {
-	private volatile ChannelState state = ChannelState.UNINIT;
+    private volatile ChannelState state = ChannelState.UNINIT;
 
-	private NettyClient nettyClient;
+    private NettyClient nettyClient;
 
-	private org.jboss.netty.channel.Channel channel = null;
+    private org.jboss.netty.channel.Channel channel = null;
 
-	private InetSocketAddress remoteAddress = null;
-	private InetSocketAddress localAddress = null;
+    private InetSocketAddress remoteAddress = null;
+    private InetSocketAddress localAddress = null;
 
-	public NettyChannel(NettyClient nettyClient) {
-		this.nettyClient = nettyClient;
-		this.remoteAddress = new InetSocketAddress(nettyClient.getUrl().getHost(), nettyClient.getUrl().getPort());
-	}
+    public NettyChannel(NettyClient nettyClient) {
+        this.nettyClient = nettyClient;
+        this.remoteAddress = new InetSocketAddress(nettyClient.getUrl().getHost(), nettyClient.getUrl().getPort());
+    }
 
-	@Override
-	public Response request(Request request) throws TransportException {
-	    int timeout = nettyClient.getUrl().getMethodParameter(request.getMethodName(), request.getParamtersDesc(),
-	            URLParamType.requestTimeout.getName(), URLParamType.requestTimeout.getIntValue());
-		if (timeout <= 0) {
-               throw new MotanFrameworkException("NettyClient init Error: timeout(" + timeout + ") <= 0 is forbid.",
-                       MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
-           }
-		ResponseFuture response = new DefaultResponseFuture(request, timeout, this.nettyClient.getUrl());
-		this.nettyClient.registerCallback(request.getRequestId(), response);
+    @Override
+    public Response request(Request request) throws TransportException {
+        int timeout = nettyClient.getUrl().getMethodParameter(request.getMethodName(), request.getParamtersDesc(),
+                URLParamType.requestTimeout.getName(), URLParamType.requestTimeout.getIntValue());
+        if (timeout <= 0) {
+            throw new MotanFrameworkException("NettyClient init Error: timeout(" + timeout + ") <= 0 is forbid.",
+                    MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
+        }
+        ResponseFuture response = new DefaultResponseFuture(request, timeout, this.nettyClient.getUrl());
+        this.nettyClient.registerCallback(request.getRequestId(), response);
 
-		ChannelFuture writeFuture = this.channel.write(request);
+        ChannelFuture writeFuture = this.channel.write(request);
 
-		boolean result = writeFuture.awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
+        boolean result = writeFuture.awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
 
-		if (result && writeFuture.isSuccess()) {
-			MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_CSEND, System.currentTimeMillis());
-			response.addListener(new FutureListener() {
-				@Override
-				public void operationComplete(Future future) throws Exception {
-					if (future.isSuccess() || (future.isDone() && ExceptionUtil.isBizException(future.getException()))) {
-						// 成功的调用
-						nettyClient.resetErrorCount();
-					} else {
-						// 失败的调用
-						nettyClient.incrErrorCount();
-					}
-				}
-			});
-			return response;
-		}
+        if (result && writeFuture.isSuccess()) {
+            MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_CSEND, System.currentTimeMillis());
+            response.addListener(new FutureListener() {
+                @Override
+                public void operationComplete(Future future) throws Exception {
+                    if (future.isSuccess() || (future.isDone() && ExceptionUtil.isBizException(future.getException()))) {
+                        // 成功的调用
+                        nettyClient.resetErrorCount();
+                    } else {
+                        // 失败的调用
+                        nettyClient.incrErrorCount();
+                    }
+                }
+            });
+            return response;
+        }
 
-		writeFuture.cancel();
-		response = this.nettyClient.removeCallback(request.getRequestId());
+        writeFuture.cancel();
+        response = this.nettyClient.removeCallback(request.getRequestId());
 
-		if (response != null) {
-			response.cancel();
-		}
+        if (response != null) {
+            response.cancel();
+        }
 
-		// 失败的调用
-		nettyClient.incrErrorCount();
+        // 失败的调用
+        nettyClient.incrErrorCount();
 
-		if (writeFuture.getCause() != null) {
-			throw new MotanServiceException("NettyChannel send request to server Error: url="
-					+ nettyClient.getUrl().getUri() + " local=" + localAddress + " "
-					+ MotanFrameworkUtil.toString(request), writeFuture.getCause());
-		} else {
-			throw new MotanServiceException("NettyChannel send request to server Timeout: url="
-					+ nettyClient.getUrl().getUri() + " local=" + localAddress + " "
-					+ MotanFrameworkUtil.toString(request), false);
-		}
-	}
+        if (writeFuture.getCause() != null) {
+            throw new MotanServiceException("NettyChannel send request to server Error: url="
+                    + nettyClient.getUrl().getUri() + " local=" + localAddress + " "
+                    + MotanFrameworkUtil.toString(request), writeFuture.getCause());
+        } else {
+            throw new MotanServiceException("NettyChannel send request to server Timeout: url="
+                    + nettyClient.getUrl().getUri() + " local=" + localAddress + " "
+                    + MotanFrameworkUtil.toString(request), false);
+        }
+    }
 
-	@Override
-	public synchronized boolean open() {
-		if (isAvailable()) {
-			LoggerUtil.warn("the channel already open, local: " + localAddress + " remote: " + remoteAddress + " url: "
-					+ nettyClient.getUrl().getUri());
-			return true;
-		}
+    @Override
+    public boolean open() {
+        if (isAvailable()) {
+            LoggerUtil.warn("the channel already open, local: " + localAddress + " remote: " + remoteAddress + " url: "
+                    + nettyClient.getUrl().getUri());
+            return true;
+        }
 
-		ChannelFuture channelFuture = null;
-		try {
-			channelFuture = nettyClient.getBootstrap().connect(
-					new InetSocketAddress(nettyClient.getUrl().getHost(), nettyClient.getUrl().getPort()));
+        ChannelFuture channelFuture = null;
+        try {
+            synchronized (this) {
+                channelFuture = nettyClient.getBootstrap().connect(
+                        new InetSocketAddress(nettyClient.getUrl().getHost(), nettyClient.getUrl().getPort()));
 
-			long start = System.currentTimeMillis();
+                long start = System.currentTimeMillis();
 
-			int timeout = nettyClient.getUrl().getIntParameter(URLParamType.connectTimeout.getName(), URLParamType.connectTimeout.getIntValue());
-			if (timeout <= 0) {
-	            throw new MotanFrameworkException("NettyClient init Error: timeout(" + timeout + ") <= 0 is forbid.",
-	                    MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
-			}
-			// 不去依赖于connectTimeout
-			boolean result = channelFuture.awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
-            boolean success = channelFuture.isSuccess();
+                int timeout = nettyClient.getUrl().getIntParameter(URLParamType.connectTimeout.getName(), URLParamType.connectTimeout.getIntValue());
+                if (timeout <= 0) {
+                    throw new MotanFrameworkException("NettyClient init Error: timeout(" + timeout + ") <= 0 is forbid.",
+                            MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
+                }
+                // 不去依赖于connectTimeout
+                boolean result = channelFuture.awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
+                boolean success = channelFuture.isSuccess();
 
-			if (result && success) {
-				channel = channelFuture.getChannel();
-				if (channel.getLocalAddress() != null && channel.getLocalAddress() instanceof InetSocketAddress) {
-					localAddress = (InetSocketAddress) channel.getLocalAddress();
-				}
+                if (result && success) {
+                    channel = channelFuture.getChannel();
+                    if (channel.getLocalAddress() != null && channel.getLocalAddress() instanceof InetSocketAddress) {
+                        localAddress = (InetSocketAddress) channel.getLocalAddress();
+                    }
 
-				state = ChannelState.ALIVE;
-				return true;
-			}
-            boolean connected = false;
-            if(channelFuture.getChannel() != null){
-                connected = channelFuture.getChannel().isConnected();
+                    state = ChannelState.ALIVE;
+                    return true;
+                }
+
+                boolean connected = false;
+                if (channelFuture.getChannel() != null) {
+                    connected = channelFuture.getChannel().isConnected();
+                }
+
+                if (channelFuture.getCause() != null) {
+                    channelFuture.cancel();
+                    throw new MotanServiceException("NettyChannel failed to connect to server, url: "
+                            + nettyClient.getUrl().getUri() + ", result: " + result + ", success: " + success + ", connected: " + connected, channelFuture.getCause());
+                } else {
+                    channelFuture.cancel();
+                    throw new MotanServiceException("NettyChannel connect to server timeout url: "
+                            + nettyClient.getUrl().getUri() + ", cost: " + (System.currentTimeMillis() - start) + ", result: " + result + ", success: " + success + ", connected: " + connected, false);
+                }
             }
-
-			if (channelFuture.getCause() != null) {
-				channelFuture.cancel();
-				throw new MotanServiceException("NettyChannel failed to connect to server, url: "
-						+ nettyClient.getUrl().getUri()+ ", result: " + result + ", success: " + success + ", connected: " + connected, channelFuture.getCause());
-			} else {
-				channelFuture.cancel();
-                throw new MotanServiceException("NettyChannel connect to server timeout url: "
-                        + nettyClient.getUrl().getUri() + ", cost: " + (System.currentTimeMillis() - start) + ", result: " + result + ", success: " + success + ", connected: " + connected, false);
+        } catch (MotanServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            if (channelFuture != null) {
+                channelFuture.getChannel().close();
             }
-		} catch (MotanServiceException e) {
-			throw e;
-		} catch (Exception e) {
-			if (channelFuture != null) {
-				channelFuture.getChannel().close();
-			}
-			throw new MotanServiceException("NettyChannel failed to connect to server, url: "
-					+ nettyClient.getUrl().getUri(), e);
-		} finally {
-			if (!state.isAliveState()) {
-				nettyClient.incrErrorCount();
-			}
-		}
-	}
+            throw new MotanServiceException("NettyChannel failed to connect to server, url: "
+                    + nettyClient.getUrl().getUri(), e);
+        } finally {
+            if (!state.isAliveState()) {
+                nettyClient.incrErrorCount(); // 为避免死锁，client错误计数方法需在同步块外调用。
+            }
+        }
+    }
 
-	@Override
-	public synchronized void close() {
-		close(0);
-	}
+    @Override
+    public synchronized void close() {
+        close(0);
+    }
 
-	@Override
-	public synchronized void close(int timeout) {
-		try {
-			state = ChannelState.CLOSE;
+    @Override
+    public synchronized void close(int timeout) {
+        try {
+            state = ChannelState.CLOSE;
 
-			if (channel != null) {
-				channel.close();
-			}
-		} catch (Exception e) {
-			LoggerUtil.error("NettyChannel close Error: " + nettyClient.getUrl().getUri() + " local=" + localAddress, e);
-		}
-	}
+            if (channel != null) {
+                channel.close();
+            }
+        } catch (Exception e) {
+            LoggerUtil.error("NettyChannel close Error: " + nettyClient.getUrl().getUri() + " local=" + localAddress, e);
+        }
+    }
 
-	@Override
-	public InetSocketAddress getLocalAddress() {
-		return localAddress;
-	}
+    @Override
+    public InetSocketAddress getLocalAddress() {
+        return localAddress;
+    }
 
-	@Override
-	public InetSocketAddress getRemoteAddress() {
-		return remoteAddress;
-	}
+    @Override
+    public InetSocketAddress getRemoteAddress() {
+        return remoteAddress;
+    }
 
-	@Override
-	public boolean isClosed() {
-		return state.isCloseState();
-	}
+    @Override
+    public boolean isClosed() {
+        return state.isCloseState();
+    }
 
-	@Override
-	public boolean isAvailable() {
-		return state.isAliveState() && channel != null && channel.isConnected();
-	}
+    @Override
+    public boolean isAvailable() {
+        return state.isAliveState() && channel != null && channel.isConnected();
+    }
 
-	@Override
-	public URL getUrl() {
-		return nettyClient.getUrl();
-	}
+    @Override
+    public URL getUrl() {
+        return nettyClient.getUrl();
+    }
 }
