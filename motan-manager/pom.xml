@@ -26,7 +26,7 @@
     <packaging>jar</packaging>
     <name>motan-manager</name>
     <properties>
-        <spring-security.version>4.2.13.RELEASE</spring-security.version>
+        <spring-security.version>5.2.10.RELEASE</spring-security.version>
         <spring-framework.version>4.3.20.RELEASE</spring-framework.version>
     </properties>
     <dependencies>
