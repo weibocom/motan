@@ -19,12 +19,16 @@ package com.weibo.api.motan.filter;
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.log.DefaultLogService;
+import com.weibo.api.motan.log.LogService;
 import com.weibo.api.motan.protocol.example.IHello;
 import com.weibo.api.motan.registry.RegistryService;
 import com.weibo.api.motan.rpc.Caller;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MotanSwitcherUtil;
 import com.weibo.api.motan.util.NetUtils;
 import org.jmock.Expectations;
 
@@ -73,13 +77,59 @@ public class AccessLogFilterTest extends BaseTestCase {
                 will(returnValue("get"));
                 exactly(1).of(request).getParamtersDesc();
                 will(returnValue("param_desc"));
-                exactly(1).of(request).getRequestId();
-                will(returnValue(100L));
                 atLeast(1).of(request).getAttachments();
                 will(returnValue(attachments));
             }
         });
 
         accessLogFilter.filter(caller, request);
+        mockery.assertIsSatisfied();
+    }
+
+    public void testSwitcher() {
+        final Request request = mockery.mock(Request.class);
+        final Caller<IHello> caller = mockery.mock(Caller.class);
+        URL url = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class.getName());
+        url.addParameter(URLParamType.accessLog.getName(), String.valueOf(false));
+        final Map<String, String> attachments = new HashMap<>();
+        attachments.put(URLParamType.host.getName(), URLParamType.host.getValue());
+        attachments.put(URLParamType.application.getName(), URLParamType.application.getValue());
+        attachments.put(URLParamType.module.getName(), URLParamType.module.getValue());
+        final LogService logService = mockery.mock(LogService.class);
+        LoggerUtil.setLogService(logService);
+        mockery.checking(new Expectations() {
+            {
+                atLeast(1).of(caller).getUrl();
+                will(returnValue(url));
+                atLeast(1).of(caller).call(request);
+            }
+        });
+
+        accessLogFilter.filter(caller, request);
+        mockery.assertIsSatisfied();
+
+        MotanSwitcherUtil.setSwitcherValue(AccessLogFilter.ACCESS_LOG_SWITCHER_NAME, true);
+        mockery.checking(new Expectations() {
+            {
+                exactly(1).of(request).getInterfaceName();
+                will(returnValue(IHello.class.getName()));
+                exactly(1).of(request).getMethodName();
+                will(returnValue("get"));
+                exactly(1).of(request).getParamtersDesc();
+                will(returnValue("param_desc"));
+                atLeast(1).of(request).getAttachments();
+                will(returnValue(attachments));
+                exactly(1).of(logService).accessLog(with(any(String.class)));
+            }
+        });
+
+        accessLogFilter.filter(caller, request);
+        mockery.assertIsSatisfied();
+
+        MotanSwitcherUtil.setSwitcherValue(AccessLogFilter.ACCESS_LOG_SWITCHER_NAME, false);
+        accessLogFilter.filter(caller, request);
+        mockery.assertIsSatisfied();
+
+        LoggerUtil.setLogService( new DefaultLogService());
     }
 }
