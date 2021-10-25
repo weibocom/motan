@@ -104,7 +104,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     public synchronized void export() {
         if (exported.get()) {
-            LoggerUtil.warn(String.format("%s has already been expoted, so ignore the export request!", interfaceClass.getName()));
+            LoggerUtil.warn(String.format("%s has already been exported, so ignore the export request!", interfaceClass.getName()));
             return;
         }
 
