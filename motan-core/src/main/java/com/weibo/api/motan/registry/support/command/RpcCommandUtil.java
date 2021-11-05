@@ -16,16 +16,16 @@
 
 package com.weibo.api.motan.registry.support.command;
 
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.weibo.api.motan.util.LoggerUtil;
+
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.weibo.api.motan.util.LoggerUtil;
 
 public class RpcCommandUtil {
 
@@ -37,7 +37,11 @@ public class RpcCommandUtil {
      */
     public static RpcCommand stringToCommand(String commandString) {
         try {
-            return JSONObject.parseObject(commandString, RpcCommand.class);
+            RpcCommand rpcCommand = JSONObject.parseObject(commandString, RpcCommand.class);
+            if (rpcCommand != null) {
+                rpcCommand.sort();
+            }
+            return rpcCommand;
         } catch (Exception e) {
             LoggerUtil.error("指令配置错误：不是合法的JSON格式!");
             return null;
@@ -51,6 +55,9 @@ public class RpcCommandUtil {
      * @return
      */
     public static String commandToString(RpcCommand command) {
+        if (command == null) {
+            return null;
+        }
         return JSONObject.toJSONString(command);
     }
 
@@ -94,8 +101,8 @@ public class RpcCommandUtil {
             String result1 = buffer.toString();
 
             // 嵌套链表结构用于处理圆括号
-            LinkedList<LinkedList<Character>> outer = new LinkedList<LinkedList<Character>>();
-            LinkedList<Character> inner = new LinkedList<Character>();
+            LinkedList<LinkedList<Character>> outer = new LinkedList<>();
+            LinkedList<Character> inner = new LinkedList<>();
             inner.push('#');
             outer.push(inner);
 
@@ -113,7 +120,7 @@ public class RpcCommandUtil {
 
                     switch (curr) {
                         case '(':
-                            sub = new LinkedList<Character>();
+                            sub = new LinkedList<>();
                             sub.push('#');
                             outer.push(sub);
                             break;
@@ -189,7 +196,7 @@ public class RpcCommandUtil {
 
             // 处理|
             operand = '0';
-            while (!list.isEmpty() && (operand = list.pop()) != '1');
+            while (!list.isEmpty() && (operand = list.pop()) != '1') ;
             return operand;
         }
 

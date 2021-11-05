@@ -159,6 +159,7 @@ public enum URLParamType {
 
     // 切换group时，各个group的权重比。默认无权重
     weights("weights", ""),
+    mixGroups("mixGroups", ""),//配置要进行混打的分组
 
     // 消息处理分发策略
     providerProtectedStrategy("providerProtectedStrategy", "motan");

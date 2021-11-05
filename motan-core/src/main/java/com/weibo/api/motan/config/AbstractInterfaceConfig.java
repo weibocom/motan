@@ -133,6 +133,8 @@ public class AbstractInterfaceConfig extends AbstractConfig {
 
     protected Integer slowThreshold;
 
+    protected String mixGroups;
+
     public Integer getRetries() {
         return retries;
     }
@@ -372,6 +374,14 @@ public class AbstractInterfaceConfig extends AbstractConfig {
 
     public void setTransExceptionStack(Boolean transExceptionStack) {
         this.transExceptionStack = transExceptionStack;
+    }
+
+    public String getMixGroups() {
+        return mixGroups;
+    }
+
+    public void setMixGroups(String mixGroups) {
+        this.mixGroups = mixGroups;
     }
 
     // 解析注册中心URL
