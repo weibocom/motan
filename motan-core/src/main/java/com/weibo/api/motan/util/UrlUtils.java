@@ -52,7 +52,7 @@ public class UrlUtils {
 
 
     public static Map<String, String> parseQueryParams(String rawRefer) {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         String refer = StringTools.urlDecode(rawRefer);
         String[] kvs = MotanConstants.QUERY_PARAM_PATTERN.split(refer);
         for (String kv : kvs) {
@@ -133,5 +133,31 @@ public class UrlUtils {
             u = new URL(protocol, host, port, path, parameters);
         }
         return u;
+    }
+
+    public static String urlsToString(List<URL> urls) {
+        StringBuilder sb = new StringBuilder(128);
+        if (!CollectionUtil.isEmpty(urls)) {
+            for (URL url : urls) {
+                sb.append(StringTools.urlEncode(url.toFullStr())).append(MotanConstants.COMMA_SEPARATOR);
+            }
+            if (sb.length() > 0) {
+                sb.deleteCharAt(sb.length() - 1);
+                return sb.toString();
+            }
+        }
+        return null;
+    }
+
+    public static List<URL> stringToURLs(String urlsStr) {
+        String[] urls = MotanConstants.COMMA_SPLIT_PATTERN.split(urlsStr);
+        List<URL> result = new ArrayList<>();
+        for (String u : urls) {
+            URL url = URL.valueOf(StringTools.urlDecode(u));
+            if (url != null) {
+                result.add(url);
+            }
+        }
+        return result;
     }
 }

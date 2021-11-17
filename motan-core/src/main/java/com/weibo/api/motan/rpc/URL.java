@@ -20,6 +20,7 @@ import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
+import com.weibo.api.motan.util.StringTools;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -32,10 +33,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Desc a reffer or a service.
  * 所有获取URL的parameter时（即带参数的getXXX方法），都必须返回对象,避免不经意的修改引发错误，因为
  * 有些地方需要根据是否含这个参数来进行操作。
- * 
+ *
  * 对于getXXX，当不带defaultValue时，如果不存在就返回null
  * </pre>
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-16
  */
@@ -75,7 +76,7 @@ public class URL {
         String host = null;
         int port = 0;
         String path = null;
-        Map<String, String> parameters = new HashMap<String, String>();;
+        Map<String, String> parameters = new HashMap<String, String>();
         int i = url.indexOf("?"); // seperator between body and parameters
         if (i >= 0) {
             String[] parts = url.substring(i + 1).split("\\&");
@@ -85,8 +86,9 @@ public class URL {
                 if (part.length() > 0) {
                     int j = part.indexOf('=');
                     if (j >= 0) {
-                        parameters.put(part.substring(0, j), part.substring(j + 1));
+                        parameters.put(StringTools.urlDecode(part.substring(0, j)), StringTools.urlDecode(part.substring(j + 1)));
                     } else {
+                        part = StringTools.urlDecode(part);
                         parameters.put(part, part);
                     }
                 }
@@ -422,8 +424,10 @@ public class URL {
         for (Map.Entry<String, String> entry : parameters.entrySet()) {
             String name = entry.getKey();
             String value = entry.getValue();
-
-            builder.append(name).append("=").append(value).append("&");
+            if (URLParamType.refreshTimestamp.name().equals(name)){
+                continue;
+            }
+            builder.append(StringTools.urlEncode(name)).append("=").append(StringTools.urlEncode(value)).append("&");
         }
 
         return builder.toString();
@@ -450,6 +454,10 @@ public class URL {
     public String getServerPortStr() {
         return buildHostPortStr(host, port);
 
+    }
+
+    public void clearCacheInfo(){
+        getNumbers().clear();
     }
 
     @Override
@@ -491,14 +499,15 @@ public class URL {
         }
         return numbers;
     }
-    
+
     /**
      * because async call in client path with Async suffix,we need
      * remove Async suffix in path for subscribe.
+     *
      * @param path
      * @return
      */
-    private String removeAsyncPath(String path){
+    private String removeAsyncPath(String path) {
         return MotanFrameworkUtil.removeAsyncSuffix(path);
     }
 

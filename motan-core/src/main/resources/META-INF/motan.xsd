@@ -92,7 +92,7 @@
                 </xsd:attribute>
                 <xsd:attribute name="dynamic" type="xsd:string" use="optional">
                     <xsd:annotation>
-                        <xsd:documentation><![CDATA[ 在该注册中心是否自动注册. ]]></xsd:documentation>
+                        <xsd:documentation><![CDATA[ 注册中心是否动态订阅、注册能力，比如mesh代理类注册中心是否支持动态订阅和注册. ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
                 <xsd:attribute name="register" type="xsd:string" use="optional">
@@ -113,6 +113,16 @@
                 <xsd:attribute name="default" type="xsd:string" use="optional">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[ is default protocol ]]></xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="proxyRegistry" type="xsd:string" use="optional">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[ 被代理registry的bean id。mesh等类型的registry用来获取被代理的注册中心相关信息.]]></xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="meshRegistryName" type="xsd:string" use="optional">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[ 在mesh中要使用的registry名称。适用于mesh registry，用来和mesh 配置中的registry进行关联. ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
 

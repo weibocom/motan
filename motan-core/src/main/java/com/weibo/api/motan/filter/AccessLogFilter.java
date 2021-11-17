@@ -25,8 +25,10 @@ import com.weibo.api.motan.rpc.Provider;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MotanSwitcherUtil;
 import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.StringTools;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * <pre>
@@ -36,20 +38,29 @@ import com.weibo.api.motan.util.StringTools;
  * 此filter会对性能产生一定影响，请求量较大时建议关闭。
  *
  * </pre>
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-22
  */
 @SpiMeta(name = "access")
-@Activation(sequence = 100)
+@Activation(sequence = 100, key = {MotanConstants.NODE_TYPE_SERVICE, MotanConstants.NODE_TYPE_REFERER})
 public class AccessLogFilter implements Filter {
 
+    public static final String ACCESS_LOG_SWITCHER_NAME = "feature.motan.filter.accessLog";
     private String side;
+    private Boolean accessLog;
+
+    static {
+        // init global switcher， default value is false
+        MotanSwitcherUtil.initSwitcher(ACCESS_LOG_SWITCHER_NAME, false);
+    }
 
     @Override
     public Response filter(Caller<?> caller, Request request) {
-        boolean needLog = caller.getUrl().getBooleanParameter(URLParamType.accessLog.getName(), URLParamType.accessLog.getBooleanValue());
-        if (needLog) {
+        if (accessLog == null) {
+            accessLog = caller.getUrl().getBooleanParameter(URLParamType.accessLog.getName(), URLParamType.accessLog.getBooleanValue());
+        }
+        if (accessLog || MotanSwitcherUtil.isOpen(ACCESS_LOG_SWITCHER_NAME)) {
             long t1 = System.currentTimeMillis();
             boolean success = false;
             try {
@@ -91,7 +102,11 @@ public class AccessLogFilter implements Filter {
         }
 
         append(builder, success);
-        append(builder, request.getAttachments().get(URLParamType.requestIdFromClient.getName()));
+        String requestId = request.getAttachments().get(URLParamType.requestIdFromClient.getName());
+        if (StringUtils.isBlank(requestId)) {
+            requestId = String.valueOf(request.getRequestId());
+        }
+        append(builder, requestId);
         append(builder, consumeTime);
 
         LoggerUtil.accessLog(builder.substring(0, builder.length() - 1));

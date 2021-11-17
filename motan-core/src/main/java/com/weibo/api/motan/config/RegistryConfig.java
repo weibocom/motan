@@ -16,13 +16,25 @@
 
 package com.weibo.api.motan.config;
 
+import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.config.annotation.ConfigDesc;
+import com.weibo.api.motan.registry.RegistryService;
+import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.NetUtils;
+import com.weibo.api.motan.util.UrlUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
- * 
  * registry config
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-27
  */
@@ -68,6 +80,14 @@ public class RegistryConfig extends AbstractConfig {
 
     // vintage的配置移除策略，@see #RegistryConfig#Excise
     private String excise;
+
+    // 被代理的registry。
+    private RegistryConfig proxyRegistry;
+
+    // 在mesh中要使用的registry。用来和mesh 配置中的registry进行关联
+    private String meshRegistryName;
+
+    private Boolean dynamic; //是否支持动态注册、订阅能力。例如通过mesh代理的注册中心，是否支持动态注册、订阅服务。
 
     @ConfigDesc(key = "protocol")
     public String getRegProtocol() {
@@ -179,15 +199,38 @@ public class RegistryConfig extends AbstractConfig {
         this.connectTimeout = connectTimeout;
     }
 
+    public RegistryConfig getProxyRegistry() {
+        return proxyRegistry;
+    }
+
+    public void setProxyRegistry(RegistryConfig proxyRegistry) {
+        this.proxyRegistry = proxyRegistry;
+    }
+
+    public String getMeshRegistryName() {
+        return meshRegistryName;
+    }
+
+    public void setMeshRegistryName(String meshRegistryName) {
+        this.meshRegistryName = meshRegistryName;
+    }
+
+    public Boolean getDynamic() {
+        return dynamic;
+    }
+
+    public void setDynamic(Boolean dynamic) {
+        this.dynamic = dynamic;
+    }
+
     /**
      * <pre>
-	 * vintage 的 excise 方式，static、dynamic、ratio；
-	 * static表示使用静态列表，不剔除unreachable的node；dynamic完全剔除；ratio按比例提出。
-	 * 配置方式，ratio直接使用数字，其他使用数字0-100.
-	 * </pre>
-     * 
-     * @author fishermen
+     * vintage 的 excise 方式，static、dynamic、ratio；
+     * static表示使用静态列表，不剔除unreachable的node；dynamic完全剔除；ratio按比例提出。
+     * 配置方式，ratio直接使用数字，其他使用数字0-100.
+     * </pre>
      *
+     * @author fishermen
      */
     public enum Excise {
         excise_static("static"), excise_dynamic("dynamic"), excise_ratio("ratio");
@@ -201,5 +244,51 @@ public class RegistryConfig extends AbstractConfig {
         public String getName() {
             return name;
         }
+    }
+
+    public List<URL> toURLs() {
+        String address = getAddress();
+        if (StringUtils.isBlank(address)) {
+            address = NetUtils.LOCALHOST + ":" + MotanConstants.DEFAULT_INT_VALUE;
+        }
+        Map<String, String> map = new HashMap<>();
+        map.putAll(getAddressParams());
+        appendConfigParams(map);
+        map.put(URLParamType.path.getName(), RegistryService.class.getName());
+        map.put(URLParamType.refreshTimestamp.getName(), String.valueOf(System.currentTimeMillis()));
+
+
+        // 设置默认的registry protocol，parse完protocol后，需要去掉该参数
+        if (!map.containsKey(URLParamType.protocol.getName())) {
+            if (address.contains("://")) {
+                map.put(URLParamType.protocol.getName(), address.substring(0, address.indexOf("://")));
+            } else {
+                map.put(URLParamType.protocol.getName(), MotanConstants.REGISTRY_PROTOCOL_LOCAL);
+            }
+        }
+        if (proxyRegistry != null) {
+            String proxyRegistryString = UrlUtils.urlsToString(proxyRegistry.toURLs());
+            if (StringUtils.isNotBlank(proxyRegistryString)) {
+                map.put(URLParamType.proxyRegistryUrlString.getName(), proxyRegistryString);
+            } else {
+                LoggerUtil.warn("parse proxyRegistryString is empty, proxy registry:" + proxyRegistry.getName());
+            }
+        }
+        // address内部可能包含多个注册中心地址
+        return UrlUtils.parseURLs(address, map);
+    }
+
+    public Map<String, String> getAddressParams() {
+        if (StringUtils.isNotBlank(address)) {
+            int index = address.indexOf("?");
+            if (index > -1) {
+                int end = address.length();
+                if (address.contains(MotanConstants.COMMA_SEPARATOR)) {
+                    end = address.indexOf(MotanConstants.COMMA_SEPARATOR);
+                }
+                return UrlUtils.parseQueryParams(address.substring(index + 1, end));
+            }
+        }
+        return Collections.emptyMap();
     }
 }

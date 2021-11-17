@@ -16,16 +16,12 @@
 
 package com.weibo.api.motan.config;
 
-import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.registry.RegistryService;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.ReflectUtil;
-import com.weibo.api.motan.util.UrlUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.InetAddress;
@@ -389,32 +385,9 @@ public class AbstractInterfaceConfig extends AbstractConfig {
         registryUrls.clear();
         if (registries != null && !registries.isEmpty()) {
             for (RegistryConfig config : registries) {
-                String address = config.getAddress();
-                if (StringUtils.isBlank(address)) {
-                    address = NetUtils.LOCALHOST + ":" + MotanConstants.DEFAULT_INT_VALUE;
-                }
-                Map<String, String> map = new HashMap<String, String>();
-                config.appendConfigParams(map);
-
-                map.put(URLParamType.application.getName(), getApplication());
-                map.put(URLParamType.path.getName(), RegistryService.class.getName());
-                map.put(URLParamType.refreshTimestamp.getName(), String.valueOf(System.currentTimeMillis()));
-
-                // 设置默认的registry protocol，parse完protocol后，需要去掉该参数
-                if (!map.containsKey(URLParamType.protocol.getName())) {
-                    if (address.contains("://")) {
-                        map.put(URLParamType.protocol.getName(), address.substring(0, address.indexOf("://")));
-                    } else {
-                        map.put(URLParamType.protocol.getName(), MotanConstants.REGISTRY_PROTOCOL_LOCAL);
-                    }
-                }
-                // address内部可能包含多个注册中心地址
-                List<URL> urls = UrlUtils.parseURLs(address, map);
+                List<URL> urls = config.toURLs();
                 if (urls != null && !urls.isEmpty()) {
-                    for (URL url : urls) {
-                        url.removeParameter(URLParamType.protocol.getName());
-                        registryUrls.add(url);
-                    }
+                    registryUrls.addAll(urls);
                 }
             }
         }
