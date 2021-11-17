@@ -28,15 +28,15 @@ import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.registry.RegistryService;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.CollectionUtil;
+import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.NetUtils;
-import com.weibo.api.motan.util.StringTools;
+import com.weibo.api.motan.util.UrlUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- *
  * Referer config.
  *
  * @author fishermen
@@ -152,6 +152,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
     }
 
     private ClusterSupport<T> createClusterSupport(URL refUrl, ConfigHandler configHandler) {
+        LoggerUtil.info("create cluster for refer url :" + refUrl.toFullStr());
         List<URL> regUrls = new ArrayList<>();
 
         // 如果用户指定directUrls 或者 injvm协议访问，则使用local registry
@@ -160,7 +161,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
                     new URL(MotanConstants.REGISTRY_PROTOCOL_LOCAL, NetUtils.LOCALHOST, MotanConstants.DEFAULT_INT_VALUE,
                             RegistryService.class.getName());
             if (StringUtils.isNotBlank(directUrl)) {
-                StringBuilder duBuf = new StringBuilder(128);
+                List<URL> directUrls = new ArrayList<>();
                 String[] dus = MotanConstants.COMMA_SPLIT_PATTERN.split(directUrl);
                 for (String du : dus) {
                     if (du.contains(":")) {
@@ -169,12 +170,14 @@ public class RefererConfig<T> extends AbstractRefererConfig {
                         durl.setHost(hostPort[0].trim());
                         durl.setPort(Integer.parseInt(hostPort[1].trim()));
                         durl.addParameter(URLParamType.nodeType.getName(), MotanConstants.NODE_TYPE_SERVICE);
-                        duBuf.append(StringTools.urlEncode(durl.toFullStr())).append(MotanConstants.COMMA_SEPARATOR);
+                        directUrls.add(durl);
                     }
                 }
-                if (duBuf.length() > 0) {
-                    duBuf.deleteCharAt(duBuf.length() - 1);
-                    regUrl.addParameter(URLParamType.directUrl.getName(), duBuf.toString());
+                String directUrlsString = UrlUtils.urlsToString(directUrls);
+                if (StringUtils.isNotBlank(directUrlsString)) {
+                    regUrl.addParameter(URLParamType.directUrl.getName(), directUrlsString);
+                } else {
+                    LoggerUtil.warn("parse directUrl string is empty. directUrl:" + directUrl);
                 }
             }
             regUrls.add(regUrl);

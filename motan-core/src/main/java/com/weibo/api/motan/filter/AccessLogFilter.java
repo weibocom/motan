@@ -28,6 +28,7 @@ import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
 import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.StringTools;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * <pre>
@@ -101,7 +102,11 @@ public class AccessLogFilter implements Filter {
         }
 
         append(builder, success);
-        append(builder, request.getAttachments().get(URLParamType.requestIdFromClient.getName()));
+        String requestId = request.getAttachments().get(URLParamType.requestIdFromClient.getName());
+        if (StringUtils.isBlank(requestId)) {
+            requestId = String.valueOf(request.getRequestId());
+        }
+        append(builder, requestId);
         append(builder, consumeTime);
 
         LoggerUtil.accessLog(builder.substring(0, builder.length() - 1));

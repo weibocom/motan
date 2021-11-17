@@ -30,6 +30,7 @@
         <module>motan-demo</module>
         <module>motan-registry-consul</module>
         <module>motan-registry-zookeeper</module>
+        <module>motan-registry-weibomesh</module>
         <module>motan-benchmark</module>
         <module>motan-extension</module>
     </modules>

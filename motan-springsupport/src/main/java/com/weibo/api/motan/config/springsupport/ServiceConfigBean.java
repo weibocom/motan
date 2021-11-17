@@ -16,32 +16,23 @@
 
 package com.weibo.api.motan.config.springsupport;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
-
 import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.config.BasicServiceInterfaceConfig;
-import com.weibo.api.motan.config.ConfigUtil;
-import com.weibo.api.motan.config.ProtocolConfig;
-import com.weibo.api.motan.config.RegistryConfig;
-import com.weibo.api.motan.config.ServiceConfig;
+import com.weibo.api.motan.config.*;
+import com.weibo.api.motan.config.springsupport.util.SpringBeanUtil;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.*;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 public class ServiceConfigBean<T> extends ServiceConfig<T>
         implements
@@ -131,7 +122,8 @@ public class ServiceConfigBean<T> extends ServiceConfig<T>
                     ProtocolConfig proto = null;
                     try {
                         proto = beanFactory.getBean(p, ProtocolConfig.class);
-                    } catch (NoSuchBeanDefinitionException e) {}
+                    } catch (NoSuchBeanDefinitionException e) {
+                    }
                     if (proto == null) {
                         if (MotanConstants.PROTOCOL_MOTAN.equals(p)) {
                             proto = MotanFrameworkUtil.getDefaultProtocolConfig();
@@ -175,6 +167,9 @@ public class ServiceConfigBean<T> extends ServiceConfig<T>
         }
         if (CollectionUtil.isEmpty(getRegistries())) {
             setRegistry(MotanFrameworkUtil.getDefaultRegistryConfig());
+        }
+        for (RegistryConfig registryConfig : getRegistries()) {
+            SpringBeanUtil.addRegistryParamBean(registryConfig, beanFactory);
         }
     }
 }

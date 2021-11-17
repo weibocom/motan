@@ -167,14 +167,10 @@ public class MotanBeanDefinitionParser implements BeanDefinitionParser {
             } else if ("registry".equals(property)) {
                 parseMultiRef("registries", value, bd, parserContext);
                 reference = null;
-            } else if ("basicService".equals(property)) {
+            } else if ("basicService".equals(property) || "basicReferer".equals(property)
+                    || "extConfig".equals(property) || "proxyRegistry".equals(property)) {
                 reference = new RuntimeBeanReference(value);
 
-            } else if ("basicReferer".equals(property)) {
-                reference = new RuntimeBeanReference(value);
-
-            } else if ("extConfig".equals(property)) {
-                reference = new RuntimeBeanReference(value);
             } else {
                 reference = new TypedStringValue(value);
             }

@@ -55,6 +55,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     private Class<T> interfaceClass;
     private BasicServiceInterfaceConfig basicService;
     private AtomicBoolean exported = new AtomicBoolean(false);
+
     public static ConcurrentHashSet<String> getExistingServices() {
         return existingServices;
     }
@@ -172,7 +173,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             throw new MotanFrameworkException(String.format("%s configService is malformed, for same service (%s) already exists ",
                     interfaceClass.getName(), serviceUrl.getIdentity()), MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
         }
-
+        LoggerUtil.info("export for service url :" + serviceUrl.toFullStr());
         List<URL> urls = new ArrayList<URL>();
 
         // injvm 协议只支持注册到本地，其他协议可以注册到local、remote

@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @version V1.0 created at: 2013-5-28
  */
 
-public abstract class AbstractRegistry implements Registry {
+public abstract class  AbstractRegistry implements Registry {
 
     private ConcurrentHashMap<URL, Map<String, List<URL>>> subscribedCategoryResponses = new ConcurrentHashMap<>();
 
