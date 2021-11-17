@@ -19,10 +19,8 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.Activation;
 import com.weibo.api.motan.core.extension.ActivationComparator;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
-import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
-import com.weibo.api.motan.filter.AccessLogFilter;
 import com.weibo.api.motan.filter.Filter;
 import com.weibo.api.motan.filter.InitializableFilter;
 import com.weibo.api.motan.rpc.*;
@@ -224,14 +222,8 @@ public class ProtocolFilterDecorator implements Protocol {
             }
         }
 
-        // add filter via other configs, like accessLog and so on
-        boolean accessLog = url.getBooleanParameter(URLParamType.accessLog.getName(), URLParamType.accessLog.getBooleanValue());
-        if (accessLog) {
-            addIfAbsent(filters, AccessLogFilter.class.getAnnotation(SpiMeta.class).name());
-        }
-
         // sort the filters
-        Collections.sort(filters, new ActivationComparator<Filter>());
+        Collections.sort(filters, new ActivationComparator<>());
         Collections.reverse(filters);
         return filters;
     }
