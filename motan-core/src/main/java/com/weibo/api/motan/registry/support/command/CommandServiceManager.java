@@ -61,6 +61,7 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
         // 从url里处理静态指令。仅处理流控指令
         String mixGroupsString = refUrl.getParameter(URLParamType.mixGroups.getName());
         if (StringUtils.isNotBlank(mixGroupsString)) {
+            LoggerUtil.info("CommandServiceManager process mixGroups:" + mixGroupsString);
             List<String> mergeGroups = new ArrayList<>();
             mergeGroups.add(refUrl.getGroup());
             String[] groups = mixGroupsString.split(MotanConstants.COMMA_SEPARATOR);
@@ -82,6 +83,7 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
                 clientCommand.setVersion("1.0");
                 clientCommandList.add(clientCommand);
                 staticCommand.setClientCommandList(clientCommandList);
+                LoggerUtil.info("set static command. url: " + refUrl.toSimpleString() + ", merge group: " + mergeGroups);
             }
 
         }
@@ -165,6 +167,7 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
             for (RpcCommand.ClientCommand command : rpcCommand.getClientCommandList()) {
                 hit = processTrafficCommand(command, weights, localIP, mergedResult);
                 if (hit) { //仅支持一条流量指令，指令生效就返回结果
+                    LoggerUtil.info("discoverServiceWithCommand: hit with dynamic command. result size: " + mergedResult.size() + ", remark: " + command.getRemark());
                     return mergedResult;
                 }
             }
@@ -175,11 +178,13 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
             for (RpcCommand.ClientCommand command : staticCommand.getClientCommandList()) {
                 hit = processTrafficCommand(command, weights, localIP, mergedResult);
                 if (hit) {
+                    LoggerUtil.info("discoverServiceWithCommand: hit with static command. result size: " + mergedResult.size() + ", remark: " + command.getRemark());
                     return mergedResult;
                 }
             }
         }
         // 未名中流量指令时，返回默认分组结果
+        LoggerUtil.info("discoverServiceWithCommand: not hit any command.");
         return discoverOneGroup(refUrl);
     }
 
@@ -312,6 +317,7 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
             }
             ruleUrl.addParameter(URLParamType.weights.getName(), weightsBuilder.deleteCharAt(weightsBuilder.length() - 1).toString());
             finalResult.add(ruleUrl);
+            LoggerUtil.info("add weight rule url. weight: " + weightsBuilder.toString());
         }
 
         for (String key : weights.keySet()) {
