@@ -77,6 +77,8 @@ public class AccessLogFilterTest extends BaseTestCase {
                 will(returnValue("get"));
                 exactly(1).of(request).getParamtersDesc();
                 will(returnValue("param_desc"));
+                exactly(1).of(request).getRequestId();
+                will(returnValue(100L));
                 atLeast(1).of(request).getAttachments();
                 will(returnValue(attachments));
             }
@@ -117,6 +119,8 @@ public class AccessLogFilterTest extends BaseTestCase {
                 will(returnValue("get"));
                 exactly(1).of(request).getParamtersDesc();
                 will(returnValue("param_desc"));
+                exactly(1).of(request).getRequestId();
+                will(returnValue(100L));
                 atLeast(1).of(request).getAttachments();
                 will(returnValue(attachments));
                 exactly(1).of(logService).accessLog(with(any(String.class)));
