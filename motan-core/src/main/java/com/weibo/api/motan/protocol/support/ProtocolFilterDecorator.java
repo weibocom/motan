@@ -24,6 +24,7 @@ import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.filter.Filter;
 import com.weibo.api.motan.filter.InitializableFilter;
 import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.util.LoggerUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Method;
@@ -32,7 +33,6 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- *
  * Decorate the protocol, to add more features.
  *
  * @author fishermen
@@ -183,10 +183,10 @@ public class ProtocolFilterDecorator implements Protocol {
                     return lp.isAvailable();
                 }
 
-				@Override
-				public T getImpl() {
-					return provider.getImpl();
-				}
+                @Override
+                public T getImpl() {
+                    return provider.getImpl();
+                }
             };
         }
         return lastProvider;
@@ -194,11 +194,11 @@ public class ProtocolFilterDecorator implements Protocol {
 
     /**
      * <pre>
-	 * 获取方式：
-	 * 1）先获取默认的filter列表；
-	 * 2）根据filter配置获取新的filters，并和默认的filter列表合并；
-	 * 3）再根据一些其他配置判断是否需要增加其他filter，如根据accessLog进行判断，是否需要增加accesslog
-	 * </pre>
+     * 获取方式：
+     * 1）先获取默认的filter列表；
+     * 2）根据filter配置获取新的filters，并和默认的filter列表合并；
+     * 3）再根据一些其他配置判断是否需要增加其他filter，如根据accessLog进行判断，是否需要增加accesslog
+     * </pre>
      *
      * @param url
      * @param key
@@ -233,8 +233,9 @@ public class ProtocolFilterDecorator implements Protocol {
             return;
         }
 
-        Filter extFilter = ExtensionLoader.getExtensionLoader(Filter.class).getExtension(extensionName);
+        Filter extFilter = ExtensionLoader.getExtensionLoader(Filter.class).getExtension(extensionName, false);
         if (extFilter == null) {
+            LoggerUtil.warn("filter extension not found. filer name: " + extensionName);
             return;
         }
 

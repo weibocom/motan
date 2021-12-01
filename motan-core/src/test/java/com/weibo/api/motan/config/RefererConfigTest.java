@@ -109,7 +109,7 @@ public class RefererConfigTest extends BaseTestCase {
             ref = refererConfig.getRef();
             assertTrue(false);
         } catch (Exception e) {
-            assertTrue(e.getMessage().contains("Protocol is null"));
+            assertTrue(e.getMessage().contains("get extension fail"));
         }
         protocols.add(mockProtocolConfig("notExist"));
 

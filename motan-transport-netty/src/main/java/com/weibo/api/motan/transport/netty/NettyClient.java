@@ -126,7 +126,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
     /**
      * 请求remote service
-     *
+     * <p>
      * <pre>
      * 		1)  get connection from pool
      * 		2)  async requset
@@ -337,7 +337,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
     /**
      * 增加调用失败的次数：
-     *
+     * <p>
      * <pre>
      * 	 	如果连续失败的次数 >= maxClientConnection, 那么把client设置成不可用状态
      * </pre>
@@ -361,7 +361,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
     /**
      * 重置调用失败的计数 ：
-     *
+     * <p>
      * <pre>
      * 把节点设置成可用
      * </pre>
@@ -394,7 +394,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
     /**
      * 注册回调的resposne
-     *
+     * <p>
      * <pre>
      *
      * 		进行最大的请求并发数的控制，如果超过NETTY_CLIENT_MAX_REQUEST的话，那么throw reject exception
@@ -425,8 +425,8 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
             return null;
         }
 
-        return String.format("identity: %s available: %s concurrent_count: %s", url.getIdentity(), isAvailable(),
-                callbackMap.size());
+        return String.format("type:MOTAN_CLUSTER_NODE_STAT, name:%s_%s, ip:%s, port:%s, available: %s, request_count: %s", url.getGroup(), url.getPath(),
+                url.getHost(), url.getPort(), isAvailable(), callbackMap.size());
     }
 
     /**

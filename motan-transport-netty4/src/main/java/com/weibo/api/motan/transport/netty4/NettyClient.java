@@ -260,7 +260,8 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
             return null;
         }
 
-        return String.format("identity: %s available: %s concurrent_count: %s", url.getIdentity(), isAvailable(), callbackMap.size());
+        return String.format("type:MOTAN_CLUSTER_NODE_STAT, name:%s_%s, ip:%s, port:%s, available: %s, request_count: %s", url.getGroup(), url.getPath(),
+                url.getHost(), url.getPort(), isAvailable(), callbackMap.size());
     }
 
     public ResponseFuture removeCallback(long requestId) {

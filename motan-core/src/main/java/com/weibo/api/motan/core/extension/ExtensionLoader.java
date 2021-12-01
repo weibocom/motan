@@ -35,14 +35,13 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * <pre>
  * 	扩展增加的方式：
- * 		支持 JDK ServiceProvider 
- * 
+ * 		支持 JDK ServiceProvider
+ *
  * 		支持 weibo:spi 配置
  * </pre>
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-5-28
- * 
  */
 public class ExtensionLoader<T> {
 
@@ -80,9 +79,16 @@ public class ExtensionLoader<T> {
     }
 
     public T getExtension(String name) {
+        return getExtension(name, true);
+    }
+
+    public T getExtension(String name, boolean throwWhenNotFound) {
         checkInit();
 
-        if (name == null) {
+        if (StringUtils.isBlank(name)) {
+            if (throwWhenNotFound) {
+                failThrows(type, "get extension fail. extension name is empty");
+            }
             return null;
         }
 
@@ -90,16 +96,21 @@ public class ExtensionLoader<T> {
             Spi spi = type.getAnnotation(Spi.class);
 
             if (spi.scope() == Scope.SINGLETON) {
-                return getSingletonInstance(name);
+                return getSingletonInstance(name, throwWhenNotFound);
             } else {
                 Class<T> clz = extensionClasses.get(name);
 
                 if (clz == null) {
+                    if (throwWhenNotFound) {
+                        failThrows(type, "get extension fail. extension name '" + name + "' not found");
+                    }
                     return null;
                 }
 
                 return clz.newInstance();
             }
+        } catch (MotanFrameworkException mfe) {
+            throw mfe;
         } catch (Exception e) {
             failThrows(type, "Error when getExtension " + name, e);
         }
@@ -107,7 +118,7 @@ public class ExtensionLoader<T> {
         return null;
     }
 
-    private T getSingletonInstance(String name) throws InstantiationException, IllegalAccessException {
+    private T getSingletonInstance(String name, boolean throwWhenNotFound) throws InstantiationException, IllegalAccessException {
         T obj = singletonInstances.get(name);
 
         if (obj != null) {
@@ -117,6 +128,9 @@ public class ExtensionLoader<T> {
         Class<T> clz = extensionClasses.get(name);
 
         if (clz == null) {
+            if (throwWhenNotFound) {
+                failThrows(type, "get extension fail. extension name '" + name + "' not found");
+            }
             return null;
         }
 
@@ -159,7 +173,7 @@ public class ExtensionLoader<T> {
         }
 
         extensionClasses = loadExtensionClasses(PREFIX);
-        singletonInstances = new ConcurrentHashMap<String, T>();
+        singletonInstances = new ConcurrentHashMap<>();
 
         init = true;
     }
@@ -192,7 +206,7 @@ public class ExtensionLoader<T> {
     /**
      * 有些地方需要spi的所有激活的instances，所以需要能返回一个列表的方法 注意：1 SpiMeta 中的active 为true； 2
      * 按照spiMeta中的sequence进行排序 FIXME： 是否需要对singleton来区分对待，后面再考虑 fishermen
-     * 
+     *
      * @return
      */
     @SuppressWarnings("unchecked")
@@ -226,13 +240,12 @@ public class ExtensionLoader<T> {
 
     /**
      * check clz
-     * 
+     * <p>
      * <pre>
-	 * 		1.  is interface
-	 * 		2.  is contains @Spi annotation
-	 * </pre>
-     * 
-     * 
+     * 		1.  is interface
+     * 		2.  is contains @Spi annotation
+     * </pre>
+     *
      * @param <T>
      * @param clz
      */
@@ -252,13 +265,13 @@ public class ExtensionLoader<T> {
 
     /**
      * check extension clz
-     * 
+     * <p>
      * <pre>
-	 * 		1) is public class
-	 * 		2) contain public constructor and has not-args constructor
-	 * 		3) check extension clz instanceof Type.class
-	 * </pre>
-     * 
+     * 		1) is public class
+     * 		2) contain public constructor and has not-args constructor
+     * 		3) check extension clz instanceof Type.class
+     * </pre>
+     *
      * @param clz
      */
     private void checkExtensionType(Class<T> clz) {
@@ -332,7 +345,7 @@ public class ExtensionLoader<T> {
 
     @SuppressWarnings("unchecked")
     private ConcurrentMap<String, Class<T>> loadClass(List<String> classNames) {
-        ConcurrentMap<String, Class<T>> map = new ConcurrentHashMap<String, Class<T>>();
+        ConcurrentMap<String, Class<T>> map = new ConcurrentHashMap<>();
 
         for (String className : classNames) {
             try {
@@ -363,11 +376,11 @@ public class ExtensionLoader<T> {
 
     /**
      * 获取扩展点的名字
-     * 
+     * <p>
      * <pre>
-	 * 		如果扩展类有SpiMeta的注解，那么获取对应的name，如果没有的话获取classname
-	 * </pre>
-     * 
+     * 		如果扩展类有SpiMeta的注解，那么获取对应的name，如果没有的话获取classname
+     * </pre>
+     *
      * @param clz
      * @return
      */

@@ -16,15 +16,14 @@
 
 package com.weibo.api.motan.core.extension;
 
+import com.weibo.api.motan.exception.MotanFrameworkException;
 import junit.framework.Assert;
 import junit.framework.TestCase;
-
 import org.junit.Test;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-29
- * 
  */
 public class ExtensionLoaderTest extends TestCase {
 
@@ -70,13 +69,23 @@ public class ExtensionLoaderTest extends TestCase {
             Assert.assertTrue(e.getMessage().contains("is not interface"));
         }
 
-        Assert.assertNull(ExtensionLoader.getExtensionLoader(SpiWithoutImpl.class).getExtension("default"));
+        // 未找到扩展
+        try {
+            Assert.assertNull(ExtensionLoader.getExtensionLoader(SpiWithoutImpl.class).getExtension("default"));
+            Assert.assertTrue(false); // should not here
+        } catch (MotanFrameworkException e) {
+            Assert.assertTrue(e.getMessage().contains("get extension fail"));
+        }
+
+        Assert.assertNull(ExtensionLoader.getExtensionLoader(SpiWithoutImpl.class).getExtension("default", false));
     }
 
     // not spi
-    public interface NotSpiInterface {}
+    public interface NotSpiInterface {
+    }
 
     // not impl
     @Spi
-    public interface SpiWithoutImpl {}
+    public interface SpiWithoutImpl {
+    }
 }

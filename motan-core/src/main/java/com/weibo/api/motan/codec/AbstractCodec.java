@@ -96,10 +96,10 @@ public abstract class AbstractCodec implements Codec {
         String name = serializations.get(serializationNum);
         Serialization s = null;
         if (StringUtils.isNotBlank(name)) {
-            s = ExtensionLoader.getExtensionLoader(Serialization.class).getExtension(name);
+            s = ExtensionLoader.getExtensionLoader(Serialization.class).getExtension(name, false);
         }
         if (s == null) {
-            throw new MotanServiceException("can not found serialization by number " + serializationNum);
+            throw new MotanServiceException("can not found serialization by number " + serializationNum + ", name: " + name);
         }
         return s;
     }
