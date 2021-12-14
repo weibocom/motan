@@ -16,6 +16,7 @@
 
 package com.weibo.api.motan.registry.support.command;
 
+import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.registry.NotifyListener;
@@ -28,11 +29,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 
-
 public class CommandServiceManager implements CommandListener, ServiceListener {
 
     public static final String MOTAN_COMMAND_SWITCHER = "feature.motanrpc.command.enable";
     private static Pattern IP_PATTERN = Pattern.compile("^!?[0-9.]*\\*?$");
+    private static int DEFAULT_WEIGHT = 1;
+    private static int MAX_WEIGHT = 100;
 
     static {
         MotanSwitcherUtil.initSwitcher(MOTAN_COMMAND_SWITCHER, true);
@@ -41,137 +43,173 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
     private URL refUrl;
     private ConcurrentHashSet<NotifyListener> notifySet;
     private CommandFailbackRegistry registry;
+
     // service cache
     private Map<String, List<URL>> groupServiceCache;
-    // command cache
+    // command cache，保存最近一次指令通知的内容（有可能是无效指令串），仅用来判断新指令是否与上次指令内容相同。
     private String commandStringCache = "";
     private volatile RpcCommand commandCache;
+    private RpcCommand staticCommand;
+    private Map<String, Integer> weights;
 
     public CommandServiceManager(URL refUrl) {
         LoggerUtil.info("CommandServiceManager init url:" + refUrl.toFullStr());
         this.refUrl = refUrl;
-        notifySet = new ConcurrentHashSet<NotifyListener>();
-        groupServiceCache = new ConcurrentHashMap<String, List<URL>>();
+        notifySet = new ConcurrentHashSet<>();
+        groupServiceCache = new ConcurrentHashMap<>();
+        weights = new ConcurrentHashMap<>();
+        // 从url里处理静态指令。仅处理流控指令
+        String mixGroupsString = refUrl.getParameter(URLParamType.mixGroups.getName());
+        if (StringUtils.isNotBlank(mixGroupsString)) {
+            LoggerUtil.info("CommandServiceManager process mixGroups:" + mixGroupsString);
+            List<String> mergeGroups = new ArrayList<>();
+            mergeGroups.add(refUrl.getGroup());
+            String[] groups = mixGroupsString.split(MotanConstants.COMMA_SEPARATOR);
+            for (String group : groups) {
+                if (refUrl.getGroup().equals(group.trim())) {
+                    continue;
+                }
+                mergeGroups.add(group.trim());
+            }
+            if (mergeGroups.size() > 1) { //有除自身group之外要混打的分组
+                staticCommand = new RpcCommand();
+                List<RpcCommand.ClientCommand> clientCommandList = new ArrayList<>();
+                RpcCommand.ClientCommand clientCommand = new RpcCommand.ClientCommand();
+                clientCommand.setPattern(refUrl.getPath());
+                clientCommand.setCommandType(0);
+                clientCommand.setIndex(1);
+                clientCommand.setMergeGroups(mergeGroups);
+                clientCommand.setRemark("static command of mix groups");
+                clientCommand.setVersion("1.0");
+                clientCommandList.add(clientCommand);
+                staticCommand.setClientCommandList(clientCommandList);
+                LoggerUtil.info("set static command. url: " + refUrl.toSimpleString() + ", merge group: " + mergeGroups);
+            }
 
+        }
     }
 
     @Override
     public void notifyService(URL serviceUrl, URL registryUrl, List<URL> urls) {
-
         if (registry == null) {
             throw new MotanFrameworkException("registry must be set.");
         }
-
-        URL urlCopy = serviceUrl.createCopy();
-        String groupName = urlCopy.getParameter(URLParamType.group.getName(), URLParamType.group.getValue());
-        groupServiceCache.put(groupName, urls);
-
-        List<URL> finalResult = new ArrayList<URL>();
-        if (commandCache != null) {
-            Map<String, Integer> weights = new HashMap<String, Integer>();
-            finalResult = discoverServiceWithCommand(refUrl, weights, commandCache);
-        } else {
-            LoggerUtil.info("command cache is null. service:" + serviceUrl.toSimpleString());
-            // 没有命令时，只返回这个manager实际group对应的结果
-            finalResult.addAll(discoverOneGroup(refUrl));
-        }
-
-        for (NotifyListener notifyListener : notifySet) {
-            notifyListener.notify(registry.getUrl(), finalResult);
-        }
-
+        // 更新对应分组节点缓存
+        groupServiceCache.put(serviceUrl.getGroup(), urls);
+        notifyListeners();
     }
 
     @Override
-    public void notifyCommand(URL serviceUrl, String commandString) {
+    // 仅处理流控指令
+    synchronized public void notifyCommand(URL serviceUrl, String commandString) {
         LoggerUtil.info("CommandServiceManager notify command. service:" + serviceUrl.toSimpleString() + ", command:" + commandString);
 
         if (!MotanSwitcherUtil.isOpen(MOTAN_COMMAND_SWITCHER) || commandString == null) {
-            LoggerUtil.info("command reset empty since swither is close.");
-            commandString = "";
+            LoggerUtil.info("command reset empty since switcher is close.");
+            commandString = ""; // 降级状态下相当于清空了所有动态指令
         }
-
-        List<URL> finalResult = new ArrayList<URL>();
-        URL urlCopy = serviceUrl.createCopy();
 
         if (!StringUtils.equals(commandString, commandStringCache)) {
             commandStringCache = commandString;
-            commandCache = RpcCommandUtil.stringToCommand(commandStringCache);
-            Map<String, Integer> weights = new HashMap<String, Integer>();
-
-            if (commandCache != null && commandCache.getClientCommandList() != null && !commandCache.getClientCommandList().isEmpty()) {
-                commandCache.sort();
-                finalResult = discoverServiceWithCommand(refUrl, weights, commandCache);
-            } else {
-                // 如果是指令有异常时，应当按没有指令处理，防止错误指令导致服务异常
-                if (StringUtils.isNotBlank(commandString)) {
-                    LoggerUtil.warn("command parse fail, ignored! command:" + commandString);
-                    commandString = "";
-                }
-                // 没有命令时，只返回这个manager实际group对应的结果
-                finalResult.addAll(discoverOneGroup(refUrl));
-
+            commandCache = RpcCommandUtil.stringToCommand(commandString);
+            if (commandCache == null && StringUtils.isNotBlank(commandString)) {
+                LoggerUtil.warn("command parse fail, ignored! command:" + commandString);
             }
+
+            notifyListeners();
 
             // 指令变化时，删除不再有效的缓存，取消订阅不再有效的group
             Set<String> groupKeys = groupServiceCache.keySet();
             for (String gk : groupKeys) {
                 if (!weights.containsKey(gk)) {
                     groupServiceCache.remove(gk);
-                    URL urlTemp = urlCopy.createCopy();
+                    URL urlTemp = refUrl.createCopy();
                     urlTemp.addParameter(URLParamType.group.getName(), gk);
                     registry.unsubscribeService(urlTemp, this);
                 }
             }
             // 当指令从有改到无时，或者没有流量切换指令时，会触发取消订阅所有的group，需要重新订阅本组的service
-            if ("".equals(commandString) || weights.isEmpty()) {
+            // 缓存中有或者没有节点并不能代表服务是否订阅
+            if (commandCache == null || weights.isEmpty()) {
                 LoggerUtil.info("reSub service" + refUrl.toSimpleString());
                 registry.subscribeService(refUrl, this);
+                discoverOneGroup(refUrl);// 缓存如果没有则更新
             }
         } else {
             LoggerUtil.info("command not change. url:" + serviceUrl.toSimpleString());
-            // 指令没有变化，什么也不做
-            return;
         }
+    }
+
+    synchronized private void notifyListeners() {
+        Map<String, Integer> tempWeights = new ConcurrentHashMap<>();
+        List<URL> finalResult = discoverServiceWithCommand(tempWeights, commandCache);
+        weights = tempWeights;
 
         for (NotifyListener notifyListener : notifySet) {
-            notifyListener.notify(registry.getUrl(), finalResult);
+            try {
+                notifyListener.notify(registry.getUrl(), finalResult);
+            } catch (Exception e) {
+                LoggerUtil.error("CommandServiceManager notify listener fail. listener:" + notifyListener.toString(), e);
+            }
         }
     }
 
-    public List<URL> discoverServiceWithCommand(URL serviceUrl, Map<String, Integer> weights, RpcCommand rpcCommand) {
+    List<URL> discoverServiceWithCommand(Map<String, Integer> weights, RpcCommand rpcCommand) {
         String localIP = NetUtils.getLocalAddress().getHostAddress();
-        return this.discoverServiceWithCommand(serviceUrl, weights, rpcCommand, localIP);
+        return this.discoverServiceWithCommand(weights, rpcCommand, localIP);
     }
 
-    public List<URL> discoverServiceWithCommand(URL serviceUrl, Map<String, Integer> weights, RpcCommand rpcCommand, String localIP) {
-        if (rpcCommand == null || CollectionUtil.isEmpty(rpcCommand.getClientCommandList())) {
-            return discoverOneGroup(serviceUrl);
+    List<URL> discoverServiceWithCommand(Map<String, Integer> weights, RpcCommand rpcCommand, String localIP) {
+        List<URL> mergedResult = new LinkedList<>();
+        boolean hit;
+        // 优先处理动态指令
+        if (rpcCommand != null && !CollectionUtil.isEmpty(rpcCommand.getClientCommandList())) {
+            for (RpcCommand.ClientCommand command : rpcCommand.getClientCommandList()) {
+                hit = processTrafficCommand(command, weights, localIP, mergedResult);
+                if (hit) { //仅支持一条流量指令，指令生效就返回结果
+                    LoggerUtil.info("discoverServiceWithCommand: hit with dynamic command. result size: " + mergedResult.size() + ", remark: " + command.getRemark());
+                    return mergedResult;
+                }
+            }
         }
 
-        List<URL> mergedResult = new LinkedList<URL>();
-        String path = serviceUrl.getPath();
+        // 动态指令无效时，静态指令生效
+        if (staticCommand != null) {
+            for (RpcCommand.ClientCommand command : staticCommand.getClientCommandList()) {
+                hit = processTrafficCommand(command, weights, localIP, mergedResult);
+                if (hit) {
+                    LoggerUtil.info("discoverServiceWithCommand: hit with static command. result size: " + mergedResult.size() + ", remark: " + command.getRemark());
+                    return mergedResult;
+                }
+            }
+        }
+        // 未名中流量指令时，返回默认分组结果
+        LoggerUtil.info("discoverServiceWithCommand: not hit any command.");
+        return discoverOneGroup(refUrl);
+    }
 
-        List<RpcCommand.ClientCommand> clientCommandList = rpcCommand.getClientCommandList();
+    private boolean processTrafficCommand(RpcCommand.ClientCommand command, Map<String, Integer> weights, String localIP, List<URL> mergedResult) {
         boolean hit = false;
-        for (RpcCommand.ClientCommand command : clientCommandList) {
-            mergedResult = new LinkedList<URL>();
+        if (command.getCommandType() == null || command.getCommandType() == 0) { //只处理流控指令。未指定类型时默认作为流控指令处理
+            String path = refUrl.getPath();
             // 判断当前url是否符合过滤条件
             boolean match = RpcCommandUtil.match(command.getPattern(), path);
             if (match) {
                 hit = true;
                 if (!CollectionUtil.isEmpty(command.getMergeGroups())) {
+                    boolean isMixMode;
                     // 计算出所有要合并的分组及权重
                     try {
-                        buildWeightsMap(weights, command);
+                        isMixMode = buildWeightsMap(weights, command);
                     } catch (MotanFrameworkException e) {
                         LoggerUtil.warn("build weights map fail!" + e.getMessage());
-                        continue;
+                        weights.clear();//权重计算异常时，需要清空已记录的权重，避免发生不可预期的流量配比
+                        return false;
                     }
                     // 根据计算结果，分别发现各个group的service，合并结果
-                    mergedResult.addAll(mergeResult(serviceUrl, weights));
+                    mergedResult.addAll(mergeResult(refUrl, weights, isMixMode));
                 } else {
-                    mergedResult.addAll(discoverOneGroup(serviceUrl));
+                    mergedResult.addAll(discoverOneGroup(refUrl));
                 }
 
                 LoggerUtil.info("mergedResult: size-" + mergedResult.size() + " --- " + mergedResult.toString());
@@ -212,7 +250,7 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
                         if (oppositeFrom) {
                             matchFrom = !matchFrom;
                         }
-                        LoggerUtil.info("matchFrom: " + matchFrom + ", localip:" + localIP + ", from:" + from);
+                        LoggerUtil.info("matchFrom: " + matchFrom + ", local ip:" + localIP + ", from:" + from);
                         if (matchFrom) {
                             boolean matchTo;
                             Iterator<URL> iterator = mergedResult.iterator();
@@ -238,42 +276,39 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
                         }
                     }
                 }
-                // 只取第一个匹配的 TODO 考虑是否能满足绝大多数场景需求
-                break;
             }
         }
-
-        List<URL> finalResult = new ArrayList<URL>();
-        if (!hit) {
-            finalResult = discoverOneGroup(serviceUrl);
-        } else {
-            finalResult.addAll(mergedResult);
-        }
-        return finalResult;
+        return hit;
     }
 
-    private void buildWeightsMap(Map<String, Integer> weights, RpcCommand.ClientCommand command) {
+    private boolean buildWeightsMap(Map<String, Integer> weights, RpcCommand.ClientCommand command) {
+        // 所有group都未指定权重时，使用mix模式，即不区分分组权重，所有节点流量混打
+        boolean isMixMode = true;
         for (String rule : command.getMergeGroups()) {
             String[] gw = rule.split(":");
-            int weight = 1;
+            int weight = DEFAULT_WEIGHT;
             if (gw.length > 1) {
+                isMixMode = false;
                 try {
                     weight = Integer.parseInt(gw[1]);
                 } catch (NumberFormatException e) {
-                    weightConfigError();
+                    LoggerUtil.warn("parse weight fail, default weight 1 will be used. weight string : " + rule);
                 }
-                if (weight < 0 || weight > 100) {
-                    weightConfigError();
+                if (weight < DEFAULT_WEIGHT) {
+                    weight = DEFAULT_WEIGHT;
+                } else if (weight > MAX_WEIGHT) {
+                    weight = MAX_WEIGHT;
                 }
             }
             weights.put(gw[0], weight);
         }
+        return isMixMode;
     }
 
-    private List<URL> mergeResult(URL url, Map<String, Integer> weights) {
-        List<URL> finalResult = new ArrayList<URL>();
+    private List<URL> mergeResult(URL url, Map<String, Integer> weights, boolean isMixMode) {
+        List<URL> finalResult = new ArrayList<>();
 
-        if (weights.size() > 1) {
+        if (!isMixMode && weights.size() > 1) { // 非混合模式生成权重规则URL
             // 将所有group及权重拼接成一个rule的URL，并作为第一个元素添加到最终结果中
             URL ruleUrl = new URL("rule", url.getHost(), url.getPort(), url.getPath());
             StringBuilder weightsBuilder = new StringBuilder(64);
@@ -282,6 +317,7 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
             }
             ruleUrl.addParameter(URLParamType.weights.getName(), weightsBuilder.deleteCharAt(weightsBuilder.length() - 1).toString());
             finalResult.add(ruleUrl);
+            LoggerUtil.info("add weight rule url. weight: " + weightsBuilder.toString());
         }
 
         for (String key : weights.keySet()) {
@@ -299,27 +335,21 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
 
     private List<URL> discoverOneGroup(URL urlCopy) {
         LoggerUtil.info("CommandServiceManager discover one group. url:" + urlCopy.toSimpleString());
-        String group = urlCopy.getParameter(URLParamType.group.getName(), URLParamType.group.getValue());
-        List<URL> list = groupServiceCache.get(group);
-        if (list == null) {
-            list = registry.discoverService(urlCopy);
-            groupServiceCache.put(group, list);
-        }
-        return list;
+        return groupServiceCache.computeIfAbsent(urlCopy.getGroup(), k -> registry.discoverService(urlCopy));
     }
 
-    public void setCommandCache(String command) {
+    void setCommandCache(String command) {
         commandStringCache = command;
         commandCache = RpcCommandUtil.stringToCommand(commandStringCache);
-        LoggerUtil.info("CommandServiceManager set commandcache. commandstring:" + commandStringCache + ", comandcache "
+        LoggerUtil.info("CommandServiceManager set command cache. command string:" + commandStringCache + ", command cache "
                 + (commandCache == null ? "is null." : "is not null."));
     }
 
-    public void addNotifyListener(NotifyListener notifyListener) {
+    void addNotifyListener(NotifyListener notifyListener) {
         notifySet.add(notifyListener);
     }
 
-    public void removeNotifyListener(NotifyListener notifyListener) {
+    void removeNotifyListener(NotifyListener notifyListener) {
         notifySet.remove(notifyListener);
     }
 
@@ -327,12 +357,24 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
         this.registry = registry;
     }
 
-    private void weightConfigError() {
-        throw new MotanFrameworkException("权重比只能是[0,100]间的整数");
-    }
-
     private void routeRuleConfigError() {
         LoggerUtil.warn("路由规则配置不合法");
     }
 
+    // for test
+    RpcCommand getStaticCommand() {
+        return staticCommand;
+    }
+
+    Map<String, List<URL>> getGroupServiceCache() {
+        return groupServiceCache;
+    }
+
+    RpcCommand getCommandCache() {
+        return commandCache;
+    }
+
+    CommandFailbackRegistry getRegistry() {
+        return registry;
+    }
 }

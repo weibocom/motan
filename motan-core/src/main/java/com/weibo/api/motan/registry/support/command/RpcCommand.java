@@ -16,8 +16,6 @@
 
 package com.weibo.api.motan.registry.support.command;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class RpcCommand {
@@ -25,9 +23,8 @@ public class RpcCommand {
     private List<ClientCommand> clientCommandList;
 
     public void sort() {
-        Collections.sort(clientCommandList, new Comparator<ClientCommand>() {
-            @Override
-            public int compare(ClientCommand o1, ClientCommand o2) {
+        if (clientCommandList != null){
+            clientCommandList.sort((o1, o2) -> {
                 Integer i1 = o1.getIndex();
                 Integer i2 = o2.getIndex();
                 if (i1 == null) {
@@ -36,16 +33,16 @@ public class RpcCommand {
                 if (i2 == null) {
                     return 1;
                 }
-                int r = i1.compareTo(i2);
-                return r;
-            }
-        });
+                return i1.compareTo(i2);
+            });
+        }
     }
 
     public static class ClientCommand {
         private Integer index;
         private String version;
         private String dc;
+        private Integer commandType; // 0:流控，1：降级，2：开关
         private String pattern;
         private List<String> mergeGroups;
         // 路由规则，当有多个匹配时，按顺序依次过滤结果
@@ -106,6 +103,14 @@ public class RpcCommand {
 
         public void setRemark(String remark) {
             this.remark = remark;
+        }
+
+        public Integer getCommandType() {
+            return commandType;
+        }
+
+        public void setCommandType(Integer commandType) {
+            this.commandType = commandType;
         }
     }
 

@@ -16,15 +16,18 @@
 
 package com.weibo.api.motan.registry.support.command;
 
-import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.util.regex.Pattern;
+
+import static org.junit.Assert.*;
 
 /**
  * @author chengya1
  */
 public class RpcCommandUtilTest {
+    static String TEST_COMMAND_STRING_1 =
+            "{\"clientCommandList\":[{\"dc\":\"yf\",\"index\":1,\"mergeGroups\":[\"openapi-tc-test-rpc:1\",\"openapi-yf-test-rpc:1\"],\"pattern\":\"com.weibo.Hello\",\"remark\":\"切换50%流量到另外一个机房\",\"routeRules\":[],\"version\":\"1.0\"}]}";
 
     @Test
     public void testPathMatch() {
@@ -69,19 +72,18 @@ public class RpcCommandUtilTest {
 
     @Test
     public void testCodec() {
-        String commandString = Constants.commandString1;
+        String commandString = TEST_COMMAND_STRING_1;
         RpcCommand command = RpcCommandUtil.stringToCommand(commandString);
         assertNotNull(command);
 
         String temp = RpcCommandUtil.commandToString(command);
         assertEquals(commandString, temp);
+
+        temp = RpcCommandUtil.commandToString(null);
+        assertNull(temp);
+
+        command = RpcCommandUtil.stringToCommand(null);
+        assertNull(command);
     }
-
-}
-
-
-class Constants {
-    static String commandString1 =
-            "{\"clientCommandList\":[{\"dc\":\"yf\",\"index\":1,\"mergeGroups\":[\"openapi-tc-test-rpc:1\",\"openapi-yf-test-rpc:1\"],\"pattern\":\"com.weibo.Hello\",\"remark\":\"切换50%流量到另外一个机房\",\"routeRules\":[],\"version\":\"1.0\"}]}";
 
 }

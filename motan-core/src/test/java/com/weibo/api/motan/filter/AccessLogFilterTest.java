@@ -79,6 +79,7 @@ public class AccessLogFilterTest extends BaseTestCase {
                 will(returnValue("param_desc"));
                 atLeast(1).of(request).getAttachments();
                 will(returnValue(attachments));
+                allowing(request).getRequestId();
             }
         });
 
@@ -120,6 +121,7 @@ public class AccessLogFilterTest extends BaseTestCase {
                 atLeast(1).of(request).getAttachments();
                 will(returnValue(attachments));
                 exactly(1).of(logService).accessLog(with(any(String.class)));
+                allowing(request).getRequestId();
             }
         });
 

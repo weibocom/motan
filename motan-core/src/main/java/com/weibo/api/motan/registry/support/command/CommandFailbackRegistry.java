@@ -32,7 +32,7 @@ public abstract class CommandFailbackRegistry extends FailbackRegistry {
 
     public CommandFailbackRegistry(URL url) {
         super(url);
-        commandManagerMap = new ConcurrentHashMap<URL, CommandServiceManager>();
+        commandManagerMap = new ConcurrentHashMap<>();
         LoggerUtil.info("CommandFailbackRegistry init. url: " + url.toSimpleString());
     }
 
@@ -61,54 +61,33 @@ public abstract class CommandFailbackRegistry extends FailbackRegistry {
         manager.removeNotifyListener(listener);
         unsubscribeService(urlCopy, manager);
         unsubscribeCommand(urlCopy, manager);
-
     }
 
     @Override
     protected List<URL> doDiscover(URL url) {
         LoggerUtil.info("CommandFailbackRegistry discover. url: " + url.toSimpleString());
-        List<URL> finalResult;
-
         URL urlCopy = url.createCopy();
         String commandStr = discoverCommand(urlCopy);
         RpcCommand rpcCommand = null;
         if (StringUtils.isNotEmpty(commandStr)) {
             rpcCommand = RpcCommandUtil.stringToCommand(commandStr);
-
         }
-
         LoggerUtil.info("CommandFailbackRegistry discover command. commandStr: " + commandStr + ", rpccommand "
                 + (rpcCommand == null ? "is null." : "is not null."));
 
-        if (rpcCommand != null) {
-            rpcCommand.sort();
-            CommandServiceManager manager = getCommandServiceManager(urlCopy);
-            finalResult = manager.discoverServiceWithCommand(urlCopy, new HashMap<String, Integer>(), rpcCommand);
+        CommandServiceManager manager = getCommandServiceManager(urlCopy);
+        List<URL> finalResult = manager.discoverServiceWithCommand(new HashMap<>(), rpcCommand);
 
-            // 在subscribeCommon时，可能订阅完马上就notify，导致首次notify指令时，可能还有其他service没有完成订阅，
-            // 此处先对manager更新指令，避免首次订阅无效的问题。
-            manager.setCommandCache(commandStr);
-        } else {
-            finalResult = discoverService(urlCopy);
-        }
-
+        // 在subscribeCommon时，可能订阅完马上就notify，导致首次notify指令时，可能还有其他service没有完成订阅，
+        // 此处先对manager更新指令，避免首次订阅无效的问题。
+        manager.setCommandCache(commandStr);
         LoggerUtil.info("CommandFailbackRegistry discover size: " + (finalResult == null ? "0" : finalResult.size()));
-
         return finalResult;
     }
 
     public List<URL> commandPreview(URL url, RpcCommand rpcCommand, String previewIP) {
-        List<URL> finalResult;
-        URL urlCopy = url.createCopy();
-
-        if (rpcCommand != null) {
-            CommandServiceManager manager = getCommandServiceManager(urlCopy);
-            finalResult = manager.discoverServiceWithCommand(urlCopy, new HashMap<String, Integer>(), rpcCommand, previewIP);
-        } else {
-            finalResult = discoverService(urlCopy);
-        }
-
-        return finalResult;
+        CommandServiceManager manager = getCommandServiceManager(url.createCopy());
+        return manager.discoverServiceWithCommand(new HashMap<>(), rpcCommand, previewIP);
     }
 
     private CommandServiceManager getCommandServiceManager(URL urlCopy) {
@@ -123,7 +102,7 @@ public abstract class CommandFailbackRegistry extends FailbackRegistry {
     }
 
     // for UnitTest
-    public ConcurrentHashMap<URL, CommandServiceManager> getCommandManagerMap() {
+    ConcurrentHashMap<URL, CommandServiceManager> getCommandManagerMap() {
         return commandManagerMap;
     }
 
