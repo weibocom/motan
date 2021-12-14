@@ -32,10 +32,7 @@ import com.weibo.api.motan.registry.RegistryFactory;
 import com.weibo.api.motan.rpc.Protocol;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.util.CollectionUtil;
-import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.MotanSwitcherUtil;
-import com.weibo.api.motan.util.UrlUtils;
+import com.weibo.api.motan.util.*;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -49,7 +46,7 @@ import java.util.concurrent.*;
  * @version V1.0 created at: 2013-5-31
  */
 
-public class ClusterSupport<T> implements NotifyListener {
+public class ClusterSupport<T> implements NotifyListener, StatisticCallback {
 
     private static ConcurrentHashMap<String, Protocol> protocols = new ConcurrentHashMap<>();
     private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
@@ -120,6 +117,7 @@ public class ClusterSupport<T> implements NotifyListener {
             }
             LoggerUtil.info("cluster init cost " + (System.currentTimeMillis() - start) + ", refer size:"
                     + (cluster.getReferers() == null ? 0 : cluster.getReferers().size()) + ", cluster:" + cluster.getUrl().toSimpleString());
+            StatsUtil.registryStatisticCallback(this);
             return;
         }
 
@@ -146,6 +144,7 @@ public class ClusterSupport<T> implements NotifyListener {
         } catch (Exception e) {
             LoggerUtil.warn(String.format("Exception when destroy cluster: %s", getCluster().getUrl()));
         }
+        StatsUtil.unRegistryStatisticCallback(this);
     }
 
     protected Registry getRegistry(URL url) {
@@ -431,6 +430,20 @@ public class ClusterSupport<T> implements NotifyListener {
         cluster.setLoadBalance(loadBalance);
         cluster.setHaStrategy(ha);
         cluster.setUrl(url);
+    }
+
+    @Override
+    public String statisticCallback() {
+        if (cluster != null && !CollectionUtil.isEmpty(cluster.getReferers())) {
+            int unavailable = 0;
+            for (Referer referer : cluster.getReferers()) {
+                if (!referer.isAvailable()) {
+                    unavailable++;
+                }
+            }
+            return String.format("type:MOTAN_CLUSTER_STAT, name:%s_%s, nodes: %s, unavailable:%s", url.getGroup(), url.getPath(), cluster.getReferers().size(), unavailable);
+        }
+        return null;
     }
 
     private class GroupUrlsSelector {

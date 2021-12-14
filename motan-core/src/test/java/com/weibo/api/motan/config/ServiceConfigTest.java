@@ -90,7 +90,7 @@ public class ServiceConfigTest extends BaseTestCase {
             serviceConfig.export();
             assertTrue(false);
         } catch (Exception e) {
-            assertTrue(e.getMessage().contains("Protocol is null"));
+            assertTrue(e.getMessage().contains("get extension fail"));
         }
 
         // service already exist

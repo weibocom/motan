@@ -37,7 +37,6 @@ import java.util.List;
 
 
 /**
- *
  * Handle refUrl to get referers, assemble to a cluster, create a proxy
  *
  * @author fishermen
@@ -78,10 +77,10 @@ public class SimpleConfigHandler implements ConfigHandler {
         return exporter;
     }
 
-    protected <T> Provider<T> getProvider(Protocol protocol, T proxyImpl, URL url, Class<T> clz){
-        if (protocol instanceof ProviderFactory){
-            return ((ProviderFactory)protocol).newProvider(proxyImpl, url, clz);
-        } else{
+    protected <T> Provider<T> getProvider(Protocol protocol, T proxyImpl, URL url, Class<T> clz) {
+        if (protocol instanceof ProviderFactory) {
+            return ((ProviderFactory) protocol).newProvider(proxyImpl, url, clz);
+        } else {
             return new DefaultProvider<T>(proxyImpl, url, clz);
         }
     }
@@ -102,7 +101,7 @@ public class SimpleConfigHandler implements ConfigHandler {
 
         for (URL url : registryUrls) {
             // 根据check参数的设置，register失败可能会抛异常，上层应该知晓
-            RegistryFactory registryFactory = ExtensionLoader.getExtensionLoader(RegistryFactory.class).getExtension(url.getProtocol());
+            RegistryFactory registryFactory = ExtensionLoader.getExtensionLoader(RegistryFactory.class).getExtension(url.getProtocol(), false);
             if (registryFactory == null) {
                 throw new MotanFrameworkException(new MotanErrorMsg(500, MotanErrorMsgConstant.FRAMEWORK_REGISTER_ERROR_CODE,
                         "register error! Could not find extension for registry protocol:" + url.getProtocol()

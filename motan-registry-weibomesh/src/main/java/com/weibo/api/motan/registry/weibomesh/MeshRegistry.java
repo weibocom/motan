@@ -24,7 +24,6 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.DefaultThreadFactory;
 import com.weibo.api.motan.core.StandardThreadExecutor;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
-import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.registry.NotifyListener;
 import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.registry.RegistryFactory;
@@ -239,7 +238,7 @@ public class MeshRegistry extends AbstractRegistry {
             List<URL> urls = UrlUtils.stringToURLs(proxyRegistryString);
             if (!CollectionUtil.isEmpty(urls)) {
                 URL proxyUrl = urls.get(0); // 仅支持对单注册中心的代理。如果有多注册中心的强需求在考虑扩展
-                RegistryFactory registryFactory = ExtensionLoader.getExtensionLoader(RegistryFactory.class).getExtension(proxyUrl.getProtocol());
+                RegistryFactory registryFactory = ExtensionLoader.getExtensionLoader(RegistryFactory.class).getExtension(proxyUrl.getProtocol(), false);
                 if (registryFactory == null) {
                     LoggerUtil.warn("mesh registry can not find proxy registry. proxy registry url:" + proxyUrl.toSimpleString());
                     return;
@@ -357,9 +356,6 @@ public class MeshRegistry extends AbstractRegistry {
             heartbeatClient = endpointFactory.createClient(meshUrl);
             heartbeatClient.open();
             heartbeatFactory = ExtensionLoader.getExtensionLoader(HeartbeatFactory.class).getExtension(URLParamType.heartbeatFactory.getValue());
-            if (heartbeatFactory == null) {
-                throw new MotanFrameworkException("HeartbeatFactory not exist: " + URLParamType.heartbeatFactory.getValue());
-            }
 
             long period = getUrl().getLongParameter(URLParamType.registrySessionTimeout.name(), DEFAULT_CHECK_PERIOD_MILLISECONDS);
             healthCheckExecutor.scheduleWithFixedDelay(this::healthCheck, period, period, TimeUnit.MILLISECONDS);

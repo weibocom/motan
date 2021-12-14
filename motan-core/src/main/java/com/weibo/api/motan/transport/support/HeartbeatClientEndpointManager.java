@@ -37,9 +37,8 @@ import java.util.concurrent.*;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-14
- *
  */
-public class HeartbeatClientEndpointManager implements EndpointManager{
+public class HeartbeatClientEndpointManager implements EndpointManager {
 
     private ConcurrentMap<Client, HeartbeatFactory> endpoints = new ConcurrentHashMap<>();
 
@@ -99,11 +98,6 @@ public class HeartbeatClientEndpointManager implements EndpointManager{
         String heartbeatFactoryName = url.getParameter(URLParamType.heartbeatFactory.getName(), URLParamType.heartbeatFactory.getValue());
 
         HeartbeatFactory heartbeatFactory = ExtensionLoader.getExtensionLoader(HeartbeatFactory.class).getExtension(heartbeatFactoryName);
-
-        if (heartbeatFactory == null) {
-            throw new MotanFrameworkException("HeartbeatFactory not exist: " + heartbeatFactoryName);
-        }
-
         endpoints.put(client, heartbeatFactory);
     }
 

@@ -182,13 +182,7 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
     }
 
     private HeartbeatFactory getHeartbeatFactory(String heartbeatFactoryName) {
-        HeartbeatFactory heartbeatFactory = ExtensionLoader.getExtensionLoader(HeartbeatFactory.class).getExtension(heartbeatFactoryName);
-
-        if (heartbeatFactory == null) {
-            throw new MotanFrameworkException("HeartbeatFactory not exist: " + heartbeatFactoryName);
-        }
-
-        return heartbeatFactory;
+        return ExtensionLoader.getExtensionLoader(HeartbeatFactory.class).getExtension(heartbeatFactoryName);
     }
 
     private Client createClient(URL url, EndpointManager endpointManager) {
