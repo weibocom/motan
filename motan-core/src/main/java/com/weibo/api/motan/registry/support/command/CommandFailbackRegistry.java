@@ -102,7 +102,7 @@ public abstract class CommandFailbackRegistry extends FailbackRegistry {
     }
 
     // for UnitTest
-    ConcurrentHashMap<URL, CommandServiceManager> getCommandManagerMap() {
+    public ConcurrentHashMap<URL, CommandServiceManager> getCommandManagerMap() {
         return commandManagerMap;
     }
 
