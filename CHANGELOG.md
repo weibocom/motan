@@ -1,5 +1,23 @@
 # Change Log
 
+## [1.1.10](https://github.com/weibocom/motan/tree/1.1.10) (2021-12-22)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.9...1.1.10)
+
+**Implemented enhancements:**
+- add cluster stat; throw exception as default when not found extension [\#957](https://github.com/weibocom/motan/pull/957) ([Ray](https://github.com/rayzhang0603))
+- support mix group in config and command [\#953](https://github.com/weibocom/motan/pull/953) ([Ray](https://github.com/rayzhang0603))
+- add dynamic switcher for accessLogFilter [\#949](https://github.com/weibocom/motan/pull/949) ([Ray](https://github.com/rayzhang0603))
+- support weibo mesh as registry [\#947](https://github.com/weibocom/motan/pull/947) ([Ray](https://github.com/rayzhang0603))
+
+**Merged pull requests:**
+- update update java doc [\#954](https://github.com/weibocom/motan/pull/954) ([Forest](https://github.com/forestyoung23))
+- fix typo [\#950](https://github.com/weibocom/motan/pull/950) ([Forest](https://github.com/forestyoung23))
+- update dependency version to fix security vulnerability
+
+**Fixed bugs:**
+- change dir of generate-code to StandardLocation.SOURCE_OUTPUT [\#959](https://github.com/weibocom/motan/pull/959) ([Ray](https://github.com/rayzhang0603))
+- fix netty channel deadlock [\#941](https://github.com/weibocom/motan/pull/941) ([Ray](https://github.com/rayzhang0603))
+
 ## [1.1.9](https://github.com/weibocom/motan/tree/1.1.9) (2021-02-02)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.1.8...1.1.9)
 
