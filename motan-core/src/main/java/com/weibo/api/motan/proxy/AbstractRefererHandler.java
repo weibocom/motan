@@ -38,89 +38,98 @@ public class AbstractRefererHandler<T> {
 
     Object invokeRequest(Request request, Class returnType, boolean async) throws Throwable {
         RpcContext curContext = RpcContext.getContext();
-        curContext.putAttribute(MotanConstants.ASYNC_SUFFIX, async);
+        try {
+            curContext.putAttribute(MotanConstants.ASYNC_SUFFIX, async);
 
-        // set rpc context attachments to request
-        Map<String, String> attachments = curContext.getRpcAttachments();
-        if (!attachments.isEmpty()) {
-            for (Map.Entry<String, String> entry : attachments.entrySet()) {
-                request.setAttachment(entry.getKey(), entry.getValue());
-            }
-        }
-
-        // add to attachment if client request id is set
-        if (StringUtils.isNotBlank(curContext.getClientRequestId())) {
-            request.setAttachment(URLParamType.requestIdFromClient.getName(), curContext.getClientRequestId());
-        }
-
-        // 当 referer配置多个protocol的时候，比如A,B,C，
-        // 那么正常情况下只会使用A，如果A被开关降级，那么就会使用B，B也被降级，那么会使用C
-        for (Cluster<T> cluster : clusters) {
-            String protocolSwitcher = MotanConstants.PROTOCOL_SWITCHER_PREFIX + cluster.getUrl().getProtocol();
-
-            Switcher switcher = switcherService.getSwitcher(protocolSwitcher);
-
-            if (switcher != null && !switcher.isOn()) {
-                continue;
+            // set rpc context attachments to request
+            Map<String, String> attachments = curContext.getRpcAttachments();
+            if (!attachments.isEmpty()) {
+                for (Map.Entry<String, String> entry : attachments.entrySet()) {
+                    request.setAttachment(entry.getKey(), entry.getValue());
+                }
             }
 
-            request.setAttachment(URLParamType.version.getName(), cluster.getUrl().getVersion());
-            request.setAttachment(URLParamType.clientGroup.getName(), cluster.getUrl().getGroup());
-            // 带上client的application和module
-            request.setAttachment(URLParamType.application.getName(), cluster.getUrl().getApplication());
-            request.setAttachment(URLParamType.module.getName(), cluster.getUrl().getModule());
+            // add to attachment if client request id is set
+            if (StringUtils.isNotBlank(curContext.getClientRequestId())) {
+                request.setAttachment(URLParamType.requestIdFromClient.getName(), curContext.getClientRequestId());
+            }
 
-            Response response = null;
-            boolean throwException = Boolean.parseBoolean(cluster.getUrl().getParameter(URLParamType.throwException.getName(), URLParamType.throwException.getValue()));
-            try {
-                MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_INVOKE);
-                response = cluster.call(request);
-                if (async) {
-                    if (response instanceof ResponseFuture) {
-                        ((ResponseFuture) response).setReturnType(returnType);
-                        return response;
-                    } else {
-                        ResponseFuture responseFuture = new DefaultResponseFuture(request, 0, cluster.getUrl());
-                        if (response.getException() != null) {
-                            responseFuture.onFailure(response);
+            // 当 referer配置多个protocol的时候，比如A,B,C，
+            // 那么正常情况下只会使用A，如果A被开关降级，那么就会使用B，B也被降级，那么会使用C
+            for (Cluster<T> cluster : clusters) {
+                String protocolSwitcher = MotanConstants.PROTOCOL_SWITCHER_PREFIX + cluster.getUrl().getProtocol();
+
+                Switcher switcher = switcherService.getSwitcher(protocolSwitcher);
+
+                if (switcher != null && !switcher.isOn()) {
+                    continue;
+                }
+
+                request.setAttachment(URLParamType.version.getName(), cluster.getUrl().getVersion());
+                request.setAttachment(URLParamType.clientGroup.getName(), cluster.getUrl().getGroup());
+                // 带上client的application和module
+                request.setAttachment(URLParamType.application.getName(), cluster.getUrl().getApplication());
+                request.setAttachment(URLParamType.module.getName(), cluster.getUrl().getModule());
+
+                Response response;
+                boolean throwException = Boolean.parseBoolean(cluster.getUrl().getParameter(URLParamType.throwException.getName(), URLParamType.throwException.getValue()));
+                try {
+                    MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_INVOKE);
+                    response = cluster.call(request);
+                    if (async) {
+                        if (response instanceof ResponseFuture) {
+                            ((ResponseFuture) response).setReturnType(returnType);
+                            return response;
                         } else {
-                            responseFuture.onSuccess(response);
+                            ResponseFuture responseFuture = new DefaultResponseFuture(request, 0, cluster.getUrl());
+                            if (response.getException() != null) {
+                                responseFuture.onFailure(response);
+                            } else {
+                                responseFuture.onSuccess(response);
+                            }
+                            responseFuture.setReturnType(returnType);
+                            return responseFuture;
                         }
-                        responseFuture.setReturnType(returnType);
-                        return responseFuture;
-                    }
-                } else {
-                    Object value = response.getValue();
-                    if (value != null && value instanceof DeserializableObject) {
-                        try {
-                            value = ((DeserializableObject) value).deserialize(returnType);
-                        } catch (IOException e) {
-                            LoggerUtil.error("deserialize response value fail! deserialize type:" + returnType, e);
-                            throw new MotanFrameworkException("deserialize return value fail! deserialize type:" + returnType, e);
-                        }
-                    }
-                    return value;
-                }
-            } catch (RuntimeException e) {
-                if (ExceptionUtil.isBizException(e)) {
-                    Throwable t = e.getCause();
-                    // 只抛出Exception，防止抛出远程的Error
-                    if (t != null && t instanceof Exception) {
-                        throw t;
                     } else {
-                        String msg = t == null ? "biz exception cause is null. origin error msg : " + e.getMessage() : ("biz exception cause is throwable error:" + t.getClass() + ", errmsg:" + t.getMessage());
-                        throw new MotanServiceException(msg);
+                        Object value = response.getValue();
+                        if (value instanceof DeserializableObject) {
+                            try {
+                                value = ((DeserializableObject) value).deserialize(returnType);
+                            } catch (IOException e) {
+                                LoggerUtil.error("deserialize response value fail! deserialize type:" + returnType, e);
+                                throw new MotanFrameworkException("deserialize return value fail! deserialize type:" + returnType, e);
+                            }
+                        }
+                        return value;
                     }
-                } else if (!throwException) {
-                    LoggerUtil.warn("RefererInvocationHandler invoke false, so return default value: uri=" + cluster.getUrl().getUri() + " " + MotanFrameworkUtil.toString(request), e);
-                    return getDefaultReturnValue(returnType);
-                } else {
-                    LoggerUtil.error("RefererInvocationHandler invoke Error: uri=" + cluster.getUrl().getUri() + " " + MotanFrameworkUtil.toString(request), e);
-                    throw e;
+                } catch (RuntimeException e) {
+                    if (ExceptionUtil.isBizException(e)) {
+                        Throwable t = e.getCause();
+                        // 只抛出Exception，防止抛出远程的Error
+                        if (t instanceof Exception) {
+                            throw t;
+                        } else {
+                            String msg = t == null ? "biz exception cause is null. origin error msg : " + e.getMessage() : ("biz exception cause is throwable error:" + t.getClass() + ", errmsg:" + t.getMessage());
+                            throw new MotanServiceException(msg);
+                        }
+                    } else if (!throwException) {
+                        LoggerUtil.warn("RefererInvocationHandler invoke false, so return default value: uri=" + cluster.getUrl().getUri() + " " + MotanFrameworkUtil.toString(request), e);
+                        return getDefaultReturnValue(returnType);
+                    } else {
+                        LoggerUtil.error("RefererInvocationHandler invoke Error: uri=" + cluster.getUrl().getUri() + " " + MotanFrameworkUtil.toString(request), e);
+                        throw e;
+                    }
                 }
             }
+            throw new MotanServiceException("Referer call Error: cluster not exist, interface=" + interfaceName + " " + MotanFrameworkUtil.toString(request), MotanErrorMsgConstant.SERVICE_UNFOUND, false);
+        } finally {
+            // 为简化框架外使用上下文的清理工作，根据autoDestroy设置决定是否对上下文进行清理。默认在请求调用完成后会清理上下文。
+            // 如果有请求结束后在框架外使用上下文等场景，可以设置autoDestroy为false，并自行管理上下文的清理工作。
+            // 为简化清理逻辑，不区分同步、异步请求，默认请求完成后都会进行清理。如果filter有在FinishCallback中使用上下文，需要检查异步场景下是否需要设置autoDestroy，并且按谁设置谁清理的原则对上下文进行清理。
+            if (curContext.isAutoDestroy()) {
+                RpcContext.destroy();
+            }
         }
-        throw new MotanServiceException("Referer call Error: cluster not exist, interface=" + interfaceName + " " + MotanFrameworkUtil.toString(request), MotanErrorMsgConstant.SERVICE_UNFOUND, false);
     }
 
     private Object getDefaultReturnValue(Class<?> returnType) {

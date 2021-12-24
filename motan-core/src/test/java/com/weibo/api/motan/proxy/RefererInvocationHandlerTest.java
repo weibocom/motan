@@ -129,6 +129,7 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
         RefererInvocationHandler handler = new RefererInvocationHandler(String.class, clus);
         Method method;
         try {
+            RpcContext.getContext().setAutoDestroy(false);
             method = TestService.class.getMethod("helloAsync", new Class<?>[] {});
             ResponseFuture res = (ResponseFuture) handler.invoke(null, method, null);
             assertEquals(response, res);

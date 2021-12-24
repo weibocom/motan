@@ -38,6 +38,15 @@ public class RpcContext {
     private Request request;
     private Response response;
     private String clientRequestId = null;
+    private boolean autoDestroy = true; // auto destroy RpcContext when rpc finished. only used for client end.
+
+    public boolean isAutoDestroy() {
+        return autoDestroy;
+    }
+
+    public void setAutoDestroy(boolean autoDestroy) {
+        this.autoDestroy = autoDestroy;
+    }
 
     public static RpcContext getContext() {
         return LOCAL_CONTEXT.get();
