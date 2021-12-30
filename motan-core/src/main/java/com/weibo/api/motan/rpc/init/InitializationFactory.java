@@ -29,7 +29,7 @@ import com.weibo.api.motan.util.LoggerUtil;
  *
  */
 public class InitializationFactory {
-    private static boolean inited = false;
+    private static volatile boolean inited = false;
     private static Initializable instance = new AllSpiInitialization();
 
     public static Initializable getInitialization() {
