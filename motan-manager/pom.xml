@@ -27,7 +27,7 @@
     <name>motan-manager</name>
     <properties>
         <spring-security.version>5.2.11.RELEASE</spring-security.version>
-        <spring-framework.version>4.3.21.RELEASE</spring-framework.version>
+        <spring-framework.version>5.3.19</spring-framework.version>
     </properties>
     <dependencies>
         <dependency>
