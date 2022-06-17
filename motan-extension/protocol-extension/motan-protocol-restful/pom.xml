@@ -27,7 +27,7 @@
     <artifactId>motan-protocol-restful</artifactId>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <resteasy.version>3.0.7.Final</resteasy.version>
+        <resteasy.version>3.0.11.Final</resteasy.version>
     </properties>
     <dependencies>
         <dependency>
