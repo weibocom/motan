@@ -67,6 +67,7 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
                 @Override
                 public void run() {
                     createConnections();
+                    LoggerUtil.info("async initPool success!" + getUrl().getUri());
                 }
             });
         } else {

@@ -74,7 +74,7 @@ public enum URLParamType {
      * multi referer share the same channel
      **/
     shareChannel("shareChannel", false),
-    asyncInitConnection("asyncInitConnection", false),
+    asyncInitConnection("asyncInitConnection", true),
     fusingThreshold("fusingThreshold", 10),
 
     /************************** SPI start ******************************/
