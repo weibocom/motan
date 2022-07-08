@@ -83,11 +83,13 @@ public class ProviderMessageRouter implements MessageHandler {
         }
 
         Request request = (Request) message;
-
         String serviceKey = MotanFrameworkUtil.getServiceKey(request);
-
         Provider<?> provider = providers.get(serviceKey);
 
+        // 兼容模式。TODO：可以增加是否启用兼容的配置项
+        if(provider == null){
+            provider = providers.get(request.getInterfaceName());
+        }
         if (provider == null) {
             LoggerUtil.error(this.getClass().getSimpleName() + " handler Error: provider not exist serviceKey=" + serviceKey + " "
                     + MotanFrameworkUtil.toString(request));
@@ -144,6 +146,8 @@ public class ProviderMessageRouter implements MessageHandler {
         }
 
         providers.put(serviceKey, provider);
+        //兼容模式仅作为特殊情况下的兜底，key重复时直接覆盖
+        providers.put(provider.getUrl().getPath(), provider);
 
         // 获取该service暴露的方法数：
         List<Method> methods = ReflectUtil.getPublicMethod(provider.getInterface());
@@ -159,6 +163,7 @@ public class ProviderMessageRouter implements MessageHandler {
         String serviceKey = MotanFrameworkUtil.getServiceKey(provider.getUrl());
 
         providers.remove(serviceKey);
+        providers.remove(provider.getUrl().getPath());
         List<Method> methods = ReflectUtil.getPublicMethod(provider.getInterface());
         int publicMethodCount = methods.size();
         methodCounter.getAndSet(methodCounter.get() - publicMethodCount);

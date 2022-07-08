@@ -19,6 +19,7 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.Activation;
 import com.weibo.api.motan.core.extension.ActivationComparator;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
+import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.filter.Filter;
@@ -30,7 +31,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+
+import static com.weibo.api.motan.common.MotanConstants.DISABLE_FILTER_PREFIX;
 
 /**
  * Decorate the protocol, to add more features.
@@ -197,15 +201,14 @@ public class ProtocolFilterDecorator implements Protocol {
      * 获取方式：
      * 1）先获取默认的filter列表；
      * 2）根据filter配置获取新的filters，并和默认的filter列表合并；
-     * 3）再根据一些其他配置判断是否需要增加其他filter，如根据accessLog进行判断，是否需要增加accesslog
+     * 3）如果filter配置中有'-'开头的filter name，表示disable某个filter，对应的filter不会装配
      * </pre>
      *
      * @param url
      * @param key
      * @return
      */
-    private List<Filter> getFilters(URL url, String key) {
-
+    protected List<Filter> getFilters(URL url, String key) {
         // load default filters
         List<Filter> filters = new ArrayList<Filter>();
         List<Filter> defaultFilters = ExtensionLoader.getExtensionLoader(Filter.class).getExtensions(key);
@@ -216,9 +219,27 @@ public class ProtocolFilterDecorator implements Protocol {
         // add filters via "filter" config
         String filterStr = url.getParameter(URLParamType.filter.getName());
         if (StringUtils.isNotBlank(filterStr)) {
+            HashSet<String> removedFilters = new HashSet<>();
             String[] filterNames = MotanConstants.COMMA_SPLIT_PATTERN.split(filterStr);
             for (String fn : filterNames) {
-                addIfAbsent(filters, fn);
+                if (StringUtils.isBlank(fn)) {
+                    continue;
+                }
+                fn = fn.trim();
+                if (fn.startsWith(DISABLE_FILTER_PREFIX)){ // disable filter
+                    if (fn.length() > DISABLE_FILTER_PREFIX.length()){
+                        removedFilters.add(fn.substring(DISABLE_FILTER_PREFIX.length()).trim());
+                    }
+                }else {
+                    addIfAbsent(filters, fn);
+                }
+            }
+
+            // remove disabled filters
+            if (!removedFilters.isEmpty()){
+                for (String removedName : removedFilters) {
+                    filters.removeIf((filter)-> removedName.equals(filter.getClass().getAnnotation(SpiMeta.class).name()));
+                }
             }
         }
 
@@ -229,10 +250,6 @@ public class ProtocolFilterDecorator implements Protocol {
     }
 
     private void addIfAbsent(List<Filter> filters, String extensionName) {
-        if (StringUtils.isBlank(extensionName)) {
-            return;
-        }
-
         Filter extFilter = ExtensionLoader.getExtensionLoader(Filter.class).getExtension(extensionName, false);
         if (extFilter == null) {
             LoggerUtil.warn("filter extension not found. filer name: " + extensionName);
