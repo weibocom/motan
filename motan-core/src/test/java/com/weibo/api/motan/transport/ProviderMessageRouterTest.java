@@ -16,6 +16,7 @@
 
 package com.weibo.api.motan.transport;
 
+import com.weibo.api.motan.common.URLParamType;
 import junit.framework.TestCase;
 
 import org.junit.Assert;
@@ -66,6 +67,11 @@ public class ProviderMessageRouterTest extends TestCase {
         requestA.setParamtersDesc(ReflectUtil.EMPTY_PARAM);
 
         Response response = (Response) providerMessageRouter.handle(new MockChannel(TestConstants.EMPTY_URL), requestA);
+        Assert.assertEquals("A", response.getValue());
+
+        // group not match
+        requestA.setAttachment(URLParamType.group.getName(), "not_match");
+        response = (Response) providerMessageRouter.handle(new MockChannel(TestConstants.EMPTY_URL), requestA);
         Assert.assertEquals("A", response.getValue());
 
         DefaultRequest requestB = new DefaultRequest();
