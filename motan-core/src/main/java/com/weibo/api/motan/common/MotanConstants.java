@@ -74,6 +74,7 @@ public class MotanConstants {
     public static final String APPLICATION_STATISTIC = "statisitic";
     public static final String REQUEST_REMOTE_ADDR = "requestRemoteAddress";
     public static final String CONTENT_LENGTH = "Content-Length";
+    public static final String DISABLE_FILTER_PREFIX = "-";
 
     /**
      * netty channel constants start
