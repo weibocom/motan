@@ -78,13 +78,18 @@ public class DefaultRpcExporter<T> extends AbstractExporter<T> {
     @Override
     protected boolean doInit() {
         boolean result = server.open();
-        if (result && getUrl().getPort() == 0){ // use random port
+        if (result && getUrl().getPort() == 0) { // use random port
             ProviderMessageRouter requestRouter = this.ipPort2RequestRouter.remove(getUrl().getServerPortStr());
-            if (requestRouter == null){
+            if (requestRouter == null) {
                 throw new MotanFrameworkException("can not find message router. url:" + getUrl().getIdentity());
             }
             updateRealServerPort(server.getLocalAddress().getPort());
-            this.ipPort2RequestRouter.put(getUrl().getServerPortStr(), requestRouter);
+            ProviderMessageRouter oldRouter = this.ipPort2RequestRouter.get(getUrl().getServerPortStr());
+            if (oldRouter != null) {
+                oldRouter.addProvider(provider);
+            } else {
+                this.ipPort2RequestRouter.put(getUrl().getServerPortStr(), requestRouter);
+            }
         }
         return result;
     }

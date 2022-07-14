@@ -39,7 +39,7 @@
                         id="motantestClientBasicConfig" throwException="true" check="true"/>
 
     <!-- 具体referer配置。使用方通过beanid使用服务接口类 -->
-    <motan:referer id="motanDemoReferer"
+    <motan:referer id="motanDemoReferer" asyncInitConnection="false"
                    interface="com.weibo.motan.demo.service.MotanDemoService"
                    connectTimeout="1000" requestTimeout="1000" basicReferer="motantestClientBasicConfig"/>
 
