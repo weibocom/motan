@@ -31,9 +31,13 @@ import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.registry.RegistryFactory;
 import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MeshProxyUtil;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -48,7 +52,7 @@ public class SimpleConfigHandler implements ConfigHandler {
 
     @Override
     public <T> ClusterSupport<T> buildClusterSupport(Class<T> interfaceClass, List<URL> registryUrls, URL refUrl) {
-        ClusterSupport<T> clusterSupport = new ClusterSupport<T>(interfaceClass, registryUrls, refUrl);
+        ClusterSupport<T> clusterSupport = new ClusterSupport<T>(interfaceClass, MeshProxyUtil.processMeshProxy(registryUrls, refUrl, false), refUrl);
         clusterSupport.init();
 
         return clusterSupport;
@@ -72,7 +76,7 @@ public class SimpleConfigHandler implements ConfigHandler {
         Exporter<T> exporter = protocol.export(provider, serviceUrl);
 
         // register service
-        register(registryUrls, serviceUrl);
+        register(MeshProxyUtil.processMeshProxy(registryUrls, serviceUrl, true), serviceUrl);
 
         return exporter;
     }
@@ -124,5 +128,6 @@ public class SimpleConfigHandler implements ConfigHandler {
             }
         }
     }
+
 
 }

@@ -243,11 +243,15 @@ public class MeshRegistry extends AbstractRegistry {
                     LoggerUtil.warn("mesh registry can not find proxy registry. proxy registry url:" + proxyUrl.toSimpleString());
                     return;
                 }
-                Registry registry = registryFactory.getRegistry(proxyUrl);
-                if (registry != null) {
-                    this.proxyRegistry = registry;
-                    canBackup = true;
-                    LoggerUtil.info("mesh registry add proxy registry. url:" + getUrl().toFullStr());
+                try {
+                    Registry registry = registryFactory.getRegistry(proxyUrl);
+                    if (registry != null) {
+                        this.proxyRegistry = registry;
+                        canBackup = true;
+                        LoggerUtil.info("mesh registry add proxy registry. url:" + getUrl().toFullStr());
+                    }
+                } catch (Exception e) {
+                    LoggerUtil.warn("mesh registry can not init proxy registry. proxy registry url:" + proxyUrl.toSimpleString());
                 }
             }
         }
