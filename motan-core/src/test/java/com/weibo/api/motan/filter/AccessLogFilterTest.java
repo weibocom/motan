@@ -25,7 +25,6 @@ import com.weibo.api.motan.protocol.example.IHello;
 import com.weibo.api.motan.registry.RegistryService;
 import com.weibo.api.motan.rpc.Caller;
 import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
@@ -49,89 +48,102 @@ public class AccessLogFilterTest extends BaseTestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
+        accessLogFilter = new AccessLogFilter();
     }
 
-    @SuppressWarnings("unchecked")
-    public void testCall() {
-        final Request request = mockery.mock(Request.class);
-        final Response response = mockery.mock(Response.class);
-        final URL url =
-                new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class.getName());
-        url.addParameter(URLParamType.accessLog.getName(), String.valueOf(true));
-
-        final Caller<IHello> caller = mockery.mock(Caller.class);
-        final Map<String, String> attachments = new HashMap<String, String>();
+    public void testCall() throws Exception {
+        final URL url = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class.getName());
+        url.addParameter(URLParamType.accessLog.getName(), String.valueOf(false));
+        final Map<String, String> attachments = new HashMap<>();
         attachments.put(URLParamType.host.getName(), URLParamType.host.getValue());
         attachments.put(URLParamType.application.getName(), URLParamType.application.getValue());
         attachments.put(URLParamType.module.getName(), URLParamType.module.getValue());
+        checkProcess(url, attachments, false);
 
-        mockery.checking(new Expectations() {
-            {
-                atLeast(1).of(caller).getUrl();
-                will(returnValue(url));
-                exactly(1).of(caller).call(request);
-                will(returnValue(response));
-                exactly(1).of(request).getInterfaceName();
-                will(returnValue(IHello.class.getName()));
-                exactly(1).of(request).getMethodName();
-                will(returnValue("get"));
-                exactly(1).of(request).getParamtersDesc();
-                will(returnValue("param_desc"));
-                atLeast(1).of(request).getAttachments();
-                will(returnValue(attachments));
-                allowing(request).getRequestId();
-            }
-        });
-
-        accessLogFilter.filter(caller, request);
-        mockery.assertIsSatisfied();
+        url.addParameter(URLParamType.accessLog.getName(), String.valueOf(true));
+        checkProcess(url, attachments, true);
     }
 
-    public void testSwitcher() {
-        final Request request = mockery.mock(Request.class);
-        final Caller<IHello> caller = mockery.mock(Caller.class);
+    public void testSwitcher() throws Exception {
         URL url = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class.getName());
         url.addParameter(URLParamType.accessLog.getName(), String.valueOf(false));
         final Map<String, String> attachments = new HashMap<>();
         attachments.put(URLParamType.host.getName(), URLParamType.host.getValue());
         attachments.put(URLParamType.application.getName(), URLParamType.application.getValue());
         attachments.put(URLParamType.module.getName(), URLParamType.module.getValue());
+        checkProcess(url, attachments, false);
+
+        MotanSwitcherUtil.setSwitcherValue(AccessLogFilter.ACCESS_LOG_SWITCHER_NAME, true);
+        checkProcess(url, attachments, true);
+
+        MotanSwitcherUtil.setSwitcherValue(AccessLogFilter.ACCESS_LOG_SWITCHER_NAME, false);
+        checkProcess(url, attachments, false);
+    }
+
+    public void testTraceLog() throws Exception {
+        URL url = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class.getName());
+        url.addParameter(URLParamType.accessLog.getName(), String.valueOf(false)); // not log access
+
+        // 强制log开关关闭
+        MotanSwitcherUtil.setSwitcherValue(AccessLogFilter.ACCESS_LOG_SWITCHER_NAME, false);
+
+        final Map<String, String> attachments = new HashMap<>();
+        attachments.put(URLParamType.host.getName(), URLParamType.host.getValue());
+        attachments.put(URLParamType.application.getName(), URLParamType.application.getValue());
+        attachments.put(URLParamType.module.getName(), URLParamType.module.getValue());
+
+        checkProcess(url, attachments, false);
+
+        // set trace log attachment
+        attachments.put(MotanConstants.ATT_PRINT_TRACE_LOG, "true");
+        checkProcess(url, attachments, true);
+
+    }
+
+    private void checkProcess(URL url, Map<String, String> attachments, boolean isProcess) throws Exception {
+        resetMockery();
+        final Request request = mockery.mock(Request.class);
+        final Caller<IHello> caller = mockery.mock(Caller.class);
         final LogService logService = mockery.mock(LogService.class);
         LoggerUtil.setLogService(logService);
         mockery.checking(new Expectations() {
             {
-                atLeast(1).of(caller).getUrl();
+                allowing(caller).getUrl();
                 will(returnValue(url));
                 atLeast(1).of(caller).call(request);
-            }
-        });
-
-        accessLogFilter.filter(caller, request);
-        mockery.assertIsSatisfied();
-
-        MotanSwitcherUtil.setSwitcherValue(AccessLogFilter.ACCESS_LOG_SWITCHER_NAME, true);
-        mockery.checking(new Expectations() {
-            {
-                exactly(1).of(request).getInterfaceName();
-                will(returnValue(IHello.class.getName()));
-                exactly(1).of(request).getMethodName();
-                will(returnValue("get"));
-                exactly(1).of(request).getParamtersDesc();
-                will(returnValue("param_desc"));
-                atLeast(1).of(request).getAttachments();
+                allowing(request).getAttachments();
                 will(returnValue(attachments));
-                exactly(1).of(logService).accessLog(with(any(String.class)));
-                allowing(request).getRequestId();
             }
         });
-
+        if (isProcess) {
+            mockery.checking(new Expectations() {
+                {
+                    exactly(1).of(request).getInterfaceName();
+                    will(returnValue(IHello.class.getName()));
+                    exactly(1).of(request).getMethodName();
+                    will(returnValue("get"));
+                    exactly(1).of(request).getParamtersDesc();
+                    will(returnValue("param_desc"));
+                    exactly(1).of(logService).accessLog(with(any(String.class)));
+                    allowing(request).getRequestId();
+                }
+            });
+        } else {
+            mockery.checking(new Expectations() {
+                {
+                    never(request).getInterfaceName();
+                    never(request).getMethodName();
+                    never(logService).accessLog(with(any(String.class)));
+                }
+            });
+        }
         accessLogFilter.filter(caller, request);
         mockery.assertIsSatisfied();
 
-        MotanSwitcherUtil.setSwitcherValue(AccessLogFilter.ACCESS_LOG_SWITCHER_NAME, false);
-        accessLogFilter.filter(caller, request);
-        mockery.assertIsSatisfied();
+        LoggerUtil.setLogService(new DefaultLogService());
+    }
 
-        LoggerUtil.setLogService( new DefaultLogService());
+    private void resetMockery() throws Exception {
+        setUp();
     }
 }

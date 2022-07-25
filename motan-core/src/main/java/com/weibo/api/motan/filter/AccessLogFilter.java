@@ -47,12 +47,14 @@ import org.apache.commons.lang3.StringUtils;
 public class AccessLogFilter implements Filter {
 
     public static final String ACCESS_LOG_SWITCHER_NAME = "feature.motan.filter.accessLog";
+    public static final String PRINT_TRACE_LOG_SWITCHER_NAME = "feature.motan.printTraceLog.enable";
     private String side;
     private Boolean accessLog;
 
     static {
-        // init global switcher， default value is false
+        // init global switcher
         MotanSwitcherUtil.initSwitcher(ACCESS_LOG_SWITCHER_NAME, false);
+        MotanSwitcherUtil.initSwitcher(PRINT_TRACE_LOG_SWITCHER_NAME, true);
     }
 
     @Override
@@ -60,7 +62,7 @@ public class AccessLogFilter implements Filter {
         if (accessLog == null) {
             accessLog = caller.getUrl().getBooleanParameter(URLParamType.accessLog.getName(), URLParamType.accessLog.getBooleanValue());
         }
-        if (accessLog || MotanSwitcherUtil.isOpen(ACCESS_LOG_SWITCHER_NAME)) {
+        if (accessLog || needLog(request)) {
             long t1 = System.currentTimeMillis();
             boolean success = false;
             try {
@@ -74,6 +76,19 @@ public class AccessLogFilter implements Filter {
         } else {
             return caller.call(request);
         }
+    }
+
+    // 除了access log配置外，其他需要动态打印access的情况
+    private boolean needLog(Request request) {
+        if (MotanSwitcherUtil.isOpen(ACCESS_LOG_SWITCHER_NAME)) {
+            return true;
+        }
+
+        // check trace log
+        if (!MotanSwitcherUtil.isOpen(PRINT_TRACE_LOG_SWITCHER_NAME)) {
+            return false;
+        }
+        return "true".equalsIgnoreCase(request.getAttachments().get(MotanConstants.ATT_PRINT_TRACE_LOG));
     }
 
     private void logAccess(Caller<?> caller, Request request, long consumeTime, boolean success) {
