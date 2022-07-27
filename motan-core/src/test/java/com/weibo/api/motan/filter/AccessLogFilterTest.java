@@ -23,14 +23,13 @@ import com.weibo.api.motan.log.DefaultLogService;
 import com.weibo.api.motan.log.LogService;
 import com.weibo.api.motan.protocol.example.IHello;
 import com.weibo.api.motan.registry.RegistryService;
-import com.weibo.api.motan.rpc.Caller;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
 import com.weibo.api.motan.util.NetUtils;
 import org.jmock.Expectations;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,12 +51,9 @@ public class AccessLogFilterTest extends BaseTestCase {
     }
 
     public void testCall() throws Exception {
-        final URL url = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class.getName());
+        final URL url = getDefaultUrl();
         url.addParameter(URLParamType.accessLog.getName(), String.valueOf(false));
-        final Map<String, String> attachments = new HashMap<>();
-        attachments.put(URLParamType.host.getName(), URLParamType.host.getValue());
-        attachments.put(URLParamType.application.getName(), URLParamType.application.getValue());
-        attachments.put(URLParamType.module.getName(), URLParamType.module.getValue());
+        final Map<String, String> attachments = getDefaultAttachment();
         checkProcess(url, attachments, false);
 
         url.addParameter(URLParamType.accessLog.getName(), String.valueOf(true));
@@ -65,12 +61,9 @@ public class AccessLogFilterTest extends BaseTestCase {
     }
 
     public void testSwitcher() throws Exception {
-        URL url = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class.getName());
+        URL url = getDefaultUrl();
         url.addParameter(URLParamType.accessLog.getName(), String.valueOf(false));
-        final Map<String, String> attachments = new HashMap<>();
-        attachments.put(URLParamType.host.getName(), URLParamType.host.getValue());
-        attachments.put(URLParamType.application.getName(), URLParamType.application.getValue());
-        attachments.put(URLParamType.module.getName(), URLParamType.module.getValue());
+        final Map<String, String> attachments = getDefaultAttachment();
         checkProcess(url, attachments, false);
 
         MotanSwitcherUtil.setSwitcherValue(AccessLogFilter.ACCESS_LOG_SWITCHER_NAME, true);
@@ -81,17 +74,11 @@ public class AccessLogFilterTest extends BaseTestCase {
     }
 
     public void testTraceLog() throws Exception {
-        URL url = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class.getName());
+        URL url = getDefaultUrl();
         url.addParameter(URLParamType.accessLog.getName(), String.valueOf(false)); // not log access
-
+        final Map<String, String> attachments = getDefaultAttachment();
         // 强制log开关关闭
         MotanSwitcherUtil.setSwitcherValue(AccessLogFilter.ACCESS_LOG_SWITCHER_NAME, false);
-
-        final Map<String, String> attachments = new HashMap<>();
-        attachments.put(URLParamType.host.getName(), URLParamType.host.getValue());
-        attachments.put(URLParamType.application.getName(), URLParamType.application.getValue());
-        attachments.put(URLParamType.module.getName(), URLParamType.module.getValue());
-
         checkProcess(url, attachments, false);
 
         // set trace log attachment
@@ -100,7 +87,25 @@ public class AccessLogFilterTest extends BaseTestCase {
 
     }
 
+    private URL getDefaultUrl() {
+        return new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class.getName());
+    }
+
+    private Map<String, String> getDefaultAttachment() {
+        Map<String, String> attachments = new HashMap<>();
+        attachments.put(URLParamType.host.getName(), URLParamType.host.getValue());
+        attachments.put(URLParamType.application.getName(), URLParamType.application.getValue());
+        attachments.put(URLParamType.module.getName(), URLParamType.module.getValue());
+        return attachments;
+    }
+
     private void checkProcess(URL url, Map<String, String> attachments, boolean isProcess) throws Exception {
+        checkProcessNormal(url, attachments, isProcess);
+        checkProcessWithTraceable(url, attachments, isProcess, true);
+        checkProcessWithTraceable(url, attachments, isProcess, false);
+    }
+
+    private void checkProcessNormal(URL url, Map<String, String> attachments, boolean isProcess) throws Exception {
         resetMockery();
         final Request request = mockery.mock(Request.class);
         final Caller<IHello> caller = mockery.mock(Caller.class);
@@ -138,6 +143,79 @@ public class AccessLogFilterTest extends BaseTestCase {
             });
         }
         accessLogFilter.filter(caller, request);
+        mockery.assertIsSatisfied();
+
+        LoggerUtil.setLogService(new DefaultLogService());
+    }
+
+    private void checkProcessWithTraceable(URL url, Map<String, String> attachments, boolean isProcess, boolean isServerEnd) throws Exception {
+        resetMockery();
+        final DefaultRequest request = mockery.mock(DefaultRequest.class);
+        final DefaultResponse response = new DefaultResponse();
+        final Caller<IHello> caller;
+        if (isServerEnd) {
+            caller = mockery.mock(Provider.class);
+        } else {
+            caller = mockery.mock(Referer.class);
+        }
+        final LogService logService = mockery.mock(LogService.class);
+        final TraceableContext requestTraceableContext = mockery.mock(TraceableContext.class, "requestTraceableContext");
+        final TraceableContext responseTraceableContext = mockery.mock(TraceableContext.class, "responseTraceableContext");
+        Field field = DefaultResponse.class.getDeclaredField("traceableContext");
+        field.setAccessible(true);
+        field.set(response, responseTraceableContext);
+        LoggerUtil.setLogService(logService);
+        mockery.checking(new Expectations() {
+            {
+                allowing(caller).getUrl();
+                will(returnValue(url));
+                atLeast(1).of(caller).call(request);
+                will(returnValue(response));
+                allowing(request).getAttachments();
+                will(returnValue(attachments));
+            }
+        });
+        if (isProcess) {
+            mockery.checking(new Expectations() {
+                {
+                    exactly(1).of(request).getInterfaceName();
+                    will(returnValue(IHello.class.getName()));
+                    exactly(1).of(request).getMethodName();
+                    will(returnValue("get"));
+                    exactly(1).of(request).getParamtersDesc();
+                    will(returnValue("param_desc"));
+                    exactly(1).of(logService).accessLog(with(any(String.class)));
+                    allowing(request).getRequestId();
+                    allowing(request).getTraceableContext();
+                    will(returnValue(requestTraceableContext));
+                    if (isServerEnd) {
+                        exactly(1).of(requestTraceableContext).getReceiveTime(); // request receive time for server end
+                        will(returnValue(10L));
+                        exactly(1).of(responseTraceableContext).getSendTime(); // response send time for server end
+                        will(returnValue(15L));
+                    } else {
+                        exactly(1).of(requestTraceableContext).getSendTime(); // request send time for client end
+                        will(returnValue(10L));
+                        exactly(1).of(responseTraceableContext).getReceiveTime(); // response receive time for client end
+                        will(returnValue(18L));
+                    }
+                }
+            });
+        } else {
+            mockery.checking(new Expectations() {
+                {
+                    never(request).getInterfaceName();
+                    never(request).getMethodName();
+                    never(logService).accessLog(with(any(String.class)));
+                    never(request).getTraceableContext();
+                }
+            });
+        }
+        accessLogFilter.filter(caller, request);
+        response.onFinish();
+        if (isServerEnd) {
+            Thread.sleep(100);
+        }
         mockery.assertIsSatisfied();
 
         LoggerUtil.setLogService(new DefaultLogService());

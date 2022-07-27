@@ -20,14 +20,8 @@ import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.Activation;
 import com.weibo.api.motan.core.extension.SpiMeta;
-import com.weibo.api.motan.rpc.Caller;
-import com.weibo.api.motan.rpc.Provider;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.MotanSwitcherUtil;
-import com.weibo.api.motan.util.NetUtils;
-import com.weibo.api.motan.util.StringTools;
+import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.util.*;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -63,19 +57,46 @@ public class AccessLogFilter implements Filter {
             accessLog = caller.getUrl().getBooleanParameter(URLParamType.accessLog.getName(), URLParamType.accessLog.getBooleanValue());
         }
         if (accessLog || needLog(request)) {
-            long t1 = System.currentTimeMillis();
+            long start = System.currentTimeMillis();
             boolean success = false;
+            Response response = null;
             try {
-                Response response = caller.call(request);
-                success = true;
+                response = caller.call(request);
+                if (response != null && response.getException() == null) {
+                    success = true;
+                }
                 return response;
             } finally {
-                long consumeTime = System.currentTimeMillis() - t1;
-                logAccess(caller, request, consumeTime, success);
+                processFinalLog(caller, request, response, start, success);
             }
         } else {
             return caller.call(request);
         }
+    }
+
+    private void processFinalLog(final Caller<?> caller, final Request request, final Response response, final long start, final boolean success) {
+        long wholeTime = System.currentTimeMillis() - start;
+        long segmentTime = wholeTime; // 分段耗时。server侧是内部业务耗时，client侧时server整体耗时+网络接收耗时
+
+        if (request instanceof Traceable && response instanceof Traceable) { // 可以取得细分时间点
+            if (caller instanceof Provider) { // server end
+                if (response instanceof Callbackable) {// 因server侧完整耗时包括response发送时间，需要通过callback机制异步记录日志。
+                    long finalSegmentTime = segmentTime;
+                    ((Callbackable) response).addFinishCallback(() -> {
+                        long responseSend = ((Traceable) response).getTraceableContext().getSendTime();
+                        long requestReceive = ((Traceable) request).getTraceableContext().getReceiveTime();
+                        long finalWholeTime = responseSend - requestReceive;
+                        logAccess(caller, request, finalSegmentTime, finalWholeTime, success);
+                    }, null);
+                    return;
+                }
+            } else { // client end
+                long requestSend = ((Traceable) request).getTraceableContext().getSendTime();
+                long responseReceive = ((Traceable) response).getTraceableContext().getReceiveTime();
+                segmentTime = responseReceive - requestSend;
+            }
+        }
+        logAccess(caller, request, segmentTime, wholeTime, success); // 同步记录access日志
     }
 
     // 除了access log配置外，其他需要动态打印access的情况
@@ -91,7 +112,7 @@ public class AccessLogFilter implements Filter {
         return "true".equalsIgnoreCase(request.getAttachments().get(MotanConstants.ATT_PRINT_TRACE_LOG));
     }
 
-    private void logAccess(Caller<?> caller, Request request, long consumeTime, boolean success) {
+    private void logAccess(Caller<?> caller, Request request, long segmentTime, long wholeTime, boolean success) {
         if (getSide() == null) {
             String side = caller instanceof Provider ? MotanConstants.NODE_TYPE_SERVICE : MotanConstants.NODE_TYPE_REFERER;
             setSide(side);
@@ -122,7 +143,8 @@ public class AccessLogFilter implements Filter {
             requestId = String.valueOf(request.getRequestId());
         }
         append(builder, requestId);
-        append(builder, consumeTime);
+        append(builder, segmentTime);
+        append(builder, wholeTime);
 
         LoggerUtil.accessLog(builder.substring(0, builder.length() - 1));
     }
