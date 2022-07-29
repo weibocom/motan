@@ -71,7 +71,7 @@ public class MeshProxyUtilTest {
         // check default port
         resultUrl = MeshProxyUtil.processMeshProxy(originRegistryUrls, serviceUrl, true);
         check(originRegistryUrls, resultUrl, true, null); // proxy server url
-        assertEquals(9981, resultUrl.get(0).getPort().intValue()); // default port
+        assertEquals(0, resultUrl.get(0).getPort().intValue()); // default port
 
         // check mode
         resultUrl = MeshProxyUtil.processMeshProxy(originRegistryUrls, serviceUrl, true);

@@ -51,8 +51,11 @@ import java.util.concurrent.TimeUnit;
  * @date 2021/2/26.
  */
 public class MeshRegistry extends AbstractRegistry {
-    public static final int DEFAULT_MESH_PORT = 9981;
-    public static final int DEFAULT_MESH_MANAGE_PORT = 8002;
+    public static final String MESH_MPORT_ENV_NAME = "MESH_MPORT"; //设置mesh管理端口的环境变量名
+    public static final String MESH_PORT_ENV_NAME = "MESH_PORT"; //设置mesh传输端口的环境变量名
+
+    public static final int DEFAULT_MESH_PORT = getIntFromEnv(MESH_PORT_ENV_NAME, 9981);
+    public static final int DEFAULT_MESH_MANAGE_PORT = getIntFromEnv(MESH_MPORT_ENV_NAME, 8002);
     public static final int DEFAULT_HEALTH_CHECK_RETRY = 2;
     public static final String MESH_REGISTRY_SWITCHER_NAME = "motan.weibomesh.registry.enable";
     public static final String MESH_REGISTRY_HEALTH_CHECK_SWITCHER_NAME = "motan.weibomesh.registry.healthcheck.enable";
@@ -94,6 +97,7 @@ public class MeshRegistry extends AbstractRegistry {
     private ConcurrentHashMap<URL, MeshRegistryListener> subscribeUrlMap = new ConcurrentHashMap<>();
 
     static {
+
         MotanSwitcherUtil.switcherIsOpenWithDefault(MESH_REGISTRY_SWITCHER_NAME, getDefaultSwitcherValue(MESH_REGISTRY_SWITCHER_NAME, true));
         MotanSwitcherUtil.switcherIsOpenWithDefault(MESH_REGISTRY_HEALTH_CHECK_SWITCHER_NAME, getDefaultSwitcherValue(MESH_REGISTRY_HEALTH_CHECK_SWITCHER_NAME, true));
     }
@@ -411,4 +415,18 @@ public class MeshRegistry extends AbstractRegistry {
         return value;
     }
 
+    static int getIntFromEnv(String key, int defaultValue) {
+        if (StringUtils.isNotBlank(System.getenv(key))) {
+            try {
+                int value = Integer.parseInt(System.getenv(key).trim());
+                if (value > 0) {
+                    LoggerUtil.info("get value from env. " + key + ":" + value);
+                    return value;
+                }
+            } catch (NumberFormatException e) {
+                LoggerUtil.warn("parse int from env fail. env " + key + ":" + System.getenv(key));
+            }
+        }
+        return defaultValue;
+    }
 }

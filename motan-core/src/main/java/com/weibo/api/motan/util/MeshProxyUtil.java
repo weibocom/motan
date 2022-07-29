@@ -43,7 +43,7 @@ public class MeshProxyUtil {
     private static final String MODE_SERVER = "server"; // 代理server侧流量
     private static final String MODE_CLIENT = "client"; // 代理client侧流量
     private static final String MODE_ALL = "all"; // 代理双端流量
-    private static final String DEFAULT_PORT = "9981"; // 默认mesh正向代理端口
+    private static final String DEFAULT_PORT = "0"; // 默认mesh正向代理端口.为0时，MeshRegistry会使用统一默认端口。
     private static final String DEFAULT_IP = "localhost"; // 默认mesh ip
 
     private static final String MESH_REGISTRY_NAME = "weibomesh";
