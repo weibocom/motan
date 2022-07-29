@@ -86,7 +86,7 @@ public class AccessLogFilter implements Filter {
                         long responseSend = ((Traceable) response).getTraceableContext().getSendTime();
                         long requestReceive = ((Traceable) request).getTraceableContext().getReceiveTime();
                         long finalWholeTime = responseSend - requestReceive;
-                        logAccess(caller, request, finalSegmentTime, finalWholeTime, success);
+                        logAccess(caller, request, response, finalSegmentTime, finalWholeTime, success);
                     }, null);
                     return;
                 }
@@ -96,7 +96,7 @@ public class AccessLogFilter implements Filter {
                 segmentTime = responseReceive - requestSend;
             }
         }
-        logAccess(caller, request, segmentTime, wholeTime, success); // 同步记录access日志
+        logAccess(caller, request, response, segmentTime, wholeTime, success); // 同步记录access日志
     }
 
     // 除了access log配置外，其他需要动态打印access的情况
@@ -112,7 +112,7 @@ public class AccessLogFilter implements Filter {
         return "true".equalsIgnoreCase(request.getAttachments().get(MotanConstants.ATT_PRINT_TRACE_LOG));
     }
 
-    private void logAccess(Caller<?> caller, Request request, long segmentTime, long wholeTime, boolean success) {
+    private void logAccess(Caller<?> caller, Request request, Response response, long segmentTime, long wholeTime, boolean success) {
         if (getSide() == null) {
             String side = caller instanceof Provider ? MotanConstants.NODE_TYPE_SERVICE : MotanConstants.NODE_TYPE_REFERER;
             setSide(side);
@@ -143,6 +143,8 @@ public class AccessLogFilter implements Filter {
             requestId = String.valueOf(request.getRequestId());
         }
         append(builder, requestId);
+        append(builder, request.getAttachments().get(MotanConstants.CONTENT_LENGTH));
+        append(builder, response.getAttachments().get(MotanConstants.CONTENT_LENGTH));
         append(builder, segmentTime);
         append(builder, wholeTime);
 

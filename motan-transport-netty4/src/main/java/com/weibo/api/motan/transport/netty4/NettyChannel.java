@@ -59,6 +59,7 @@ public class NettyChannel implements Channel {
         this.nettyClient.registerCallback(request.getRequestId(), response);
         byte[] msg = CodecUtil.encodeObjectToBytes(this, codec, request);
         ChannelFuture writeFuture = this.channel.writeAndFlush(msg);
+        request.setAttachment(MotanConstants.CONTENT_LENGTH, String.valueOf(msg.length));
         boolean result = writeFuture.awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
 
         if (result && writeFuture.isSuccess()) {
