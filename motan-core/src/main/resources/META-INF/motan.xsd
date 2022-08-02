@@ -117,12 +117,14 @@
                 </xsd:attribute>
                 <xsd:attribute name="proxyRegistry" type="xsd:string" use="optional">
                     <xsd:annotation>
-                        <xsd:documentation><![CDATA[ 被代理registry的bean id。mesh等类型的registry用来获取被代理的注册中心相关信息.]]></xsd:documentation>
+                        <xsd:documentation>
+                            <![CDATA[ 被代理registry的bean id。mesh等类型的registry用来获取被代理的注册中心相关信息.]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
                 <xsd:attribute name="meshRegistryName" type="xsd:string" use="optional">
                     <xsd:annotation>
-                        <xsd:documentation><![CDATA[ 在mesh中要使用的registry名称。适用于mesh registry，用来和mesh 配置中的registry进行关联. ]]></xsd:documentation>
+                        <xsd:documentation>
+                            <![CDATA[ 在mesh中要使用的registry名称。适用于mesh registry，用来和mesh 配置中的registry进行关联. ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
 
@@ -300,6 +302,16 @@
                 <xsd:attribute name="mixGroups" type="xsd:string" use="optional">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[ 流量混打的分组名 ]]></xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="asyncInitConnection" type="xsd:string" use="optional">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[ 异步建立连接 ]]></xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="fusingThreshold" type="xsd:string" use="optional">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[ 请求连续失败的熔断阈值 ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
             </xsd:extension>
@@ -628,7 +640,8 @@
                             <xsd:documentation><![CDATA[ 使用的协议 ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
-                    <xsd:attribute name="interface" type="xsd:token" use="optional" default="com.weibo.api.motan.proxy.CommonHandler">
+                    <xsd:attribute name="interface" type="xsd:token" use="optional"
+                                   default="com.weibo.api.motan.proxy.CommonHandler">
                         <xsd:annotation>
                             <xsd:documentation><![CDATA[ The service interface class name. ]]></xsd:documentation>
                             <xsd:appinfo>
@@ -661,11 +674,6 @@
                     <xsd:attribute name="extConfig" type="xsd:string" use="optional">
                         <xsd:annotation>
                             <xsd:documentation><![CDATA[ 扩展配置. ]]></xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:attribute>
-                    <xsd:attribute name="asyncInitConnection" type="xsd:string" use="optional">
-                        <xsd:annotation>
-                            <xsd:documentation><![CDATA[ 异步建立连接 ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
                 </xsd:extension>
@@ -726,11 +734,6 @@
                     <xsd:attribute name="errorRate" type="xsd:string" use="optional">
                         <xsd:annotation>
                             <xsd:documentation><![CDATA[ SLA错误率 ]]></xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:attribute>
-                    <xsd:attribute name="asyncInitConnection" type="xsd:string" use="optional">
-                        <xsd:annotation>
-                            <xsd:documentation><![CDATA[ 异步建立连接 ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
                 </xsd:extension>

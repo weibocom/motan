@@ -131,6 +131,12 @@ public class AbstractInterfaceConfig extends AbstractConfig {
 
     protected String mixGroups;
 
+    protected Boolean asyncInitConnection;
+
+    protected Integer fusingThreshold;
+
+    private Integer connectTimeout;
+
     public Integer getRetries() {
         return retries;
     }
@@ -378,6 +384,34 @@ public class AbstractInterfaceConfig extends AbstractConfig {
 
     public void setMixGroups(String mixGroups) {
         this.mixGroups = mixGroups;
+    }
+
+    public void setRegistryUrls(List<URL> registryUrls) {
+        this.registryUrls = registryUrls;
+    }
+
+    public Boolean getAsyncInitConnection() {
+        return asyncInitConnection;
+    }
+
+    public void setAsyncInitConnection(Boolean asyncInitConnection) {
+        this.asyncInitConnection = asyncInitConnection;
+    }
+
+    public Integer getFusingThreshold() {
+        return fusingThreshold;
+    }
+
+    public void setFusingThreshold(Integer fusingThreshold) {
+        this.fusingThreshold = fusingThreshold;
+    }
+
+    public Integer getConnectTimeout() {
+        return connectTimeout;
+    }
+
+    public void setConnectTimeout(Integer connectTimeout) {
+        this.connectTimeout = connectTimeout;
     }
 
     // 解析注册中心URL
