@@ -168,6 +168,13 @@ public class ServiceConfigTest extends BaseTestCase {
     }
 
     @Test
+    public void testMultiGroup() {
+        serviceConfig.setGroup("motan-test1, motan-test2");
+        serviceConfig.export();
+        assertEquals(2, serviceConfig.getExporters().size());
+    }
+
+    @Test
     public void testUnexport() {
         testExport();
         serviceConfig.unexport();

@@ -167,6 +167,23 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
         URL serviceUrl = new URL(protocolName, hostAddress, port, interfaceClass.getName(), map);
 
+        // check multi group.
+        String groupString = serviceUrl.getGroup();
+        if (groupString.contains(MotanConstants.COMMA_SEPARATOR)){
+            String[] groups = groupString.split(MotanConstants.COMMA_SEPARATOR);
+            for (String group : groups){
+                if (StringUtils.isNotBlank(group)){ // create new service for each group
+                    URL newGroupServiceUrl = serviceUrl.createCopy();
+                    newGroupServiceUrl.addParameter(URLParamType.group.getName(), group.trim());
+                    exportService(hostAddress, protocolName, newGroupServiceUrl);
+                }
+            }
+        }else {
+            exportService(hostAddress, protocolName, serviceUrl);
+        }
+    }
+
+    private void exportService(String hostAddress, String protocol, URL serviceUrl){
         if (serviceExists(serviceUrl)) {
             LoggerUtil.warn(String.format("%s configService is malformed, for same service (%s) already exists ", interfaceClass.getName(),
                     serviceUrl.getIdentity()));
@@ -177,7 +194,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         List<URL> urls = new ArrayList<URL>();
 
         // injvm 协议只支持注册到本地，其他协议可以注册到local、remote
-        if (MotanConstants.PROTOCOL_INJVM.equals(protocolConfig.getId())) {
+        if (MotanConstants.PROTOCOL_INJVM.equals(protocol)) {
             URL localRegistryUrl = null;
             for (URL ru : registryUrls) {
                 if (MotanConstants.REGISTRY_PROTOCOL_LOCAL.equals(ru.getProtocol())) {
