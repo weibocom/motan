@@ -23,13 +23,13 @@ import com.weibo.api.motan.rpc.URL;
 import org.junit.After;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.weibo.api.motan.TestUtils.getModifiableEnvironment;
+import static com.weibo.api.motan.common.MotanConstants.ENV_MESH_PROXY;
 import static org.junit.Assert.*;
 
 /**
@@ -45,7 +45,7 @@ public class MeshProxyUtilTest {
 
     @After
     public void tearDown() throws Exception {
-        getModifiableEnvironment().remove(MeshProxyUtil.MESH_PROXY_ENV_NAME);
+        getModifiableEnvironment().remove(ENV_MESH_PROXY);
     }
 
     @Test
@@ -63,7 +63,7 @@ public class MeshProxyUtilTest {
         check(originRegistryUrls, resultUrl, false, null);
 
         // env with minimal param
-        getModifiableEnvironment().put(MeshProxyUtil.MESH_PROXY_ENV_NAME, "mode:" + mode); // minimal key as default
+        getModifiableEnvironment().put(ENV_MESH_PROXY, "mode:" + mode); // minimal key as default
         MeshProxyUtil.reset();
         assertEquals(mode, MeshProxyUtil.getProxyConfig().get("mode")); // check init proxy config
         assertFalse(MeshProxyUtil.setInitChecked(true)); // initChecked is false because not have MeshRegistry extension. so set initChecked true for unit test
@@ -85,7 +85,7 @@ public class MeshProxyUtilTest {
         check(originRegistryUrls, resultUrl, false, null); // not proxy client url in server mode
 
         mode = "client";
-        getModifiableEnvironment().put(MeshProxyUtil.MESH_PROXY_ENV_NAME, "mode:" + mode); // minimal key as default
+        getModifiableEnvironment().put(ENV_MESH_PROXY, "mode:" + mode);
         MeshProxyUtil.reset();
         MeshProxyUtil.setInitChecked(true);
         assertEquals(mode, MeshProxyUtil.getProxyConfig().get("mode"));
@@ -96,7 +96,7 @@ public class MeshProxyUtilTest {
         check(originRegistryUrls, resultUrl, false, null); // not proxy server url in client mode
 
         mode = "all";
-        getModifiableEnvironment().put(MeshProxyUtil.MESH_PROXY_ENV_NAME, "mode:" + mode); // minimal key as default
+        getModifiableEnvironment().put(ENV_MESH_PROXY, "mode:" + mode);
         MeshProxyUtil.reset();
         MeshProxyUtil.setInitChecked(true);
         assertEquals(mode, MeshProxyUtil.getProxyConfig().get("mode"));
@@ -107,7 +107,7 @@ public class MeshProxyUtilTest {
         check(originRegistryUrls, resultUrl, true, proxiedParams); // proxy server url
 
         // env with more params
-        getModifiableEnvironment().put(MeshProxyUtil.MESH_PROXY_ENV_NAME, "mode:" + mode + ",mport:" + mport + ",port:" + port + ",test:" + encodedValue + ", filter:" + agentFilters); // minimal key as default
+        getModifiableEnvironment().put(ENV_MESH_PROXY, "mode:" + mode + ",mport:" + mport + ",port:" + port + ",test:" + encodedValue + ", filter:" + agentFilters);
         MeshProxyUtil.reset();
         MeshProxyUtil.setInitChecked(true);
         assertEquals(mode, MeshProxyUtil.getProxyConfig().get("mode"));
@@ -150,16 +150,4 @@ public class MeshProxyUtilTest {
             }
         }
     }
-
-    private static Map<String, String> getModifiableEnvironment() throws Exception {
-        Class<?> pe = Class.forName("java.lang.ProcessEnvironment");
-        Method getenv = pe.getDeclaredMethod("getenv");
-        getenv.setAccessible(true);
-        Object unmodifiableEnvironment = getenv.invoke(null);
-        Class<?> map = Class.forName("java.util.Collections$UnmodifiableMap");
-        Field m = map.getDeclaredField("m");
-        m.setAccessible(true);
-        return (Map<String, String>) m.get(unmodifiableEnvironment);
-    }
-
 }

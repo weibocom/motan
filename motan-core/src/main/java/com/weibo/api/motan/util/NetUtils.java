@@ -16,6 +16,7 @@
 
 package com.weibo.api.motan.util;
 
+import com.weibo.api.motan.common.MotanConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +40,6 @@ public class NetUtils {
     public static final String LOCALHOST = "127.0.0.1";
 
     public static final String ANYHOST = "0.0.0.0";
-
-    public static final String MOTAN_IP_PREFIX = "MOTAN_IP_PREFIX";
 
     private static volatile InetAddress LOCAL_ADDRESS = null;
 
@@ -73,14 +72,14 @@ public class NetUtils {
      * 查找策略：首先看是否已经查到ip --> 环境变量中指定的ip --> hostname对应的ip --> 根据连接目标端口得到的本地ip --> 轮询网卡
      * </pre>
      *
-     * @return loca ip
+     * @return local ip
      */
     public static InetAddress getLocalAddress(Map<String, Integer> destHostPorts) {
         if (LOCAL_ADDRESS != null) {
             return LOCAL_ADDRESS;
         }
         InetAddress localAddress = null;
-        String ipPrefix = System.getenv(MOTAN_IP_PREFIX);
+        String ipPrefix = System.getenv(MotanConstants.ENV_MOTAN_IP_PREFIX);
         if (StringUtils.isNotBlank(ipPrefix)) { // 环境变量中如果指定了motan使用的ip前缀，则使用与该前缀匹配的网卡ip作为本机ip。
             localAddress = getLocalAddressByNetworkInterface(ipPrefix);
             LoggerUtil.info("get local address by ip prefix: " + ipPrefix + ", address:" + localAddress);
@@ -115,7 +114,7 @@ public class NetUtils {
                 return localAddress;
             }
         } catch (Throwable e) {
-            logger.warn("Failed to retriving local address by hostname:" + e);
+            logger.warn("Failed to retrieving local address by hostname:" + e);
         }
         return null;
     }
@@ -129,20 +128,14 @@ public class NetUtils {
             String host = entry.getKey();
             int port = entry.getValue();
             try {
-                Socket socket = new Socket();
-                try {
+                try (Socket socket = new Socket()) {
                     SocketAddress addr = new InetSocketAddress(host, port);
                     socket.connect(addr, 1000);
                     LoggerUtil.info("get local address from socket. remote host:" + host + ", port:" + port);
                     return socket.getLocalAddress();
-                } finally {
-                    try {
-                        socket.close();
-                    } catch (Throwable e) {
-                    }
                 }
             } catch (Exception e) {
-                LoggerUtil.warn(String.format("Failed to retriving local address by connecting to dest host:port(%s:%s) false, e=%s", host,
+                LoggerUtil.warn(String.format("Failed to retrieving local address by connecting to dest host:port(%s:%s) false, e=%s", host,
                         port, e));
             }
         }
@@ -169,16 +162,16 @@ public class NetUtils {
                                     }
                                 }
                             } catch (Throwable e) {
-                                logger.warn("Failed to retriving ip address, " + e.getMessage(), e);
+                                logger.warn("Failed to retrieving ip address, " + e.getMessage(), e);
                             }
                         }
                     } catch (Throwable e) {
-                        logger.warn("Failed to retriving ip address, " + e.getMessage(), e);
+                        logger.warn("Failed to retrieving ip address, " + e.getMessage(), e);
                     }
                 }
             }
         } catch (Throwable e) {
-            logger.warn("Failed to retriving ip address, " + e.getMessage(), e);
+            logger.warn("Failed to retrieving ip address, " + e.getMessage(), e);
         }
         return null;
     }

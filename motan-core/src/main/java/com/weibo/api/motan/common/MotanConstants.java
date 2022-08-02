@@ -161,6 +161,11 @@ public class MotanConstants {
     // ------------------ attachment constants -----------------
     public static final String ATT_PRINT_TRACE_LOG = "print_trace_log"; // 针对单请求是否打印（access）日志
 
+    // ------------------ common env name -----------------
+    public static final String ENV_ADDITIONAL_GROUP = "MOTAN_SERVICE_ADDITIONAL_GROUP"; //motan service 追加导出分组。例如可以自动追加云平台上的分组
+    public static final String ENV_MESH_PROXY = "MOTAN_MESH_PROXY"; //使用mesh代理motan请求的环境变量名
+    public static final String ENV_MOTAN_IP_PREFIX = "MOTAN_IP_PREFIX";
+
     private MotanConstants() {
     }
 
