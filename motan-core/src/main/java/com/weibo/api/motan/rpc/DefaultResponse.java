@@ -16,6 +16,8 @@
 
 package com.weibo.api.motan.rpc;
 
+import com.weibo.api.motan.core.DefaultThreadFactory;
+import com.weibo.api.motan.core.StandardThreadExecutor;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
 import com.weibo.api.motan.util.LoggerUtil;
@@ -24,7 +26,11 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.weibo.api.motan.core.StandardThreadExecutor.DEFAULT_MAX_IDLE_TIME;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * Response received via rpc.
@@ -34,6 +40,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class DefaultResponse implements Response, Traceable, Callbackable, Serializable {
     private static final long serialVersionUID = 4281186647291615871L;
+    protected static ThreadPoolExecutor defaultCallbackExecutor = new StandardThreadExecutor(20, 200,
+            DEFAULT_MAX_IDLE_TIME, MILLISECONDS, 5000,
+            new DefaultThreadFactory("defaultResponseCallbackPool-", true), new ThreadPoolExecutor.DiscardPolicy());
 
     private Object value;
     private Exception exception;
@@ -42,7 +51,7 @@ public class DefaultResponse implements Response, Traceable, Callbackable, Seria
     private int timeout;
     private Map<String, String> attachments;// rpc协议版本兼容时可以回传一些额外的信息
     private byte rpcProtocolVersion = RpcProtocolVersion.VERSION_1.getVersion();
-    private int serializeNumber = 0;// default serialization is hession2
+    private int serializeNumber = 0;// default serialization is hessian2
     private List<Pair<Runnable, Executor>> taskList = new ArrayList<>();
     private AtomicBoolean isFinished = new AtomicBoolean();
     private TraceableContext traceableContext = new TraceableContext();
@@ -75,6 +84,7 @@ public class DefaultResponse implements Response, Traceable, Callbackable, Seria
 
     public DefaultResponse(Object value, long requestId) {
         this.value = value;
+        this.requestId = requestId;
     }
 
     @Override
@@ -126,7 +136,7 @@ public class DefaultResponse implements Response, Traceable, Callbackable, Seria
 
     @Override
     public Map<String, String> getAttachments() {
-        return attachments != null ? attachments : Collections.<String, String>emptyMap();
+        return attachments != null ? attachments : Collections.emptyMap();
     }
 
     public void setAttachments(Map<String, String> attachments) {
@@ -162,6 +172,12 @@ public class DefaultResponse implements Response, Traceable, Callbackable, Seria
         return serializeNumber;
     }
 
+    /**
+     * 未指定线程池时，统一使用默认线程池执行。默认线程池满时采用丢弃策略，不保证任务一定会被执行。
+     * 如果默认线程池不满足需求时，可以自行携带executor。
+     * @param runnable 准备在response on finish时执行的任务
+     * @param executor 指定执行任务的线程池
+     */
     public void addFinishCallback(Runnable runnable, Executor executor) {
         if (!isFinished.get()) {
             taskList.add(Pair.of(runnable, executor));
@@ -177,13 +193,12 @@ public class DefaultResponse implements Response, Traceable, Callbackable, Seria
             Runnable runnable = pair.getKey();
             Executor executor = pair.getValue();
             if (executor == null) {
-                runnable.run();
-            } else {
-                try {
-                    executor.execute(runnable);
-                } catch (Exception e) {
-                    LoggerUtil.error("Callbackable response exec callback task error, e: ", e);
-                }
+                executor = defaultCallbackExecutor;
+            }
+            try {
+                executor.execute(runnable);
+            } catch (Exception e) {
+                LoggerUtil.error("Callbackable response exec callback task error, e: ", e);
             }
         }
     }

@@ -102,7 +102,6 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
                 ExceptionUtil.setMockStackTrace(response.getException().getCause());
             }
         }
-        response.setAttachments(request.getAttachments());
         return response;
     }
 }

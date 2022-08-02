@@ -58,6 +58,7 @@ public class NettyDecoder extends FrameDecoder {
             return null;
         }
         buffer.markReaderIndex();
+        int startIndex = buffer.readerIndex();
         short type = buffer.readShort();
 
         if (type != MotanConstants.NETTY_MAGIC_TYPE) {
@@ -81,11 +82,15 @@ public class NettyDecoder extends FrameDecoder {
         }
 
         if (result instanceof Request) {
-            MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SRECEIVE, requestStart);
-            MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SDECODE);
+            Request request = (Request) result;
+            MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_SRECEIVE, requestStart);
+            MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_SDECODE);
+            request.setAttachment(MotanConstants.CONTENT_LENGTH, String.valueOf(buffer.readerIndex() - startIndex));
         } else if (result instanceof Response) {
-            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CRECEIVE, requestStart);
-            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CDECODE);
+            Response response = (Response) result;
+            MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_CRECEIVE, requestStart);
+            MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_CDECODE);
+            response.setAttachment(MotanConstants.CONTENT_LENGTH, String.valueOf(buffer.readerIndex() - startIndex));
         }
         return result;
     }

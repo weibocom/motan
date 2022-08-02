@@ -56,17 +56,18 @@ public class NettyEncoder extends OneToOneEncoder {
         if (type == DefaultRpcCodec.MAGIC) {
             channelBuffer = encodeV1(message, data);
         } else if (type == MotanV2Header.MAGIC) {
-            channelBuffer  = encodeV2(data);
+            channelBuffer = encodeV2(data);
         } else {
             throw new MotanFrameworkException("can not encode message, unknown magic:" + type);
         }
-        if (message instanceof Response) {
-            ((Response) message).setAttachment(MotanConstants.CONTENT_LENGTH, String.valueOf(channelBuffer.readableBytes()));
-        }
         if (message instanceof Request) {
-            MotanFrameworkUtil.logEvent((Request) message, MotanConstants.TRACE_CENCODE);
+            Request request = (Request) message;
+            MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_CENCODE);
+            request.setAttachment(MotanConstants.CONTENT_LENGTH, String.valueOf(channelBuffer.readableBytes()));
         } else if (message instanceof Response) {
-            MotanFrameworkUtil.logEvent((Response) message, MotanConstants.TRACE_SENCODE);
+            Response response = (Response) message;
+            MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SENCODE);
+            response.setAttachment(MotanConstants.CONTENT_LENGTH, String.valueOf(channelBuffer.readableBytes()));
         }
         return channelBuffer;
     }
