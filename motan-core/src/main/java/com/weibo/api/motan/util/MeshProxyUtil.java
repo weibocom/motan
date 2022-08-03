@@ -18,6 +18,7 @@
 
 package com.weibo.api.motan.util;
 
+import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.registry.RegistryFactory;
@@ -32,8 +33,6 @@ import java.util.*;
  * @date 2022/7/14.
  */
 public class MeshProxyUtil {
-    public static final String MESH_PROXY_ENV_NAME = "MOTAN_MESH_PROXY"; //使用mesh代理motan请求的环境变量名
-
     // config keys
     private static final String MODE_KEY = "mode"; // proxy type key
     private static final String PORT_KEY = "port"; // mesh transport port for client end
@@ -155,7 +154,7 @@ public class MeshProxyUtil {
     // 检查是否支持mesh proxy
     private static void initCheck() {
         // check env set
-        String meshProxyString = System.getenv(MESH_PROXY_ENV_NAME);
+        String meshProxyString = System.getenv(MotanConstants.ENV_MESH_PROXY);
         if (StringUtils.isNotBlank(meshProxyString)) {
             LoggerUtil.info("find MOTAN_MESH_PROXY env, value:" + meshProxyString);
             proxyConfig = parseProxyConfig(meshProxyString);

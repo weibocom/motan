@@ -1,11 +1,11 @@
 /*
  * Copyright 2009-2016 Weibo, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -26,13 +26,11 @@ import com.weibo.api.motan.filter.Filter;
 import com.weibo.api.motan.filter.InitializableFilter;
 import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.StringTools;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static com.weibo.api.motan.common.MotanConstants.DISABLE_FILTER_PREFIX;
 
@@ -210,7 +208,7 @@ public class ProtocolFilterDecorator implements Protocol {
      */
     protected List<Filter> getFilters(URL url, String key) {
         // load default filters
-        List<Filter> filters = new ArrayList<Filter>();
+        List<Filter> filters = new ArrayList<>();
         List<Filter> defaultFilters = ExtensionLoader.getExtensionLoader(Filter.class).getExtensions(key);
         if (defaultFilters != null && defaultFilters.size() > 0) {
             filters.addAll(defaultFilters);
@@ -220,25 +218,26 @@ public class ProtocolFilterDecorator implements Protocol {
         String filterStr = url.getParameter(URLParamType.filter.getName());
         if (StringUtils.isNotBlank(filterStr)) {
             HashSet<String> removedFilters = new HashSet<>();
-            String[] filterNames = MotanConstants.COMMA_SPLIT_PATTERN.split(filterStr);
+            Set<String> filterNames = StringTools.splitSet(filterStr, MotanConstants.COMMA_SEPARATOR);
             for (String fn : filterNames) {
-                if (StringUtils.isBlank(fn)) {
-                    continue;
-                }
-                fn = fn.trim();
-                if (fn.startsWith(DISABLE_FILTER_PREFIX)){ // disable filter
-                    if (fn.length() > DISABLE_FILTER_PREFIX.length()){
+                if (fn.startsWith(DISABLE_FILTER_PREFIX)) { // disable filter
+                    if (fn.length() > DISABLE_FILTER_PREFIX.length()) {
                         removedFilters.add(fn.substring(DISABLE_FILTER_PREFIX.length()).trim());
                     }
-                }else {
-                    addIfAbsent(filters, fn);
+                } else {
+                    Filter extFilter = ExtensionLoader.getExtensionLoader(Filter.class).getExtension(fn, false);
+                    if (extFilter == null) {
+                        LoggerUtil.warn("filter extension not found. filer name: " + fn);
+                        continue;
+                    }
+                    filters.add(extFilter);
                 }
             }
 
             // remove disabled filters
-            if (!removedFilters.isEmpty()){
+            if (!removedFilters.isEmpty()) {
                 for (String removedName : removedFilters) {
-                    filters.removeIf((filter)-> removedName.equals(filter.getClass().getAnnotation(SpiMeta.class).name()));
+                    filters.removeIf((filter) -> removedName.equals(filter.getClass().getAnnotation(SpiMeta.class).name()));
                 }
             }
         }
@@ -247,25 +246,5 @@ public class ProtocolFilterDecorator implements Protocol {
         Collections.sort(filters, new ActivationComparator<>());
         Collections.reverse(filters);
         return filters;
-    }
-
-    private void addIfAbsent(List<Filter> filters, String extensionName) {
-        Filter extFilter = ExtensionLoader.getExtensionLoader(Filter.class).getExtension(extensionName, false);
-        if (extFilter == null) {
-            LoggerUtil.warn("filter extension not found. filer name: " + extensionName);
-            return;
-        }
-
-        boolean exists = false;
-        for (Filter f : filters) {
-            if (f.getClass() == extFilter.getClass()) {
-                exists = true;
-                break;
-            }
-        }
-        if (!exists) {
-            filters.add(extFilter);
-        }
-
     }
 }
