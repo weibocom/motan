@@ -144,7 +144,7 @@ public class AccessLogFilter implements Filter {
         }
         append(builder, requestId);
         append(builder, request.getAttachments().get(MotanConstants.CONTENT_LENGTH));
-        append(builder, response.getAttachments().get(MotanConstants.CONTENT_LENGTH));
+        append(builder, response == null ? "0" : response.getAttachments().get(MotanConstants.CONTENT_LENGTH));
         append(builder, segmentTime);
         append(builder, wholeTime);
 
