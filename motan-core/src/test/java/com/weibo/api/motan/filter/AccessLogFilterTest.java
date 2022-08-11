@@ -60,6 +60,7 @@ public class AccessLogFilterTest extends BaseTestCase {
         checkProcess(url, attachments, true);
     }
 
+
     public void testSwitcher() throws Exception {
         URL url = getDefaultUrl();
         url.addParameter(URLParamType.accessLog.getName(), String.valueOf(false));
@@ -101,9 +102,11 @@ public class AccessLogFilterTest extends BaseTestCase {
 
     private void checkProcess(URL url, Map<String, String> attachments, boolean isProcess) throws Exception {
         checkProcessNormal(url, attachments, isProcess);
-        checkProcessWithTraceable(url, attachments, isProcess, true);
-        checkProcessWithTraceable(url, attachments, isProcess, false);
+        checkProcessWithTraceable(url, attachments, isProcess, true, false);
+        checkProcessWithTraceable(url, attachments, isProcess, false, false);
+        checkProcessWithTraceable(url, attachments, isProcess, false, true);
     }
+
 
     private void checkProcessNormal(URL url, Map<String, String> attachments, boolean isProcess) throws Exception {
         resetMockery();
@@ -148,10 +151,10 @@ public class AccessLogFilterTest extends BaseTestCase {
         LoggerUtil.setLogService(new DefaultLogService());
     }
 
-    private void checkProcessWithTraceable(URL url, Map<String, String> attachments, boolean isProcess, boolean isServerEnd) throws Exception {
+    private void checkProcessWithTraceable(URL url, Map<String, String> attachments, boolean isProcess, boolean isServerEnd, boolean timeout) throws Exception {
         resetMockery();
         final DefaultRequest request = mockery.mock(DefaultRequest.class);
-        final DefaultResponse response = new DefaultResponse();
+        final DefaultResponse response = timeout ? null :new DefaultResponse();
         final Caller<IHello> caller;
         if (isServerEnd) {
             caller = mockery.mock(Provider.class);
@@ -161,9 +164,12 @@ public class AccessLogFilterTest extends BaseTestCase {
         final LogService logService = mockery.mock(LogService.class);
         final TraceableContext requestTraceableContext = mockery.mock(TraceableContext.class, "requestTraceableContext");
         final TraceableContext responseTraceableContext = mockery.mock(TraceableContext.class, "responseTraceableContext");
-        Field field = DefaultResponse.class.getDeclaredField("traceableContext");
-        field.setAccessible(true);
-        field.set(response, responseTraceableContext);
+        if (!timeout){
+            Field field = DefaultResponse.class.getDeclaredField("traceableContext");
+            field.setAccessible(true);
+            field.set(response, responseTraceableContext);
+        }
+
         LoggerUtil.setLogService(logService);
         mockery.checking(new Expectations() {
             {
@@ -194,10 +200,12 @@ public class AccessLogFilterTest extends BaseTestCase {
                         exactly(1).of(responseTraceableContext).getSendTime(); // response send time for server end
                         will(returnValue(15L));
                     } else {
-                        exactly(1).of(requestTraceableContext).getSendTime(); // request send time for client end
-                        will(returnValue(10L));
-                        exactly(1).of(responseTraceableContext).getReceiveTime(); // response receive time for client end
-                        will(returnValue(18L));
+                        if (!timeout){
+                            exactly(1).of(requestTraceableContext).getSendTime(); // request send time for client end
+                            will(returnValue(10L));
+                            exactly(1).of(responseTraceableContext).getReceiveTime(); // response receive time for client end
+                            will(returnValue(18L));
+                        }
                     }
                 }
             });
@@ -212,7 +220,9 @@ public class AccessLogFilterTest extends BaseTestCase {
             });
         }
         accessLogFilter.filter(caller, request);
-        response.onFinish();
+        if (!timeout){
+            response.onFinish();
+        }
         if (isServerEnd) {
             Thread.sleep(100);
         }
