@@ -1,5 +1,15 @@
 # Change Log
 
+## [1.1.12](https://github.com/weibocom/motan/tree/1.1.12) (2022-08-11)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.11...1.1.12)
+
+**Implemented enhancements:**
+
+**Merged pull requests:**
+
+**Fixed bugs:**
+- fix access log NPE when client request timeout [\#991](https://github.com/weibocom/motan/pull/991) ([Ray](https://github.com/rayzhang0603))
+
 ## [1.1.11](https://github.com/weibocom/motan/tree/1.1.11) (2022-08-03)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.1.10...1.1.11)
 
@@ -12,7 +22,7 @@
 - try find provider by path if servicekey (group+path+version) not found  [\#984](https://github.com/weibocom/motan/pull/984) ([Ray](https://github.com/rayzhang0603))
 - change asyncInitConnection default value from false to true [\#978](https://github.com/weibocom/motan/pull/978) ([Ray](https://github.com/rayzhang0603))
 
-**Merged pull requests:**
+**Merged pull requests:**  
 
 **Fixed bugs:**
 - export multi service with random port [\#985](https://github.com/weibocom/motan/pull/985) ([Ray](https://github.com/rayzhang0603))
