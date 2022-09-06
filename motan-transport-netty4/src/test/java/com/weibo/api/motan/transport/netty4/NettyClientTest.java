@@ -53,6 +53,7 @@ public class NettyClientTest {
         parameters.put("requestTimeout", "500");
 
         url = new URL("netty", "localhost", 18080, interfaceName, parameters);
+        url.addParameter(URLParamType.asyncInitConnection.getName(), "false");
 
         request = new DefaultRequest();
         request.setRequestId(RequestIdGenerator.getRequestId());

@@ -20,11 +20,16 @@ import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.protocol.example.IWorld;
+import com.weibo.api.motan.rpc.Exporter;
 import com.weibo.api.motan.rpc.URL;
-import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import static com.weibo.api.motan.TestUtils.getModifiableEnvironment;
+import static com.weibo.api.motan.common.MotanConstants.ENV_ADDITIONAL_GROUP;
 
 /**
  * Service config test
@@ -54,7 +59,6 @@ public class ServiceConfigTest extends BaseTestCase {
         }
     }
 
-    @Test
     public void testExport() {
         serviceConfig.export();
 
@@ -64,7 +68,6 @@ public class ServiceConfigTest extends BaseTestCase {
 
     }
 
-    @Test
     public void testExportException() {
         // registry null
         serviceConfig = mockIWorldServiceConfig();
@@ -78,7 +81,7 @@ public class ServiceConfigTest extends BaseTestCase {
         // export null
         try {
             serviceConfig.export();
-            assertTrue(false);
+            fail();
         } catch (Exception e) {
             assertTrue(e.getMessage().contains("export should not empty"));
         }
@@ -88,7 +91,7 @@ public class ServiceConfigTest extends BaseTestCase {
         serviceConfig.setExport("notExist" + ":" + 0);
         try {
             serviceConfig.export();
-            assertTrue(false);
+            fail();
         } catch (Exception e) {
             assertTrue(e.getMessage().contains("get extension fail"));
         }
@@ -105,15 +108,14 @@ public class ServiceConfigTest extends BaseTestCase {
         newServiceConfig.setExport(MotanConstants.PROTOCOL_INJVM + ":" + 0);
         try {
             newServiceConfig.export();
-            assertTrue(false);
+            fail();
         } catch (Exception e) {
             assertTrue(e.getMessage().contains("for same service"));
         }
     }
 
-    @Test
     public void testMethodConfig() {
-        List<MethodConfig> methods = new ArrayList<MethodConfig>();
+        List<MethodConfig> methods = new ArrayList<>();
         MethodConfig mc = new MethodConfig();
         mc.setName("world");
         mc.setRetries(1);
@@ -151,7 +153,6 @@ public class ServiceConfigTest extends BaseTestCase {
 
     }
 
-    @Test
     public void testMultiProtocol() {
         serviceConfig.setProtocols(getMultiProtocols(MotanConstants.PROTOCOL_INJVM, MotanConstants.PROTOCOL_MOTAN));
         serviceConfig.setExport(MotanConstants.PROTOCOL_INJVM + ":" + 0 + "," + MotanConstants.PROTOCOL_MOTAN + ":8002");
@@ -160,14 +161,18 @@ public class ServiceConfigTest extends BaseTestCase {
 
     }
 
-    @Test
-    public void testMultiRegitstry() {
+    public void testMultiRegistry() {
         serviceConfig.setRegistries(getMultiRegister(MotanConstants.REGISTRY_PROTOCOL_LOCAL, MotanConstants.REGISTRY_PROTOCOL_ZOOKEEPER));
         serviceConfig.loadRegistryUrls();
         assertEquals(2, serviceConfig.getRegistryUrls().size());
     }
 
-    @Test
+    public void testMultiGroup() {
+        serviceConfig.setGroup("motan-test1, motan-test2");
+        serviceConfig.export();
+        assertEquals(2, serviceConfig.getExporters().size());
+    }
+
     public void testUnexport() {
         testExport();
         serviceConfig.unexport();
@@ -175,5 +180,53 @@ public class ServiceConfigTest extends BaseTestCase {
         assertEquals(serviceConfig.getExporters().size(), 0);
     }
 
+    public void testAdditionalGroup() throws Exception {
+        serviceConfig.setGroup("");
+        serviceConfig.export();
+        assertEquals(1, serviceConfig.getExporters().size());
+        assertEquals(URLParamType.group.getValue(), serviceConfig.getExporters().get(0).getUrl().getGroup());
+
+        // default group with additional env
+        reset();
+        String envGroup = "envGroup";
+        getModifiableEnvironment().put(ENV_ADDITIONAL_GROUP, envGroup);
+        serviceConfig.setGroup("");
+        serviceConfig.export();
+        assertEquals(1, serviceConfig.getExporters().size());
+        assertEquals(envGroup, serviceConfig.getExporters().get(0).getUrl().getGroup());
+
+        // group + additional group
+        reset();
+        serviceConfig.export();
+        assertEquals(2, serviceConfig.getExporters().size());
+        checkGroupNames(group, envGroup);
+
+        // multi group with additional multi group
+        reset();
+        envGroup = "envGroup1, envGroup2, sameGroup";
+        getModifiableEnvironment().put(ENV_ADDITIONAL_GROUP, envGroup);
+        serviceConfig.setGroup("motan-test1, motan-test2, sameGroup");
+        serviceConfig.export();
+        assertEquals(5, serviceConfig.getExporters().size());
+        checkGroupNames("envGroup1", "envGroup2", "sameGroup", "motan-test1", "motan-test2");
+
+        getModifiableEnvironment().remove(ENV_ADDITIONAL_GROUP);
+    }
+
+    private void checkGroupNames(String... expectGroupNames) {
+        Set<String> groupNames = new HashSet<>();
+        for (Exporter<?> exporter : serviceConfig.getExporters()) {
+            groupNames.add(exporter.getUrl().getGroup());
+        }
+        assertEquals(expectGroupNames.length, groupNames.size());
+        for (String name : expectGroupNames) {
+            assertTrue(groupNames.contains(name));
+        }
+    }
+
+    private void reset() throws Exception {
+        tearDown();
+        setUp();
+    }
 
 }

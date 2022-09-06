@@ -85,6 +85,9 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
             if (!shareChannel) { // 独享一个端口
                 LoggerUtil.info(this.getClass().getSimpleName() + " create no_share_channel server: url={}", url);
 
+                if (url.getPort() == 0){ // create new url for random port，the origin url port will be replaced in exporter
+                    url = url.createCopy();
+                }
                 // 如果端口已经被使用了，使用该server bind 会有异常
                 return innerCreateServer(url, messageHandler);
             }

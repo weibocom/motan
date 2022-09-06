@@ -74,6 +74,7 @@ public class MotanConstants {
     public static final String APPLICATION_STATISTIC = "statisitic";
     public static final String REQUEST_REMOTE_ADDR = "requestRemoteAddress";
     public static final String CONTENT_LENGTH = "Content-Length";
+    public static final String DISABLE_FILTER_PREFIX = "-";
 
     /**
      * netty channel constants start
@@ -141,6 +142,7 @@ public class MotanConstants {
     public static final String M2_ERROR = "M_e";
     public static final String M2_PROCESS_TIME = "M_pt";
 
+    // ------------------ request trace point constants -----------------
     public static final String TRACE_INVOKE = "TRACE_INVOKE"; //client 发起请求
     public static final String TRACE_CONNECTION = "TRACE_CONNECTION"; // client获取链接
     public static final String TRACE_CENCODE = "TRACE_CENCODE"; //client编码
@@ -155,6 +157,14 @@ public class MotanConstants {
     public static final String TRACE_SSEND = "TRACE_SSEND";// server端发送response
     public static final String TRACE_CRECEIVE = "TRACE_CRECEIVE";// client端接收response
     public static final String TRACE_CDECODE = "TRACE_CDECODE"; // client端解码response
+
+    // ------------------ attachment constants -----------------
+    public static final String ATT_PRINT_TRACE_LOG = "print_trace_log"; // 针对单请求是否打印（access）日志
+
+    // ------------------ common env name -----------------
+    public static final String ENV_ADDITIONAL_GROUP = "MOTAN_SERVICE_ADDITIONAL_GROUP"; //motan service 追加导出分组。例如可以自动追加云平台上的分组
+    public static final String ENV_MESH_PROXY = "MOTAN_MESH_PROXY"; //使用mesh代理motan请求的环境变量名
+    public static final String ENV_MOTAN_IP_PREFIX = "MOTAN_IP_PREFIX";
 
     private MotanConstants() {
     }

@@ -32,6 +32,7 @@ public class NettyServerTest {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("requestTimeout", "500");
         url = new URL("netty", "localhost", 18080, interfaceName, parameters);
+        url.addParameter(URLParamType.asyncInitConnection.getName(), "false");
     }
 
     @After

@@ -7,6 +7,7 @@ import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
 import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
@@ -121,15 +122,22 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             }
             return;
         }
-
+        long length = msg.getData().length;
+        if (RpcProtocolVersion.VERSION_1 == msg.getVersion() || RpcProtocolVersion.VERSION_1_Compress == msg.getVersion()) {
+            length += RpcProtocolVersion.VERSION_1.getHeaderLength();
+        }
         if (result instanceof Request) {
-            MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SRECEIVE, msg.getStartTime());
-            MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SEXECUTOR_START, startTime);
-            MotanFrameworkUtil.logEvent((Request) result, MotanConstants.TRACE_SDECODE);
-            processRequest(ctx, (Request) result);
+            Request request = (Request) result;
+            MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_SRECEIVE, msg.getStartTime());
+            MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_SEXECUTOR_START, startTime);
+            MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_SDECODE);
+            request.setAttachment(MotanConstants.CONTENT_LENGTH, String.valueOf(length));
+            processRequest(ctx, request);
         } else if (result instanceof Response) {
-            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CRECEIVE, msg.getStartTime());
-            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_CDECODE);
+            Response response = (Response) result;
+            MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_CRECEIVE, msg.getStartTime());
+            MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_CDECODE);
+            response.setAttachment(MotanConstants.CONTENT_LENGTH, String.valueOf(length));
             processResponse(result);
         }
     }

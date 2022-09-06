@@ -21,6 +21,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.Ordered;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Field;
@@ -124,7 +125,7 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                     && Modifier.isPublic(method.getModifiers())
                     && !Modifier.isStatic(method.getModifiers())) {
                 try {
-                    MotanReferer reference = method.getAnnotation(MotanReferer.class);
+                    MotanReferer reference = AnnotatedElementUtils.findMergedAnnotation(method, MotanReferer.class);
                     if (reference != null) {
                         Object value = refer(reference, method.getParameterTypes()[0]);
                         if (value != null) {
@@ -145,7 +146,7 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                 if (!field.isAccessible()) {
                     field.setAccessible(true);
                 }
-                MotanReferer reference = field.getAnnotation(MotanReferer.class);
+                MotanReferer reference = AnnotatedElementUtils.findMergedAnnotation(field, MotanReferer.class);
                 if (reference != null) {
                     Object value = refer(reference, field.getType());
                     if (value != null) {
@@ -177,7 +178,7 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
         if (isProxyBean(bean)) {
             clazz = AopUtils.getTargetClass(bean);
         }
-        MotanService service = clazz.getAnnotation(MotanService.class);
+        MotanService service = AnnotatedElementUtils.findMergedAnnotation(clazz, MotanService.class);
         if (service != null) {
             ServiceConfigBean<Object> serviceConfig = new ServiceConfigBean<Object>();
             if (void.class.equals(service.interfaceClass())) {

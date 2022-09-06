@@ -71,24 +71,28 @@ public class DefaultHttpMeshTransport implements MeshTransport {
     @Override
     public ManageResponse getManageRequest(String url) throws MotanFrameworkException {
         HttpGet httpGet = new HttpGet(url);
-        return executeRequest(httpGet);
+        return executeRequest(httpGet, "");
     }
 
     @Override
     public ManageResponse postManageRequest(String url, Map<String, String> params) throws MotanFrameworkException {
         HttpPost httpPost = new HttpPost(url);
+        String content = "";
         if (params != null && !params.isEmpty()) {
             List<NameValuePair> paramList = new ArrayList();
+            StringBuilder sb = new StringBuilder(128);
             for (Map.Entry<String, String> entry : params.entrySet()) {
                 paramList.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+                sb.append(entry.getKey()).append(":").append(entry.getValue()).append(",");
             }
             try {
                 httpPost.setEntity(new UrlEncodedFormEntity(paramList, "UTF-8"));
+                content = sb.toString();
             } catch (UnsupportedEncodingException e) {
                 throw new MotanServiceException("DefaultHttpMeshTransport convert post parmas fail. request url:" + url, e);
             }
         }
-        return executeRequest(httpPost);
+        return executeRequest(httpPost, content);
     }
 
     public ManageResponse postManageRequest(String url, String content) throws MotanFrameworkException {
@@ -100,17 +104,17 @@ public class DefaultHttpMeshTransport implements MeshTransport {
                 throw new MotanServiceException("DefaultHttpMeshTransport convert post parmas fail. request url:" + url, e);
             }
         }
-        return executeRequest(httpPost);
+        return executeRequest(httpPost, content);
     }
 
-    private ManageResponse executeRequest(HttpUriRequest httpRequest) {
+    private ManageResponse executeRequest(HttpUriRequest httpRequest, String logContent) {
         try {
             return httpClient.execute(httpRequest, response -> {
                 int statusCode = response.getStatusLine().getStatusCode();
                 String statusMessage = response.getStatusLine().getReasonPhrase();
                 String content = EntityUtils.toString(response.getEntity(), "UTF-8");
-                LoggerUtil.info("http request uri:" + httpRequest.getURI() + ", code: " + statusCode
-                        + ", message: " + statusMessage + ", content: " + content);
+                LoggerUtil.info("http request uri:" + httpRequest.getURI() + ", return code: " + statusCode
+                        + ", return message: " + content + ", req params:" + logContent);
                 return new ManageResponse(statusCode, content);
             });
         } catch (IOException e) {

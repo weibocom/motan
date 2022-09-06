@@ -36,6 +36,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -213,8 +215,29 @@ public class MeshRegistryTest {
         assertEquals(Util.UrlToJson(subUrl), transport.records.get(1).getRight());
     }
 
+    @Test
+    public void testEnvDefault() throws Exception {
+        assertEquals(9981, MeshRegistry.DEFAULT_MESH_PORT);
+        assertEquals(8002, MeshRegistry.DEFAULT_MESH_MANAGE_PORT);
+        getModifiableEnvironment().put(MeshRegistry.MESH_MPORT_ENV_NAME, "8018");
+        assertEquals(8018, MeshRegistry.getIntFromEnv(MeshRegistry.MESH_MPORT_ENV_NAME, 0));
+        getModifiableEnvironment().put(MeshRegistry.MESH_PORT_ENV_NAME, "9918");
+        assertEquals(9918, MeshRegistry.getIntFromEnv(MeshRegistry.MESH_PORT_ENV_NAME, 0));
+    }
+
     private boolean isAgentUrl(URL url) {
         return registry.getUrl().getHost().equals(url.getHost()) && (registry.getUrl().getPort().equals(url.getPort()));
+    }
+
+    private static Map<String, String> getModifiableEnvironment() throws Exception {
+        Class<?> pe = Class.forName("java.lang.ProcessEnvironment");
+        Method getenv = pe.getDeclaredMethod("getenv");
+        getenv.setAccessible(true);
+        Object unmodifiableEnvironment = getenv.invoke(null);
+        Class<?> map = Class.forName("java.util.Collections$UnmodifiableMap");
+        Field m = map.getDeclaredField("m");
+        m.setAccessible(true);
+        return (Map<String, String>) m.get(unmodifiableEnvironment);
     }
 
     class MockMeshTransport implements MeshTransport {

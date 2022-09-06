@@ -30,6 +30,7 @@ import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.NetUtils;
+import com.weibo.api.motan.util.StringTools;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -43,7 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ServiceConfig<T> extends AbstractServiceConfig {
 
     private static final long serialVersionUID = -3342374271064293224L;
-    private static ConcurrentHashSet<String> existingServices = new ConcurrentHashSet<String>();
+    private static ConcurrentHashSet<String> existingServices = new ConcurrentHashSet<>();
     // 具体到方法的配置
     protected List<MethodConfig> methods;
 
@@ -51,7 +52,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     private T ref;
 
     // service 对应的exporters，用于管理service服务的生命周期
-    private List<Exporter<T>> exporters = new CopyOnWriteArrayList<Exporter<T>>();
+    private List<Exporter<T>> exporters = new CopyOnWriteArrayList<>();
     private Class<T> interfaceClass;
     private BasicServiceInterfaceConfig basicService;
     private AtomicBoolean exported = new AtomicBoolean(false);
@@ -120,7 +121,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         for (ProtocolConfig protocolConfig : protocols) {
             Integer port = protocolPorts.get(protocolConfig.getId());
             if (port == null) {
-                throw new MotanServiceException(String.format("Unknow port in service:%s, protocol:%s", interfaceClass.getName(),
+                throw new MotanServiceException(String.format("Unknown port in service:%s, protocol:%s", interfaceClass.getName(),
                         protocolConfig.getId()));
             }
             doExport(protocolConfig, port);
@@ -142,7 +143,6 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void doExport(ProtocolConfig protocolConfig, int port) {
         String protocolName = protocolConfig.getName();
         if (protocolName == null || protocolName.length() == 0) {
@@ -157,7 +157,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             hostAddress = getLocalHostAddress();
         }
 
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
 
         map.put(URLParamType.nodeType.getName(), MotanConstants.NODE_TYPE_SERVICE);
         map.put(URLParamType.refreshTimestamp.getName(), String.valueOf(System.currentTimeMillis()));
@@ -167,6 +167,25 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
         URL serviceUrl = new URL(protocolName, hostAddress, port, interfaceClass.getName(), map);
 
+        String groupString = serviceUrl.getParameter(URLParamType.group.getName(), ""); // do not with default group value
+        String additionalGroup = System.getenv(MotanConstants.ENV_ADDITIONAL_GROUP);
+        if (StringUtils.isNotBlank(additionalGroup)) { // check additional groups
+            groupString = StringUtils.isBlank(groupString) ? additionalGroup : groupString + "," + additionalGroup;
+            serviceUrl.addParameter(URLParamType.group.getName(), groupString);
+        }
+        // check multi group.
+        if (groupString.contains(MotanConstants.COMMA_SEPARATOR)) {
+            for (String group : StringTools.splitSet(groupString, MotanConstants.COMMA_SEPARATOR)) {
+                URL newGroupServiceUrl = serviceUrl.createCopy();
+                newGroupServiceUrl.addParameter(URLParamType.group.getName(), group);
+                exportService(hostAddress, protocolName, newGroupServiceUrl);
+            }
+        } else {
+            exportService(hostAddress, protocolName, serviceUrl);
+        }
+    }
+
+    private void exportService(String hostAddress, String protocol, URL serviceUrl) {
         if (serviceExists(serviceUrl)) {
             LoggerUtil.warn(String.format("%s configService is malformed, for same service (%s) already exists ", interfaceClass.getName(),
                     serviceUrl.getIdentity()));
@@ -174,10 +193,10 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                     interfaceClass.getName(), serviceUrl.getIdentity()), MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
         }
         LoggerUtil.info("export for service url :" + serviceUrl.toFullStr());
-        List<URL> urls = new ArrayList<URL>();
+        List<URL> urls = new ArrayList<>();
 
         // injvm 协议只支持注册到本地，其他协议可以注册到local、remote
-        if (MotanConstants.PROTOCOL_INJVM.equals(protocolConfig.getId())) {
+        if (MotanConstants.PROTOCOL_INJVM.equals(protocol)) {
             URL localRegistryUrl = null;
             for (URL ru : registryUrls) {
                 if (MotanConstants.REGISTRY_PROTOCOL_LOCAL.equals(ru.getProtocol())) {

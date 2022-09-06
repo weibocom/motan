@@ -19,14 +19,14 @@
     <parent>
         <artifactId>motan</artifactId>
         <groupId>com.weibo</groupId>
-        <version>1.1.11-SNAPSHOT</version>
+        <version>1.2.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>motan-manager</artifactId>
     <packaging>jar</packaging>
     <name>motan-manager</name>
     <properties>
-        <spring-security.version>5.2.11.RELEASE</spring-security.version>
+        <spring-security.version>5.5.7</spring-security.version>
         <spring-framework.version>5.3.18</spring-framework.version>
     </properties>
     <dependencies>
@@ -133,7 +133,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>1.2.49</version>
+            <version>1.2.83</version>
         </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
