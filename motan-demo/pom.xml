@@ -82,7 +82,7 @@
         <dependency>
             <artifactId>protobuf-java</artifactId>
             <groupId>com.google.protobuf</groupId>
-            <version>3.0.0</version>
+            <version>3.16.1</version>
         </dependency>
         <dependency>
             <groupId>com.weibo</groupId>
