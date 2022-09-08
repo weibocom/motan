@@ -38,7 +38,7 @@ public class RestHelloResource implements HelloResource {
     }
 
     @Override
-    public void testException() {
+    public void testException() throws UnsupportedOperationException {
         throw new UnsupportedOperationException("unsupport");
     }
 

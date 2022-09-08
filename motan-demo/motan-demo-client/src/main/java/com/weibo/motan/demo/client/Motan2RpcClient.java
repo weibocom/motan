@@ -111,6 +111,7 @@ public class Motan2RpcClient {
         referer.setGroup("motan-demo-rpc");
         referer.setVersion("1.0");
         referer.setRequestTimeout(1000);
+        referer.setAsyncInitConnection(false);
 
         // 配置注册中心直连调用
         RegistryConfig registry = new RegistryConfig();

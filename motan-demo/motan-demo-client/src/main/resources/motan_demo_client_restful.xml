@@ -30,7 +30,7 @@
     <motan:protocol id="motanProtocol" name="motan"/>
 
     <!-- 通用referer基础配置 -->
-    <motan:basicReferer requestTimeout="1000" accessLog="false"
+    <motan:basicReferer requestTimeout="1000" accessLog="false" asyncInitConnection="false"
                         retries="2" group="motan-demo-rpc" module="motan-demo-rpc"
                         application="myMotanDemo" protocol="restfulProtocol" registry="registry1"
                         id="motanTestClientBasicConfig" throwException="true" check="true"/>

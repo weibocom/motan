@@ -33,6 +33,7 @@ public class MotanApiClientDemo {
         motanDemoServiceReferer.setGroup("motan-demo-rpc");
         motanDemoServiceReferer.setVersion("1.0");
         motanDemoServiceReferer.setRequestTimeout(1000);
+        motanDemoServiceReferer.setAsyncInitConnection(false);
 
         // 配置注册中心直连调用
         RegistryConfig registry = new RegistryConfig();

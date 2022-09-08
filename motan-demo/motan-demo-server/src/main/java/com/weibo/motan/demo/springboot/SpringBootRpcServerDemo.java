@@ -31,7 +31,6 @@ import com.weibo.api.motan.config.springsupport.RegistryConfigBean;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
 
 
-@EnableAutoConfiguration
 @SpringBootApplication
 public class SpringBootRpcServerDemo {
 

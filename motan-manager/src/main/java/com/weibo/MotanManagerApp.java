@@ -19,12 +19,14 @@ package com.weibo;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 
 /**
  * @author wangjunwei
  * @since 2017-06-29
  */
 @SpringBootApplication
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 //@ImportResource(locations = {"classpath:spring-mybatis.xml", "classpath:spring-security.xml"})
 @ImportResource(locations = {"classpath:spring-security.xml"})
 public class MotanManagerApp {

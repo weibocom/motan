@@ -62,21 +62,6 @@ public class NettyDecoderTest {
     }
 
     @Test
-    public void repeatDecodeInvokedByOldCode() {
-        NettyOldFakeDecoder nettyDecoder = new NettyOldFakeDecoder(new MotanV2Codec(), nettyServer, 24);
-        NettyChannelHandler handler = new NettyChannelHandler(nettyServer, messageHandler, (ThreadPoolExecutor) Executors.newFixedThreadPool(4));
-
-        EmbeddedChannel channel = new EmbeddedChannel(nettyDecoder, handler);
-
-        ByteBuf buf = Unpooled.wrappedBuffer(new byte[]{'a', 'b', 'c', 'd', 'e', 'a', 'b', 'c', 'd', 'e', 'a', 'b', 'c', 'd',
-                'e', 'a', 'b', 'c', 'd', 'e',});
-        channel.writeInbound(buf.copy());
-        buf.release();
-        assertEquals(false, 1 == nettyDecoder.getDecodeInvokeCnt());
-    }
-
-
-    @Test
     public void onlyOneDecodeInvoked() {
         NettyNewCntDecoder nettyDecoder = new NettyNewCntDecoder(new MotanV2Codec(), nettyServer, 24);
         NettyChannelHandler handler = new NettyChannelHandler(nettyServer, messageHandler, (ThreadPoolExecutor) Executors.newFixedThreadPool(4));
@@ -88,31 +73,6 @@ public class NettyDecoderTest {
         channel.writeInbound(buf.copy());
         buf.release();
         assertEquals(true, 1 == nettyDecoder.getDecodeInvokeCnt());
-    }
-
-    class NettyOldFakeDecoder extends NettyDecoder {
-
-        private int decodeInvokeCnt = 0;
-
-        public NettyOldFakeDecoder(Codec codec, Channel channel, int maxContentLength) {
-            super(codec, channel, maxContentLength);
-        }
-
-        @Override
-        protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-            decodeInvokeCnt++;
-            in.markReaderIndex();
-            short type = in.readShort();
-            if (type != MotanConstants.NETTY_MAGIC_TYPE) {
-                in.resetReaderIndex();
-                throw new MotanFrameworkException("NettyDecoder transport header not support, type: " + type);
-            }
-            throw new MotanServiceException("NettyDecoder transport data content length over of limit");
-        }
-
-        public int getDecodeInvokeCnt() {
-            return decodeInvokeCnt;
-        }
     }
 
     class NettyNewCntDecoder extends NettyDecoder {

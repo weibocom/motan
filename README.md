@@ -31,7 +31,7 @@ The quick start gives very basic example of running client and server on the sam
 
 > The minimum requirements to run the quick start are:
 >
-> - JDK 1.7 or above
+> - JDK 1.8 or above
 > - A java-based project management software like [Maven][maven] or [Gradle][gradle]
 
 ## Synchronous calls
@@ -39,28 +39,33 @@ The quick start gives very basic example of running client and server on the sam
 1. Add dependencies to pom.
 
 ```xml
-<dependency>
-    <groupId>com.weibo</groupId>
-    <artifactId>motan-core</artifactId>
-       <version>1.0.0</version>
-</dependency>
-<dependency>
-    <groupId>com.weibo</groupId>
-    <artifactId>motan-transport-netty</artifactId>
-    <version>1.0.0</version>
-</dependency>
+<properties>
+    <motan.version>1.1.12</motan.version> <!--use the latest version from maven central-->
+</properties>
+<dependencies>
+    <dependency>
+        <groupId>com.weibo</groupId>
+        <artifactId>motan-core</artifactId>
+        <version>${motan.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.weibo</groupId>
+        <artifactId>motan-transport-netty</artifactId>
+        <version>${motan.version}</version>
+    </dependency>
 
-<!-- dependencies below were only needed for spring-based features -->
-<dependency>
-    <groupId>com.weibo</groupId>
-    <artifactId>motan-springsupport</artifactId>
-    <version>1.0.0</version>
-</dependency>
-<dependency>
-    <groupId>org.springframework</groupId>
-    <artifactId>spring-context</artifactId>
-    <version>4.2.4.RELEASE</version>
-</dependency>
+    <!-- dependencies below were only needed for spring-based features -->
+    <dependency>
+        <groupId>com.weibo</groupId>
+        <artifactId>motan-springsupport</artifactId>
+        <version>${motan.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>4.2.4.RELEASE</version>
+    </dependency>
+</dependencies>
 ```
 
 2. Create an interface for both service provider and consumer.
