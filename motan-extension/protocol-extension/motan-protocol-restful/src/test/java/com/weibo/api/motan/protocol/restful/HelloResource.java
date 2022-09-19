@@ -47,7 +47,7 @@ public interface HelloResource {
     @GET
     @Path("/exception")
     @Produces(MediaType.APPLICATION_JSON)
-    void testException();
+    void testException() throws UnsupportedOperationException;
 
     public static class User {
         private int id;

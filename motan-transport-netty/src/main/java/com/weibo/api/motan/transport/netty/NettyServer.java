@@ -92,7 +92,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
 
         serverChannel = bootstrap.bind(new InetSocketAddress(url.getPort()));
         setLocalAddress((InetSocketAddress) serverChannel.getLocalAddress());
-        if (url.getPort() == 0){
+        if (url.getPort() == 0) {
             url.setPort(getLocalAddress().getPort());
         }
         state = ChannelState.ALIVE;
@@ -185,11 +185,17 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
 
     public void cleanup() {
         // close listen socket
-        serverChannel.close();
+        if (serverChannel != null) {
+            serverChannel.close();
+        }
         // close all clients's channel
-        channelManage.close();
+        if (channelManage != null) {
+            channelManage.close();
+        }
         // shutdown the threadPool
-        standardThreadExecutor.shutdownNow();
+        if (standardThreadExecutor != null) {
+            standardThreadExecutor.shutdownNow();
+        }
         // 取消统计回调的注册
         StatsUtil.unRegistryStatisticCallback(nettyChannelHandler);
         StatsUtil.unRegistryStatisticCallback(this);

@@ -60,6 +60,11 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
                 reconnectService();
                 reconnectClient();
             }
+
+            @Override
+            public void handleSessionEstablishmentError(Throwable throwable) throws Exception {
+                LoggerUtil.warn("zkRegistry establish session error.", throwable);
+            }
         };
         zkClient.subscribeStateChanges(zkStateListener);
         ShutDownHook.registerShutdownHook(this);
@@ -86,9 +91,9 @@ public class ZookeeperRegistry extends CommandFailbackRegistry implements Closab
             if (zkChildListener == null) {
                 childChangeListeners.putIfAbsent(serviceListener, new IZkChildListener() {
                     @Override
-                    public void handleChildChange(String parentPath, List<String> currentChilds) {
-                        serviceListener.notifyService(url, getUrl(), nodeChildsToUrls(url, parentPath, currentChilds));
-                        LoggerUtil.info(String.format("[ZookeeperRegistry] service list change: path=%s, currentChilds=%s", parentPath, currentChilds.toString()));
+                    public void handleChildChange(String parentPath, List<String> currentChildren) {
+                        serviceListener.notifyService(url, getUrl(), nodeChildsToUrls(url, parentPath, currentChildren));
+                        LoggerUtil.info(String.format("[ZookeeperRegistry] service list change: path=%s, currentChildren=%s", parentPath, currentChildren));
                     }
                 });
                 zkChildListener = childChangeListeners.get(serviceListener);

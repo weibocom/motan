@@ -101,17 +101,6 @@ public class ServiceConfigTest extends BaseTestCase {
         serviceConfig.setExport(MotanConstants.PROTOCOL_INJVM + ":" + 0);
         serviceConfig.export();
         assertTrue(serviceConfig.getExported().get());
-
-        ServiceConfig<IWorld> newServiceConfig = mockIWorldServiceConfig();
-        newServiceConfig.setProtocol(mockProtocolConfig(MotanConstants.PROTOCOL_INJVM));
-        newServiceConfig.setRegistry(mockLocalRegistryConfig());
-        newServiceConfig.setExport(MotanConstants.PROTOCOL_INJVM + ":" + 0);
-        try {
-            newServiceConfig.export();
-            fail();
-        } catch (Exception e) {
-            assertTrue(e.getMessage().contains("for same service"));
-        }
     }
 
     public void testMethodConfig() {

@@ -20,46 +20,46 @@ import com.weibo.api.motan.serialize.protobuf.gen.UserProto.User;
 
 public class HelloServiceImpl implements HelloService {
 
-	@Override
-	public String sumAsString(int a, int b) {
-		return String.valueOf(a + b);
-	}
+    @Override
+    public String sumAsString(int a, int b) {
+        return String.valueOf(a + b);
+    }
 
-	@Override
-	public Long boxIfNotZero(int value) {
-		return value == 0 ? null : (long) value;
-	}
+    @Override
+    public Long boxIfNotZero(int value) {
+        return value == 0 ? null : (long) value;
+    }
 
-	@Override
-	public Address queryByUid(int uid) {
-		return Address.newBuilder().setId(uid).setProvince("北京").setCity("北京").setStreet("无").setPhone("1233444")
-				.build();
-	}
+    @Override
+    public Address queryByUid(int uid) {
+        return Address.newBuilder().setId(uid).setProvince("北京").setCity("北京").setStreet("无").setPhone("1233444")
+                .build();
+    }
 
-	@Override
-	public boolean isUserAddress(User user, Address address) {
-		for (Address item : user.getAddressList()) {
-			if (item.getId() == address.getId()) {
-				return true;
-			}
-		}
+    @Override
+    public boolean isUserAddress(User user, Address address) {
+        for (Address item : user.getAddressList()) {
+            if (item.getId() == address.getId()) {
+                return true;
+            }
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	@Override
-	public boolean isNull(User user) {
-		return user == null;
-	}
+    @Override
+    public boolean isNull(User user) {
+        return user == null;
+    }
 
-	@Override
-	public void testException() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void testException() throws UnsupportedOperationException {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public User copy(User origin) {
-		return origin;
-	}
+    @Override
+    public User copy(User origin) {
+        return origin;
+    }
 
 }
