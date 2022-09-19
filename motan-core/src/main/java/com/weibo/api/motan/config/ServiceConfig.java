@@ -189,8 +189,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         if (serviceExists(serviceUrl)) {
             LoggerUtil.warn(String.format("%s configService is malformed, for same service (%s) already exists ", interfaceClass.getName(),
                     serviceUrl.getIdentity()));
-            throw new MotanFrameworkException(String.format("%s configService is malformed, for same service (%s) already exists ",
-                    interfaceClass.getName(), serviceUrl.getIdentity()), MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
+            return; // not treat as exception
         }
         LoggerUtil.info("export for service url :" + serviceUrl.toFullStr());
         List<URL> urls = new ArrayList<>();
