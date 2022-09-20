@@ -40,7 +40,7 @@
         <java.source.jdk>1.8</java.source.jdk>
         <spring-framework.version>5.3.20</spring-framework.version>
         <slf4j_version>1.7.25</slf4j_version>
-        <log4j2.version>2.17.0</log4j2.version>
+        <log4j2.version>2.17.1</log4j2.version>
     </properties>
 
     <name>Motan</name>
