@@ -29,7 +29,7 @@ import java.util.Comparator;
 public class ActivationComparator<T> implements Comparator<T> {
 
     /**
-     * sequence 大的排在后面,如果没有设置sequence的排到最前面
+     * sequence 大的排在后面,如果没有设置sequence的排到最后面
      */
     @Override
     public int compare(T o1, T o2) {
