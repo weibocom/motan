@@ -1,4 +1,14 @@
 # Change Log
+## [1.1.13](https://github.com/weibocom/motan/tree/1.1.13) (2022-09-29)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.12...1.1.13)
+
+**Implemented enhancements:**
+- not treat as exception when same services export[\#999](https://github.com/weibocom/motan/pull/999) ([Ray](https://github.com/rayzhang0603))
+- RefererConfigBean getObjectType return default class when interface class is not set[\#1003](https://github.com/weibocom/motan/pull/1003) ([Ray](https://github.com/rayzhang0603))
+
+**Merged pull requests:**
+
+**Fixed bugs:**
 
 ## [1.1.12](https://github.com/weibocom/motan/tree/1.1.12) (2022-08-11)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.1.11...1.1.12)
