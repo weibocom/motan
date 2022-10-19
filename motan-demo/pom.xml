@@ -97,11 +97,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <artifactId>protobuf-java</artifactId>
-            <groupId>com.google.protobuf</groupId>
-            <version>3.16.1</version>
-        </dependency>
-        <dependency>
             <groupId>com.weibo</groupId>
             <artifactId>motan-protocol-restful</artifactId>
             <version>${project.parent.version}</version>
@@ -119,7 +114,8 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
-            <version>4.1.3.Final</version> <!-- to be compatible with motan-protocol-grpc modules -->
+<!--            <version>4.1.3.Final</version> &lt;!&ndash; to be compatible with motan-protocol-grpc modules &ndash;&gt;-->
+            <version>4.1.44.Final</version>
         </dependency>
 
         <!-- log4j -->
