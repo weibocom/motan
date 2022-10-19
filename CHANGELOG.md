@@ -1,5 +1,18 @@
 # Change Log
 
+## [1.2.0](https://github.com/weibocom/motan/tree/1.2.0) (2022-10-19)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.12...1.2.0)
+
+**Implemented enhancements:**
+- update dependencies to fix security vulnerabilities. such as spring, netty, log4j
+- RefererConfigBean getObjectType return default class when interface class is not set
+
+**Merged pull requests:**
+- support extended annotation [\#993](https://github.com/weibocom/motan/pull/993) ([dragon-zhang](https://github.com/dragon-zhang))
+
+**Fixed bugs:**
+
+
 ## [1.1.12](https://github.com/weibocom/motan/tree/1.1.12) (2022-08-11)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.1.11...1.1.12)
 
