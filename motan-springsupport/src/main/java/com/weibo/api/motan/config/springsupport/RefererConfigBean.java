@@ -42,11 +42,7 @@ public class RefererConfigBean<T> extends RefererConfig<T> implements FactoryBea
 
     @Override
     public Class<?> getObjectType() {
-        Class<?> clz = getInterface();
-        if (clz == null){ // if interfaceClass is not set
-            clz = this.getClass(); // avoid being initialized prematurely before placeholder is processed
-        }
-        return clz;
+        return getInterface();
     }
 
     @Override
