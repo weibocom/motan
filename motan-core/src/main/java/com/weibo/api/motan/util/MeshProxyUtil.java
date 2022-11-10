@@ -31,12 +31,14 @@ import java.util.*;
 /**
  * @author zhanglei28
  * @date 2022/7/14.
+ * @since 1.1.11
  */
 public class MeshProxyUtil {
     // config keys
     private static final String MODE_KEY = "mode"; // proxy type key
     private static final String PORT_KEY = "port"; // mesh transport port for client end
     private static final String IP_KEY = "ip"; // mesh management port
+    private static final String PROTOCOL_KEY = "protocol"; // proxy protocol
 
     // config values
     private static final String MODE_SERVER = "server"; // 代理server侧流量
@@ -102,7 +104,12 @@ public class MeshProxyUtil {
         if (MODE_SERVER.equals(mode) && !isServerEnd) {// server模式下，client端不进行处理
             return false;
         }
-        if (!"motan2".equals(serviceUrl.getProtocol())) {// 非motan2 协议不进行处理。 TODO 后续支持motan1协议后在进行调整
+        // check protocol
+        if (!"motan2".equals(serviceUrl.getProtocol()) && !"motan".equals(serviceUrl.getProtocol())) {// only support motan&motan2 protocol
+            return false;
+        }
+        String protocol = proxyConfig.get(PROTOCOL_KEY);
+        if (StringUtils.isNotBlank(protocol) && !protocol.equals(serviceUrl.getProtocol())) {
             return false;
         }
         return true;
