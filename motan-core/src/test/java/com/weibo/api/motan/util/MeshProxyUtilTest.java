@@ -122,7 +122,16 @@ public class MeshProxyUtilTest {
         proxiedParams.put("mport", MeshProxyUtil.getProxyConfig().get("mport"));
         check(originRegistryUrls, resultUrl, true, proxiedParams);
 
-        // check not motan2 protocol. //TODO remove this test if motan protocol is supported
+        // check motan protocol.
+        serviceUrl.setProtocol("motan");
+        resultUrl = MeshProxyUtil.processMeshProxy(originRegistryUrls, serviceUrl, true);
+        check(originRegistryUrls, resultUrl, true, null);
+
+
+        // check only proxy motan2 protocol
+        getModifiableEnvironment().put(ENV_MESH_PROXY, "protocol:motan2");
+        MeshProxyUtil.reset();
+        MeshProxyUtil.setInitChecked(true);
         serviceUrl.setProtocol("motan");
         resultUrl = MeshProxyUtil.processMeshProxy(originRegistryUrls, serviceUrl, true);
         check(originRegistryUrls, resultUrl, false, null);
