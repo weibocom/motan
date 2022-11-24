@@ -1,4 +1,16 @@
 # Change Log
+## [1.1.14](https://github.com/weibocom/motan/tree/1.1.14) (2022-11-24)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.1.13...1.1.14)
+
+**Implemented enhancements:**
+- mesh proxy support motan1 protocol[\#1018](https://github.com/weibocom/motan/pull/1018) ([Ray](https://github.com/rayzhang0603))
+
+**Merged pull requests:**
+
+**Fixed bugs:**
+- not compatible with @Autowired， revert [\#1003](https://github.com/weibocom/motan/pull/1003)
+
+
 ## [1.1.13](https://github.com/weibocom/motan/tree/1.1.13) (2022-09-29)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.1.12...1.1.13)
 
