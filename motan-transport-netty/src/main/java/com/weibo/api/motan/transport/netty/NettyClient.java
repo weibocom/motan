@@ -160,7 +160,6 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
             // return channel to pool
             returnObject(channel);
         } catch (Exception e) {
-            LoggerUtil.error("NettyClient request Error: url=" + url.getUri() + " " + MotanFrameworkUtil.toString(request) + ", " + e.getMessage());
             //TODO 对特定的异常回收channel
             invalidateObject(channel);
             if (e instanceof MotanAbstractException) {

@@ -191,6 +191,38 @@ public class NettyClientTest {
         }
     }
 
+    @Test
+    public void testLazyInit(){
+        // test open init
+        url.addParameter(URLParamType.lazyInit.getName(), "false");
+        NettyTestClient testClient = new NettyTestClient(url);
+        nettyClient = testClient;
+        nettyClient.open();
+        assertTrue(testClient.getPoolInit());
+        testClient.close();
+
+        // test lazy init
+        url.addParameter(URLParamType.lazyInit.getName(), "true");
+        testClient = new NettyTestClient(url);
+        nettyClient = testClient;
+        nettyClient.open();
+        assertFalse(testClient.getPoolInit());
+
+        Response response;
+        try {
+            response = nettyClient.request(request);
+            assertTrue(testClient.getPoolInit());
+
+            Object result = response.getValue();
+            Assert.assertNotNull(result);
+            Assert.assertEquals("method: " + request.getMethodName() + " requestId: " + request.getRequestId(), result);
+        } catch (MotanServiceException e) {
+            assertTrue(false);
+        } catch (Exception e) {
+            assertTrue(false);
+        }
+    }
+
     class NettyTestClient extends NettyClient {
 
         public NettyTestClient(URL url) {
@@ -203,6 +235,10 @@ public class NettyClientTest {
 
         public Channel getChannel0() {
             return super.getChannel();
+        }
+
+        public boolean getPoolInit(){
+            return super.poolInit;
         }
     }
 }
