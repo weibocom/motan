@@ -39,6 +39,7 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
     protected SharedObjectFactory factory;
     protected ArrayList<Channel> channels;
     protected int connections;
+    protected volatile boolean poolInit; // Whether the connection pool has been initialized
 
     public AbstractSharedPoolClient(URL url) {
         super(url);
@@ -55,7 +56,10 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
         for (int i = 0; i < connections; i++) {
             channels.add((Channel) factory.makeObject());
         }
-
+        if (url.getBooleanParameter(URLParamType.lazyInit.getName(), URLParamType.lazyInit.getBooleanValue())){
+            LoggerUtil.debug("motan client will be lazily initialized. url:" + url.getUri());
+            return;
+        }
         initConnections(url.getBooleanParameter(URLParamType.asyncInitConnection.getName(), URLParamType.asyncInitConnection.getBooleanValue()));
     }
 
@@ -83,9 +87,17 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
                 LoggerUtil.error("NettyClient init pool create connect Error: url=" + url.getUri(), e);
             }
         }
+        poolInit = true;
     }
 
     protected Channel getChannel() {
+        if (!poolInit){
+            synchronized (this){
+                if (!poolInit){
+                    createConnections();
+                }
+            }
+        }
         int index = MathUtil.getNonNegativeRange24bit(idx.getAndIncrement());
         Channel channel;
 
@@ -100,7 +112,6 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
         }
 
         String errorMsg = this.getClass().getSimpleName() + " getChannel Error: url=" + url.getUri();
-        LoggerUtil.error(errorMsg);
         throw new MotanServiceException(errorMsg);
     }
 
