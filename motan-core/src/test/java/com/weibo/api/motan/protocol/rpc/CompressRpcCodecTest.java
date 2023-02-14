@@ -106,16 +106,14 @@ public class CompressRpcCodecTest extends DefaultRpcCodecTest {
         int bodyLength = ByteUtil.bytes2int(bytes, 12);
         URL url = new URL("motan", "localhost", 18080, "com.weibo.api.motan.procotol.example.IHello");
         Map<String, String> params = url.getParameters();
-        params.put(URLParamType.usegz.name(), "true");
         params.put(URLParamType.mingzSize.name(), String.valueOf(bodyLength - 1));
         Channel tempChannel = new MockChannel(url);
         bytes = rpcCodec.encode(tempChannel, request);
         assertTrue(isGzip(bytes));
 
         // 等于、大于阈值.url内部对数字类型参数有缓存，且无法动态更新，需要重新生产url及channel
-        url = new URL("motan", "localhost", 18080, "com.weibo.api.motan.procotol.example.IHello");
+        url = new URL("motan", "localhost", 18080, "com.weibo.api.motan.protocol.example.IHello");
         params = url.getParameters();
-        params.put(URLParamType.usegz.name(), "true");
         params.put(URLParamType.mingzSize.name(), String.valueOf(bodyLength));
         tempChannel = new MockChannel(url);
         bytes = rpcCodec.encode(tempChannel, request);

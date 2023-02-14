@@ -18,15 +18,20 @@ package com.weibo.api.motan.config;
 
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.mock.MockClient;
 import com.weibo.api.motan.protocol.example.IWorld;
 import com.weibo.api.motan.protocol.example.MockWorld;
+import com.weibo.api.motan.rpc.RpcContext;
+import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.transport.DefaultMeshClient;
+import com.weibo.api.motan.transport.MeshClient;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 
  * refererConfig unit test.
  *
  * @author fishermen
@@ -143,4 +148,31 @@ public class RefererConfigTest extends BaseTestCase {
         refererConfig.loadRegistryUrls();
         assertEquals(registries.size(), refererConfig.getRegistryUrls().size());
     }
+
+    @Test
+    public void testMeshClientRef() {
+        int timeout = 300;
+        URL mockMeshUrl = new URL("motan2", "localhost", 18002, MeshClient.class.getName(), DefaultMeshClient.getDefaultParams());
+        mockMeshUrl.addParameter(URLParamType.endpointFactory.getName(), "mockEndpoint");
+        DefaultMeshClient meshClient = new DefaultMeshClient(mockMeshUrl);
+        meshClient.init();
+        refererConfig.setRequestTimeout(timeout);
+        refererConfig.setMeshClient(meshClient);
+        IWorld ref = refererConfig.getRef();
+        assertNotNull(ref);
+        assertNotNull(refererConfig.getMeshClient());
+
+        int times = 3;
+        for (int i = 0; i < times; i++) {
+            RpcContext.destroy();
+            ref.world("test");
+            assertEquals(String.valueOf(timeout), RpcContext.getContext().getRequest().getAttachments().get(MotanConstants.M2_TIMEOUT));
+        }
+        assertEquals(times, MockClient.urlMap.get(meshClient.getUrl()).get());
+
+        // destroy
+        refererConfig.destroy();
+        assertFalse(refererConfig.getInitialized().get());
+    }
+
 }

@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- *
  * MotanBeanDefinitionParser
  *
  * @author fishermen
@@ -120,7 +119,7 @@ public class MotanBeanDefinitionParser implements BeanDefinitionParser {
             }
         }
 
-        Set<String> props = new HashSet<String>();
+        Set<String> props = new HashSet<>();
         ManagedMap parameters = null;
         // 把配置文件中的可以set的属性放到bd中
         for (Method setter : beanClass.getMethods()) {
@@ -147,7 +146,7 @@ public class MotanBeanDefinitionParser implements BeanDefinitionParser {
             if (value.length() == 0) {
                 continue;
             }
-            Object reference;
+            Object reference = null;
             if ("ref".equals(property)) {
                 if (parserContext.getRegistry().containsBeanDefinition(value)) {
                     BeanDefinition refBean = parserContext.getRegistry().getBeanDefinition(value);
@@ -162,15 +161,18 @@ public class MotanBeanDefinitionParser implements BeanDefinitionParser {
                     reference = new RuntimeBeanReference(value);
                 } else {
                     parseMultiRef("protocols", value, bd, parserContext);
-                    reference = null;
                 }
             } else if ("registry".equals(property)) {
                 parseMultiRef("registries", value, bd, parserContext);
-                reference = null;
             } else if ("basicService".equals(property) || "basicReferer".equals(property)
                     || "extConfig".equals(property) || "proxyRegistry".equals(property)) {
                 reference = new RuntimeBeanReference(value);
 
+            } else if ("meshClient".equals(property)) {
+                bd.getPropertyValues().addPropertyValue("meshClientString", new TypedStringValue(value));
+                if (!"default".equals(value) && !"none".equals(value)) {
+                    reference = new RuntimeBeanReference(value);
+                }
             } else {
                 reference = new TypedStringValue(value);
             }

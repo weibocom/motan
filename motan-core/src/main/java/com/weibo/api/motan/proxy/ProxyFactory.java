@@ -18,17 +18,21 @@ package com.weibo.api.motan.proxy;
 
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.core.extension.Spi;
+import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.transport.MeshClient;
 
 import java.util.List;
 
 /**
- *
  * @author maijunsheng
- *
  */
 @Spi
 public interface ProxyFactory {
 
     <T> T getProxy(Class<T> clz, List<Cluster<T>> clusters);
+
+    default <T> T getProxy(Class<T> clz, URL refUrl, MeshClient meshClient) {
+        throw new RuntimeException(this.getClass().getName() + " not support proxy with MeshClient");
+    }
 
 }

@@ -17,15 +17,10 @@
 package com.weibo.api.motan.proxy;
 
 import com.weibo.api.motan.cluster.Cluster;
-import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.DefaultRequest;
 import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.rpc.ResponseFuture;
-import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
-import com.weibo.api.motan.util.ReflectUtil;
-import com.weibo.api.motan.util.RequestIdGenerator;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -58,39 +53,9 @@ public class RefererInvocationHandler<T> extends AbstractRefererHandler<T> imple
             }
             throw new MotanServiceException("can not invoke local method:" + method.getName());
         }
-
         DefaultRequest request = new DefaultRequest();
-        request.setRequestId(RequestIdGenerator.getRequestId());
-        request.setArguments(args);
-        String methodName = method.getName();
-        boolean async = false;
-        if (methodName.endsWith(MotanConstants.ASYNC_SUFFIX) && method.getReturnType().equals(ResponseFuture.class)) {
-            methodName = MotanFrameworkUtil.removeAsyncSuffix(methodName);
-            async = true;
-        }
-        request.setMethodName(methodName);
-        request.setParamtersDesc(ReflectUtil.getMethodParamDesc(method));
-        request.setInterfaceName(interfaceName);
-
-        return invokeRequest(request, getRealReturnType(async, this.clz, method, methodName), async);
-    }
-
-    /**
-     * tostring,equals,hashCode,finalize等接口未声明的方法不进行远程调用
-     *
-     * @param method
-     * @return
-     */
-    public boolean isLocalMethod(Method method) {
-        if (method.getDeclaringClass().equals(Object.class)) {
-            try {
-                Method interfaceMethod = clz.getDeclaredMethod(method.getName(), method.getParameterTypes());
-                return false;
-            } catch (Exception e) {
-                return true;
-            }
-        }
-        return false;
+        boolean async = fillDefaultRequest(request, method, args);
+        return invokeRequest(request, getRealReturnType(async, this.clz, method, request.getMethodName()), async);
     }
 
     private String clustersToString() {
@@ -118,19 +83,4 @@ public class RefererInvocationHandler<T> extends AbstractRefererHandler<T> imple
             return o.equals(this.clusters);
         }
     }
-
-    private Class<?> getRealReturnType(boolean asyncCall, Class<?> clazz, Method method, String methodName) {
-        if (asyncCall) {
-            try {
-                Method m = clazz.getMethod(methodName, method.getParameterTypes());
-                return m.getReturnType();
-            } catch (Exception e) {
-                LoggerUtil.warn("RefererInvocationHandler get real return type fail. err:" + e.getMessage());
-                return method.getReturnType();
-            }
-        } else {
-            return method.getReturnType();
-        }
-    }
-
 }

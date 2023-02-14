@@ -120,22 +120,22 @@ public class AccessLogFilter implements Filter {
 
         StringBuilder builder = new StringBuilder(128);
         append(builder, side);
+        // application and module from local url
         append(builder, caller.getUrl().getParameter(URLParamType.application.getName()));
-        append(builder, caller.getUrl().getParameter(URLParamType.module.getName()));
+        append(builder, MotanFrameworkUtil.getModuleOrGroup(caller.getUrl().getParameters(), null));
         append(builder, NetUtils.getLocalAddress().getHostAddress());
         append(builder, request.getInterfaceName());
         append(builder, request.getMethodName());
         append(builder, request.getParamtersDesc());
-        // 对于client，url中的remote ip, application, module,referer 和 service获取的地方不同
+        // 对于client，url中的remote ip 和 service获取的地方不同
         if (MotanConstants.NODE_TYPE_REFERER.equals(side)) {
             append(builder, caller.getUrl().getHost());
-            append(builder, caller.getUrl().getParameter(URLParamType.application.getName()));
-            append(builder, caller.getUrl().getParameter(URLParamType.module.getName()));
         } else {
             append(builder, request.getAttachments().get(URLParamType.host.getName()));
-            append(builder, request.getAttachments().get(URLParamType.application.getName()));
-            append(builder, request.getAttachments().get(URLParamType.module.getName()));
         }
+        // application and module from request
+        append(builder, request.getAttachments().get(URLParamType.application.getName()));
+        append(builder, MotanFrameworkUtil.getModuleOrGroup(request.getAttachments(), null));
 
         append(builder, success);
         String requestId = request.getAttachments().get(URLParamType.requestIdFromClient.getName());

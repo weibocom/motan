@@ -21,9 +21,7 @@ package com.weibo.motan.demo.client;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.config.RegistryConfig;
-import com.weibo.api.motan.proxy.CommonHandler;
-import com.weibo.api.motan.rpc.Future;
-import com.weibo.api.motan.rpc.FutureListener;
+import com.weibo.api.motan.proxy.CommonClient;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.ResponseFuture;
 import com.weibo.motan.demo.service.MotanDemoService;
@@ -55,7 +53,7 @@ public class Motan2RpcClient {
         System.out.println(pbService.getFeature(Point.newBuilder().setLatitude(123).setLongitude(456).build()));
 
         // common client
-        CommonHandler xmlClient = (CommonHandler) ctx.getBean("motanDemoReferer-common-client");
+        CommonClient xmlClient = (CommonClient) ctx.getBean("motanDemoReferer-common-client");
         motan2XmlCommonClientDemo(xmlClient);
         motan2ApiCommonClientDemo();
 
@@ -70,7 +68,7 @@ public class Motan2RpcClient {
         }
     }
 
-    public static void motan2XmlCommonClientDemo(CommonHandler client) throws Throwable {
+    public static void motan2XmlCommonClientDemo(CommonClient client) throws Throwable {
         System.out.println(client.call("hello", new Object[]{"a"}, String.class));
 
         User user = new User(1, "AAA");
@@ -84,12 +82,7 @@ public class Motan2RpcClient {
         System.out.println(user);
 
         ResponseFuture future2 = (ResponseFuture) client.asyncCall("rename", new Object[]{user, "DDD"}, User.class);
-        future2.addListener(new FutureListener() {
-            @Override
-            public void operationComplete(Future future) {
-                System.out.println(future.getValue());
-            }
-        });
+        future2.addListener(future1 -> System.out.println(future1.getValue()));
 
         Request request = client.buildRequest("rename", new Object[]{user, "EEE"});
         request.setAttachment("a", "a");
@@ -101,10 +94,10 @@ public class Motan2RpcClient {
     }
 
     public static void motan2ApiCommonClientDemo() throws Throwable {
-        RefererConfig<CommonHandler> referer = new RefererConfig<>();
+        RefererConfig<CommonClient> referer = new RefererConfig<>();
 
         // 设置服务端接口
-        referer.setInterface(CommonHandler.class);
+        referer.setInterface(CommonClient.class);
         referer.setServiceInterface("com.weibo.motan.demo.service.MotanDemoService");
 
         // 配置服务的group以及版本号
@@ -126,7 +119,7 @@ public class Motan2RpcClient {
         referer.setProtocol(protocol);
 
         // 使用服务
-        CommonHandler client = referer.getRef();
+        CommonClient client = referer.getRef();
         System.out.println(client.call("hello", new Object[]{"a"}, String.class));
     }
 

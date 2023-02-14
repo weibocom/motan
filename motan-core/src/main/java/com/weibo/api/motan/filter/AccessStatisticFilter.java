@@ -62,6 +62,15 @@ public class AccessStatisticFilter implements Filter {
                 bizProcessTime = response.getProcessTime();
             }
 
+            final String application, module;
+            if (caller instanceof Referer) {
+                application = request.getAttachments().get(URLParamType.application.getName());
+                module = MotanFrameworkUtil.getModuleOrGroup(request.getAttachments(), null);
+            } else {
+                application = caller.getUrl().getApplication();
+                module = MotanFrameworkUtil.getModuleOrGroup(caller.getUrl().getParameters(), null);
+            }
+
             final String statName = caller.getUrl().getProtocol() + MotanConstants.PROTOCOL_SEPARATOR + MotanFrameworkUtil.getGroupMethodString(request);
             final int slowCost = caller.getUrl().getIntParameter(URLParamType.slowThreshold.getName(), URLParamType.slowThreshold.getIntValue());
             final Response finalResponse = response;
@@ -69,19 +78,16 @@ public class AccessStatisticFilter implements Filter {
                 StatsUtil.accessStatistic(statName, APPLICATION_STATISTIC, RPC_SERVICE, end, end - start, bizProcessTime, slowCost, accessStatus);
                 if (response instanceof Callbackable) {
                     final AccessStatus finalAccessStatus = accessStatus;
-                    ((Callbackable) response).addFinishCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (request instanceof Traceable && finalResponse instanceof Traceable) {
-                                long responseSend = ((Traceable) finalResponse).getTraceableContext().getSendTime();
-                                long requestReceive = ((Traceable) request).getTraceableContext().getReceiveTime();
-                                StatsUtil.accessStatistic(statName + "_WHOLE", caller.getUrl().getApplication(), caller.getUrl().getModule(), responseSend, responseSend - requestReceive, bizProcessTime, slowCost, finalAccessStatus);
-                            }
+                    ((Callbackable) response).addFinishCallback(() -> {
+                        if (request instanceof Traceable && finalResponse instanceof Traceable) {
+                            long responseSend = ((Traceable) finalResponse).getTraceableContext().getSendTime();
+                            long requestReceive = ((Traceable) request).getTraceableContext().getReceiveTime();
+                            StatsUtil.accessStatistic(statName + "_WHOLE", application, module, responseSend, responseSend - requestReceive, bizProcessTime, slowCost, finalAccessStatus);
                         }
                     }, null);
                 }
             }
-            StatsUtil.accessStatistic(statName, caller.getUrl().getApplication(), caller.getUrl().getModule(), end, end - start, bizProcessTime, slowCost, accessStatus);
+            StatsUtil.accessStatistic(statName, application, module, end, end - start, bizProcessTime, slowCost, accessStatus);
         }
     }
 }

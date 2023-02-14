@@ -39,8 +39,8 @@ import com.weibo.api.motan.util.MathUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -73,7 +73,7 @@ public class MotanV2Codec extends AbstractCodec {
             //meta
             int index = HEADER_SIZE;
             buf.position(index);
-            buf.putInt(0);//metasize
+            buf.putInt(0);// meta size
 
             if (message instanceof Request) {
                 String serialName = channel.getUrl().getParameter(URLParamType.serialize.getName(), URLParamType.serialize.getValue());
@@ -124,13 +124,13 @@ public class MotanV2Codec extends AbstractCodec {
             }
 
             buf.position(buf.position() - 1);
-            int metalength = buf.position() - index - 4;
-            buf.putInt(index, metalength);
+            int metaLength = buf.position() - index - 4;
+            buf.putInt(index, metaLength);
 
             //body
             if (body != null && body.length > 0) {
-                if (channel.getUrl().getBooleanParameter(URLParamType.usegz.getName(), URLParamType.usegz.getBooleanValue())
-                        && body.length > channel.getUrl().getIntParameter(URLParamType.mingzSize.getName(), URLParamType.mingzSize.getIntValue())) {
+                int mingzSize = channel.getUrl().getIntParameter(URLParamType.mingzSize.getName(), 0);
+                if (mingzSize > 0 && body.length > mingzSize) { // 设置了mingzSize，并且body大于mingzSize 时启用gzip
                     try {
                         body = ByteUtil.gzip(body);
                         header.setGzip(true);
@@ -154,31 +154,31 @@ public class MotanV2Codec extends AbstractCodec {
             buf.get(result);
             return result;
         } catch (Exception e) {
-            String errmsg = "";
+            String errMsg = "";
             if (message != null) {
                 if (message instanceof Request) {
-                    errmsg = "type:request, " + message.toString();
+                    errMsg = "type:request, " + message;
                 } else {
-                    errmsg = "type:response, " + message.toString();
+                    errMsg = "type:response, " + message;
                 }
             }
-            LoggerUtil.warn("motan2 encode error." + errmsg, e);
+            LoggerUtil.warn("motan2 encode error." + errMsg, e);
             if (ExceptionUtil.isMotanException(e)) {
-                throw (RuntimeException) e;
+                throw e;
             } else {
-                throw new MotanFrameworkException("encode error!" + errmsg + ", origin errmsg:" + e.getMessage(), e,
+                throw new MotanFrameworkException("encode error!" + errMsg + ", origin err msg:" + e.getMessage(), e,
                         MotanErrorMsgConstant.FRAMEWORK_ENCODE_ERROR);
             }
         }
     }
 
 
-    private void putString(GrowableByteBuffer buf, String content) throws UnsupportedEncodingException {
-        buf.put(content.getBytes("UTF-8"));
-        buf.put("\n".getBytes("UTF-8"));
+    private void putString(GrowableByteBuffer buf, String content) {
+        buf.put(content.getBytes(StandardCharsets.UTF_8));
+        buf.put("\n".getBytes(StandardCharsets.UTF_8));
     }
 
-    private void putMap(GrowableByteBuffer buf, Map<String, String> map) throws UnsupportedEncodingException {
+    private void putMap(GrowableByteBuffer buf, Map<String, String> map) {
         if (!map.isEmpty()) {
             for (Map.Entry<String, String> entry : map.entrySet()) {
                 putString(buf, entry.getKey());
@@ -196,8 +196,8 @@ public class MotanV2Codec extends AbstractCodec {
         }
         GrowableByteBuffer buf = new GrowableByteBuffer(32);
         buf.put(header.toBytes());
-        buf.putInt(0);//metasize
-        buf.putInt(0);//bodysize
+        buf.putInt(0);//meta size
+        buf.putInt(0);//body size
         buf.flip();
         byte[] result = new byte[buf.remaining()];
         buf.get(result);
@@ -214,7 +214,7 @@ public class MotanV2Codec extends AbstractCodec {
     @Override
     public Object decode(Channel channel, String remoteIp, byte[] data) throws IOException {
         MotanV2Header header = MotanV2Header.buildHeader(data);
-        Map<String, String> metaMap = new HashMap<String, String>();
+        Map<String, String> metaMap = new HashMap<>();
         ByteBuffer buf = ByteBuffer.wrap(data);
         int metaSize = buf.getInt(HEADER_SIZE);
         int index = HEADER_SIZE + 4;
@@ -286,10 +286,10 @@ public class MotanV2Codec extends AbstractCodec {
             if (header.getStatus() == MotanV2Header.MessageStatus.NORMAL.getStatus()) {//只解析正常消息
                 response.setValue(obj);
             } else {
-                String errmsg = metaMap.remove(M2_ERROR);
-                Exception e = ExceptionUtil.fromMessage(errmsg);
+                String errMsg = metaMap.remove(M2_ERROR);
+                Exception e = ExceptionUtil.fromMessage(errMsg);
                 if (e == null) {
-                    e = (Exception) new MotanServiceException("default remote exception. remote errmsg:" + errmsg, false);
+                    e = new MotanServiceException("default remote exception. remote err msg:" + errMsg, false);
                 }
                 response.setException(e);
             }
@@ -299,7 +299,7 @@ public class MotanV2Codec extends AbstractCodec {
     }
 
     private Map<String, String> decodeMeta(byte[] meta) {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         if (meta != null && meta.length > 0) {
             String[] s = new String(meta).split("\n");
             for (int i = 0; i < s.length - 1; i++) {

@@ -286,9 +286,8 @@ public class CompressRpcCodec extends AbstractCodec {
         byte flag = MotanConstants.FLAG_REQUEST;
 
         output.close();
-        Boolean usegz = channel.getUrl().getBooleanParameter(URLParamType.usegz.getName(), URLParamType.usegz.getBooleanValue());
-        int minGzSize = channel.getUrl().getIntParameter(URLParamType.mingzSize.getName(), URLParamType.mingzSize.getIntValue());
-        return encode(compress(body, usegz, minGzSize), flag, request.getRequestId());
+        int minGzSize = channel.getUrl().getIntParameter(URLParamType.mingzSize.getName(), 0);
+        return encode(compress(body, minGzSize), flag, request.getRequestId());
     }
 
     private Map<String, String> copyMap(Map<String, String> attachments) {
@@ -432,9 +431,8 @@ public class CompressRpcCodec extends AbstractCodec {
         byte[] body = outputStream.toByteArray();
 
         output.close();
-        Boolean usegz = channel.getUrl().getBooleanParameter(URLParamType.usegz.getName(), URLParamType.usegz.getBooleanValue());
-        int minGzSize = channel.getUrl().getIntParameter(URLParamType.mingzSize.getName(), URLParamType.mingzSize.getIntValue());
-        return encode(compress(body, usegz, minGzSize), flag, value.getRequestId());
+        int minGzSize = channel.getUrl().getIntParameter(URLParamType.mingzSize.getName(), 0);
+        return encode(compress(body, minGzSize), flag, value.getRequestId());
     }
 
     /**
@@ -736,8 +734,8 @@ public class CompressRpcCodec extends AbstractCodec {
     }
 
     // 对rpc body进行压缩。
-    public byte[] compress(byte[] org, boolean useGzip, int minGzSize) throws IOException {
-        if (useGzip && org.length > minGzSize) {
+    public byte[] compress(byte[] org, int minGzSize) throws IOException {
+        if (minGzSize > 0 && org.length > minGzSize) {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             GZIPOutputStream gos = new GZIPOutputStream(outputStream);
             gos.write(org);

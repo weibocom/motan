@@ -23,6 +23,8 @@ import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.rpc.*;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Map;
+
 /**
  * 提供框架内部一些约定处理
  *
@@ -115,6 +117,26 @@ public class MotanFrameworkUtil {
 
     public static String getGroupMethodString(Request request) {
         return getGroupFromRequest(request) + "_" + getFullMethodString(request);
+    }
+
+    /**
+     * Get the module first, or get the group if module not set
+     * @since 1.2.1
+     * @param map URL's parameters or request's attachments
+     * @param defaultValue The default value when neither module nor group can be obtained
+     * @return the value of module or group
+     */
+    public static String getModuleOrGroup(Map<String, String> map, String defaultValue) {
+        if (map != null) {
+            String module = map.get(URLParamType.module.getName());
+            if (module == null) {
+                module = map.get(URLParamType.group.getName());
+            }
+            if (module != null) {
+                return module;
+            }
+        }
+        return defaultValue;
     }
 
 

@@ -48,14 +48,14 @@ public class TestProtoBuf {
 		serviceConfig.setRef(new HelloServiceImpl());
 		serviceConfig.setInterface(HelloService.class);
 		serviceConfig.setProtocol(protocolConfig);
-		serviceConfig.setExport("testMotan:8002");
+		serviceConfig.setExport("testMotan:18002");
 		serviceConfig.setRegistry(registryConfig);
 		serviceConfig.setShareChannel(true);
 
 		serviceConfig.export();
 
 		refererConfig = new RefererConfig<HelloService>();
-		refererConfig.setDirectUrl("127.0.0.1:8002");
+		refererConfig.setDirectUrl("127.0.0.1:18002");
 		refererConfig.setProtocol(protocolConfig);
 		refererConfig.setInterface(HelloService.class);
 

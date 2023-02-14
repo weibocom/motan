@@ -21,6 +21,7 @@ import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.config.springsupport.util.SpringBeanUtil;
+import com.weibo.api.motan.transport.DefaultMeshClient;
 import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import org.springframework.beans.BeansException;
@@ -58,11 +59,13 @@ public class RefererConfigBean<T> extends RefererConfig<T> implements FactoryBea
     @Override
     public void afterPropertiesSet() throws Exception {
         // basicConfig需要首先配置，因为其他可能会依赖于basicConfig的配置
-
         checkAndConfigBasicConfig();
+        if (checkAndConfigMeshClient()) { // 使用MeshClient时不需要检查其他项
+            return;
+        }
+
         checkAndConfigProtocols();
         checkAndConfigRegistry();
-
     }
 
     @Override
@@ -96,6 +99,26 @@ public class RefererConfigBean<T> extends RefererConfig<T> implements FactoryBea
                 }
             }
         }
+    }
+
+    /**
+     * 检查是否有MeshClient相关配置，是否需要配置默认MeshClient
+     * 如果使用默认MeshClient，如果初始化失败直接抛出异常，不支持通过check忽略此异常，尽早暴露问题
+     *
+     * @return true:使用MeshClient， false：不使用MeshClient
+     */
+    private boolean checkAndConfigMeshClient() {
+        if ("default".equals(meshClientString)) {
+            meshClient = DefaultMeshClient.getDefault();
+        }
+        if (meshClient == null && meshClientString == null && getBasicReferer() != null) {
+            if ("default".equals(getBasicReferer().getMeshClientString())) {
+                meshClient = DefaultMeshClient.getDefault();
+            } else {
+                meshClient = getBasicReferer().getMeshClient();
+            }
+        }
+        return meshClient != null;
     }
 
     /**
@@ -151,9 +174,5 @@ public class RefererConfigBean<T> extends RefererConfig<T> implements FactoryBea
         for (RegistryConfig registryConfig : getRegistries()) {
             SpringBeanUtil.addRegistryParamBean(registryConfig, beanFactory);
         }
-    }
-
-    public void checkAndConfigExtInfo() {
-
     }
 }

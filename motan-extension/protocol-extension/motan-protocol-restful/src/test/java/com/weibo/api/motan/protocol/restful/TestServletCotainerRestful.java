@@ -58,7 +58,7 @@ public class TestServletCotainerRestful {
         tomcat = new Tomcat();
         String baseDir = new File(System.getProperty("java.io.tmpdir")).getAbsolutePath();
         tomcat.setBaseDir(baseDir);
-        tomcat.setPort(8002);
+        tomcat.setPort(18002);
 
         tomcat.getConnector().setProperty("URIEncoding", "UTF-8");
         tomcat.getConnector().setProperty("socket.soReuseAddress", "true");
@@ -131,7 +131,7 @@ public class TestServletCotainerRestful {
         serviceConfig.export();
 
         refererConfig = new RefererConfig<HelloResource>();
-        refererConfig.setDirectUrl("127.0.0.1:8002");
+        refererConfig.setDirectUrl("127.0.0.1:18002");
         refererConfig.setGroup("test-group");
         refererConfig.setVersion("0.0.3");
         refererConfig.setFilter("clientf");
