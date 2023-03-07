@@ -1,5 +1,18 @@
 # Change Log
 
+## [1.2.1](https://github.com/weibocom/motan/tree/1.2.1) (2023-03-07)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.2.0...1.2.1)
+
+**Implemented enhancements:**
+- add global configs load from properties [\#1017](https://github.com/weibocom/motan/pull/1017) ([Ray](https://github.com/rayzhang0603))
+- mesh proxy support motan1 protocol [\#1018](https://github.com/weibocom/motan/pull/1018) ([Ray](https://github.com/rayzhang0603))
+- support lazy init in motan-transport-netty4 [\#1022](https://github.com/weibocom/motan/pull/1022) ([Ray](https://github.com/rayzhang0603))
+- support calling with MeshClient [\#1024](https://github.com/weibocom/motan/pull/1024) ([Ray](https://github.com/rayzhang0603))
+
+**Merged pull requests:**
+
+**Fixed bugs:**
+
 ## [1.2.0](https://github.com/weibocom/motan/tree/1.2.0) (2022-10-19)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.1.12...1.2.0)
 
