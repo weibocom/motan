@@ -52,7 +52,7 @@ public class TestRestful {
         serviceConfig.setRef(new RestHelloResource());
         serviceConfig.setInterface(HelloResource.class);
         serviceConfig.setProtocol(protocolConfig);
-        serviceConfig.setExport("testRpc:8002");
+        serviceConfig.setExport("testRpc:18002");
         serviceConfig.setFilter("serverf");
         serviceConfig.setGroup("test-group");
         serviceConfig.setVersion("0.0.3");
@@ -61,7 +61,7 @@ public class TestRestful {
         serviceConfig.export();
 
         refererConfig = new RefererConfig<HelloResource>();
-        refererConfig.setDirectUrl("127.0.0.1:8002");
+        refererConfig.setDirectUrl("127.0.0.1:18002");
         refererConfig.setGroup("test-group");
         refererConfig.setVersion("0.0.3");
         refererConfig.setFilter("clientf");

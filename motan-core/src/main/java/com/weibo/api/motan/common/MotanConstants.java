@@ -141,6 +141,7 @@ public class MotanConstants {
     public static final String M2_INFO_SIGN = "M_is";
     public static final String M2_ERROR = "M_e";
     public static final String M2_PROCESS_TIME = "M_pt";
+    public static final String M2_TIMEOUT = "M_tmo";
 
     // ------------------ request trace point constants -----------------
     public static final String TRACE_INVOKE = "TRACE_INVOKE"; //client 发起请求
@@ -165,6 +166,12 @@ public class MotanConstants {
     public static final String ENV_ADDITIONAL_GROUP = "MOTAN_SERVICE_ADDITIONAL_GROUP"; //motan service 追加导出分组。例如可以自动追加云平台上的分组
     public static final String ENV_MESH_PROXY = "MOTAN_MESH_PROXY"; //使用mesh代理motan请求的环境变量名
     public static final String ENV_MOTAN_IP_PREFIX = "MOTAN_IP_PREFIX";
+
+    // ------------------ motan mesh default value -----------------
+    public static final String MESH_CLIENT = "meshClient";
+    public static final int MESH_DEFAULT_PORT = 9981;
+    public static final int MESH_DEFAULT_MPORT = 8002;
+    public static final String MESH_DEFAULT_HOST = "localhost";
 
     private MotanConstants() {
     }

@@ -26,6 +26,7 @@ import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.transport.TransportException;
 import com.weibo.api.motan.util.ExceptionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MathUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import org.jboss.netty.channel.ChannelFuture;
 
@@ -53,8 +54,13 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel {
 
     @Override
     public Response request(Request request) throws TransportException {
-        int timeout = nettyClient.getUrl().getMethodParameter(request.getMethodName(), request.getParamtersDesc(),
-                URLParamType.requestTimeout.getName(), URLParamType.requestTimeout.getIntValue());
+        int timeout = 0;
+        if (request.getAttachments().get(MotanConstants.M2_TIMEOUT) != null) { // timeout from request
+            timeout = MathUtil.parseInt(request.getAttachments().get(MotanConstants.M2_TIMEOUT), 0);
+        }
+        if (timeout == 0) { // timeout from url
+            timeout = nettyClient.getUrl().getMethodParameter(request.getMethodName(), request.getParamtersDesc(), URLParamType.requestTimeout.getName(), URLParamType.requestTimeout.getIntValue());
+        }
         if (timeout <= 0) {
             throw new MotanFrameworkException("NettyClient init Error: timeout(" + timeout + ") <= 0 is forbid.",
                     MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);

@@ -45,7 +45,6 @@ public class MeshProxyUtil {
     private static final String MODE_CLIENT = "client"; // 代理client侧流量
     private static final String MODE_ALL = "all"; // 代理双端流量
     private static final String DEFAULT_PORT = "0"; // 默认mesh正向代理端口.为0时，MeshRegistry会使用统一默认端口。
-    private static final String DEFAULT_IP = "localhost"; // 默认mesh ip
 
     private static final String MESH_REGISTRY_NAME = "weibomesh";
     private static final Set<String> NOT_PROCESS_REGISTRY_PROTOCOLS = new HashSet<>(Arrays.asList("local", "direct", MESH_REGISTRY_NAME));
@@ -142,7 +141,7 @@ public class MeshProxyUtil {
 
     private static URL buildMeshRegistryUrl(URL proxyRegistry) {
         URL meshRegistryUrl = new URL(MESH_REGISTRY_NAME,
-                getValue(proxyConfig, IP_KEY, DEFAULT_IP),
+                getValue(proxyConfig, IP_KEY, MotanConstants.MESH_DEFAULT_HOST),
                 Integer.parseInt(getValue(proxyConfig, PORT_KEY, DEFAULT_PORT)),
                 RegistryService.class.getName()
         );

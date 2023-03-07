@@ -68,6 +68,10 @@ public class ProtocolFilterDecorator implements Protocol {
         protocol.destroy();
     }
 
+    public <T> Referer<T> decorateRefererFilter(Referer<T> referer, URL url) {
+        return decorateWithFilter(referer, url);
+    }
+
     private <T> Referer<T> decorateWithFilter(Referer<T> referer, URL url) {
         List<Filter> filters = getFilters(url, MotanConstants.NODE_TYPE_REFERER);
         Referer<T> lastRef = referer;

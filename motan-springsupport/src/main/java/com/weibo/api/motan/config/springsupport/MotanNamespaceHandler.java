@@ -16,10 +16,6 @@
 
 package com.weibo.api.motan.config.springsupport;
 
-import java.util.Set;
-
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
-
 import com.weibo.api.motan.config.BasicRefererInterfaceConfig;
 import com.weibo.api.motan.config.BasicServiceInterfaceConfig;
 import com.weibo.api.motan.config.ProtocolConfig;
@@ -27,12 +23,15 @@ import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.rpc.init.Initializable;
 import com.weibo.api.motan.rpc.init.InitializationFactory;
 import com.weibo.api.motan.util.ConcurrentHashSet;
+import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+
+import java.util.Set;
 
 public class MotanNamespaceHandler extends NamespaceHandlerSupport {
-    public final static Set<String> protocolDefineNames = new ConcurrentHashSet<String>();
-    public final static Set<String> registryDefineNames = new ConcurrentHashSet<String>();
-    public final static Set<String> basicServiceConfigDefineNames = new ConcurrentHashSet<String>();
-    public final static Set<String> basicRefererConfigDefineNames = new ConcurrentHashSet<String>();
+    public final static Set<String> protocolDefineNames = new ConcurrentHashSet<>();
+    public final static Set<String> registryDefineNames = new ConcurrentHashSet<>();
+    public final static Set<String> basicServiceConfigDefineNames = new ConcurrentHashSet<>();
+    public final static Set<String> basicRefererConfigDefineNames = new ConcurrentHashSet<>();
 
     @Override
     public void init() {
@@ -44,6 +43,7 @@ public class MotanNamespaceHandler extends NamespaceHandlerSupport {
         registerBeanDefinitionParser("basicReferer", new MotanBeanDefinitionParser(BasicRefererInterfaceConfig.class, true));
         registerBeanDefinitionParser("spi", new MotanBeanDefinitionParser(SpiConfigBean.class, true));
         registerBeanDefinitionParser("annotation", new MotanBeanDefinitionParser(AnnotationBean.class, true));
+        registerBeanDefinitionParser("meshClient", new MotanBeanDefinitionParser(MeshClientConfigBean.class, false));
         Initializable initialization = InitializationFactory.getInitialization();
         initialization.init();
     }

@@ -25,6 +25,7 @@ import com.weibo.api.motan.config.handler.ConfigHandler;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.proxy.ProxyFactory;
 import com.weibo.api.motan.registry.RegistryService;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.CollectionUtil;
@@ -101,20 +102,28 @@ public class RefererConfig<T> extends AbstractRefererConfig {
         if (initialized.get()) {
             return;
         }
-
+        // common check
         try {
             interfaceClass = (Class) Class.forName(interfaceClass.getName(), true, Thread.currentThread().getContextClassLoader());
         } catch (ClassNotFoundException e) {
-            throw new MotanFrameworkException("ReferereConfig initRef Error: Class not found " + interfaceClass.getName(), e,
+            throw new MotanFrameworkException("RefererConfig initRef Error: Class not found " + interfaceClass.getName(), e,
                     MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
         }
+        checkInterfaceAndMethods(interfaceClass, methods);
 
+        if (meshClient != null) { // use mesh client
+            initMeshClientRef();
+        } else { // use cluster
+            initClusterRef();
+        }
+        initialized.set(true);
+    }
+
+    private void initClusterRef() {
         if (CollectionUtil.isEmpty(protocols)) {
             throw new MotanFrameworkException(String.format("%s RefererConfig is malformed, for protocol not set correctly!",
                     interfaceClass.getName()));
         }
-
-        checkInterfaceAndMethods(interfaceClass, methods);
 
         clusterSupports = new ArrayList<>(protocols.size());
         List<Cluster<T>> clusters = new ArrayList<>(protocols.size());
@@ -141,14 +150,28 @@ public class RefererConfig<T> extends AbstractRefererConfig {
             clusters.add(clusterSupport.getCluster());
 
             if (proxy == null) {
-                String defaultValue = StringUtils.isBlank(serviceInterface) ? URLParamType.proxy.getValue() : MotanConstants.PROXY_COMMON;
-                proxy = refUrl.getParameter(URLParamType.proxy.getName(), defaultValue);
+                proxy = getProxyType(refUrl);
             }
         }
 
         ref = configHandler.refer(interfaceClass, clusters, proxy);
+    }
 
-        initialized.set(true);
+    private void initMeshClientRef() {
+        Map<String, String> params = new HashMap<>();
+        params.put(URLParamType.nodeType.getName(), MotanConstants.NODE_TYPE_REFERER);
+        collectConfigParams(params, basicReferer, extConfig, this);
+        String path = StringUtils.isBlank(serviceInterface) ? interfaceClass.getName() : serviceInterface;
+        // TODO check if the protocol config is compatible with mesh client
+        URL refUrl = new URL(MotanConstants.PROTOCOL_MOTAN2, getLocalHostAddress(), MotanConstants.DEFAULT_INT_VALUE, path, params);
+        ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getExtension(getProxyType(refUrl));
+        ref = proxyFactory.getProxy(interfaceClass, refUrl, meshClient);
+        LoggerUtil.info("init mesh client referer finish. url:" + refUrl.toFullStr());
+    }
+
+    private String getProxyType(URL refUrl) {
+        String defaultProxy = StringUtils.isBlank(serviceInterface) ? URLParamType.proxy.getValue() : MotanConstants.PROXY_COMMON;
+        return refUrl.getParameter(URLParamType.proxy.getName(), defaultProxy);
     }
 
     private ClusterSupport<T> createClusterSupport(URL refUrl, ConfigHandler configHandler) {
@@ -202,6 +225,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
                 clusterSupport.destroy();
             }
         }
+        // Mesh client will not be destroyed with the referer。Its life cycle is consistent with the spring context
         ref = null;
         initialized.set(false);
     }

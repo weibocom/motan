@@ -1,12 +1,10 @@
 package com.weibo.api.motan.proxy;
 
 import com.weibo.api.motan.cluster.Cluster;
-import com.weibo.api.motan.rpc.DefaultRequest;
 import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.util.RequestIdGenerator;
+import com.weibo.api.motan.util.MotanClientUtil;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author sunnights
@@ -19,33 +17,23 @@ public class RefererCommonHandler<T> extends AbstractRefererHandler<T> implement
         init();
     }
 
-    public Object call(String methodName, Object[] arguments, Class returnType, Map<String, String> attachments, boolean async) throws Throwable {
-        DefaultRequest request = new DefaultRequest();
-        request.setRequestId(RequestIdGenerator.getRequestId());
-        request.setInterfaceName(interfaceName);
-        request.setMethodName(methodName);
-        request.setArguments(arguments);
-        request.setAttachments(attachments);
-        return invokeRequest(request, returnType, async);
+    @Override
+    public Object call(String methodName, Object[] arguments, Class<?> returnType) throws Throwable {
+        return invokeRequest(buildRequest(methodName, arguments), returnType, false);
     }
 
     @Override
-    public Object call(String methodName, Object[] arguments, Class returnType) throws Throwable {
-        return call(methodName, arguments, returnType, null, false);
+    public Object asyncCall(String methodName, Object[] arguments, Class<?> returnType) throws Throwable {
+        return invokeRequest(buildRequest(methodName, arguments), returnType, true);
     }
 
     @Override
-    public Object asyncCall(String methodName, Object[] arguments, Class returnType) throws Throwable {
-        return call(methodName, arguments, returnType, null, true);
-    }
-
-    @Override
-    public Object call(Request request, Class returnType) throws Throwable {
+    public Object call(Request request, Class<?> returnType) throws Throwable {
         return invokeRequest(request, returnType, false);
     }
 
     @Override
-    public Object asyncCall(Request request, Class returnType) throws Throwable {
+    public Object asyncCall(Request request, Class<?> returnType) throws Throwable {
         return invokeRequest(request, returnType, true);
     }
 
@@ -56,12 +44,6 @@ public class RefererCommonHandler<T> extends AbstractRefererHandler<T> implement
 
     @Override
     public Request buildRequest(String interfaceName, String methodName, Object[] arguments) {
-        DefaultRequest request = new DefaultRequest();
-        request.setRequestId(RequestIdGenerator.getRequestId());
-        request.setInterfaceName(interfaceName);
-        request.setMethodName(methodName);
-        request.setArguments(arguments);
-        return request;
+        return MotanClientUtil.buildRequest(interfaceName, methodName, arguments);
     }
-
 }

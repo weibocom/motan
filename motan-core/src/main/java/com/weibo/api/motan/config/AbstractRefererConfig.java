@@ -16,6 +16,8 @@
 
 package com.weibo.api.motan.config;
 
+import com.weibo.api.motan.transport.MeshClient;
+
 /**
  * Abstract referer config.
  *
@@ -33,6 +35,25 @@ public abstract class AbstractRefererConfig extends AbstractInterfaceConfig {
     protected String p99;
     protected String p999;
     protected String errorRate;
+
+    protected MeshClient meshClient;
+    protected String meshClientString;
+
+    public MeshClient getMeshClient() {
+        return meshClient;
+    }
+
+    public void setMeshClient(MeshClient meshClient) {
+        this.meshClient = meshClient;
+    }
+
+    public String getMeshClientString() {
+        return meshClientString;
+    }
+
+    public void setMeshClientString(String meshClientString) {
+        this.meshClientString = meshClientString;
+    }
 
     public String getMean() {
         return mean;

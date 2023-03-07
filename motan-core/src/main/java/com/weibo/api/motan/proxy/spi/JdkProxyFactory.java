@@ -18,8 +18,11 @@ package com.weibo.api.motan.proxy.spi;
 
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.core.extension.SpiMeta;
+import com.weibo.api.motan.proxy.MeshClientRefererInvocationHandler;
 import com.weibo.api.motan.proxy.ProxyFactory;
 import com.weibo.api.motan.proxy.RefererInvocationHandler;
+import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.transport.MeshClient;
 
 import java.lang.reflect.Proxy;
 import java.util.List;
@@ -28,7 +31,6 @@ import java.util.List;
  * jdk proxy
  *
  * @author maijunsheng
- *
  */
 @SpiMeta(name = "jdk")
 public class JdkProxyFactory implements ProxyFactory {
@@ -37,5 +39,11 @@ public class JdkProxyFactory implements ProxyFactory {
     @SuppressWarnings("unchecked")
     public <T> T getProxy(Class<T> clz, List<Cluster<T>> clusters) {
         return (T) Proxy.newProxyInstance(clz.getClassLoader(), new Class[]{clz}, new RefererInvocationHandler<>(clz, clusters));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getProxy(Class<T> clz, URL refUrl, MeshClient meshClient) {
+        return (T) Proxy.newProxyInstance(clz.getClassLoader(), new Class[]{clz}, new MeshClientRefererInvocationHandler<>(clz, refUrl, meshClient));
     }
 }

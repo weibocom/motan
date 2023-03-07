@@ -16,34 +16,26 @@
 
 package com.weibo.api.motan.mock;
 
+import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.transport.Client;
+import com.weibo.api.motan.transport.TransportException;
+
 import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.transport.Client;
-import com.weibo.api.motan.transport.TransportException;
-
 /**
- * 
- * @Description MockClient
  * @author zhanglei28
+ * @Description MockClient
  * @date 2016年3月17日
- *
  */
 public class MockClient implements Client {
-
-    public static Response mockResponse;
     public static ConcurrentHashMap<URL, AtomicInteger> urlMap = new ConcurrentHashMap<URL, AtomicInteger>();
     URL url;
 
     public MockClient(URL url) {
         this.url = url;
         urlMap.putIfAbsent(url, new AtomicInteger());
-        mockResponse = new DefaultResponse();
     }
 
     @Override
@@ -61,37 +53,39 @@ public class MockClient implements Client {
     @Override
     public Response request(Request request) throws TransportException {
         urlMap.get(url).incrementAndGet();
-        // TODO 根据不同request 返回指定repsonse
-        return mockResponse;
+        RpcContext.init(request);
+        DefaultResponse ret = new DefaultResponse();
+        if ("echo".equals(request.getMethodName()) &&
+                request.getArguments() != null && request.getArguments().length > 0) {
+            if (request.getArguments()[0] instanceof Exception) {
+                ret.setException((Exception) request.getArguments()[0]);
+            } else {
+                ret.setValue(request.getArguments()[0]);
+            }
+        }
+        return ret;
     }
 
     @Override
     public boolean open() {
-
         return true;
     }
 
     @Override
     public void close() {
-
-
     }
 
     @Override
     public void close(int timeout) {
-
-
     }
 
     @Override
     public boolean isClosed() {
-
         return false;
     }
 
     @Override
     public boolean isAvailable() {
-
         return true;
     }
 
@@ -101,7 +95,7 @@ public class MockClient implements Client {
     }
 
     @Override
-    public void heartbeat(Request request) {}
-
+    public void heartbeat(Request request) {
+    }
 
 }
