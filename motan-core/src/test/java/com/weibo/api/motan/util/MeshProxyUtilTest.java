@@ -18,6 +18,7 @@
 
 package com.weibo.api.motan.util;
 
+import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.rpc.URL;
 import org.junit.After;
@@ -52,10 +53,10 @@ public class MeshProxyUtilTest {
     public void processMeshProxy() throws Exception {
         // not proxy if env not set
         List<URL> originRegistryUrls = new ArrayList<>();
-        originRegistryUrls.add(new URL("zookeeper", "localhost", 2181, "testZkRegistry"));
-        originRegistryUrls.add(new URL("local", "localhost", 0, "testLocalRegistry"));
-        originRegistryUrls.add(new URL("direct", "localhost", 8802, "testDirectRegistry"));
-        originRegistryUrls.add(new URL("weibomesh", "localhost", 9988, "testMeshRegistry"));
+        originRegistryUrls.add(new URL(MotanConstants.REGISTRY_PROTOCOL_PLAIN_ZOOKEEPER, "localhost", 2181, "testZkRegistry"));
+        originRegistryUrls.add(new URL(MotanConstants.REGISTRY_PROTOCOL_LOCAL, "localhost", 0, "testLocalRegistry"));
+        originRegistryUrls.add(new URL(MotanConstants.REGISTRY_PROTOCOL_DIRECT, "localhost", 8802, "testDirectRegistry"));
+        originRegistryUrls.add(new URL(MotanConstants.REGISTRY_PROTOCOL_WEIBOMESH, "localhost", 9988, "testMeshRegistry"));
         URL serviceUrl = new URL("motan2", "localhost", 8802, "testService");
         List<URL> resultUrl = MeshProxyUtil.processMeshProxy(originRegistryUrls, serviceUrl, true);
 

@@ -43,7 +43,7 @@ public class MotanApiExportDemo {
         registry.setRegProtocol("local");
 
         // use ZooKeeper registry
-//        registry.setRegProtocol("zookeeper");
+//        registry.setRegProtocol("zk");
 //        registry.setAddress("127.0.0.1:2181");
 
         // registry.setCheck("false"); //是否检查是否注册成功

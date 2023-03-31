@@ -51,6 +51,7 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
         Method method = lookupMethod(request.getMethodName(), request.getParamtersDesc());
 
         if (method == null) {
+            LoggerUtil.error("can not found rpc method:" + request.getMethodName() + ", paramDesc:" + request.getParamtersDesc() + ", service:" + request.getInterfaceName());
             MotanServiceException exception =
                     new MotanServiceException("Service method not exist: " + request.getInterfaceName() + "." + request.getMethodName()
                             + "(" + request.getParamtersDesc() + ")", MotanErrorMsgConstant.SERVICE_UNFOUND, false);
