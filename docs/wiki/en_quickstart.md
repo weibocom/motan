@@ -239,13 +239,13 @@ Install and start ZooKeeper:
     single node ZooKeeper:  
     
     ```xml
-    <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="127.0.0.1:2181"/>
+    <motan:registry regProtocol="zk" name="my_zookeeper" address="127.0.0.1:2181"/>
     ```
     
     multi-nodes ZooKeeper:
 
     ```xml
-    <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"/>
+    <motan:registry regProtocol="zk" name="my_zookeeper" address="127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"/>
     ```
     
 3. Change the way of service discovery to registry in the configuration of server and client.

@@ -43,7 +43,7 @@ public class MotanApiClientDemo {
         registry.setAddress("127.0.0.1:8002");
 
         // use ZooKeeper registry
-//        registry.setRegProtocol("zookeeper");
+//        registry.setRegProtocol("zk");
 //        registry.setAddress("127.0.0.1:2181");
         motanDemoServiceReferer.setRegistry(registry);
 

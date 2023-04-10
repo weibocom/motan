@@ -33,7 +33,7 @@ public class ZkRegistryServiceTest {
         int port = Integer.parseInt(properties.getProperty("clientPort"));
         in.close();
 
-        URL zkUrl = new URL("zookeeper", "127.0.0.1", port, "com.weibo.api.motan.registry.RegistryService");
+        URL zkUrl = new URL(MotanConstants.REGISTRY_PROTOCOL_PLAIN_ZOOKEEPER, "127.0.0.1", port, "com.weibo.api.motan.registry.RegistryService");
         URL clientUrl = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 0, "com.weibo.motan.demoService");
         URL url1 = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8001, service1);
         URL url2 = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 8002, service1);

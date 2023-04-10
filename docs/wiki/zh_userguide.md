@@ -248,13 +248,13 @@ Motan支持使用多种Registry模块，使用不同注册中心需要依赖对�
  zookeeper为单节点  
     
     ```xml
-    <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="zookeeper_ip1:port"/>
+    <motan:registry regProtocol="zk" name="my_zookeeper" address="zookeeper_ip1:port"/>
     ```
     
     zookeeper多节点集群  
 
     ```xml
-    <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="zookeeper_ip1:port1,zookeeper_ip2:port2,zookeeper_ip3:port"/>
+    <motan:registry regProtocol="zk" name="my_zookeeper" address="zookeeper_ip1:port1,zookeeper_ip2:port2,zookeeper_ip3:port"/>
     ```
     
 ### 不使用注册中心

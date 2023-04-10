@@ -330,13 +330,13 @@ ui后台 [http://localhost:8500/ui](http://localhost:8500/ui)
     zookeeper为单节点  
     
     ```xml
-    <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="127.0.0.1:2181"/>
+    <motan:registry regProtocol="zk" name="my_zookeeper" address="127.0.0.1:2181"/>
     ```
     
     zookeeper多节点集群  
 
     ```xml
-    <motan:registry regProtocol="zookeeper" name="my_zookeeper" address="127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"/>
+    <motan:registry regProtocol="zk" name="my_zookeeper" address="127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"/>
     ```
     
 3. 在Motan client及server配置改为通过registry服务发现。

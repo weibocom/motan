@@ -29,7 +29,7 @@ public class ZookeeperRegistryTest {
         int port = Integer.parseInt(properties.getProperty("clientPort"));
         in.close();
 
-        URL zkUrl = new URL("zookeeper", "127.0.0.1", port, "com.weibo.api.motan.registry.RegistryService");
+        URL zkUrl = new URL(MotanConstants.REGISTRY_PROTOCOL_ZOOKEEPER, "127.0.0.1", port, "com.weibo.api.motan.registry.RegistryService");
         clientUrl = new URL(MotanConstants.PROTOCOL_MOTAN, "127.0.0.1", 0, service);
         clientUrl.addParameter("group", "aaa");
 
