@@ -91,11 +91,8 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
 
     /**
      * <pre>
-     *  request process: 主要来自于client的请求，需要使用threadPoolExecutor进行处理，避免service message处理比较慢导致iothread被阻塞
+     *  request process: 主要来自于client的请求，需要使用threadPoolExecutor进行处理，避免service message处理比较慢导致ioThread被阻塞
      * </pre>
-     *
-     * @param ctx
-     * @param e
      */
     private void processRequest(final ChannelHandlerContext ctx, MessageEvent e) {
         final Request request = (Request) e.getMessage();
@@ -105,16 +102,13 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
 
         // 使用线程池方式处理
         try {
-            threadPoolExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_SEXECUTOR_START);
-                        RpcContext.init(request);
-                        processRequest(ctx, request, processStartTime);
-                    } finally {
-                        RpcContext.destroy();
-                    }
+            threadPoolExecutor.execute(() -> {
+                try {
+                    MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_SEXECUTOR_START);
+                    RpcContext.init(request);
+                    processRequest(ctx, request, processStartTime);
+                } finally {
+                    RpcContext.destroy();
                 }
             });
         } catch (RejectedExecutionException rejectException) {
@@ -137,7 +131,7 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
             result = messageHandler.handle(serverChannel, request);
         } catch (Exception e) {
             LoggerUtil.error("NettyChannelHandler processRequest fail!request:" + MotanFrameworkUtil.toString(request), e);
-            result = MotanFrameworkUtil.buildErrorResponse(request, new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
+            result = MotanFrameworkUtil.buildErrorResponse(request, new MotanServiceException("process request fail. errMsg:" + e.getMessage()));
         }
 
         if (result instanceof Response) {
@@ -145,27 +139,25 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
         }
         final DefaultResponse response;
 
-        if (!(result instanceof DefaultResponse)) {
-            response = new DefaultResponse(result);
-            response.setRpcProtocolVersion(request.getRpcProtocolVersion());
-        } else {
+        if (result instanceof DefaultResponse) {
             response = (DefaultResponse) result;
+        } else {
+            response = new DefaultResponse(result);
         }
-
+        response.setRpcProtocolVersion(request.getRpcProtocolVersion());
         response.setRequestId(request.getRequestId());
         response.setProcessTime(System.currentTimeMillis() - processStartTime);
-
+        ChannelFuture channelFuture = null;
         if (ctx.getChannel().isConnected()) {
-            ChannelFuture channelFuture = ctx.getChannel().write(response);
-            if (channelFuture != null) {
-                channelFuture.addListener(new ChannelFutureListener() {
-                    @Override
-                    public void operationComplete(ChannelFuture future) throws Exception {
-                        MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SSEND, System.currentTimeMillis());
-                        response.onFinish();
-                    }
-                });
-            }
+            channelFuture = ctx.getChannel().write(response);
+        }
+        if (channelFuture != null) {
+            channelFuture.addListener(future -> {
+                MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SSEND, System.currentTimeMillis());
+                response.onFinish();
+            });
+        } else { // execute the onFinish method of response if write fail
+            response.onFinish();
         }
     }
 

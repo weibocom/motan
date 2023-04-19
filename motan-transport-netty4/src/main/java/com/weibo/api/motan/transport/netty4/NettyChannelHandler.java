@@ -68,12 +68,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         if (msg instanceof NettyMessage) {
             if (threadPoolExecutor != null) {
                 try {
-                    threadPoolExecutor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            processMessage(ctx, ((NettyMessage) msg));
-                        }
-                    });
+                    threadPoolExecutor.execute(() -> processMessage(ctx, ((NettyMessage) msg)));
                 } catch (RejectedExecutionException rejectException) {
                     if (((NettyMessage) msg).isRequest()) {
                         rejectMessage(ctx, (NettyMessage) msg);
@@ -113,7 +108,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         try {
             result = codec.decode(channel, remoteIp, msg.getData());
         } catch (Exception e) {
-            LoggerUtil.error("NettyDecoder decode fail! requestid" + msg.getRequestId() + ", size:" + msg.getData().length + ", ip:" + remoteIp + ", e:" + e.getMessage());
+            LoggerUtil.error("NettyDecoder decode fail! requestId" + msg.getRequestId() + ", size:" + msg.getData().length + ", ip:" + remoteIp + ", e:" + e.getMessage());
             Response response = MotanFrameworkUtil.buildErrorResponse(msg.getRequestId(), msg.getVersion().getVersion(), e);
             if (msg.isRequest()) {
                 sendResponse(ctx, response);
@@ -152,7 +147,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
                 result = messageHandler.handle(channel, request);
             } catch (Exception e) {
                 LoggerUtil.error("NettyChannelHandler processRequest fail! request:" + MotanFrameworkUtil.toString(request), e);
-                result = MotanFrameworkUtil.buildErrorResponse(request, new MotanServiceException("process request fail. errmsg:" + e.getMessage()));
+                result = MotanFrameworkUtil.buildErrorResponse(request, new MotanServiceException("process request fail. errMsg:" + e.getMessage()));
             }
             if (result instanceof Response) {
                 MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_PROCESS);
@@ -160,22 +155,21 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             final DefaultResponse response;
             if (result instanceof DefaultResponse) {
                 response = (DefaultResponse) result;
-                response.setRpcProtocolVersion(request.getRpcProtocolVersion());
             } else {
                 response = new DefaultResponse(result);
             }
+            response.setRpcProtocolVersion(request.getRpcProtocolVersion());
             response.setRequestId(request.getRequestId());
             response.setProcessTime(System.currentTimeMillis() - processStartTime);
 
             ChannelFuture channelFuture = sendResponse(ctx, response);
             if (channelFuture != null) {
-                channelFuture.addListener(new ChannelFutureListener() {
-                    @Override
-                    public void operationComplete(ChannelFuture future) throws Exception {
-                        MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SSEND, System.currentTimeMillis());
-                        response.onFinish();
-                    }
+                channelFuture.addListener((ChannelFutureListener) future -> {
+                    MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_SSEND, System.currentTimeMillis());
+                    response.onFinish();
                 });
+            } else { // execute the onFinish method of response if write fail
+                response.onFinish();
             }
         } finally {
             RpcContext.destroy();
