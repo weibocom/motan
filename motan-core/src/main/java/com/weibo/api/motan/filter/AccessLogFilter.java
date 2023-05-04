@@ -129,9 +129,11 @@ public class AccessLogFilter implements Filter {
         append(builder, request.getParamtersDesc());
         // 对于client，url中的remote ip 和 service获取的地方不同
         if (MotanConstants.NODE_TYPE_REFERER.equals(side)) {
-            append(builder, caller.getUrl().getHost());
+            append(builder, caller.getUrl().getHost()); // direct
+            append(builder, response == null ? null : response.getAttachments().get(MotanConstants.X_FORWARDED_FOR));// proxy
         } else {
-            append(builder, request.getAttachments().get(URLParamType.host.getName()));
+            append(builder, request.getAttachments().get(URLParamType.host.getName())); // direct
+            append(builder, request.getAttachments().get(MotanConstants.X_FORWARDED_FOR)); // proxy
         }
         // application and module from request
         append(builder, request.getAttachments().get(URLParamType.application.getName()));

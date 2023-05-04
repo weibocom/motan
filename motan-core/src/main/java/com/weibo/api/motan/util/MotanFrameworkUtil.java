@@ -55,6 +55,14 @@ public class MotanFrameworkUtil {
         return getValueFromRequest(request, URLParamType.version.name(), URLParamType.version.getValue());
     }
 
+    public static String getRemoteIpFromRequest(Request request) {
+        String rip = getValueFromRequest(request, MotanConstants.X_FORWARDED_FOR, null);
+        if (rip == null) {
+            rip = getValueFromRequest(request, URLParamType.host.getName(), null);
+        }
+        return rip;
+    }
+
     public static String getValueFromRequest(Request request, String key, String defaultValue) {
         String value = defaultValue;
         if (request.getAttachments() != null && request.getAttachments().containsKey(key)) {
@@ -95,6 +103,10 @@ public class MotanFrameworkUtil {
                 + "(" + request.getParamtersDesc() + ")";
     }
 
+    public static String toStringWithRemoteIp(Request request) {
+        return toString(request) + " remoteIp=" + getRemoteIpFromRequest(request);
+    }
+
     /**
      * 根据Request得到 interface.method(paramDesc) 的 desc
      * <p>
@@ -121,10 +133,11 @@ public class MotanFrameworkUtil {
 
     /**
      * Get the module first, or get the group if module not set
-     * @since 1.2.1
-     * @param map URL's parameters or request's attachments
+     *
+     * @param map          URL's parameters or request's attachments
      * @param defaultValue The default value when neither module nor group can be obtained
      * @return the value of module or group
+     * @since 1.2.1
      */
     public static String getModuleOrGroup(Map<String, String> map, String defaultValue) {
         if (map != null) {

@@ -87,16 +87,14 @@ public class ProviderMessageRouter implements MessageHandler {
         Provider<?> provider = providers.get(serviceKey);
 
         // 兼容模式。TODO：可以增加是否启用兼容的配置项
-        if(provider == null){
+        if (provider == null) {
             provider = providers.get(request.getInterfaceName());
         }
         if (provider == null) {
-            LoggerUtil.error(this.getClass().getSimpleName() + " handler Error: provider not exist serviceKey=" + serviceKey + " "
-                    + MotanFrameworkUtil.toString(request));
-            MotanServiceException exception =
-                    new MotanServiceException(this.getClass().getSimpleName() + " handler Error: provider not exist serviceKey="
-                            + serviceKey + " " + MotanFrameworkUtil.toString(request));
-
+            String errInfo = this.getClass().getSimpleName() + " handler Error: provider not exist serviceKey=" + serviceKey + " "
+                    + MotanFrameworkUtil.toStringWithRemoteIp(request);
+            LoggerUtil.error(errInfo);
+            MotanServiceException exception = new MotanServiceException(errInfo);
             DefaultResponse response = MotanFrameworkUtil.buildErrorResponse(request, exception);
             return response;
         }
