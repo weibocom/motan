@@ -17,6 +17,11 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD, ElementType.METHOD})
 public @interface MotanReferer {
 
+    /**
+     * 是否优先使用spring容器本地的bean
+     * @return
+     */
+    boolean localBeanFirstRefer() default  false;
 
     Class<?> interfaceClass() default void.class;
 

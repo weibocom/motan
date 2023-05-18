@@ -315,11 +315,22 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
                 }
             }
             serviceConfig.setRef(bean);
-            serviceConfigs.add(serviceConfig);
-            serviceConfig.export();
+            export(serviceConfig);
         }
         return bean;
     }
+
+    /**
+     * 使用protected允许子类进行自定义,这里针对导出进行方法单独提炼，可以更好的扩展，允许去改造导出的策略
+     * 目前这个导出是使用同步的，如果一个应用的接口非常多的时候，其实我们的应用是启动很慢的，一直在等待rpc的导出
+     * 所以如果有需要改造成异步导出的，可以重写这个方法进行导出
+     * @param serviceConfig
+     */
+    protected void export(ServiceConfigBean<Object> serviceConfig){
+        serviceConfigs.add(serviceConfig);
+        serviceConfig.export();
+    }
+
 
     /**
      * release service/reference
@@ -344,6 +355,26 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
     }
 
     /**
+     * 优先使用spring 容器本地存在的bean，使用protected允许子类进行自定义
+     * @param reference
+     * @param referenceClass
+     * @return
+     * @param <T>
+     */
+    protected  <T> Object localBeanFirstRefer(MotanReferer reference, Class<T> referenceClass) {
+        try {
+            if (!void.class.equals(reference.interfaceClass())) {
+                return this.beanFactory.getBean(reference.interfaceClass());
+            } else if (referenceClass.isInterface()) {
+                return this.beanFactory.getBean(referenceClass);
+            }
+        } catch (Exception e) {
+            //可能存在找不到bean的情况，这个可以忽略，由motan代理去创建
+        }
+        return null;
+    }
+
+    /**
      * refer proxy
      *
      * @param reference
@@ -352,6 +383,17 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
      * @return
      */
     private <T> Object refer(MotanReferer reference, Class<?> referenceClass) {
+        /**
+         * 场景：当我们的应用可能存在应用内进行rpc调用，这样即便使用localFirst负载均衡策略，依然会用到网络进行请求，浪费资源，还存在网络超时等情况
+         * 如果应用为了后期好拆分微服务可能会按模块去规范代码，约定每个模块使用rpc进行通信，这样前期可以使用单体应用发布，且还可以使用rpc对外服务，
+         * 后续应用体量大了后也可以以最小的成本进行改造单体应用进行快速的微服务拆分。这样可以避免前期应用的资源浪费和后期改造成本。
+         */
+        if (reference.localBeanFirstRefer()) {
+            Object ref = localBeanFirstRefer(reference, referenceClass);
+            if (ref != null) {
+                return ref;
+            }
+        }
         String interfaceName;
         if (!void.class.equals(reference.interfaceClass())) {
             interfaceName = reference.interfaceClass().getName();
