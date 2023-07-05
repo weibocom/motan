@@ -21,7 +21,7 @@
     <url>http://maven.apache.org</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <grpc.version>1.0.0</grpc.version>
+        <grpc.version>1.53.0</grpc.version>
     </properties>
     <dependencies>
         <dependency>
