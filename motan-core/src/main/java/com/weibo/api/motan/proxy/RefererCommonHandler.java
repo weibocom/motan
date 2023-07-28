@@ -46,4 +46,18 @@ public class RefererCommonHandler<T> extends AbstractRefererHandler<T> implement
     public Request buildRequest(String interfaceName, String methodName, Object[] arguments) {
         return MotanClientUtil.buildRequest(interfaceName, methodName, arguments);
     }
+
+    public Request buildRequestV1(String interfaceName, String methodName, Object[] arguments,String parametersDesc) {
+        return MotanClientUtil.buildRequestV1(interfaceName, methodName, arguments,parametersDesc);
+    }
+
+    @Override
+    public Object callV1(String methodName, Object[] arguments, String parametersDesc, Class<?> returnType) throws Throwable {
+        return invokeRequest(buildRequestV1(interfaceName,methodName, arguments,parametersDesc), returnType, false);
+    }
+
+    @Override
+    public Object asyncCallV1(String methodName, Object[] arguments, String parametersDesc, Class<?> returnType) throws Throwable {
+        return invokeRequest(buildRequestV1(interfaceName,methodName, arguments,parametersDesc), returnType, true);
+    }
 }

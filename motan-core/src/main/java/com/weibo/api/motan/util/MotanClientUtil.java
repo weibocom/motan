@@ -35,6 +35,10 @@ public class MotanClientUtil {
         return buildRequest(interfaceName, methodName, arguments, null);
     }
 
+    public static Request buildRequestV1(String interfaceName, String methodName, Object[] arguments,String parametersDesc) {
+        return buildRequest(interfaceName, methodName, parametersDesc,arguments, null);
+    }
+
     public static Request buildRequest(String interfaceName, String methodName, Object[] arguments, Map<String, String> attachments) {
         return buildRequest(interfaceName, methodName, null, arguments, attachments);
     }

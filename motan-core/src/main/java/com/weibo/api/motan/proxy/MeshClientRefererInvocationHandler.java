@@ -133,4 +133,14 @@ public class MeshClientRefererInvocationHandler<T> extends AbstractRefererHandle
     public Request buildRequest(String interfaceName, String methodName, Object[] arguments) {
         return MotanClientUtil.buildRequest(interfaceName, methodName, arguments);
     }
+
+    @Override
+    public Object callV1(String methodName, Object[] arguments, String parametersDesc, Class<?> returnType) throws Throwable {
+        return null;
+    }
+
+    @Override
+    public Object asyncCallV1(String methodName, Object[] arguments, String parametersDesc, Class<?> returnType) throws Throwable {
+        return null;
+    }
 }
