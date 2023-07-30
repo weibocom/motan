@@ -56,6 +56,7 @@ public class Motan2RpcClient {
         CommonClient xmlClient = (CommonClient) ctx.getBean("motanDemoReferer-common-client");
         motan2XmlCommonClientDemo(xmlClient);
         motan2ApiCommonClientDemo();
+        motan2ApiCommonClientDemo2();
 
         System.out.println("motan demo is finish.");
         System.exit(0);
@@ -121,6 +122,36 @@ public class Motan2RpcClient {
         // 使用服务
         CommonClient client = referer.getRef();
         System.out.println(client.call("hello", new Object[]{"a"}, String.class));
+    }
+
+    public static void motan2ApiCommonClientDemo2() throws Throwable {
+        RefererConfig<CommonClient> referer = new RefererConfig<>();
+
+        // 设置服务端接口
+        referer.setInterface(CommonClient.class);
+        referer.setServiceInterface("com.weibo.motan.demo.service.MotanDemoService");
+
+        // 配置服务的group以及版本号
+        referer.setGroup("motan-demo-rpc");
+        referer.setVersion("1.0");
+        referer.setRequestTimeout(1000);
+        referer.setAsyncInitConnection(false);
+
+        // 配置注册中心直连调用
+        RegistryConfig registry = new RegistryConfig();
+        registry.setRegProtocol("direct");
+        registry.setAddress("127.0.0.1:8001");
+        referer.setRegistry(registry);
+
+        // 配置RPC协议
+        ProtocolConfig protocol = new ProtocolConfig();
+        protocol.setId("motan2");
+        protocol.setName("motan2");
+        referer.setProtocol(protocol);
+
+        // 使用服务
+        CommonClient client = referer.getRef();
+        System.out.println(client.call("getInfo", new Object[]{999}, String.class));
     }
 
 }

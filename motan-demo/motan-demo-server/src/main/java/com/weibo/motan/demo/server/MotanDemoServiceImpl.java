@@ -39,4 +39,9 @@ public class MotanDemoServiceImpl implements MotanDemoService {
         return user;
     }
 
+    @Override
+    public String getInfo(int i) {
+        return "call success:"+ i;
+    }
+
 }
