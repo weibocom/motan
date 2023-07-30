@@ -26,5 +26,5 @@ public interface MotanDemoService {
     User rename(User user, String name) throws Exception;
 
 
-    String getInfo(int i);
+    String getUsername(int id);
 }

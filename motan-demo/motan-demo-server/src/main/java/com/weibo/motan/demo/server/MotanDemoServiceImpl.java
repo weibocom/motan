@@ -40,8 +40,8 @@ public class MotanDemoServiceImpl implements MotanDemoService {
     }
 
     @Override
-    public String getInfo(int i) {
-        return "call success:"+ i;
+    public String getUsername(int id) {
+        return "your id is:"+ id;
     }
 
 }

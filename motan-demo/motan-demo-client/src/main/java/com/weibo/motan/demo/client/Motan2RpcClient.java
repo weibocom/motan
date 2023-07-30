@@ -151,7 +151,7 @@ public class Motan2RpcClient {
 
         // 使用服务
         CommonClient client = referer.getRef();
-        System.out.println(client.call("getInfo", new Object[]{999}, String.class));
+        System.out.println(client.call("getUsername", new Object[]{999}, String.class));
     }
 
 }
