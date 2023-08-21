@@ -1,5 +1,18 @@
 # Change Log
 
+## [1.2.2](https://github.com/weibocom/motan/tree/1.2.2) (2023-08-21)
+[Full Changelog](https://github.com/weibocom/motan/compare/1.2.1...1.2.2)
+
+**Implemented enhancements:**
+- execute the onfinish method when sending response fails [\#1028](https://github.com/weibocom/motan/pull/1028) ([Ray](https://github.com/rayzhang0603))
+- access log add proxy ip [\#1029](https://github.com/weibocom/motan/pull/1029) ([Ray](https://github.com/rayzhang0603))
+
+**Merged pull requests:**
+
+**Fixed bugs:**
+- fix RCE of Hessian2Serialization [\#1038](https://github.com/weibocom/motan/pull/1038) ([Ray](https://github.com/rayzhang0603))
+- fix RCE of ProtobufSerialization [\#1040](https://github.com/weibocom/motan/pull/1040) ([Ray](https://github.com/rayzhang0603))
+
 ## [1.2.1](https://github.com/weibocom/motan/tree/1.2.1) (2023-03-07)
 [Full Changelog](https://github.com/weibocom/motan/compare/1.2.0...1.2.1)
 
