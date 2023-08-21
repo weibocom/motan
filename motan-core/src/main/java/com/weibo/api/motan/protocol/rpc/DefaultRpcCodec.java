@@ -348,38 +348,32 @@ public class DefaultRpcCodec extends AbstractCodec {
 
     private Object decodeResponse(byte[] body, byte dataType, long requestId, Serialization serialization) throws IOException,
             ClassNotFoundException {
-
         ByteArrayInputStream inputStream = new ByteArrayInputStream(body);
         ObjectInput input = createInput(inputStream);
-
         long processTime = input.readLong();
-
         DefaultResponse response = new DefaultResponse();
         response.setRequestId(requestId);
         response.setProcessTime(processTime);
-
         if (dataType == MotanConstants.FLAG_RESPONSE_VOID) {
             return response;
         }
-
-        String className = input.readUTF();
-        Class<?> clz = ReflectUtil.forName(className);
-
-        Object result = deserialize((byte[]) input.readObject(), clz, serialization);
-
-        if (dataType == MotanConstants.FLAG_RESPONSE) {
-            response.setValue(result);
-        } else if (dataType == MotanConstants.FLAG_RESPONSE_EXCEPTION) {
-            response.setException((Exception) result);
-        } else {
-            throw new MotanFrameworkException("decode error: response dataType not support " + dataType,
-                    MotanErrorMsgConstant.FRAMEWORK_DECODE_ERROR);
+        try {
+            // read class name (String)
+            String className = input.readUTF();
+            Class<?> clz = ReflectUtil.forName(className);
+            Object result = deserialize((byte[]) input.readObject(), clz, serialization);
+            if (dataType == MotanConstants.FLAG_RESPONSE) {
+                response.setValue(result);
+            } else if (dataType == MotanConstants.FLAG_RESPONSE_EXCEPTION) {
+                response.setException((Exception) result);
+            } else {
+                throw new MotanFrameworkException("decode error: response dataType not support " + dataType,
+                        MotanErrorMsgConstant.FRAMEWORK_DECODE_ERROR);
+            }
+        } catch (Exception e) {
+            response.setException(e);
         }
-
-        response.setRequestId(requestId);
-
         input.close();
-
         return response;
     }
 
