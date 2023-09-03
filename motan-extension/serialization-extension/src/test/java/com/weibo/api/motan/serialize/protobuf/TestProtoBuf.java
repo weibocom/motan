@@ -15,6 +15,9 @@
  */
 package com.weibo.api.motan.serialize.protobuf;
 
+import com.weibo.api.motan.exception.MotanBizException;
+import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.serialize.ProtobufSerialization;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,6 +29,8 @@ import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.config.ServiceConfig;
 import com.weibo.api.motan.serialize.protobuf.gen.UserProto.Address;
 import com.weibo.api.motan.serialize.protobuf.gen.UserProto.User;
+
+import java.io.IOException;
 
 public class TestProtoBuf {
 	private ServiceConfig<HelloService> serviceConfig;
@@ -44,17 +49,16 @@ public class TestProtoBuf {
 		registryConfig.setAddress("127.0.0.1");
 		registryConfig.setPort(8002);
 
-		serviceConfig = new ServiceConfig<HelloService>();
+		serviceConfig = new ServiceConfig<>();
 		serviceConfig.setRef(new HelloServiceImpl());
 		serviceConfig.setInterface(HelloService.class);
 		serviceConfig.setProtocol(protocolConfig);
 		serviceConfig.setExport("testMotan:18002");
 		serviceConfig.setRegistry(registryConfig);
 		serviceConfig.setShareChannel(true);
-
 		serviceConfig.export();
 
-		refererConfig = new RefererConfig<HelloService>();
+		refererConfig = new RefererConfig<>();
 		refererConfig.setDirectUrl("127.0.0.1:18002");
 		refererConfig.setProtocol(protocolConfig);
 		refererConfig.setInterface(HelloService.class);
@@ -66,14 +70,19 @@ public class TestProtoBuf {
 	public void testPrimitiveType() {
 		Assert.assertEquals("-1", service.sumAsString(Integer.MAX_VALUE, Integer.MIN_VALUE));
 		Assert.assertEquals("-1", service.sumAsString(-2, 1));
-
 		Assert.assertEquals((Long) 100L, service.boxIfNotZero(100));
 		Assert.assertNull(service.boxIfNotZero(0));
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testException() {
-		service.testException();
+		try {
+			service.testException();
+			Assert.fail("should throw MotanServiceException");
+		} catch (MotanServiceException mse){
+			Assert.assertTrue(mse.getMessage().contains(MotanBizException.class.getName()));
+			Assert.assertTrue(mse.getMessage().contains("provider call process error"));
+		}
 	}
 
 	@Test
@@ -106,5 +115,4 @@ public class TestProtoBuf {
 		refererConfig.destroy();
 		serviceConfig.unexport();
 	}
-
 }
