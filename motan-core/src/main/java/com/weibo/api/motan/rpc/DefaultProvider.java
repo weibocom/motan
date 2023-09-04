@@ -23,6 +23,7 @@ import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.util.ExceptionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.PojoUtils;
 
 import java.lang.reflect.Method;
 
@@ -62,7 +63,10 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
 
         boolean defaultThrowExceptionStack = URLParamType.transExceptionStack.getBooleanValue();
         try {
-            Object value = method.invoke(proxyImpl, request.getArguments());
+            //如果是List<T>做参数，在泛化调用的情况下，这里需要做特殊处理
+            //TODO 这里默认无法感知到是不是泛化调用过来的请求
+            Object[] arguments = PojoUtils.realize(request.getArguments(),method.getParameterTypes(),method.getGenericParameterTypes());
+            Object value = method.invoke(proxyImpl,arguments);
             response.setValue(value);
         } catch (Exception e) {
             if (e.getCause() != null) {

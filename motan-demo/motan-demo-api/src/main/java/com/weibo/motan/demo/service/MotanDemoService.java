@@ -19,10 +19,16 @@ package com.weibo.motan.demo.service;
 import com.weibo.api.motan.transport.async.MotanAsync;
 import com.weibo.motan.demo.service.model.User;
 
+import java.util.List;
+
 @MotanAsync
 public interface MotanDemoService {
     String hello(String name);
 
     User rename(User user, String name) throws Exception;
+
+    User batchSave(List<User> userList);
+
+    List<User> getUsers(List<Integer> ids);
 
 }

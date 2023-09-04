@@ -24,6 +24,7 @@ import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.proxy.CommonClient;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.ResponseFuture;
+import com.weibo.api.motan.util.MotanClientUtil;
 import com.weibo.motan.demo.service.MotanDemoService;
 import com.weibo.motan.demo.service.PbParamService;
 import com.weibo.motan.demo.service.model.User;
@@ -70,7 +71,12 @@ public class Motan1RpcClient {
         // 使用服务
         CommonClient service = motanDemoServiceReferer.getRef();
 
-        System.out.println(service.callV1("hello", new Object[]{"a"},"java.lang.String", String.class));
+        //motan v1协议时，需要用这种方式构建request对象后进行泛化调用，否则会导致报错
+        Request request = MotanClientUtil.buildRequest("com.weibo.motan.demo.service.MotanDemoService",
+                "hello", "java.lang.String",
+                new Object[]{"EEE"},null);
+
+        System.out.println(service.call(request, Object.class));
     }
 
 }

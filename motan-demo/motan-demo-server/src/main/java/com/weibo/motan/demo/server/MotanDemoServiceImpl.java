@@ -19,8 +19,14 @@ package com.weibo.motan.demo.server;
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import com.weibo.motan.demo.service.MotanDemoService;
 import com.weibo.motan.demo.service.model.User;
+import jdk.nashorn.internal.runtime.ListAdapter;
+import org.springframework.lang.NonNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @MotanService(export = "demoMotan:8002")
 public class MotanDemoServiceImpl implements MotanDemoService {
@@ -38,5 +44,31 @@ public class MotanDemoServiceImpl implements MotanDemoService {
         user.setName(name);
         return user;
     }
+
+    @Override
+    public User batchSave(List<User> userList) {
+        return new User(9999,
+                "hello world  batchSave :" + join(userList, User::getName));
+    }
+
+    @Override
+    public List<User> getUsers(List<Integer> ids) {
+        String result = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
+        System.out.println(result);
+        List<User> userList = new ArrayList<User>();
+        for (Integer id : ids) {
+            User user = new User(id, "hello" + id);
+            userList.add(user);
+        }
+
+        return userList;
+    }
+
+    private <T> String join(final @NonNull List<T> list, final Function<T, String> mapper) {
+        return list.stream()
+                .map(mapper)
+                .collect(Collectors.joining("-"));
+    }
+
 
 }

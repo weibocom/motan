@@ -120,6 +120,7 @@ public class ProviderMessageRouter implements MessageHandler {
                 && request.getArguments()[0] instanceof DeserializableObject
                 && request instanceof DefaultRequest) {
             try {
+                //反序列化操作
                 Object[] args = ((DeserializableObject) request.getArguments()[0]).deserializeMulti(method.getParameterTypes());
                 ((DefaultRequest) request).setArguments(args);
             } catch (IOException e) {

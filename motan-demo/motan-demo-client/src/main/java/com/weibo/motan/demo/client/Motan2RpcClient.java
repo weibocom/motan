@@ -24,6 +24,7 @@ import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.proxy.CommonClient;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.ResponseFuture;
+import com.weibo.api.motan.util.MotanClientUtil;
 import com.weibo.motan.demo.service.MotanDemoService;
 import com.weibo.motan.demo.service.PbParamService;
 import com.weibo.motan.demo.service.model.User;
@@ -31,9 +32,19 @@ import io.grpc.examples.routeguide.Point;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class Motan2RpcClient {
 
     public static void main(String[] args) throws Throwable {
+        motan2ApiCommonClientListDemo();
+        motan2ApiCommonClientPojoDemo();
+        motan2ApiCommonClientGenericParameterTypesDemo();
+
+
         ApplicationContext ctx = new ClassPathXmlApplicationContext(new String[]{"classpath:motan2_demo_client.xml"});
         MotanDemoService service;
         // hessian
@@ -121,6 +132,132 @@ public class Motan2RpcClient {
         // 使用服务
         CommonClient client = referer.getRef();
         System.out.println(client.call("hello", new Object[]{"a"}, String.class));
+    }
+
+    public static void motan2ApiCommonClientPojoDemo() throws Throwable {
+        RefererConfig<CommonClient> referer = new RefererConfig<>();
+
+        // 设置服务端接口
+        referer.setInterface(CommonClient.class);
+        referer.setServiceInterface("com.weibo.motan.demo.service.MotanDemoService");
+
+        // 配置服务的group以及版本号
+        referer.setGroup("motan-demo-rpc");
+        referer.setVersion("1.0");
+        referer.setRequestTimeout(1000);
+        referer.setAsyncInitConnection(false);
+
+        // 配置注册中心直连调用
+        RegistryConfig registry = new RegistryConfig();
+        registry.setRegProtocol("direct");
+        registry.setAddress("127.0.0.1:8001");
+        referer.setRegistry(registry);
+
+        // 配置RPC协议
+        ProtocolConfig protocol = new ProtocolConfig();
+        protocol.setId("motan2");
+        protocol.setName("motan2");
+        referer.setProtocol(protocol);
+
+        // 使用服务
+        CommonClient client = referer.getRef();
+
+        //使用Map代替POJO进行真正的泛化调用
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", 1999);
+        map.put("name", "dinglang");
+
+        Request request = MotanClientUtil.buildRequest("com.weibo.motan.demo.service.MotanDemoService",
+                "rename", "com.weibo.motan.demo.service.model.User,java.lang.String",
+                new Object[]{map, "EEE"}, null);
+        System.out.println(client.call(request, Object.class));
+    }
+
+    public static void motan2ApiCommonClientListDemo() throws Throwable {
+        RefererConfig<CommonClient> referer = new RefererConfig<>();
+
+        // 设置服务端接口
+        referer.setInterface(CommonClient.class);
+        referer.setServiceInterface("com.weibo.motan.demo.service.MotanDemoService");
+
+        // 配置服务的group以及版本号
+        referer.setGroup("motan-demo-rpc");
+        referer.setVersion("1.0");
+        referer.setRequestTimeout(1000);
+        referer.setAsyncInitConnection(false);
+
+        // 配置注册中心直连调用
+        RegistryConfig registry = new RegistryConfig();
+        registry.setRegProtocol("direct");
+        registry.setAddress("127.0.0.1:8001");
+        referer.setRegistry(registry);
+
+        // 配置RPC协议
+        ProtocolConfig protocol = new ProtocolConfig();
+        protocol.setId("motan2");
+        protocol.setName("motan2");
+        referer.setProtocol(protocol);
+
+        // 使用服务
+        CommonClient client = referer.getRef();
+
+
+        List<Integer> integerList = new ArrayList<>();
+        integerList.add(1);
+        integerList.add(2);
+        integerList.add(3);
+        integerList.add(4);
+
+        Request request = MotanClientUtil.buildRequest("com.weibo.motan.demo.service.MotanDemoService",
+                "getUsers", "java.util.List",
+                new Object[]{integerList}, null);
+        System.out.println(client.call(request, Object.class));
+    }
+
+    public static void motan2ApiCommonClientGenericParameterTypesDemo() throws Throwable {
+        RefererConfig<CommonClient> referer = new RefererConfig<>();
+
+        // 设置服务端接口
+        referer.setInterface(CommonClient.class);
+        referer.setServiceInterface("com.weibo.motan.demo.service.MotanDemoService");
+
+        // 配置服务的group以及版本号
+        referer.setGroup("motan-demo-rpc");
+        referer.setVersion("1.0");
+        referer.setRequestTimeout(100000);
+        referer.setAsyncInitConnection(false);
+
+        // 配置注册中心直连调用
+        RegistryConfig registry = new RegistryConfig();
+        registry.setRegProtocol("direct");
+        registry.setAddress("127.0.0.1:8001");
+        referer.setRegistry(registry);
+
+        // 配置RPC协议
+        ProtocolConfig protocol = new ProtocolConfig();
+        protocol.setId("motan2");
+        protocol.setName("motan2");
+        referer.setProtocol(protocol);
+
+        // 使用服务
+        CommonClient client = referer.getRef();
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", 1999);
+        map.put("name", "dinglang");
+
+        Map<String, Object> user = new HashMap<>();
+        user.put("id", 1998);
+        user.put("name", "dylan");
+
+        List<Object> list = new ArrayList<>();
+        list.add(map);
+        list.add(user);
+
+        Request request = MotanClientUtil.buildRequest("com.weibo.motan.demo.service.MotanDemoService",
+                "batchSave", "java.util.List",
+                new Object[]{list}, null);
+        System.out.println(client.call(request, Object.class));
     }
 
 }

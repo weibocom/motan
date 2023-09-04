@@ -32,6 +32,50 @@ import java.util.concurrent.ConcurrentMap;
  *
  */
 public class ReflectUtil {
+    /**
+     * void(V).
+     */
+    public static final char JVM_VOID = 'V';
+
+    /**
+     * boolean(Z).
+     */
+    public static final char JVM_BOOLEAN = 'Z';
+
+    /**
+     * byte(B).
+     */
+    public static final char JVM_BYTE = 'B';
+
+    /**
+     * char(C).
+     */
+    public static final char JVM_CHAR = 'C';
+
+    /**
+     * double(D).
+     */
+    public static final char JVM_DOUBLE = 'D';
+
+    /**
+     * float(F).
+     */
+    public static final char JVM_FLOAT = 'F';
+
+    /**
+     * int(I).
+     */
+    public static final char JVM_INT = 'I';
+
+    /**
+     * long(J).
+     */
+    public static final char JVM_LONG = 'J';
+
+    /**
+     * short(S).
+     */
+    public static final char JVM_SHORT = 'S';
     public static final String PARAM_CLASS_SPLIT = ",";
     public static final String EMPTY_PARAM = "void";
     private static final Class<?>[] EMPTY_CLASS_ARRAY = new Class<?>[0];
@@ -301,5 +345,119 @@ public class ReflectUtil {
             return null;
         }
     }
+
+    public static boolean isPrimitives(Class<?> cls) {
+        while (cls.isArray()) {
+            cls = cls.getComponentType();
+        }
+        return isPrimitive(cls);
+    }
+
+    public static boolean isPrimitive(Class<?> cls) {
+        return cls.isPrimitive() || cls == String.class || cls == Boolean.class || cls == Character.class
+                || Number.class.isAssignableFrom(cls) || Date.class.isAssignableFrom(cls);
+    }
+
+    public static boolean isPublicInstanceField(Field field) {
+        return Modifier.isPublic(field.getModifiers())
+                && !Modifier.isStatic(field.getModifiers())
+                && !Modifier.isFinal(field.getModifiers())
+                && !field.isSynthetic();
+    }
+
+    public static boolean isBeanPropertyWriteMethod(Method method) {
+        return method != null
+                && Modifier.isPublic(method.getModifiers())
+                && !Modifier.isStatic(method.getModifiers())
+                && method.getDeclaringClass() != Object.class
+                && method.getParameterTypes().length == 1
+                && method.getName().startsWith("set")
+                && method.getName().length() > 3;
+    }
+
+    public static Class<?> name2class(String name) throws ClassNotFoundException {
+        return name2class(ClassUtils.getClassLoader(), name);
+    }
+
+    /**
+     * name to class.
+     * "boolean" => boolean.class
+     * "java.util.Map[][]" => java.util.Map[][].class
+     *
+     * @param cl   ClassLoader instance.
+     * @param name name.
+     * @return Class instance.
+     */
+    private static Class<?> name2class(ClassLoader cl, String name) throws ClassNotFoundException {
+        int c = 0, index = name.indexOf('[');
+        if (index > 0) {
+            c = (name.length() - index) / 2;
+            name = name.substring(0, index);
+        }
+        if (c > 0) {
+            StringBuilder sb = new StringBuilder();
+            while (c-- > 0) {
+                sb.append('[');
+            }
+
+            if ("void".equals(name)) {
+                sb.append(JVM_VOID);
+            } else if ("boolean".equals(name)) {
+                sb.append(JVM_BOOLEAN);
+            } else if ("byte".equals(name)) {
+                sb.append(JVM_BYTE);
+            } else if ("char".equals(name)) {
+                sb.append(JVM_CHAR);
+            } else if ("double".equals(name)) {
+                sb.append(JVM_DOUBLE);
+            } else if ("float".equals(name)) {
+                sb.append(JVM_FLOAT);
+            } else if ("int".equals(name)) {
+                sb.append(JVM_INT);
+            } else if ("long".equals(name)) {
+                sb.append(JVM_LONG);
+            } else if ("short".equals(name)) {
+                sb.append(JVM_SHORT);
+            } else {
+                // "java.lang.Object" ==> "Ljava.lang.Object;"
+                sb.append('L').append(name).append(';');
+            }
+            name = sb.toString();
+        } else {
+            if ("void".equals(name)) {
+                return void.class;
+            }
+            if ("boolean".equals(name)) {
+                return boolean.class;
+            }
+            if ("byte".equals(name)) {
+                return byte.class;
+            }
+            if ("char".equals(name)) {
+                return char.class;
+            }
+            if ("double".equals(name)) {
+                return double.class;
+            }
+            if ("float".equals(name)) {
+                return float.class;
+            }
+            if ("int".equals(name)) {
+                return int.class;
+            }
+            if ("long".equals(name)) {
+                return long.class;
+            }
+            if ("short".equals(name)) {
+                return short.class;
+            }
+        }
+
+        if (cl == null) {
+            cl = ClassUtils.getClassLoader();
+        }
+        return Class.forName(name, true, cl);
+    }
+
 
 }

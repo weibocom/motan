@@ -60,10 +60,4 @@ public interface CommonClient {
      */
     Request buildRequest(String interfaceName, String methodName, Object[] arguments);
 
-    Object callV1(String methodName, Object[] arguments, String parametersDesc,Class<?> returnType) throws Throwable;
-
-    /**
-     * call a service method asynchronously
-     */
-    Object asyncCallV1(String methodName, Object[] arguments, String parametersDesc,Class<?> returnType) throws Throwable;
 }
