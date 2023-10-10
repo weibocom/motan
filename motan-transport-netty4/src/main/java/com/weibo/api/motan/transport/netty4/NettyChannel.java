@@ -155,7 +155,7 @@ public class NettyChannel implements Channel {
             throw new MotanServiceException("NettyChannel failed to connect to server, url: " + nettyClient.getUrl().getUri(), e);
         } finally {
             if (!state.isAliveState()) {
-                nettyClient.incrErrorCount(); // 为避免死锁，client错误计数方法需在同步块外调用。
+                nettyClient.incrErrorCount(2); // 为避免死锁，client错误计数方法需在同步块外调用。
             }
         }
     }

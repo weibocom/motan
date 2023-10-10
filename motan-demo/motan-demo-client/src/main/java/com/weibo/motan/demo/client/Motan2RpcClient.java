@@ -24,6 +24,9 @@ import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.proxy.CommonClient;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.ResponseFuture;
+import com.weibo.breeze.BreezeUtil;
+import com.weibo.breeze.message.GenericMessage;
+import com.weibo.breeze.serializer.CommonSerializer;
 import com.weibo.motan.demo.service.MotanDemoService;
 import com.weibo.motan.demo.service.PbParamService;
 import com.weibo.motan.demo.service.model.User;
@@ -53,9 +56,10 @@ public class Motan2RpcClient {
         System.out.println(pbService.getFeature(Point.newBuilder().setLatitude(123).setLongitude(456).build()));
 
         // common client
-        CommonClient xmlClient = (CommonClient) ctx.getBean("motanDemoReferer-common-client");
-        motan2XmlCommonClientDemo(xmlClient);
+        CommonClient commonClient = (CommonClient) ctx.getBean("motanDemoReferer-common-client");
+        motan2XmlCommonClientDemo(commonClient);
         motan2ApiCommonClientDemo();
+        breezeGenericCall(commonClient);
 
         System.out.println("motan demo is finish.");
         System.exit(0);
@@ -121,6 +125,14 @@ public class Motan2RpcClient {
         // 使用服务
         CommonClient client = referer.getRef();
         System.out.println(client.call("hello", new Object[]{"a"}, String.class));
+    }
+
+    private static void breezeGenericCall(CommonClient client) throws Throwable {
+        GenericMessage genericMessage = new GenericMessage("com.weibo.motan.demo.service.model.User");
+        genericMessage.putFields(CommonSerializer.getHash("id"), 1);
+        genericMessage.putFields(CommonSerializer.getHash("name"), "AAA");
+        User user = (User) client.call("rename", new Object[]{genericMessage, "BBB"}, User.class);
+        System.out.println(user);
     }
 
 }
