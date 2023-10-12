@@ -16,6 +16,7 @@
 
 package com.weibo.api.motan.transport;
 
+import com.weibo.api.motan.common.ChannelState;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.DefaultThreadFactory;
 import com.weibo.api.motan.core.StandardThreadExecutor;
@@ -62,22 +63,20 @@ public abstract class AbstractPoolClient extends AbstractClient {
 
         pool = new GenericObjectPool(factory, poolConfig);
 
-        boolean lazyInit = url.getBooleanParameter(URLParamType.lazyInit.getName(), URLParamType.lazyInit.getBooleanValue());
-
-        if (!lazyInit) {
-            initConnection(true);
+        if (url.getBooleanParameter(URLParamType.lazyInit.getName(), URLParamType.lazyInit.getBooleanValue())) {
+            state = ChannelState.ALIVE;
+            LoggerUtil.debug("motan client will be lazily initialized. url:" + url.getUri());
+            return;
         }
+        initConnection(url.getBooleanParameter(URLParamType.asyncInitConnection.getName(), URLParamType.asyncInitConnection.getBooleanValue()));
     }
 
     protected void initConnection(boolean async) {
         if (async) {
             try {
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        createConnections();
-                        LoggerUtil.info("async initPool success!" + getUrl().getUri());
-                    }
+                executor.execute(() -> {
+                    createConnections();
+                    LoggerUtil.info("async initPool {}. url:{}", state == ChannelState.ALIVE ? "success" : "fail", getUrl().getUri());
                 });
                 return;
             } catch (Exception e) {
@@ -91,9 +90,13 @@ public abstract class AbstractPoolClient extends AbstractClient {
         for (int i = 0; i < poolConfig.minIdle; i++) {
             try {
                 pool.addObject();
+                state = ChannelState.ALIVE;// if any channel is successfully created, the ALIVE status will be set
             } catch (Exception e) {
                 LoggerUtil.error("NettyClient init pool create connect Error: url=" + url.getUri(), e);
             }
+        }
+        if (state == ChannelState.UNINIT) {
+            state = ChannelState.UNALIVE; // set state to UNALIVE, so that the heartbeat can be triggered if failed to create connections.
         }
     }
 

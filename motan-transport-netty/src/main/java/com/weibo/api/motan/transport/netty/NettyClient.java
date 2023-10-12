@@ -210,10 +210,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
         // 注册统计回调
         StatsUtil.registryStatisticCallback(this);
-
-        // 设置可用状态
-        state = ChannelState.ALIVE;
-        return state.isAliveState();
+        return true;
     }
 
     /**

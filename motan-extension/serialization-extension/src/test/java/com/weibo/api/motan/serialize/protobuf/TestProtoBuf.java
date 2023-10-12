@@ -38,7 +38,7 @@ public class TestProtoBuf {
 	private HelloService service;
 
 	@Before
-	public void setUp() {
+	public void setUp() throws InterruptedException {
 		ProtocolConfig protocolConfig = new ProtocolConfig();
 		protocolConfig.setId("testMotan");
 		protocolConfig.setName("motan");
@@ -64,6 +64,7 @@ public class TestProtoBuf {
 		refererConfig.setInterface(HelloService.class);
 
 		service = refererConfig.getRef();
+		Thread.sleep(20L);
 	}
 
 	@Test

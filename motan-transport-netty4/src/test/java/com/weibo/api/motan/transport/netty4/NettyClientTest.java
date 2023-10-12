@@ -17,12 +17,14 @@
 package com.weibo.api.motan.transport.netty4;
 
 
+import com.weibo.api.motan.common.ChannelState;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
+import com.weibo.api.motan.transport.support.DefaultRpcHeartbeatFactory;
 import com.weibo.api.motan.util.RequestIdGenerator;
 import org.junit.After;
 import org.junit.Assert;
@@ -155,7 +157,7 @@ public class NettyClientTest {
         } catch (Exception e) {
         }
 
-        Thread.sleep(100);
+        Thread.sleep(50L);
         try {
             nettyClient.request(request);
         } catch (MotanServiceException e) {
@@ -177,18 +179,16 @@ public class NettyClientTest {
         for (Channel channel : nettyClient.getChannels()) {
             assertFalse(channel.isAvailable());
         }
+        assertFalse(nettyClient.isAvailable());
 
         nettyServer.open();
+        nettyClient.heartbeat(new DefaultRpcHeartbeatFactory().createRequest());
 
-        try {
-            nettyClient.request(request);
-        } catch (Exception e) {
-        }
-
-        Thread.sleep(3000);
+        Thread.sleep(50L);
         for (Channel channel : nettyClient.getChannels()) {
             assertTrue(channel.isAvailable());
         }
+        assertTrue(nettyClient.isAvailable());
     }
 
     @Test

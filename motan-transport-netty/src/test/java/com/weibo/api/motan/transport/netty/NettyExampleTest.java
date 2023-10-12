@@ -16,12 +16,6 @@
 
 package com.weibo.api.motan.transport.netty;
 
-import junit.framework.TestCase;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
@@ -29,9 +23,10 @@ import com.weibo.api.motan.rpc.DefaultRequest;
 import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.transport.Channel;
-import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.RequestIdGenerator;
+import junit.framework.TestCase;
+import org.junit.Assert;
+import org.junit.Before;
 
 /**
  * @author maijunsheng
@@ -50,40 +45,28 @@ public class NettyExampleTest extends TestCase {
 
     @Before
     public void setUp() {
-        url = new URL("netty", "localhost", 18080, "com.weibo.api.motan.procotol.example.IHello");
+        url = new URL("netty", "localhost", 18080, "com.weibo.api.motan.protocol.example.IHello");
         url.addParameter(URLParamType.codec.getName(), "mockMotan");
         url.addParameter(URLParamType.requestTimeout.getName(), "2000");
     }
 
-    @Test
     public void testNettyEncodeException() throws Exception {
-        NettyServer nettyServer;
-        nettyServer = new NettyServer(url, new MessageHandler() {
-            @Override
-            public Object handle(Channel channel, Object message) {
-                Request request = (Request) message;
-                DefaultResponse response = new DefaultResponse();
-                response.setRequestId(request.getRequestId());
-                // 序列化错误
-                response.setValue(new UnSerializableClass());
-                return response;
-            }
-        });
-
+        NettyServer nettyServer = buildNettyServer(new UnSerializableClass());
         nettyServer.open();
         NettyClient nettyClient = new NettyClient(url);
         nettyClient.open();
+        Thread.sleep(50L);
 
         DefaultRequest request = new DefaultRequest();
         request.setRequestId(RequestIdGenerator.getRequestId());
         request.setInterfaceName(url.getPath());
         request.setMethodName("helloSerializable");
-        request.setParamtersDesc("com.weibo.api.motan.procotol.example.UnSerializableClass");
+        request.setParamtersDesc("com.weibo.api.motan.protocol.example.UnSerializableClass");
         request.setArguments(new Object[] {new UnSerializableClass()});
 
         try {
             nettyClient.request(request);
-            Assert.assertFalse(true);
+            Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(true);
         }
@@ -107,23 +90,12 @@ public class NettyExampleTest extends TestCase {
     }
 
     /**
-     * @throws Exception
      */
-    @Test
-    public void testNettyRequestDecodeException() throws Exception {
-        NettyServer nettyServer;
-        nettyServer = new NettyServer(url, new MessageHandler() {
-            @Override
-            public Object handle(Channel channel, Object message) {
-                Request request = (Request) message;
-                DefaultResponse response = new DefaultResponse();
-                response.setRequestId(request.getRequestId());
-                response.setValue("success");
-                return response;
-            }
-        });
+    public void testNettyRequestDecodeException() {
+        NettyServer nettyServer = buildNettyServer("success");
         nettyServer.open();
-
+        // sync init connections
+        url.addParameter(URLParamType.asyncInitConnection.getName(), "false");
         NettyClient nettyClient = new NettyClient(url);
         nettyClient.open();
 
@@ -135,7 +107,7 @@ public class NettyExampleTest extends TestCase {
 
         try {
             nettyClient.request(request);
-            Assert.assertTrue(false);
+            Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(e.getMessage().contains("framework decode error"));
         } finally {
@@ -144,24 +116,12 @@ public class NettyExampleTest extends TestCase {
         }
     }
 
-    @Test
     public void testNettyDecodeException() throws Exception {
-
-        NettyServer nettyServer;
-        nettyServer = new NettyServer(url, new MessageHandler() {
-            @Override
-            public Object handle(Channel channel, Object message) {
-                Request request = (Request) message;
-                DefaultResponse response = new DefaultResponse();
-                response.setRequestId(request.getRequestId());
-                response.setValue("error");
-                return response;
-            }
-        });
+        NettyServer nettyServer = buildNettyServer("error");
         nettyServer.open();
-
         NettyClient nettyClient = new NettyClient(url);
         nettyClient.open();
+        Thread.sleep(100L);
 
         DefaultRequest request = new DefaultRequest();
         request.setRequestId(RequestIdGenerator.getRequestId());
@@ -171,13 +131,24 @@ public class NettyExampleTest extends TestCase {
 
         try {
             nettyClient.request(request);
-            Assert.assertTrue(false);
+            Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(e.getMessage().contains("response dataType not support"));
         } finally {
             nettyClient.close();
             nettyServer.close();
         }
+    }
+
+    private NettyServer buildNettyServer(final Object expectValue){
+        NettyServer nettyServer = new NettyServer(url, (channel, message) -> {
+            Request request = (Request) message;
+            DefaultResponse response = new DefaultResponse();
+            response.setRequestId(request.getRequestId());
+            response.setValue(expectValue);
+            return response;
+        });
+        return nettyServer;
     }
 
 }
