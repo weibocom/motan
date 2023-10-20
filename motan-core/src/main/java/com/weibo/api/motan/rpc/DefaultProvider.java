@@ -33,10 +33,25 @@ import java.lang.reflect.Method;
 @SpiMeta(name = "motan")
 public class DefaultProvider<T> extends AbstractProvider<T> {
     protected T proxyImpl;
+    protected boolean isAsync = false;
 
     public DefaultProvider(T proxyImpl, URL url, Class<T> clz) {
         super(url, clz);
         this.proxyImpl = proxyImpl;
+        Class<?> asyncInterface = null;
+        try {
+            asyncInterface = Class.forName(clz.getName() + "Async");
+            if (asyncInterface.isInterface() && asyncInterface.isAssignableFrom(proxyImpl.getClass())) {
+                isAsync = true;
+            }
+        } catch (Exception ignore) {
+        }
+
+        if (isAsync) {
+            initMethodMap(asyncInterface);
+        } else {
+            initMethodMap(clz);
+        }
     }
 
     @Override
@@ -48,7 +63,11 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
     public Response invoke(Request request) {
         DefaultResponse response = new DefaultResponse();
 
-        Method method = lookupMethod(request.getMethodName(), request.getParamtersDesc());
+        String methodName = request.getMethodName();
+        if (isAsync) { // change to async method
+            methodName += "Async";
+        }
+        Method method = lookupMethod(methodName, request.getParamtersDesc());
 
         if (method == null) {
             LoggerUtil.error("can not found rpc method:" + request.getMethodName() + ", paramDesc:" + request.getParamtersDesc() + ", service:" + request.getInterfaceName());
@@ -63,6 +82,9 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
         boolean defaultThrowExceptionStack = URLParamType.transExceptionStack.getBooleanValue();
         try {
             Object value = method.invoke(proxyImpl, request.getArguments());
+            if (value instanceof ResponseFuture) { // async method
+                return (Response) value;
+            }
             response.setValue(value);
         } catch (Exception e) {
             if (e.getCause() != null) {
@@ -81,9 +103,9 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
                 }
             }
             if (logException) {
-                LoggerUtil.error("Exception caught when during method invocation. request:" + request.toString(), e);
+                LoggerUtil.error("Exception caught when during method invocation. request:" + request, e);
             } else {
-                LoggerUtil.info("Exception caught when during method invocation. request:" + request.toString() + ", exception:" + response.getException().getCause().toString());
+                LoggerUtil.info("Exception caught when during method invocation. request:" + request + ", exception:" + response.getException().getCause().toString());
             }
         } catch (Throwable t) {
             // 如果服务发生Error，将Error转化为Exception，防止拖垮调用方
@@ -93,7 +115,7 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
                 response.setException(new MotanServiceException("provider has encountered a fatal error!", t));
             }
             //对于Throwable,也记录日志
-            LoggerUtil.error("Exception caught when during method invocation. request:" + request.toString(), t);
+            LoggerUtil.error("Exception caught when during method invocation. request:" + request, t);
         }
 
         if (response.getException() != null) {

@@ -29,11 +29,12 @@ import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Executor;
 
 /**
  * Created by zhanglei28 on 2017/9/11.
  */
-public class DefaultResponseFuture implements ResponseFuture, Traceable {
+public class DefaultResponseFuture implements ResponseFuture, Callbackable, Traceable {
 
     protected final Object lock = new Object();
     protected volatile FutureState state = FutureState.DOING;
@@ -41,22 +42,31 @@ public class DefaultResponseFuture implements ResponseFuture, Traceable {
     protected Exception exception = null;
 
     protected long createTime = System.currentTimeMillis();
-    protected int timeout = 0;
+    protected int timeout;
     protected long processTime = 0;
     protected Request request;
     protected List<FutureListener> listeners;
-    protected URL serverUrl;
-    protected Class returnType;
+    protected String remoteInfo;
+    protected Class<?> returnType;
     private Map<String, String> attachments;// rpc协议版本兼容时可以回传一些额外的信息
-    private TraceableContext traceableContext = new TraceableContext();
+    private final TraceableContext traceableContext = new TraceableContext();
+    private final DefaultCallbackHolder callbackHolder = new DefaultCallbackHolder();
 
     public DefaultResponseFuture(Request requestObj, int timeout, URL serverUrl) {
         this.request = requestObj;
         this.timeout = timeout;
-        this.serverUrl = serverUrl;
+        this.remoteInfo = serverUrl.getServerPortStr();
     }
 
+    public DefaultResponseFuture(Request requestObj, int timeout, String remoteInfo) {
+        this.request = requestObj;
+        this.timeout = timeout;
+        this.remoteInfo = remoteInfo;
+    }
+
+
     @Override
+    // for client end
     public void onSuccess(Response response) {
         this.result = response.getValue();
         this.processTime = response.getProcessTime();
@@ -70,10 +80,25 @@ public class DefaultResponseFuture implements ResponseFuture, Traceable {
     }
 
     @Override
+    // for client end
     public void onFailure(Response response) {
         this.exception = response.getException();
         this.processTime = response.getProcessTime();
 
+        done();
+    }
+
+    @Override
+    // for server end
+    public void onSuccess(Object value) {
+        this.result = value;
+        done();
+    }
+
+    @Override
+    // for server end
+    public void onFailure(Exception e) {
+        this.exception = e;
         done();
     }
 
@@ -100,7 +125,7 @@ public class DefaultResponseFuture implements ResponseFuture, Traceable {
                     for (; ; ) {
                         try {
                             lock.wait(waitTime);
-                        } catch (InterruptedException e) {
+                        } catch (InterruptedException ignore) {
                         }
 
                         if (!isDoing()) {
@@ -130,7 +155,7 @@ public class DefaultResponseFuture implements ResponseFuture, Traceable {
     @Override
     public boolean cancel() {
         Exception e =
-                new MotanServiceException(this.getClass().getName() + " task cancel: serverPort=" + serverUrl.getServerPortStr() + " "
+                new MotanServiceException(this.getClass().getName() + " task cancel: remote info =" + remoteInfo + " "
                         + MotanFrameworkUtil.toString(request) + " cost=" + (System.currentTimeMillis() - createTime));
         return cancel(e);
     }
@@ -217,7 +242,7 @@ public class DefaultResponseFuture implements ResponseFuture, Traceable {
 
             state = FutureState.CANCELLED;
             exception =
-                    new MotanServiceException(this.getClass().getName() + " request timeout: serverPort=" + serverUrl.getServerPortStr()
+                    new MotanServiceException(this.getClass().getName() + " request timeout: remote info =" + remoteInfo
                             + " " + MotanFrameworkUtil.toString(request) + " cost=" + (System.currentTimeMillis() - createTime),
                             MotanErrorMsgConstant.SERVICE_TIMEOUT, false);
 
@@ -299,7 +324,7 @@ public class DefaultResponseFuture implements ResponseFuture, Traceable {
 
     @Override
     public Map<String, String> getAttachments() {
-        return attachments != null ? attachments : Collections.<String, String>emptyMap();
+        return attachments != null ? attachments : Collections.emptyMap();
     }
 
     @Override
@@ -331,5 +356,20 @@ public class DefaultResponseFuture implements ResponseFuture, Traceable {
     @Override
     public int getSerializeNumber() {
         return 0;
+    }
+
+    @Override
+    public void addFinishCallback(Runnable runnable, Executor executor) {
+        callbackHolder.addFinishCallback(runnable, executor);
+    }
+
+    @Override
+    public void onFinish() {
+        callbackHolder.onFinish();
+    }
+
+    @Override
+    public Callbackable getCallbackHolder() {
+        return callbackHolder;
     }
 }

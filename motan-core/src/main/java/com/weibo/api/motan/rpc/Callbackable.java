@@ -10,4 +10,8 @@ public interface Callbackable {
     void addFinishCallback(Runnable runnable, Executor executor);
 
     void onFinish();
+
+    default Callbackable getCallbackHolder(){
+        return null;
+    }
 }

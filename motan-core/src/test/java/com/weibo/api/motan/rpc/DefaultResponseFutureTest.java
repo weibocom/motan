@@ -18,140 +18,128 @@
 
 package com.weibo.api.motan.rpc;
 
+import com.weibo.api.motan.exception.MotanBizException;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.junit.Assert.*;
 
 /**
  * Created by zhanglei28 on 2017/9/11.
  */
 public class DefaultResponseFutureTest {
     static URL url = new URL("motan", "localhost", 18080, "testurl");
+
     @Test
     public void testNormal() {
         DefaultRequest request = new DefaultRequest();
-
         DefaultResponse defaultResponse = new DefaultResponse();
         defaultResponse.setValue("success");
-
         DefaultResponseFuture response = new DefaultResponseFuture(request, 100, url);
-
         response.onSuccess(defaultResponse);
-
         Object result = response.getValue();
-        Assert.assertEquals(result, defaultResponse.getValue());
-        Assert.assertTrue(response.isDone());
+        assertEquals(result, defaultResponse.getValue());
+        assertTrue(response.isDone());
     }
 
     @Test
     public void testException() {
         DefaultRequest request = new DefaultRequest();
-
         DefaultResponseFuture response = new DefaultResponseFuture(request, 100, url);
         Exception exception = new Exception("hello");
         DefaultResponse defaultResponse = new DefaultResponse();
         defaultResponse.setException(exception);
-
         response.onFailure(defaultResponse);
-
-
         try {
             response.getValue();
-            Assert.assertTrue(false);
+            fail();
         } catch (Exception e) {
-            Assert.assertTrue(true);
+            assertTrue(true);
         }
-        Assert.assertTrue(response.isDone());
+        assertTrue(response.isDone());
     }
 
     @Test
     public void testTimeout() {
         DefaultRequest request = new DefaultRequest();
-
         DefaultResponseFuture response = new DefaultResponseFuture(request, 10, url);
-
         try {
             response.getValue();
-            Assert.assertTrue(false);
+            fail();
         } catch (Exception e) {
-            Assert.assertTrue(true);
+            assertTrue(true);
         }
-
-        Assert.assertTrue(response.isCancelled());
+        assertTrue(response.isCancelled());
     }
 
     @Test
     public void testCancel() {
         DefaultRequest request = new DefaultRequest();
-
         DefaultResponseFuture response = new DefaultResponseFuture(request, 10, url);
         response.cancel();
-
         try {
             response.getValue();
-            Assert.assertTrue(false);
+            fail();
         } catch (Exception e) {
-            Assert.assertTrue(true);
+            assertTrue(true);
         }
-
-        Assert.assertTrue(response.isCancelled());
+        assertTrue(response.isCancelled());
     }
 
     @Test
     public void testListener() {
         DefaultRequest request = new DefaultRequest();
-
         DefaultResponseFuture response = new DefaultResponseFuture(request, 100, url);
-
         final AtomicBoolean result = new AtomicBoolean(false);
-
-        response.addListener(new FutureListener() {
-            @Override
-            public void operationComplete(Future future) throws Exception {
-                if (future.isSuccess()) {
-                    result.set(true);
-                } else {
-                    result.set(false);
-                }
-            }
-        });
-
+        response.addListener(future -> result.set(future.isSuccess()));
         DefaultResponse defaultResponse = new DefaultResponse();
         defaultResponse.setValue(new Object());
         response.onSuccess(defaultResponse);
-
-        Assert.assertTrue(result.get());
-
+        assertTrue(result.get());
         response = new DefaultResponseFuture(request, 100, url);
-
-        response.addListener(new FutureListener() {
-            @Override
-            public void operationComplete(Future future) throws Exception {
-                if (future.isSuccess()) {
-                    result.set(true);
-                } else {
-                    result.set(false);
-                }
-            }
-        });
-
+        response.addListener(future -> result.set(future.isSuccess()));
         response.cancel();
-
         result.set(true);
-
-        response.addListener(new FutureListener() {
-            @Override
-            public void operationComplete(Future future) throws Exception {
-                if (future.isSuccess()) {
-                    result.set(true);
-                } else {
-                    result.set(false);
-                }
-            }
-        });
-
+        response.addListener(future -> result.set(future.isSuccess()));
         Assert.assertFalse(result.get());
+    }
 
+    @Test
+    public void testTraceableAndCallbackHolder() throws InterruptedException {
+        DefaultResponseFuture responseFuture = new DefaultResponseFuture(new DefaultRequest(), 100, "127.0.0.1");
+
+        // add trace info
+        long receiveTime = 123L;
+        String key = "ddd";
+        String value = "xxx";
+        responseFuture.getTraceableContext().setReceiveTime(receiveTime);
+        responseFuture.getTraceableContext().addTraceInfo(key, value);
+
+        // add callback
+        AtomicBoolean finish = new AtomicBoolean(false);
+        responseFuture.addFinishCallback(() -> finish.set(true), null);
+
+        // pass to DefaultResponse
+        responseFuture.onSuccess("success"); // trigger future done
+        DefaultResponse defaultResponse = DefaultResponse.fromServerEndResponseFuture(responseFuture);
+        assertEquals(receiveTime, defaultResponse.getTraceableContext().getReceiveTime());
+        assertEquals(value, defaultResponse.getTraceableContext().getTraceInfo(key));
+
+        defaultResponse.onFinish();
+        Thread.sleep(10);
+        assertTrue(finish.get());
+    }
+
+    @Test
+    public void testServerEndException() {
+        DefaultResponseFuture responseFuture = new DefaultResponseFuture(new DefaultRequest(), 100, "127.0.0.1");
+        String errMsg = "biz fail";
+        responseFuture.onFailure(new RuntimeException(errMsg));
+        DefaultResponse defaultResponse = DefaultResponse.fromServerEndResponseFuture(responseFuture);
+        assertTrue(defaultResponse.getException() instanceof MotanBizException); // check exception type
+        assertTrue(defaultResponse.getException().getCause() instanceof RuntimeException);
+        assertEquals(errMsg, defaultResponse.getException().getCause().getMessage());
     }
 }

@@ -21,10 +21,7 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.DefaultResponse;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.RpcContext;
+import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.LoggerUtil;
@@ -133,17 +130,21 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
             LoggerUtil.error("NettyChannelHandler processRequest fail!request:" + MotanFrameworkUtil.toString(request), e);
             result = MotanFrameworkUtil.buildErrorResponse(request, new MotanServiceException("process request fail. errMsg:" + e.getMessage()));
         }
-
-        if (result instanceof Response) {
-            MotanFrameworkUtil.logEvent((Response) result, MotanConstants.TRACE_PROCESS);
-        }
-        final DefaultResponse response;
-
-        if (result instanceof DefaultResponse) {
-            response = (DefaultResponse) result;
+        if (result instanceof ResponseFuture) {
+            processAsyncResult(ctx, (ResponseFuture) result, request, processStartTime);
         } else {
-            response = new DefaultResponse(result);
+            DefaultResponse response;
+            if (result instanceof DefaultResponse) {
+                response = (DefaultResponse) result;
+            } else {
+                response = new DefaultResponse(result);
+            }
+            processResult(ctx, response, request, processStartTime);
         }
+    }
+
+    private void processResult(final ChannelHandlerContext ctx, final DefaultResponse response, final Request request, final long processStartTime) {
+        MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_PROCESS);
         response.setRpcProtocolVersion(request.getRpcProtocolVersion());
         response.setRequestId(request.getRequestId());
         response.setProcessTime(System.currentTimeMillis() - processStartTime);
@@ -159,6 +160,10 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
         } else { // execute the onFinish method of response if write fail
             response.onFinish();
         }
+    }
+
+    private void processAsyncResult(final ChannelHandlerContext ctx, final ResponseFuture responseFuture, final Request request, final long processStartTime) {
+        responseFuture.addListener((future) -> processResult(ctx, DefaultResponse.fromServerEndResponseFuture(responseFuture), request, processStartTime));
     }
 
     private void processResponse(ChannelHandlerContext ctx, MessageEvent e) {

@@ -37,13 +37,11 @@ public abstract class AbstractProvider<T> implements Provider<T> {
     protected boolean alive = false;
     protected boolean close = false;
 
-    protected Map<String, Method> methodMap = new HashMap<String, Method>();
+    protected Map<String, Method> methodMap = new HashMap<>();
 
     public AbstractProvider(URL url, Class<T> clz) {
         this.url = url;
         this.clz = clz;
-
-        initMethodMap(clz);
     }
 
     @Override
@@ -51,7 +49,6 @@ public abstract class AbstractProvider<T> implements Provider<T> {
         MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_BEFORE_BIZ);
         Response response = invoke(request);
         MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_AFTER_BIZ);
-
         return response;
     }
 
@@ -78,7 +75,6 @@ public abstract class AbstractProvider<T> implements Provider<T> {
         if (url != null) {
             return url.toString();
         }
-
         return null;
     }
 
@@ -94,7 +90,7 @@ public abstract class AbstractProvider<T> implements Provider<T> {
 
     @Override
     public Method lookupMethod(String methodName, String methodDesc) {
-        Method method = null;
+        Method method;
         String fullMethodName = ReflectUtil.getMethodDesc(methodName, methodDesc);
         method = methodMap.get(fullMethodName);
         if (method == null && StringUtils.isBlank(methodDesc)) {
@@ -103,14 +99,13 @@ public abstract class AbstractProvider<T> implements Provider<T> {
                 method = methodMap.get(methodName.substring(0, 1).toLowerCase() + methodName.substring(1));
             }
         }
-
         return method;
     }
 
-    private void initMethodMap(Class<T> clz) {
+    protected void initMethodMap(Class<?> clz) {
         Method[] methods = clz.getMethods();
 
-        List<String> dupList = new ArrayList<String>();
+        List<String> dupList = new ArrayList<>();
         for (Method method : methods) {
             String methodDesc = ReflectUtil.getMethodDesc(method);
             methodMap.put(methodDesc, method);
@@ -126,5 +121,4 @@ public abstract class AbstractProvider<T> implements Provider<T> {
             }
         }
     }
-
 }
