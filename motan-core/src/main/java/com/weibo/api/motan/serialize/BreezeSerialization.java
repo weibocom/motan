@@ -20,15 +20,19 @@ package com.weibo.api.motan.serialize;
 
 import com.weibo.api.motan.codec.Serialization;
 import com.weibo.api.motan.core.extension.SpiMeta;
-import com.weibo.breeze.BreezeBuffer;
-import com.weibo.breeze.BreezeReader;
-import com.weibo.breeze.BreezeWriter;
+import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.breeze.*;
+import com.weibo.breeze.serializer.CommonSerializer;
+import com.weibo.breeze.serializer.Serializer;
 
 import java.io.IOException;
+
+import static com.weibo.breeze.type.Types.*;
 
 /**
  * Created by zhanglei28 on 2019/4/3.
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 @SpiMeta(name = "breeze")
 public class BreezeSerialization implements Serialization {
     public static int DEFAULT_BUFFER_SIZE = 1024;
@@ -36,7 +40,21 @@ public class BreezeSerialization implements Serialization {
     @Override
     public byte[] serialize(Object o) throws IOException {
         BreezeBuffer buffer = new BreezeBuffer(DEFAULT_BUFFER_SIZE);
-        BreezeWriter.writeObject(buffer, o);
+        if (o instanceof Throwable) { // compatible with motan1 protocol exception encoding mechanism， handle exception classes individually
+            Serializer serializer = Breeze.getSerializer(o.getClass());
+            if (serializer != null) {
+                if (serializer instanceof CommonSerializer) { // non-customized serializer uses adaptive method
+                    writeException((Throwable) o, buffer);
+                } else {
+                    BreezeWriter.putMessageType(buffer, serializer.getName());
+                    serializer.writeToBuf(o, buffer);
+                }
+            } else {
+                throw new BreezeException("Breeze unsupported type: " + o.getClass());
+            }
+        } else {
+            BreezeWriter.writeObject(buffer, o);
+        }
         buffer.flip();
         return buffer.getBytes();
     }
@@ -44,13 +62,20 @@ public class BreezeSerialization implements Serialization {
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> clz) throws IOException {
         BreezeBuffer buffer = new BreezeBuffer(bytes);
+        if (Throwable.class.isAssignableFrom(clz)) { // compatible with motan1 protocol exception encoding mechanism， handle exception classes individually
+            Serializer serializer = Breeze.getSerializer(clz);
+            if (serializer instanceof CommonSerializer) {
+                // non-customized serializer uses adaptive method
+                throw readToMotanException(buffer, clz);
+            }
+        }
         return BreezeReader.readObject(buffer, clz);
     }
 
     @Override
     public byte[] serializeMulti(Object[] objects) throws IOException {
         BreezeBuffer buffer = new BreezeBuffer(DEFAULT_BUFFER_SIZE);
-        for (Object o: objects){
+        for (Object o : objects) {
             BreezeWriter.writeObject(buffer, o);
         }
         buffer.flip();
@@ -70,5 +95,32 @@ public class BreezeSerialization implements Serialization {
     @Override
     public int getSerializationNumber() {
         return 8;
+    }
+
+    // adapt motan1 exception
+    private void writeException(Throwable obj, BreezeBuffer buffer) throws BreezeException {
+        BreezeWriter.putMessageType(buffer, obj.getClass().getName());
+        BreezeWriter.writeMessage(buffer, () -> TYPE_STRING.writeMessageField(buffer, 1, obj.getMessage()));
+    }
+
+    private MotanServiceException readToMotanException(BreezeBuffer buffer, Class<?> clz) throws BreezeException {
+        byte bType = buffer.get();
+        if (bType >= MESSAGE && bType <= DIRECT_REF_MESSAGE_MAX_TYPE) {
+            final StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("remote exception class : ")
+                    .append(BreezeReader.readMessageName(buffer, bType))
+                    .append(", error message : ");
+            BreezeReader.readMessage(buffer, (int index) -> {
+                switch (index) {
+                    case 1:
+                        stringBuilder.append(TYPE_STRING.read(buffer));
+                        break;
+                    default: //skip unknown field
+                        BreezeReader.readObject(buffer, Object.class);
+                }
+            });
+            return new MotanServiceException(stringBuilder.toString());
+        }
+        throw new BreezeException("Breeze not support " + bType + " with receiver type:" + clz);
     }
 }
