@@ -160,6 +160,9 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
             // return channel to pool
             returnObject(channel);
         } catch (Exception e) {
+            if (channel == null) {
+                incrErrorCount(2); // accelerate fusing when getting channel fails
+            }
             //TODO 对特定的异常回收channel
             invalidateObject(channel);
             if (e instanceof MotanAbstractException) {
@@ -207,10 +210,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
 
         // 注册统计回调
         StatsUtil.registryStatisticCallback(this);
-
-        // 设置可用状态
-        state = ChannelState.ALIVE;
-        return state.isAliveState();
+        return true;
     }
 
     /**
@@ -334,6 +334,9 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
         return new NettyChannelFactory(this);
     }
 
+    void incrErrorCount() {
+        incrErrorCount(1);
+    }
     /**
      * 增加调用失败的次数：
      * <p>
@@ -341,8 +344,8 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
      * 	 	如果连续失败的次数 >= maxClientConnection, 那么把client设置成不可用状态
      * </pre>
      */
-    void incrErrorCount() {
-        long count = errorCount.incrementAndGet();
+    void incrErrorCount(int delta) {
+        long count = errorCount.addAndGet(delta);
 
         // 如果节点是可用状态，同时当前连续失败的次数超过熔断阈值，那么把该节点标示为不可用
         if (count >= fusingThreshold && state.isAliveState()) {

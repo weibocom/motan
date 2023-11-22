@@ -16,6 +16,7 @@
 
 package com.weibo.api.motan.transport;
 
+import com.weibo.api.motan.common.ChannelState;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.DefaultThreadFactory;
 import com.weibo.api.motan.core.StandardThreadExecutor;
@@ -56,7 +57,8 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
         for (int i = 0; i < connections; i++) {
             channels.add((Channel) factory.makeObject());
         }
-        if (url.getBooleanParameter(URLParamType.lazyInit.getName(), URLParamType.lazyInit.getBooleanValue())){
+        if (url.getBooleanParameter(URLParamType.lazyInit.getName(), URLParamType.lazyInit.getBooleanValue())) {
+            state = ChannelState.ALIVE;
             LoggerUtil.debug("motan client will be lazily initialized. url:" + url.getUri());
             return;
         }
@@ -67,12 +69,9 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
 
     protected void initConnections(boolean async) {
         if (async) {
-            EXECUTOR.execute(new Runnable() {
-                @Override
-                public void run() {
-                    createConnections();
-                    LoggerUtil.info("async initPool success!" + getUrl().getUri());
-                }
+            EXECUTOR.execute(() -> {
+                createConnections();
+                LoggerUtil.info("async initPool {}. url:{}", state == ChannelState.ALIVE ? "success" : "fail", getUrl().getUri());
             });
         } else {
             createConnections();
@@ -83,17 +82,21 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
         for (Channel channel : channels) {
             try {
                 channel.open();
+                state = ChannelState.ALIVE;// if any channel is successfully created, the ALIVE status will be set
             } catch (Exception e) {
                 LoggerUtil.error("NettyClient init pool create connect Error: url=" + url.getUri(), e);
             }
         }
         poolInit = true;
+        if (state == ChannelState.UNINIT) {
+            state = ChannelState.UNALIVE; // set state to UNALIVE, so that the heartbeat can be triggered if failed to create connections.
+        }
     }
 
     protected Channel getChannel() {
-        if (!poolInit){
-            synchronized (this){
-                if (!poolInit){
+        if (!poolInit) {
+            synchronized (this) {
+                if (!poolInit) {
                     createConnections();
                 }
             }
@@ -101,10 +104,10 @@ public abstract class AbstractSharedPoolClient extends AbstractClient {
         int index = MathUtil.getNonNegativeRange24bit(idx.getAndIncrement());
         Channel channel;
 
-        for (int i = index; i < connections + 1 + index; i++) {
+        for (int i = index; i < connections + index; i++) {
             channel = channels.get(i % connections);
             if (!channel.isAvailable()) {
-                factory.rebuildObject(channel, i != connections + 1);
+                factory.rebuildObject(channel, i != connections + index - 1);
             }
             if (channel.isAvailable()) {
                 return channel;

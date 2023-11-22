@@ -98,25 +98,18 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
     }
 
     private Response request(Request request, boolean async) throws TransportException {
-        Channel channel;
+        Channel channel = null;
         Response response;
         try {
             // return channel or throw exception(timeout or connection_fail)
             channel = getChannel();
             MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_CONNECTION);
-        } catch (Exception e) {
-            incrErrorCount();// Because the channel cannot be obtained, the failure count cannot be performed through the channel
-            if (e instanceof MotanAbstractException) {
-                throw (MotanAbstractException) e;
-            } else {
-                throw new MotanServiceException("NettyClient request Error: url=" + url.getUri() + " " + MotanFrameworkUtil.toString(request), e);
-            }
-        }
-
-        try {
             // async request
             response = channel.request(request);
         } catch (Exception e) {
+            if (channel == null) {
+                incrErrorCount(3);// accelerate fusing when getting channel fails
+            }
             if (e instanceof MotanAbstractException) {
                 throw (MotanAbstractException) e;
             } else {
@@ -124,9 +117,8 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
             }
         }
 
-        // aysnc or sync result
+        // async or sync result
         response = asyncResponse(response, async);
-
         return response;
     }
 
@@ -149,7 +141,6 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
         if (isAvailable()) {
             return true;
         }
-
 
         bootstrap = new Bootstrap();
         int timeout = getUrl().getIntParameter(URLParamType.connectTimeout.getName(), URLParamType.connectTimeout.getIntValue());
@@ -197,9 +188,6 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
 
         // 注册统计回调
         StatsUtil.registryStatisticCallback(this);
-
-        // 设置可用状态
-        state = ChannelState.ALIVE;
         return true;
     }
 
@@ -270,6 +258,10 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
         return callbackMap.remove(requestId);
     }
 
+    void incrErrorCount() {
+        incrErrorCount(1);
+    }
+
     /**
      * 增加调用失败的次数：
      * <p>
@@ -277,8 +269,8 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
      * 	 	如果连续失败的次数 >= maxClientConnection, 那么把client设置成不可用状态
      * </pre>
      */
-    void incrErrorCount() {
-        long count = errorCount.incrementAndGet();
+    void incrErrorCount(int delta) {
+        long count = errorCount.addAndGet(delta);
 
         // 如果节点是可用状态，同时当前连续失败的次数超过熔断阈值，那么把该节点标示为不可用
         if (count >= fusingThreshold && state.isAliveState()) {
