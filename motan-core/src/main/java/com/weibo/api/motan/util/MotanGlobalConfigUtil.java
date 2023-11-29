@@ -25,7 +25,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * @author zhanglei28
@@ -63,6 +66,10 @@ public class MotanGlobalConfigUtil {
 
     public static void putConfigs(Map<String, String> configs, boolean override) {
         innerGlobalConfig.putConfigs(configs, override);
+    }
+
+    public static Set<Map.Entry<String, String>> entrySet() {
+        return innerGlobalConfig.entrySet();
     }
 
     public static GlobalConfig setInnerGlobalConfig(GlobalConfig newConfig) {
