@@ -52,7 +52,6 @@ public class DefaultAdminHandlerTest extends TestCase {
         checkOk(request, "hello");
         request.setMethodName("/error"); // check exception from command handler
         checkException(request, "expect error");
-
     }
 
     private void checkException(DefaultRequest request, String expectError) {

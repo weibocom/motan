@@ -42,7 +42,7 @@ public class DefaultAdminHandler implements AdminHandler {
             return handler.handle(request);
         } catch (MotanAbstractException mae){
             return AdminUtil.buildErrorResponse(request, mae.getOriginMessage());
-        } catch (Exception e) {
+        } catch (Throwable e) {
             return AdminUtil.buildErrorResponse(request, e.getMessage());
         }
     }

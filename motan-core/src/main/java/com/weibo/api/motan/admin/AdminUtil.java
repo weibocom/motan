@@ -62,11 +62,15 @@ public class AdminUtil {
         DefaultResponse response = new DefaultResponse();
         response.setRequestId(request.getRequestId());
         response.setRpcProtocolVersion(request.getRpcProtocolVersion());
+        response.setException(new MotanServiceException(toJsonErrorMessage(errMessage)));
+        return response;
+    }
+
+    public static String toJsonErrorMessage(String errMessage) {
         JSONObject errJson = new JSONObject();
         errJson.put("result", "fail");
         errJson.put("error", errMessage == null ? "null" : errMessage);
-        response.setException(new MotanServiceException(errJson.toJSONString()));
-        return response;
+        return errJson.toJSONString();
     }
 
     public static DefaultResponse unknownCommand(Request request) {

@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class AdminInitialization implements Initializable {
     // default values
     private static final String DEFAULT_ADMIN_SERVER = "netty4";
+    private static final String SECOND_DEFAULT_ADMIN_SERVER = "netty3";
     private static final String DEFAULT_ADMIN_PROTOCOL = "http";
 
     @Override
@@ -28,8 +29,18 @@ public class AdminInitialization implements Initializable {
         try {
             int port = getAdminPort();
             if (port >= 0) { // create admin server
-                // get spi server factory, an exception will be thrown if not found
-                AdminServerFactory adminServerFactory = ExtensionLoader.getExtensionLoader(AdminServerFactory.class).getExtension(MotanGlobalConfigUtil.getConfig(MotanConstants.ADMIN_SERVER, DEFAULT_ADMIN_SERVER));
+                String adminServerString = MotanGlobalConfigUtil.getConfig(MotanConstants.ADMIN_SERVER);
+                AdminServerFactory adminServerFactory;
+                // an exception will be thrown if AdminServerFactory is not found
+                if (StringUtils.isNotBlank(adminServerString)) {
+                    adminServerFactory = ExtensionLoader.getExtensionLoader(AdminServerFactory.class).getExtension(adminServerString);
+                } else { // use default admin server
+                    adminServerFactory = ExtensionLoader.getExtensionLoader(AdminServerFactory.class).getExtension(DEFAULT_ADMIN_SERVER, false);
+                    if (adminServerFactory == null) {
+                        adminServerFactory = ExtensionLoader.getExtensionLoader(AdminServerFactory.class).getExtension(SECOND_DEFAULT_ADMIN_SERVER);
+                    }
+                }
+
                 // build admin server url
                 URL adminUrl = new URL(MotanGlobalConfigUtil.getConfig(MotanConstants.ADMIN_PROTOCOL, DEFAULT_ADMIN_PROTOCOL), "127.0.0.1", port, "/",
                         MotanGlobalConfigUtil.entrySet().stream().filter((entry) -> entry.getKey().startsWith("admin.")).collect(Collectors.toMap((entry) -> entry.getKey().substring("admin.".length()), Map.Entry::getValue)));

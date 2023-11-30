@@ -127,7 +127,6 @@ public class Netty4HttpServer extends AbstractServer implements StatisticCallbac
         return true;
     }
 
-
     private void processHttpRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
         FullHttpResponse httpResponse;
         try {

@@ -2,6 +2,7 @@ package com.weibo.api.motan.transport.netty4.admin;
 
 import com.weibo.api.motan.admin.AbstractAdminServer;
 import com.weibo.api.motan.admin.AdminHandler;
+import com.weibo.api.motan.admin.AdminUtil;
 import com.weibo.api.motan.exception.MotanAbstractException;
 import com.weibo.api.motan.rpc.DefaultRequest;
 import com.weibo.api.motan.rpc.Request;
@@ -31,7 +32,7 @@ public class AdminHttpServer extends AbstractAdminServer {
             try {
                 httpResponse = convertHttpResponse(adminHandler.handle(convertRequest(httpRequest)));
             } catch (Exception e) {
-                httpResponse = NettyHttpUtil.buildErrorResponse(e.getMessage());
+                httpResponse = NettyHttpUtil.buildErrorResponse(AdminUtil.toJsonErrorMessage(e.getMessage()));
             }
             return httpResponse;
         });
