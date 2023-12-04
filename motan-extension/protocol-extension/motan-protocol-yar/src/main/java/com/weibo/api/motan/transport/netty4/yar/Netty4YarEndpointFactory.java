@@ -24,7 +24,7 @@ import com.weibo.api.motan.transport.support.AbstractEndpointFactory;
 
 /**
  * 
- * @Description yar endpoint factory use netty4
+ * yar endpoint factory use netty4
  * @author zhanglei
  * @date 2016-5-31
  *
@@ -34,7 +34,7 @@ public class Netty4YarEndpointFactory extends AbstractEndpointFactory {
 
     @Override
     protected Server innerCreateServer(URL url, MessageHandler messageHandler) {
-        return new Netty4HttpServer(url, new YarMessageHandlerWarpper(messageHandler));
+        return new Netty4HttpServer(url, new YarMessageHandlerWrapper(messageHandler));
     }
 
     @Override
