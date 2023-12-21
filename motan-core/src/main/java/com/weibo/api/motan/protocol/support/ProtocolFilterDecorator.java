@@ -26,6 +26,7 @@ import com.weibo.api.motan.filter.Filter;
 import com.weibo.api.motan.filter.InitializableFilter;
 import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MotanGlobalConfigUtil;
 import com.weibo.api.motan.util.StringTools;
 import org.apache.commons.lang3.StringUtils;
 
@@ -218,8 +219,12 @@ public class ProtocolFilterDecorator implements Protocol {
             filters.addAll(defaultFilters);
         }
 
-        // add filters via "filter" config
-        String filterStr = url.getParameter(URLParamType.filter.getName());
+        // add filters from "filter" config, env, global config
+        String filterStr = StringTools.joinNotBlank(MotanConstants.COMMA_SEPARATOR,
+                url.getParameter(URLParamType.filter.getName()),
+                System.getenv(MotanConstants.ENV_GLOBAL_FILTERS),
+                MotanGlobalConfigUtil.getConfig(MotanConstants.ENV_GLOBAL_FILTERS));
+
         if (StringUtils.isNotBlank(filterStr)) {
             HashSet<String> removedFilters = new HashSet<>();
             Set<String> filterNames = StringTools.splitSet(filterStr, MotanConstants.COMMA_SEPARATOR);
@@ -247,7 +252,7 @@ public class ProtocolFilterDecorator implements Protocol {
         }
 
         // sort the filters
-        Collections.sort(filters, new ActivationComparator<>());
+        filters.sort(new ActivationComparator<>());
         Collections.reverse(filters);
         return filters;
     }

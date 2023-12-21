@@ -167,11 +167,12 @@ public class MotanConstants {
 
     // ------------------ common env name -----------------
     public static final String ENV_ADDITIONAL_GROUP = "MOTAN_SERVICE_ADDITIONAL_GROUP"; //motan service 追加导出分组。例如可以自动追加云平台上的分组
+    public static final String ENV_GLOBAL_FILTERS = "MOTAN_GLOBAL_FILTERS"; // add global filters from env
     public static final String ENV_MESH_PROXY = "MOTAN_MESH_PROXY"; //使用mesh代理motan请求的环境变量名
     public static final String ENV_MOTAN_IP_PREFIX = "MOTAN_IP_PREFIX";
-    public static final String ENV_MOTAN_ADMIN_TOKEN = "MOTAN-ADMIN-TOKEN";
-    public static final String ENV_MOTAN_ADMIN_PORT = "MOTAN-ADMIN-PORT";
-    public static final String ENV_MOTAN_ADMIN_EXT_HANDLERS = "MOTAN-ADMIN-EXT-HANDLERS";
+    public static final String ENV_MOTAN_ADMIN_TOKEN = "MOTAN_ADMIN_TOKEN";
+    public static final String ENV_MOTAN_ADMIN_PORT = "MOTAN_ADMIN_PORT";
+    public static final String ENV_MOTAN_ADMIN_EXT_HANDLERS = "MOTAN_ADMIN_EXT_HANDLERS";
 
     // ------------------ motan mesh default value -----------------
     public static final String MESH_CLIENT = "meshClient";

@@ -16,14 +16,14 @@
 
 package com.weibo.api.motan.util;
 
+import com.weibo.api.motan.common.MotanConstants;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.*;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.weibo.api.motan.common.MotanConstants;
+import java.util.stream.Collectors;
 
 /**
  * String utils
@@ -98,5 +98,12 @@ public class StringTools {
             }
         }
         return result;
+    }
+
+    /**
+     * join strings，skip blank strings and not trim the strings
+     */
+    public static String joinNotBlank(String separator, String... strings) {
+        return Arrays.stream(strings).filter(StringUtils::isNotBlank).collect(Collectors.joining(separator));
     }
 }

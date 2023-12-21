@@ -22,7 +22,9 @@ import org.junit.Test;
 
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static com.weibo.api.motan.util.StringTools.joinNotBlank;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author zhanglei28
@@ -51,5 +53,13 @@ public class StringToolsTest {
                 assertTrue(result.contains(s));
             }
         }
+    }
+
+    @Test
+    public void testJoinNotBlank() {
+        assertEquals("", joinNotBlank(",", null, "  ", "")); // blank
+        assertEquals("a", joinNotBlank(",", null, "  ", "", "a")); // one string
+        assertEquals("a, b", joinNotBlank(",", null, "  ", "", "a, b")); // one string
+        assertEquals(" a , b ,c", joinNotBlank(",", null, "  ", "", " a ", " b ", "c"));// multi strings
     }
 }
