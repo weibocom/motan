@@ -1,11 +1,11 @@
 /*
  * Copyright 2009-2016 Weibo, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -13,61 +13,50 @@
  */
 package com.weibo.api.motan.transport.netty4.http;
 
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.stream.ChunkedWriteHandler;
-
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
 import com.weibo.api.motan.common.ChannelState;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.core.DefaultThreadFactory;
+import com.weibo.api.motan.core.StandardThreadExecutor;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.AbstractServer;
-import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.transport.TransportException;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.StatisticCallback;
 import com.weibo.api.motan.util.StatsUtil;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.*;
+import io.netty.handler.stream.ChunkedWriteHandler;
+
+import java.net.InetSocketAddress;
 
 /**
- * 
- * @Description netty 4 http server.
  * @author zhanglei
+ * netty4 http server.
  * @date 2016-5-31
- *
  */
-// TODO move to transport netty4 module
 public class Netty4HttpServer extends AbstractServer implements StatisticCallback {
-    private MessageHandler messageHandler;
+    private HttpMessageHandler httpMessageHandler;
     private URL url;
     private Channel channel;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
+    private StandardThreadExecutor standardThreadExecutor;
 
-    public Netty4HttpServer(URL url, MessageHandler messageHandler) {
+    public Netty4HttpServer(URL url, HttpMessageHandler httpMessageHandler) {
         this.url = url;
-        this.messageHandler = messageHandler;
+        this.httpMessageHandler = httpMessageHandler;
     }
 
-
     @Override
-    public boolean open() {
+    public synchronized boolean open() {
         if (isAvailable()) {
             return true;
         }
@@ -79,12 +68,9 @@ public class Netty4HttpServer extends AbstractServer implements StatisticCallbac
             workerGroup = new NioEventLoopGroup();
         }
         boolean shareChannel = url.getBooleanParameter(URLParamType.shareChannel.getName(), URLParamType.shareChannel.getBooleanValue());
-        // TODO max connection protect
-        int maxServerConnection =
-                url.getIntParameter(URLParamType.maxServerConnection.getName(), URLParamType.maxServerConnection.getIntValue());
         int workerQueueSize = url.getIntParameter(URLParamType.workerQueueSize.getName(), 500);
 
-        int minWorkerThread = 0, maxWorkerThread = 0;
+        int minWorkerThread, maxWorkerThread;
 
         if (shareChannel) {
             minWorkerThread = url.getIntParameter(URLParamType.minWorkerThread.getName(), MotanConstants.NETTY_SHARECHANNEL_MIN_WORKDER);
@@ -96,19 +82,30 @@ public class Netty4HttpServer extends AbstractServer implements StatisticCallbac
                     url.getIntParameter(URLParamType.maxWorkerThread.getName(), MotanConstants.NETTY_NOT_SHARECHANNEL_MAX_WORKDER);
         }
         final int maxContentLength = url.getIntParameter(URLParamType.maxContentLength.getName(), URLParamType.maxContentLength.getIntValue());
-        final NettyHttpRequestHandler handler =
-                new NettyHttpRequestHandler(this, messageHandler, new ThreadPoolExecutor(minWorkerThread, maxWorkerThread, 15,
-                        TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(workerQueueSize)));
+        standardThreadExecutor = (standardThreadExecutor != null && !standardThreadExecutor.isShutdown()) ? standardThreadExecutor
+                : new StandardThreadExecutor(minWorkerThread, maxWorkerThread, workerQueueSize, new DefaultThreadFactory("NettyServer-" + url.getServerPortStr(), true));
+        standardThreadExecutor.prestartAllCoreThreads();
 
         ServerBootstrap b = new ServerBootstrap();
         b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
-            public void initChannel(SocketChannel ch) throws Exception {
+            public void initChannel(SocketChannel ch) {
                 ch.pipeline().addLast("http-decoder", new HttpRequestDecoder());
                 ch.pipeline().addLast("http-aggregator", new HttpObjectAggregator(maxContentLength));
                 ch.pipeline().addLast("http-encoder", new HttpResponseEncoder());
                 ch.pipeline().addLast("http-chunked", new ChunkedWriteHandler());
-                ch.pipeline().addLast("serverHandler", handler);
+                ch.pipeline().addLast("serverHandler", new SimpleChannelInboundHandler<FullHttpRequest>() {
+                    protected void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest httpRequest) {
+                        httpRequest.content().retain();
+                        try {
+                            standardThreadExecutor.execute(() -> processHttpRequest(ctx, httpRequest));
+                        } catch (Exception e) {
+                            LoggerUtil.error("request is rejected by threadPool!", e);
+                            httpRequest.content().release();
+                            sendResponse(ctx, NettyHttpUtil.buildErrorResponse("request is rejected by thread pool!"));
+                        }
+                    }
+                });
             }
         }).option(ChannelOption.SO_BACKLOG, 1024).childOption(ChannelOption.SO_KEEPALIVE, false);
 
@@ -120,10 +117,44 @@ public class Netty4HttpServer extends AbstractServer implements StatisticCallbac
             LoggerUtil.error("init http server fail.", e);
             return false;
         }
+        setLocalAddress((InetSocketAddress) channel.localAddress());
+        if (url.getPort() == 0) {
+            url.setPort(getLocalAddress().getPort());
+        }
         state = ChannelState.ALIVE;
         StatsUtil.registryStatisticCallback(this);
         LoggerUtil.info("Netty4HttpServer ServerChannel finish Open: url=" + url);
         return true;
+    }
+
+    private void processHttpRequest(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
+        FullHttpResponse httpResponse;
+        try {
+            httpRequest.headers().set(URLParamType.host.getName(), ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress());
+            httpResponse = httpMessageHandler.handle(this, httpRequest);
+        } catch (Exception e) {
+            LoggerUtil.error("NettyHttpHandler process http request fail.", e);
+            httpResponse = NettyHttpUtil.buildErrorResponse(e.getMessage());
+        } finally {
+            httpRequest.content().release();
+        }
+        sendResponse(ctx, httpResponse);
+    }
+
+    private void sendResponse(ChannelHandlerContext ctx, FullHttpResponse httpResponse) {
+        boolean close = false;
+        try {
+            ctx.write(httpResponse);
+            ctx.flush();
+        } catch (Exception e) {
+            LoggerUtil.error("NettyHttpHandler write response fail.", e);
+            close = true;
+        } finally {
+            // close connection
+            if (close || httpResponse == null || !httpResponse.headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE, true)) {
+                ctx.close();
+            }
+        }
     }
 
     @Override
@@ -136,63 +167,61 @@ public class Netty4HttpServer extends AbstractServer implements StatisticCallbac
         return state.isAliveState();
     }
 
-
     @Override
     public boolean isBound() {
         return channel != null && channel.isActive();
     }
 
-
     @Override
     public Response request(Request request) throws TransportException {
-        throw new MotanFrameworkException("Netty4HttpServer request(Request request) method unsupport: url: " + url);
+        throw new MotanFrameworkException("Netty4HttpServer request(Request request) method unSupport: url: " + url);
     }
 
-
     @Override
-    public void close(int timeout) {
+    public synchronized void close(int timeout) {
         if (state.isCloseState()) {
-            LoggerUtil.info("NettyServer close fail: already close, url={}", url.getUri());
+            LoggerUtil.info("Netty4HttpServer close fail: already close, url={}", url.getUri());
             return;
         }
 
         if (state.isUnInitState()) {
-            LoggerUtil.info("NettyServer close Fail: don't need to close because node is unInit state: url={}",
+            LoggerUtil.info("Netty4HttpServer close Fail: don't need to close because node is unInit state: url={}",
                     url.getUri());
             return;
         }
         if (channel != null) {
             channel.close();
-            workerGroup.shutdownGracefully();
-            bossGroup.shutdownGracefully();
-            workerGroup = null;
-            bossGroup = null;
         }
+        if (bossGroup != null) {
+            bossGroup.shutdownGracefully();
+        }
+        if (workerGroup != null) {
+            workerGroup.shutdownGracefully();
+        }
+        if (standardThreadExecutor != null) {
+            standardThreadExecutor.shutdownNow();
+        }
+        workerGroup = null;
+        bossGroup = null;
+        standardThreadExecutor = null;
+        channel = null;
         state = ChannelState.CLOSE;
-
         StatsUtil.unRegistryStatisticCallback(this);
     }
-
 
     @Override
     public boolean isClosed() {
         return state.isCloseState();
     }
 
-
-
     @Override
     public String statisticCallback() {
-        //TODO
         return null;
     }
-
 
     @Override
     public URL getUrl() {
         return url;
     }
-
-   
 
 }

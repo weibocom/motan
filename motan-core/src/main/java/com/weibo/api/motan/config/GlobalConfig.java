@@ -19,6 +19,7 @@
 package com.weibo.api.motan.config;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author zhanglei28
@@ -35,5 +36,7 @@ public interface GlobalConfig {
     String remove(String key);
 
     void putConfigs(Map<String, String> configs, boolean override);
+
+    Set<Map.Entry<String, String>> entrySet();
 
 }

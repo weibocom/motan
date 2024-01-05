@@ -1,11 +1,11 @@
 /*
  * Copyright 2009-2016 Weibo, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -13,59 +13,41 @@
  */
 package com.weibo.api.motan.transport.netty4.yar;
 
-import static org.junit.Assert.*;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
-
-import java.util.Map;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
+import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.protocol.yar.AttachmentRequest;
 import com.weibo.api.motan.protocol.yar.YarMessageRouter;
 import com.weibo.api.motan.protocol.yar.YarProtocolUtil;
 import com.weibo.api.motan.rpc.DefaultResponse;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.Channel;
-import com.weibo.api.motan.transport.MessageHandler;
-import com.weibo.api.motan.transport.TransportException;
 import com.weibo.api.motan.transport.netty4.http.Netty4HttpServer;
+import com.weibo.api.motan.util.MotanSwitcherUtil;
 import com.weibo.yar.YarProtocol;
 import com.weibo.yar.YarRequest;
 import com.weibo.yar.YarResponse;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.handler.codec.http.*;
+import org.junit.Test;
+
+import java.util.Map;
+
+import static org.junit.Assert.*;
 
 /**
- * 
- * @Description YarMessageHandlerWarpperTest
  * @author zhanglei
+ * YarMessageHandlerWrapperTest
  * @date 2016年7月27日
- *
  */
-public class YarMessageHandlerWarpperTest {
-    public String uri = "/testpath?param1=a&param2=b&param3=c";
-
-    @Before
-    public void setUp() throws Exception {}
-
-    @After
-    public void tearDown() throws Exception {}
+public class YarMessageHandlerWrapperTest {
+    public String uri = "/testPath?param1=a&param2=b&param3=c";
 
     @Test
     public void testHandle() throws Exception {
-        YarRequest yarRequest = new YarRequest(123, "JSON", "testmethod", new Object[] {"params", 456});
+        YarRequest yarRequest = new YarRequest(123, "JSON", "testMethod", new Object[]{"params", 456});
         final YarResponse yarResponse = YarProtocolUtil.buildDefaultErrorResponse("test err", "JSON");
-        YarMessageHandlerWarpper handler = new YarMessageHandlerWarpper(new YarMessageRouter() {
-
+        YarMessageHandlerWrapper handler = new YarMessageHandlerWrapper(new YarMessageRouter() {
             @Override
             public Object handle(Channel channel, Object message) {
                 AttachmentRequest request = (AttachmentRequest) message;
@@ -73,8 +55,7 @@ public class YarMessageHandlerWarpperTest {
                 return yarResponse;
             }
         });
-        FullHttpResponse httpResponse = (FullHttpResponse) handler.handle(new MockChannel(), buildHttpRequest(yarRequest, uri));
-
+        FullHttpResponse httpResponse = handler.handle(new MockChannel(), buildHttpRequest(yarRequest, uri));
         assertNotNull(httpResponse);
         assertNotNull(httpResponse.content());
         YarResponse retYarResponse = getYarResponse(httpResponse);
@@ -83,31 +64,57 @@ public class YarMessageHandlerWarpperTest {
     }
 
     @Test
-    public void testAbnormal() throws Exception {
-        final String errmsg = "rpc process error";
-        YarMessageHandlerWarpper handler = new YarMessageHandlerWarpper(new YarMessageRouter() {
-
+    public void testServerStatus() {
+        YarMessageHandlerWrapper handler = new YarMessageHandlerWrapper(new YarMessageRouter() {
             @Override
             public Object handle(Channel channel, Object message) {
-                throw new RuntimeException(errmsg);
+                throw new RuntimeException("should not here");
+            }
+        });
+
+        // 打开心跳开关
+        FullHttpRequest httpRequest = buildHttpRequest("/");
+        MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
+        FullHttpResponse httpResponse = handler.handle(null, httpRequest);
+        assertEquals(HttpResponseStatus.OK, httpResponse.status());
+
+        // 关闭心跳开关
+        MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, false);
+        httpResponse = handler.handle(null, httpRequest);
+        assertEquals(HttpResponseStatus.SERVICE_UNAVAILABLE, httpResponse.status());
+    }
+
+    private FullHttpRequest buildHttpRequest(String requestPath) {
+        PooledByteBufAllocator allocator = new PooledByteBufAllocator();
+        ByteBuf buf = allocator.buffer(0);
+        return new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, requestPath, buf);
+    }
+
+    @Test
+    public void testAbnormal() throws Exception {
+        final String errMsg = "rpc process error";
+        YarMessageHandlerWrapper handler = new YarMessageHandlerWrapper(new YarMessageRouter() {
+            @Override
+            public Object handle(Channel channel, Object message) {
+                throw new RuntimeException(errMsg);
             }
         });
         // yar协议无法解析
-        FullHttpResponse httpResponse = (FullHttpResponse) handler.handle(new MockChannel(), buildHttpRequest(null, uri));
+        FullHttpResponse httpResponse = handler.handle(new MockChannel(), buildHttpRequest(null, uri));
         assertNotNull(httpResponse);
-        assertEquals(HttpResponseStatus.OK, httpResponse.getStatus());
+        assertEquals(HttpResponseStatus.OK, httpResponse.status());
         YarResponse retYarResponse = getYarResponse(httpResponse);
         assertNotNull(retYarResponse);
         assertNotNull(retYarResponse.getError());
 
         // yar协议可以正常解析，但后续处理异常
-        YarRequest yarRequest = new YarRequest(123, "JSON", "testmethod", new Object[] {"params", 456});
-        httpResponse = (FullHttpResponse) handler.handle(new MockChannel(), buildHttpRequest(yarRequest, uri));
+        YarRequest yarRequest = new YarRequest(123, "JSON", "testMethod", new Object[]{"params", 456});
+        httpResponse = handler.handle(new MockChannel(), buildHttpRequest(yarRequest, uri));
         assertNotNull(httpResponse);
-        assertEquals(HttpResponseStatus.OK, httpResponse.getStatus());
+        assertEquals(HttpResponseStatus.OK, httpResponse.status());
         retYarResponse = getYarResponse(httpResponse);
         assertNotNull(retYarResponse);
-        assertEquals(errmsg, retYarResponse.getError());
+        assertEquals(errMsg, retYarResponse.getError());
     }
 
     private void verifyAttachments(Map<String, String> attachments) {
@@ -124,8 +131,7 @@ public class YarMessageHandlerWarpperTest {
         ByteBuf buf = httpResponse.content();
         final byte[] contentBytes = new byte[buf.readableBytes()];
         buf.getBytes(0, contentBytes);
-        YarResponse yarResponse = YarProtocol.buildResponse(contentBytes);
-        return yarResponse;
+        return YarProtocol.buildResponse(contentBytes);
     }
 
     private FullHttpRequest buildHttpRequest(YarRequest yarRequest, String requestPath) throws Exception {
@@ -134,23 +140,17 @@ public class YarMessageHandlerWarpperTest {
         if (yarRequest != null) {
             buf.writeBytes(YarProtocol.toProtocolBytes(yarRequest));
         }
-        FullHttpRequest httpReqeust = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, requestPath, buf);
-        return httpReqeust;
+        return new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, requestPath, buf);
     }
 
-    class MockChannel extends Netty4HttpServer {
+    static class MockChannel extends Netty4HttpServer {
         public MockChannel() {
             super(null, null);
         }
 
-        public MockChannel(URL url, MessageHandler messageHandler) {
-            super(url, messageHandler);
-        }
-
         @Override
-        public Response request(Request request) throws TransportException {
+        public Response request(Request request) {
             return new DefaultResponse();
         }
     }
-
 }
