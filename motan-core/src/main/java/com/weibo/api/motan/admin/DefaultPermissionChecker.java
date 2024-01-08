@@ -31,8 +31,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
             return false;
         }
         // check token
-        String requestToken = request.getAttachments().get("token");
-        if (token != null && token.equals(requestToken)) {
+        if (token != null && token.equals(getToken(request))) {
             return true;
         }
         // for custom extension
@@ -42,6 +41,14 @@ public class DefaultPermissionChecker implements PermissionChecker {
     protected boolean extendValidate(Request request) {
         // Override this method for extended validation
         return false;
+    }
+
+    protected String getToken(Request request){
+        String requestToken = request.getAttachments().get("Token");
+        if (requestToken == null){
+            requestToken = request.getAttachments().get("token");
+        }
+        return requestToken;
     }
 
     private void init() {
