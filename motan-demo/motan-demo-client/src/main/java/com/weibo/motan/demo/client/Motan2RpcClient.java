@@ -51,6 +51,10 @@ public class Motan2RpcClient {
         service = (MotanDemoService) ctx.getBean("motanDemoReferer-breeze");
         print(service);
 
+        // server end async
+        service = (MotanDemoService) ctx.getBean("motanDemoReferer-asyncServer");
+        print(service);
+
         // pb serialization
         PbParamService pbService = (PbParamService) ctx.getBean("motanDemoReferer-pb");
         System.out.println(pbService.getFeature(Point.newBuilder().setLatitude(123).setLongitude(456).build()));
@@ -67,8 +71,12 @@ public class Motan2RpcClient {
 
     public static void print(MotanDemoService service) throws InterruptedException {
         for (int i = 0; i < 3; i++) {
-            System.out.println(service.hello("motan" + i));
-            Thread.sleep(1000);
+            try {
+                System.out.println(service.hello("motan" + i));
+                Thread.sleep(1000);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }
     }
 

@@ -30,6 +30,7 @@
     <motan:registry regProtocol="direct" name="registry" address="127.0.0.1:8001"/>
     <motan:registry regProtocol="direct" name="registry2" address="127.0.0.1:8002"/>
     <motan:registry regProtocol="direct" name="registry3" address="127.0.0.1:8003"/>
+    <motan:registry regProtocol="direct" name="registry4" address="127.0.0.1:8004"/>
 
 
     <!-- motan2 with hessian serialization -->
@@ -64,4 +65,7 @@
     <motan:referer id="motanDemoReferer-common-client" protocol="motan2-breeze" registry="registry"
                    serviceInterface="com.weibo.motan.demo.service.MotanDemoService"
                    connectTimeout="1000" requestTimeout="1000" basicReferer="motantestClientBasicConfig"/>
+    <motan:referer id="motanDemoReferer-asyncServer" registry="registry4"
+                   interface="com.weibo.motan.demo.service.MotanDemoService"
+                   basicReferer="motantestClientBasicConfig"/>
 </beans>

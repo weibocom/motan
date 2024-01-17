@@ -16,21 +16,15 @@
 
 package com.weibo.api.motan.rpc;
 
-import com.weibo.api.motan.core.DefaultThreadFactory;
-import com.weibo.api.motan.core.StandardThreadExecutor;
+import com.weibo.api.motan.exception.MotanBizException;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
-import com.weibo.api.motan.util.LoggerUtil;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.weibo.api.motan.core.StandardThreadExecutor.DEFAULT_MAX_IDLE_TIME;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * Response received via rpc.
@@ -40,10 +34,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  */
 public class DefaultResponse implements Response, Traceable, Callbackable, Serializable {
     private static final long serialVersionUID = 4281186647291615871L;
-    protected static ThreadPoolExecutor defaultCallbackExecutor = new StandardThreadExecutor(20, 200,
-            DEFAULT_MAX_IDLE_TIME, MILLISECONDS, 5000,
-            new DefaultThreadFactory("defaultResponseCallbackPool-", true), new ThreadPoolExecutor.DiscardPolicy());
-
     private Object value;
     private Exception exception;
     private long requestId;
@@ -52,9 +42,8 @@ public class DefaultResponse implements Response, Traceable, Callbackable, Seria
     private Map<String, String> attachments;// rpc协议版本兼容时可以回传一些额外的信息
     private byte rpcProtocolVersion = RpcProtocolVersion.VERSION_1.getVersion();
     private int serializeNumber = 0;// default serialization is hessian2
-    private List<Pair<Runnable, Executor>> taskList = new ArrayList<>();
-    private AtomicBoolean isFinished = new AtomicBoolean();
     private TraceableContext traceableContext = new TraceableContext();
+    private Callbackable callbackHolder = new DefaultCallbackHolder();
 
     public DefaultResponse() {
     }
@@ -63,6 +52,7 @@ public class DefaultResponse implements Response, Traceable, Callbackable, Seria
         this.requestId = requestId;
     }
 
+    // for client end. Blocking to get value or throw exception
     public DefaultResponse(Response response) {
         this.value = response.getValue();
         this.exception = response.getException();
@@ -72,10 +62,7 @@ public class DefaultResponse implements Response, Traceable, Callbackable, Seria
         this.rpcProtocolVersion = response.getRpcProtocolVersion();
         this.serializeNumber = response.getSerializeNumber();
         this.attachments = response.getAttachments();
-        if (response instanceof Traceable) {
-            traceableContext.setReceiveTime(((Traceable) response).getTraceableContext().getReceiveTime());
-            traceableContext.traceInfoMap = ((Traceable) response).getTraceableContext().getTraceInfoMap();
-        }
+        updateTraceableContextFromResponse(response);
     }
 
     public DefaultResponse(Object value) {
@@ -85,6 +72,18 @@ public class DefaultResponse implements Response, Traceable, Callbackable, Seria
     public DefaultResponse(Object value, long requestId) {
         this.value = value;
         this.requestId = requestId;
+    }
+
+    public static DefaultResponse fromServerEndResponseFuture(ResponseFuture responseFuture) {
+        DefaultResponse response = new DefaultResponse();
+        if (responseFuture.getException() != null) { // change to biz exception
+            response.setException(new MotanBizException("provider call process error", responseFuture.getException()));
+        } else {
+            response.setValue(responseFuture.getValue());
+        }
+        response.updateTraceableContextFromResponse(responseFuture);
+        response.updateCallbackHolderFromResponse(responseFuture);
+        return response;
     }
 
     @Override
@@ -175,36 +174,46 @@ public class DefaultResponse implements Response, Traceable, Callbackable, Seria
     /**
      * 未指定线程池时，统一使用默认线程池执行。默认线程池满时采用丢弃策略，不保证任务一定会被执行。
      * 如果默认线程池不满足需求时，可以自行携带executor。
+     *
      * @param runnable 准备在response on finish时执行的任务
      * @param executor 指定执行任务的线程池
      */
     public void addFinishCallback(Runnable runnable, Executor executor) {
-        if (!isFinished.get()) {
-            taskList.add(Pair.of(runnable, executor));
-        }
+        callbackHolder.addFinishCallback(runnable, executor);
     }
 
     @Override
     public void onFinish() {
-        if (!isFinished.compareAndSet(false, true)) {
-            return;
-        }
-        for (Pair<Runnable, Executor> pair : taskList) {
-            Runnable runnable = pair.getKey();
-            Executor executor = pair.getValue();
-            if (executor == null) {
-                executor = defaultCallbackExecutor;
-            }
-            try {
-                executor.execute(runnable);
-            } catch (Exception e) {
-                LoggerUtil.error("Callbackable response exec callback task error, e: ", e);
-            }
-        }
+        callbackHolder.onFinish();
     }
 
     @Override
     public TraceableContext getTraceableContext() {
         return traceableContext;
+    }
+
+    @Override
+    public Callbackable getCallbackHolder() {
+        return callbackHolder;
+    }
+
+    // only for constructor
+    private void updateTraceableContextFromResponse(Response response) {
+        if (response instanceof Traceable) {
+            TraceableContext tempTraceableContext = ((Traceable) response).getTraceableContext();
+            if (tempTraceableContext != null) {
+                traceableContext = tempTraceableContext;
+            }
+        }
+    }
+
+    // only for constructor
+    private void updateCallbackHolderFromResponse(Response response) {
+        if (response instanceof Callbackable) {
+            Callbackable holder = ((Callbackable) response).getCallbackHolder();
+            if (holder != null) {
+                callbackHolder = holder;
+            }
+        }
     }
 }

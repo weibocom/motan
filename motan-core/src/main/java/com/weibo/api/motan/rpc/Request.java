@@ -28,57 +28,41 @@ public interface Request {
 
     /**
      * service interface
-     *
-     * @return
      */
     String getInterfaceName();
 
     /**
      * service method name
-     *
-     * @return
      */
     String getMethodName();
 
     /**
      * service method param desc (sign)
-     *
-     * @return
      */
     String getParamtersDesc();
 
     /**
      * service method param
-     *
-     * @return
      */
     Object[] getArguments();
 
     /**
      * get framework param
-     *
-     * @return
      */
     Map<String, String> getAttachments();
 
     /**
      * set framework param
-     *
-     * @return
      */
     void setAttachment(String name, String value);
 
     /**
      * request id
-     *
-     * @return
      */
     long getRequestId();
 
     /**
      * retries
-     *
-     * @return
      */
     int getRetries();
 
@@ -88,11 +72,11 @@ public interface Request {
     void setRetries(int retries);
 
     /**
-     * set rpc protocol version. for compatible diffrent version.
+     * set rpc protocol version. for compatible different version.
      * this value must set by server end while decode finish.
      * it only used in local, will not send to remote.
      *
-     * @param rpcProtocolVersion
+     * @param rpcProtocolVersion protocol version. see @RpcProtocolVersion
      */
     void setRpcProtocolVersion(byte rpcProtocolVersion);
 
@@ -107,4 +91,17 @@ public interface Request {
     void setSerializeNumber(int number);
 
     int getSerializeNumber();
+
+    /**
+     * @param key attachment key
+     * @return attachment value or null if key does not exist
+     * @since 1.2.3
+     */
+    default String getAttachment(String key) {
+        Map<String, String> attachments = getAttachments();
+        if (attachments != null) {
+            return attachments.get(key);
+        }
+        return null;
+    }
 }
