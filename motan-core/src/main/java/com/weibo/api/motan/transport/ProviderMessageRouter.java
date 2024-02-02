@@ -101,10 +101,7 @@ public class ProviderMessageRouter implements MessageHandler {
         Method method = provider.lookupMethod(request.getMethodName(), request.getParamtersDesc());
         fillParamDesc(request, method);
         processLazyDeserialize(request, method);
-        Response response = call(request, provider);
-        response.setSerializeNumber(request.getSerializeNumber());
-        response.setRpcProtocolVersion(request.getRpcProtocolVersion());
-        return response;
+        return call(request, provider);
     }
 
     protected Response call(Request request, Provider<?> provider) {

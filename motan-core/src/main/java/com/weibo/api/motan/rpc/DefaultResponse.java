@@ -83,6 +83,9 @@ public class DefaultResponse implements Response, Traceable, Callbackable, Seria
         }
         response.updateTraceableContextFromResponse(responseFuture);
         response.updateCallbackHolderFromResponse(responseFuture);
+        if (!responseFuture.getAttachments().isEmpty()) { // avoid setting Collections.EMPTY_MAP to new response
+            response.attachments = responseFuture.getAttachments();
+        }
         return response;
     }
 

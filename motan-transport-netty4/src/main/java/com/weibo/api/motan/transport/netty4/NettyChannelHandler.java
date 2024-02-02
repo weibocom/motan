@@ -164,6 +164,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
 
     private void processResult(final ChannelHandlerContext ctx, final DefaultResponse response, final Request request, final long processStartTime) {
         MotanFrameworkUtil.logEvent(response, MotanConstants.TRACE_PROCESS);
+        response.setSerializeNumber(request.getSerializeNumber());
         response.setRpcProtocolVersion(request.getRpcProtocolVersion());
         response.setRequestId(request.getRequestId());
         response.setProcessTime(System.currentTimeMillis() - processStartTime);

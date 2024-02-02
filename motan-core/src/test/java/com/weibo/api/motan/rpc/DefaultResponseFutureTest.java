@@ -117,6 +117,9 @@ public class DefaultResponseFutureTest {
         responseFuture.getTraceableContext().setReceiveTime(receiveTime);
         responseFuture.getTraceableContext().addTraceInfo(key, value);
 
+        // add attachment
+        responseFuture.setAttachment("aaa", "bbb");
+
         // add callback
         AtomicBoolean finish = new AtomicBoolean(false);
         responseFuture.addFinishCallback(() -> finish.set(true), null);
@@ -126,6 +129,7 @@ public class DefaultResponseFutureTest {
         DefaultResponse defaultResponse = DefaultResponse.fromServerEndResponseFuture(responseFuture);
         assertEquals(receiveTime, defaultResponse.getTraceableContext().getReceiveTime());
         assertEquals(value, defaultResponse.getTraceableContext().getTraceInfo(key));
+        assertEquals("bbb", defaultResponse.getAttachments().get("aaa"));
 
         defaultResponse.onFinish();
         Thread.sleep(10);
@@ -141,5 +145,8 @@ public class DefaultResponseFutureTest {
         assertTrue(defaultResponse.getException() instanceof MotanBizException); // check exception type
         assertTrue(defaultResponse.getException().getCause() instanceof RuntimeException);
         assertEquals(errMsg, defaultResponse.getException().getCause().getMessage());
+
+        // test not Collections.EMPTY_MAP. response can set attachment
+        defaultResponse.setAttachment("aaa", "bbb");
     }
 }
