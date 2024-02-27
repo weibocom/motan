@@ -19,6 +19,7 @@ package com.weibo.api.motan.transport;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanBizException;
+import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.protocol.rpc.CompressRpcCodec;
@@ -91,12 +92,10 @@ public class ProviderMessageRouter implements MessageHandler {
             provider = providers.get(request.getInterfaceName());
         }
         if (provider == null) {
-            String errInfo = this.getClass().getSimpleName() + " handler Error: provider not exist serviceKey=" + serviceKey + " "
+            String errInfo = MotanErrorMsgConstant.PROVIDER_NOT_EXIST_EXCEPTION_PREFIX + serviceKey + ", "
                     + MotanFrameworkUtil.toStringWithRemoteIp(request);
             LoggerUtil.error(errInfo);
-            MotanServiceException exception = new MotanServiceException(errInfo);
-            DefaultResponse response = MotanFrameworkUtil.buildErrorResponse(request, exception);
-            return response;
+            return MotanFrameworkUtil.buildErrorResponse(request, new MotanServiceException(errInfo, MotanErrorMsgConstant.PROVIDER_NOT_EXIST));
         }
         Method method = provider.lookupMethod(request.getMethodName(), request.getParamtersDesc());
         fillParamDesc(request, method);
@@ -120,7 +119,7 @@ public class ProviderMessageRouter implements MessageHandler {
                 Object[] args = ((DeserializableObject) request.getArguments()[0]).deserializeMulti(method.getParameterTypes());
                 ((DefaultRequest) request).setArguments(args);
             } catch (IOException e) {
-                throw new MotanFrameworkException("deserialize parameters fail: " + request.toString() + ", error:" + e.getMessage());
+                throw new MotanFrameworkException("deserialize parameters fail: " + request + ", error:" + e.getMessage());
             }
         }
     }
@@ -137,7 +136,7 @@ public class ProviderMessageRouter implements MessageHandler {
     public synchronized void addProvider(Provider<?> provider) {
         String serviceKey = MotanFrameworkUtil.getServiceKey(provider.getUrl());
         if (providers.containsKey(serviceKey)) {
-            throw new MotanFrameworkException("provider alread exist: " + serviceKey);
+            throw new MotanFrameworkException("provider already exist: " + serviceKey);
         }
 
         providers.put(serviceKey, provider);

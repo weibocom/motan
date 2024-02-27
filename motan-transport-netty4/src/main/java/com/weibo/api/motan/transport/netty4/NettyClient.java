@@ -8,7 +8,10 @@ import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.*;
-import com.weibo.api.motan.transport.*;
+import com.weibo.api.motan.transport.AbstractSharedPoolClient;
+import com.weibo.api.motan.transport.Channel;
+import com.weibo.api.motan.transport.SharedObjectFactory;
+import com.weibo.api.motan.transport.TransportException;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.StatisticCallback;
@@ -39,9 +42,11 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
      * 触发remove的操作有： 1) service的返回结果处理。 2) timeout thread cancel
      */
     protected ConcurrentMap<Long, ResponseFuture> callbackMap = new ConcurrentHashMap<>();
-    private ScheduledFuture<?> timeMonitorFuture = null;
+    private ScheduledFuture<?> timeMonitorFuture;
     private Bootstrap bootstrap;
     private int fusingThreshold;
+    // Whether force closed. For example encounter the 'provider not exist' exception
+    volatile boolean forceClosed = false;
     /**
      * 连续失败次数
      */
@@ -72,7 +77,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
         }
         boolean isAsync = false;
         Object async = RpcContext.getContext().getAttribute(MotanConstants.ASYNC_SUFFIX);
-        if (async != null && async instanceof Boolean) {
+        if (async instanceof Boolean) {
             isAsync = (Boolean) async;
         }
         return request(request, isAsync);
@@ -80,6 +85,10 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
 
     @Override
     public void heartbeat(Request request) {
+        // After forced closed, the endpoint has been closed, but the referer is still in the cluster and the scheduled heartbeat will still be triggered.
+        if (forceClosed) {
+            return;
+        }
         // 如果节点还没有初始化或者节点已经被close掉了，那么heartbeat也不需要进行了
         if (state.isUnInitState() || state.isCloseState()) {
             LoggerUtil.warn("NettyClient heartbeat Error: state={} url={}", state.name(), url.getUri());
@@ -97,7 +106,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
         }
     }
 
-    private Response request(Request request, boolean async) throws TransportException {
+    private Response request(Request request, boolean async) {
         Channel channel = null;
         Response response;
         try {
@@ -108,7 +117,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
             response = channel.request(request);
         } catch (Exception e) {
             if (channel == null) {
-                incrErrorCount(3);// accelerate fusing when getting channel fails
+                incrErrorCount(3, false);// accelerate fusing when getting channel fails
             }
             if (e instanceof MotanAbstractException) {
                 throw (MotanAbstractException) e;
@@ -125,9 +134,9 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
     /**
      * 如果async是false，那么同步获取response的数据
      *
-     * @param response
-     * @param async
-     * @return
+     * @param response rpc response
+     * @param async    whether it is an asynchronous request
+     * @return rpc response
      */
     private Response asyncResponse(Response response, boolean async) {
         if (async || !(response instanceof ResponseFuture)) {
@@ -156,27 +165,24 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
                 .channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
-                    protected void initChannel(SocketChannel ch) throws Exception {
+                    protected void initChannel(SocketChannel ch) {
                         ChannelPipeline pipeline = ch.pipeline();
                         pipeline.addLast("decoder", new NettyDecoder(codec, NettyClient.this, maxContentLength));
                         pipeline.addLast("encoder", new NettyEncoder());
-                        pipeline.addLast("handler", new NettyChannelHandler(NettyClient.this, new MessageHandler() {
-                            @Override
-                            public Object handle(Channel channel, Object message) {
-                                Response response = (Response) message;
-                                ResponseFuture responseFuture = NettyClient.this.removeCallback(response.getRequestId());
+                        pipeline.addLast("handler", new NettyChannelHandler(NettyClient.this, (channel, message) -> {
+                            Response response = (Response) message;
+                            ResponseFuture responseFuture = NettyClient.this.removeCallback(response.getRequestId());
 
-                                if (responseFuture == null) {
-                                    LoggerUtil.warn("NettyClient has response from server, but responseFuture not exist, requestId={}", response.getRequestId());
-                                    return null;
-                                }
-                                if (response.getException() != null) {
-                                    responseFuture.onFailure(response);
-                                } else {
-                                    responseFuture.onSuccess(response);
-                                }
+                            if (responseFuture == null) {
+                                LoggerUtil.warn("NettyClient has response from server, but responseFuture not exist, requestId={}", response.getRequestId());
                                 return null;
                             }
+                            if (response.getException() != null) {
+                                responseFuture.onFailure(response);
+                            } else {
+                                responseFuture.onSuccess(response);
+                            }
+                            return null;
                         }));
                     }
                 });
@@ -199,6 +205,9 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
     @Override
     public synchronized void close(int timeout) {
         if (state.isCloseState()) {
+            if (forceClosed) { // When the force-closed referer is removed from the cluster, the StatisticCallback needs to be removed.
+                StatsUtil.unRegistryStatisticCallback(this);
+            }
             return;
         }
 
@@ -225,7 +234,9 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
         // 关闭client持有的channel
         closeAllChannels();
         // 解除统计回调的注册
-        StatsUtil.unRegistryStatisticCallback(this);
+        if (!forceClosed) { // StatisticCallback is still required when force closed.
+            StatsUtil.unRegistryStatisticCallback(this);
+        }
     }
 
     @Override
@@ -245,6 +256,11 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
 
     @Override
     public String statisticCallback() {
+        if (forceClosed) {
+            return String.format("type:MOTAN_FORCE_CLOSED_NODE_STAT, name:%s_%s_%s_%s, total_count: 1", url.getGroup(), url.getPath(),
+                    url.getHost(), url.getPort());
+        }
+
         //避免消息泛滥，如果节点是可用状态，并且堆积的请求不超过100的话，那么就不记录log了
         if (isAvailable() && callbackMap.size() < 100) {
             return null;
@@ -258,8 +274,21 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
         return callbackMap.remove(requestId);
     }
 
-    void incrErrorCount() {
-        incrErrorCount(1);
+    void incrErrorCount(Exception e) {
+        if (isProviderNotExistException(e)) { // server node not provide this service, need to be force closed
+            incrErrorCount(2, true);
+        } else {
+            incrErrorCount(1, false);
+        }
+    }
+
+    private boolean isProviderNotExistException(Exception e) {
+        if (e instanceof MotanServiceException) {
+            MotanServiceException mse = (MotanServiceException) e;
+            return mse.getErrorCode() == MotanErrorMsgConstant.PROVIDER_NOT_EXIST.getErrorCode()
+                    && mse.getOriginMessage() != null && mse.getOriginMessage().contains(MotanErrorMsgConstant.PROVIDER_NOT_EXIST_EXCEPTION_PREFIX);
+        }
+        return false;
     }
 
     /**
@@ -269,7 +298,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
      * 	 	如果连续失败的次数 >= maxClientConnection, 那么把client设置成不可用状态
      * </pre>
      */
-    void incrErrorCount(int delta) {
+    void incrErrorCount(int delta, boolean forceClose) {
         long count = errorCount.addAndGet(delta);
 
         // 如果节点是可用状态，同时当前连续失败的次数超过熔断阈值，那么把该节点标示为不可用
@@ -278,9 +307,16 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
                 count = errorCount.longValue();
 
                 if (count >= fusingThreshold && state.isAliveState()) {
-                    LoggerUtil.error("NettyClient unavailable Error: url=" + url.getIdentity() + " "
-                            + url.getServerPortStr());
-                    state = ChannelState.UNALIVE;
+                    if (forceClose) { // force close. will not be recovered
+                        forceClosed = true;
+                        LoggerUtil.error("NettyClient force close Error: url=" + url.getIdentity() + " "
+                                + url.getServerPortStr());
+                        close();
+                    } else { // fusing. it can be recovered by heartbeat
+                        LoggerUtil.error("NettyClient unavailable Error: url=" + url.getIdentity() + " "
+                                + url.getServerPortStr());
+                        state = ChannelState.UNALIVE;
+                    }
                 }
             }
         }
@@ -304,7 +340,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
                 return;
             }
 
-            // 如果节点是unalive才进行设置，而如果是 close 或者 uninit，那么直接忽略
+            // 如果节点是unAlive才进行设置，而如果是 close 或者 unInit，那么直接忽略
             if (state.isUnAliveState()) {
                 long count = errorCount.longValue();
 
@@ -319,14 +355,13 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
     }
 
     /**
-     * 注册回调的resposne
+     * 注册回调的response
      * <pre>
      * 进行最大的请求并发数的控制，如果超过NETTY_CLIENT_MAX_REQUEST的话，那么throw reject exception
      * </pre>
      *
-     * @param requestId
-     * @param responseFuture
-     * @throws MotanServiceException
+     * @param requestId      request id
+     * @param responseFuture response future
      */
     public void registerCallback(long requestId, ResponseFuture responseFuture) {
         if (this.callbackMap.size() >= MotanConstants.NETTY_CLIENT_MAX_REQUEST) {

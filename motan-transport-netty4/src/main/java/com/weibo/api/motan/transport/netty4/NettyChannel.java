@@ -28,7 +28,7 @@ public class NettyChannel implements Channel {
     private volatile ChannelState state = ChannelState.UNINIT;
     private NettyClient nettyClient;
     private io.netty.channel.Channel channel = null;
-    private InetSocketAddress remoteAddress = null;
+    private InetSocketAddress remoteAddress;
     private InetSocketAddress localAddress = null;
     private ReentrantLock lock = new ReentrantLock();
     private Codec codec;
@@ -71,16 +71,13 @@ public class NettyChannel implements Channel {
 
         if (result && writeFuture.isSuccess()) {
             MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_CSEND, System.currentTimeMillis());
-            response.addListener(new FutureListener() {
-                @Override
-                public void operationComplete(Future future) throws Exception {
-                    if (future.isSuccess() || (future.isDone() && ExceptionUtil.isBizException(future.getException()))) {
-                        // 成功的调用
-                        nettyClient.resetErrorCount();
-                    } else {
-                        // 失败的调用
-                        nettyClient.incrErrorCount();
-                    }
+            response.addListener(future -> {
+                if (future.isSuccess() || (future.isDone() && ExceptionUtil.isBizException(future.getException()))) {
+                    // 成功的调用
+                    nettyClient.resetErrorCount();
+                } else {
+                    // 失败的调用
+                    nettyClient.incrErrorCount(future.getException());
                 }
             });
             return response;
@@ -92,7 +89,7 @@ public class NettyChannel implements Channel {
             response.cancel();
         }
         // 失败的调用
-        nettyClient.incrErrorCount();
+        nettyClient.incrErrorCount(null);
 
         if (writeFuture.cause() != null) {
             throw new MotanServiceException("NettyChannel send request to server Error: url="
@@ -155,7 +152,7 @@ public class NettyChannel implements Channel {
             throw new MotanServiceException("NettyChannel failed to connect to server, url: " + nettyClient.getUrl().getUri(), e);
         } finally {
             if (!state.isAliveState()) {
-                nettyClient.incrErrorCount(2); // 为避免死锁，client错误计数方法需在同步块外调用。
+                nettyClient.incrErrorCount(2, false); // 为避免死锁，client错误计数方法需在同步块外调用。
             }
         }
     }

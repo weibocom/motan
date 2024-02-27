@@ -44,7 +44,7 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel {
 
     private org.jboss.netty.channel.Channel channel = null;
 
-    private InetSocketAddress remoteAddress = null;
+    private InetSocketAddress remoteAddress;
     private InetSocketAddress localAddress = null;
 
     public NettyChannel(NettyClient nettyClient) {
@@ -74,16 +74,13 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel {
 
         if (result && writeFuture.isSuccess()) {
             MotanFrameworkUtil.logEvent(request, MotanConstants.TRACE_CSEND, System.currentTimeMillis());
-            response.addListener(new FutureListener() {
-                @Override
-                public void operationComplete(Future future) throws Exception {
-                    if (future.isSuccess() || (future.isDone() && ExceptionUtil.isBizException(future.getException()))) {
-                        // 成功的调用
-                        nettyClient.resetErrorCount();
-                    } else {
-                        // 失败的调用
-                        nettyClient.incrErrorCount();
-                    }
+            response.addListener(future -> {
+                if (future.isSuccess() || (future.isDone() && ExceptionUtil.isBizException(future.getException()))) {
+                    // 成功的调用
+                    nettyClient.resetErrorCount();
+                } else {
+                    // 失败的调用
+                    nettyClient.incrErrorCount(future.getException());
                 }
             });
             return response;
@@ -97,7 +94,7 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel {
         }
 
         // 失败的调用
-        nettyClient.incrErrorCount();
+        nettyClient.incrErrorCount(null);
 
         if (writeFuture.getCause() != null) {
             throw new MotanServiceException("NettyChannel send request to server Error: url="
@@ -170,7 +167,7 @@ public class NettyChannel implements com.weibo.api.motan.transport.Channel {
                     + nettyClient.getUrl().getUri(), e);
         } finally {
             if (!state.isAliveState()) {
-                nettyClient.incrErrorCount(2); // 为避免死锁，client错误计数方法需在同步块外调用。
+                nettyClient.incrErrorCount(2, false); // 为避免死锁，client错误计数方法需在同步块外调用。
             }
         }
     }
