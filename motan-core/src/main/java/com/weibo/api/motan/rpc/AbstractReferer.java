@@ -16,17 +16,19 @@
 
 package com.weibo.api.motan.rpc;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * abstract referer
- * 
- * @author maijunsheng
- * 
+ *
  * @param <T>
+ * @author maijunsheng
  */
 public abstract class AbstractReferer<T> extends AbstractNode implements Referer<T> {
 
@@ -94,4 +96,10 @@ public abstract class AbstractReferer<T> extends AbstractNode implements Referer
         return serviceUrl;
     }
 
+    @Override
+    public Map<String, Object> getRuntimeInfo() {
+        Map<String, Object> infos = new HashMap<>();
+        infos.put(RuntimeInfoKeys.CURRENT_CALL_COUNT_KEY, activeRefererCount.get());
+        return infos;
+    }
 }

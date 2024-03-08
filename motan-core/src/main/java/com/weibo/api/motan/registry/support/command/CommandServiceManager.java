@@ -21,23 +21,29 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.registry.NotifyListener;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.runtime.CircularRecorder;
+import com.weibo.api.motan.runtime.RuntimeInfo;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
 import com.weibo.api.motan.util.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
-public class CommandServiceManager implements CommandListener, ServiceListener {
+public class CommandServiceManager implements CommandListener, ServiceListener, RuntimeInfo {
 
     public static final String MOTAN_COMMAND_SWITCHER = "feature.motanrpc.command.enable";
-    private static Pattern IP_PATTERN = Pattern.compile("^!?[0-9.]*\\*?$");
-    private static int DEFAULT_WEIGHT = 1;
-    private static int MAX_WEIGHT = 100;
+    public static final String MOTAN_HISTORY_RECORD_SWITCHER = "feature.motanrpc.command.history.record";
+    private static final Pattern IP_PATTERN = Pattern.compile("^!?[0-9.]*\\*?$");
+    private static final int DEFAULT_WEIGHT = 1;
+    private static final int MAX_WEIGHT = 100;
 
     static {
         MotanSwitcherUtil.initSwitcher(MOTAN_COMMAND_SWITCHER, true);
+        MotanSwitcherUtil.initSwitcher(MOTAN_HISTORY_RECORD_SWITCHER, Boolean.parseBoolean(MotanGlobalConfigUtil.getConfig(MOTAN_HISTORY_RECORD_SWITCHER, "true")));
     }
 
     private URL refUrl;
@@ -51,6 +57,9 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
     private volatile RpcCommand commandCache;
     private RpcCommand staticCommand;
     private Map<String, Integer> weights;
+    private final int recordInfoSize = 10;
+    private final CircularRecorder<String> commandRecorder = new CircularRecorder<>(recordInfoSize); // record last commands
+    private final CircularRecorder<Object> notifyUrlsRecorder = new CircularRecorder<>(recordInfoSize); // record last notify urls
 
     public CommandServiceManager(URL refUrl) {
         LoggerUtil.info("CommandServiceManager init url:" + refUrl.toFullStr());
@@ -85,7 +94,6 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
                 staticCommand.setClientCommandList(clientCommandList);
                 LoggerUtil.info("set static command. url: " + refUrl.toSimpleString() + ", merge group: " + mergeGroups);
             }
-
         }
     }
 
@@ -110,6 +118,9 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
         }
 
         if (!StringUtils.equals(commandString, commandStringCache)) {
+            if (MotanSwitcherUtil.isOpen(MOTAN_HISTORY_RECORD_SWITCHER)) {
+                commandRecorder.add(commandString); // record command for runtime info
+            }
             commandStringCache = commandString;
             commandCache = RpcCommandUtil.stringToCommand(commandString);
             if (commandCache == null && StringUtils.isNotBlank(commandString)) {
@@ -151,6 +162,10 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
             } catch (Exception e) {
                 LoggerUtil.error("CommandServiceManager notify listener fail. listener:" + notifyListener.toString(), e);
             }
+        }
+        // record last N notify urls
+        if (MotanSwitcherUtil.isOpen(MOTAN_HISTORY_RECORD_SWITCHER)) {
+            notifyUrlsRecorder.add(finalResult.stream().map(URL::toSimpleString).collect(Collectors.toList()));
         }
     }
 
@@ -212,7 +227,7 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
                     mergedResult.addAll(discoverOneGroup(refUrl));
                 }
 
-                LoggerUtil.info("mergedResult: size-" + mergedResult.size() + " --- " + mergedResult.toString());
+                LoggerUtil.info("mergedResult: size-" + mergedResult.size() + " --- " + mergedResult);
 
                 if (!CollectionUtil.isEmpty(command.getRouteRules())) {
                     LoggerUtil.info("router: " + command.getRouteRules().toString());
@@ -226,7 +241,7 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
                         }
                         String from = fromTo[0];
                         String to = fromTo[1];
-                        if (from.length() < 1 || to.length() < 1 || !IP_PATTERN.matcher(from).find() || !IP_PATTERN.matcher(to).find()) {
+                        if (from.isEmpty() || to.isEmpty() || !IP_PATTERN.matcher(from).find() || !IP_PATTERN.matcher(to).find()) {
                             routeRuleConfigError();
                             continue;
                         }
@@ -317,7 +332,7 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
             }
             ruleUrl.addParameter(URLParamType.weights.getName(), weightsBuilder.deleteCharAt(weightsBuilder.length() - 1).toString());
             finalResult.add(ruleUrl);
-            LoggerUtil.info("add weight rule url. weight: " + weightsBuilder.toString());
+            LoggerUtil.info("add weight rule url. weight: " + weightsBuilder);
         }
 
         for (String key : weights.keySet()) {
@@ -376,5 +391,36 @@ public class CommandServiceManager implements CommandListener, ServiceListener {
 
     CommandFailbackRegistry getRegistry() {
         return registry;
+    }
+
+    @Override
+    public Map<String, Object> getRuntimeInfo() {
+        Map<String, Object> infos = new HashMap<>();
+        if (commandCache != null) {
+            infos.put(RuntimeInfoKeys.COMMAND_KEY, RpcCommandUtil.commandToString(commandCache));
+        }
+        if (staticCommand != null) {
+            infos.put(RuntimeInfoKeys.STATIC_COMMAND_KEY, RpcCommandUtil.commandToString(staticCommand));
+        }
+        if (!weights.isEmpty()) {
+            infos.put(RuntimeInfoKeys.WEIGHT_KEY, weights);
+        }
+        Map<String, String> commandRecords = commandRecorder.getRecords();
+        if (!commandRecords.isEmpty()) {
+            if (MotanSwitcherUtil.isOpen(MOTAN_HISTORY_RECORD_SWITCHER)) {
+                infos.put(RuntimeInfoKeys.COMMAND_HISTORY_KEY, commandRecords);
+            } else { // clear history when switcher is closed
+                commandRecorder.clear();
+            }
+        }
+        Map<String, Object> notifyRecords = notifyUrlsRecorder.getRecords();
+        if (!notifyRecords.isEmpty()) {
+            if (MotanSwitcherUtil.isOpen(MOTAN_HISTORY_RECORD_SWITCHER)) {
+                infos.put(RuntimeInfoKeys.NOTIFY_HISTORY_KEY, notifyRecords);
+            } else { // clear history when switcher is closed
+                notifyUrlsRecorder.clear();
+            }
+        }
+        return infos;
     }
 }

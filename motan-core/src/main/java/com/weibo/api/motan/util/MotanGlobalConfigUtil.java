@@ -28,7 +28,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author zhanglei28
@@ -68,8 +68,8 @@ public class MotanGlobalConfigUtil {
         innerGlobalConfig.putConfigs(configs, override);
     }
 
-    public static Set<Map.Entry<String, String>> entrySet() {
-        return innerGlobalConfig.entrySet();
+    public static ConcurrentHashMap<String, String> getConfigs() {
+        return innerGlobalConfig.getConfigs();
     }
 
     public static GlobalConfig setInnerGlobalConfig(GlobalConfig newConfig) {

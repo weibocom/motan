@@ -21,13 +21,14 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.registry.NotifyListener;
 import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.rpc.URL;
-import com.weibo.api.motan.switcher.SwitcherListener;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * <pre>
@@ -41,28 +42,24 @@ import java.util.concurrent.ConcurrentHashMap;
  * @version V1.0 created at: 2013-5-28
  */
 
-public abstract class  AbstractRegistry implements Registry {
+public abstract class AbstractRegistry implements Registry {
 
     private ConcurrentHashMap<URL, Map<String, List<URL>>> subscribedCategoryResponses = new ConcurrentHashMap<>();
 
     private URL registryUrl;
-    private Set<URL> registeredServiceUrls = new ConcurrentHashSet<URL>();
+    private Set<URL> registeredServiceUrls = new ConcurrentHashSet<>();
     protected String registryClassName = this.getClass().getSimpleName();
 
     public AbstractRegistry(URL url) {
         this.registryUrl = url.createCopy();
         // register a heartbeat switcher to perceive service state change and change available state
         MotanSwitcherUtil.initSwitcher(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, false);
-        MotanSwitcherUtil.registerSwitcherListener(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, new SwitcherListener() {
-
-            @Override
-            public void onValueChanged(String key, Boolean value) {
-                if (key != null && value != null) {
-                    if (value) {
-                        available(null);
-                    } else {
-                        unavailable(null);
-                    }
+        MotanSwitcherUtil.registerSwitcherListener(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, (key, value) -> {
+            if (key != null && value != null) {
+                if (value) {
+                    available(null);
+                } else {
+                    unavailable(null);
                 }
             }
         });
@@ -75,7 +72,7 @@ public abstract class  AbstractRegistry implements Registry {
             return;
         }
         LoggerUtil.info("[{}] Url ({}) will register to Registry [{}]", registryClassName, url, registryUrl.getIdentity());
-        doRegister(removeUnnecessaryParmas(url.createCopy()));
+        doRegister(removeUnnecessaryParams(url.createCopy()));
         registeredServiceUrls.add(url);
         // available if heartbeat switcher already open
         if (MotanSwitcherUtil.isOpen(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER)) {
@@ -90,7 +87,7 @@ public abstract class  AbstractRegistry implements Registry {
             return;
         }
         LoggerUtil.info("[{}] Url ({}) will unregister to Registry [{}]", registryClassName, url, registryUrl.getIdentity());
-        doUnregister(removeUnnecessaryParmas(url.createCopy()));
+        doUnregister(removeUnnecessaryParams(url.createCopy()));
         registeredServiceUrls.remove(url);
     }
 
@@ -124,10 +121,10 @@ public abstract class  AbstractRegistry implements Registry {
             return Collections.EMPTY_LIST;
         }
         url = url.createCopy();
-        List<URL> results = new ArrayList<URL>();
+        List<URL> results = new ArrayList<>();
 
         Map<String, List<URL>> categoryUrls = subscribedCategoryResponses.get(url);
-        if (categoryUrls != null && categoryUrls.size() > 0) {
+        if (categoryUrls != null && !categoryUrls.isEmpty()) {
             for (List<URL> urls : categoryUrls.values()) {
                 for (URL tempUrl : urls) {
                     results.add(tempUrl.createCopy());
@@ -158,7 +155,7 @@ public abstract class  AbstractRegistry implements Registry {
     public void available(URL url) {
         LoggerUtil.info("[{}] Url ({}) will set to available to Registry [{}]", registryClassName, url, registryUrl.getIdentity());
         if (url != null) {
-            doAvailable(removeUnnecessaryParmas(url.createCopy()));
+            doAvailable(removeUnnecessaryParams(url.createCopy()));
         } else {
             doAvailable(null);
         }
@@ -168,7 +165,7 @@ public abstract class  AbstractRegistry implements Registry {
     public void unavailable(URL url) {
         LoggerUtil.info("[{}] Url ({}) will set to unavailable to Registry [{}]", registryClassName, url, registryUrl.getIdentity());
         if (url != null) {
-            doUnavailable(removeUnnecessaryParmas(url.createCopy()));
+            doUnavailable(removeUnnecessaryParams(url.createCopy()));
         } else {
             doUnavailable(null);
         }
@@ -176,11 +173,11 @@ public abstract class  AbstractRegistry implements Registry {
 
     protected List<URL> getCachedUrls(URL url) {
         Map<String, List<URL>> rsUrls = subscribedCategoryResponses.get(url);
-        if (rsUrls == null || rsUrls.size() == 0) {
+        if (rsUrls == null || rsUrls.isEmpty()) {
             return null;
         }
 
-        List<URL> urls = new ArrayList<URL>();
+        List<URL> urls = new ArrayList<>();
         for (List<URL> us : rsUrls.values()) {
             for (URL tempUrl : us) {
                 urls.add(tempUrl.createCopy());
@@ -193,19 +190,19 @@ public abstract class  AbstractRegistry implements Registry {
         if (listener == null || urls == null) {
             return;
         }
-        Map<String, List<URL>> nodeTypeUrlsInRs = new HashMap<String, List<URL>>();
+        Map<String, List<URL>> nodeTypeUrlsInRs = new HashMap<>();
         for (URL surl : urls) {
             String nodeType = surl.getParameter(URLParamType.nodeType.getName(), URLParamType.nodeType.getValue());
             List<URL> oneNodeTypeUrls = nodeTypeUrlsInRs.get(nodeType);
             if (oneNodeTypeUrls == null) {
-                nodeTypeUrlsInRs.put(nodeType, new ArrayList<URL>());
+                nodeTypeUrlsInRs.put(nodeType, new ArrayList<>());
                 oneNodeTypeUrls = nodeTypeUrlsInRs.get(nodeType);
             }
             oneNodeTypeUrls.add(surl);
         }
         Map<String, List<URL>> curls = subscribedCategoryResponses.get(refUrl);
         if (curls == null) {
-            subscribedCategoryResponses.putIfAbsent(refUrl, new ConcurrentHashMap<String, List<URL>>());
+            subscribedCategoryResponses.putIfAbsent(refUrl, new ConcurrentHashMap<>());
             curls = subscribedCategoryResponses.get(refUrl);
         }
 
@@ -220,9 +217,9 @@ public abstract class  AbstractRegistry implements Registry {
     /**
      * 移除不必提交到注册中心的参数。这些参数不需要被client端感知。
      *
-     * @param url
+     * @param url url
      */
-    private URL removeUnnecessaryParmas(URL url) {
+    private URL removeUnnecessaryParams(URL url) {
         // codec参数不能提交到注册中心，如果client端没有对应的codec会导致client端不能正常请求。
         url.getParameters().remove(URLParamType.codec.getName());
         return url;
@@ -242,4 +239,15 @@ public abstract class  AbstractRegistry implements Registry {
 
     protected abstract void doUnavailable(URL url);
 
+    @Override
+    public Map<String, Object> getRuntimeInfo() {
+        Map<String, Object> infos = new HashMap<>();
+        infos.put(RuntimeInfoKeys.REGISTERED_SERVICE_URLS_KEY, registeredServiceUrls.stream().map(URL::getIdentity).collect(Collectors.toList()));
+        Map<String, List<String>> subscribedInfos = new HashMap<>();
+        for (Map.Entry<URL, Map<String, List<URL>>> entry : subscribedCategoryResponses.entrySet()) {
+            subscribedInfos.put(entry.getKey().getIdentity(), entry.getValue().values().stream().flatMap(List::stream).map(URL::toTinyString).collect(Collectors.toList()));
+        }
+        infos.put(RuntimeInfoKeys.SUBSCRIBED_SERVICE_URLS_KEY, subscribedInfos);
+        return infos;
+    }
 }

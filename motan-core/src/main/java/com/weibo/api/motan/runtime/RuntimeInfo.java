@@ -1,6 +1,6 @@
 /*
  *
- *   Copyright 2009-2022 Weibo, Inc.
+ *   Copyright 2009-2024 Weibo, Inc.
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -16,26 +16,18 @@
  *
  */
 
-package com.weibo.api.motan.config;
+package com.weibo.api.motan.runtime;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author zhanglei28
- * @date 2022/11/1.
+ * @date 2024/2/29.
  */
-public interface GlobalConfig {
-
-    String getConfig(String key);
-
-    String getConfig(String key, String defaultValue);
-
-    void putConfig(String key, String value);
-
-    String remove(String key);
-
-    void putConfigs(Map<String, String> configs, boolean override);
-
-    ConcurrentHashMap<String, String> getConfigs();
+public interface RuntimeInfo {
+    // The value of map must be composed of nested map, list, and basic data types.
+    default Map<String, Object> getRuntimeInfo() {
+        return new HashMap<>();
+    }
 }

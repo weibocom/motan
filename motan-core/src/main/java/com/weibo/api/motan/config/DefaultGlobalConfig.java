@@ -21,7 +21,6 @@ package com.weibo.api.motan.config;
 import com.weibo.api.motan.util.MotanGlobalConfigUtil;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -32,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2022/11/1.
  */
 public class DefaultGlobalConfig implements GlobalConfig {
-    private ConcurrentHashMap<String, String> configs = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, String> configs = new ConcurrentHashMap<>();
 
     public DefaultGlobalConfig() {
         Map<String, String> defaultConfigs = MotanGlobalConfigUtil.getDefaultConfigCopy();
@@ -76,7 +75,7 @@ public class DefaultGlobalConfig implements GlobalConfig {
     }
 
     @Override
-    public Set<Map.Entry<String, String>> entrySet() {
-        return configs.entrySet();
+    public ConcurrentHashMap<String, String> getConfigs() {
+        return configs;
     }
 }

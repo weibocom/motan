@@ -19,11 +19,13 @@ package com.weibo.api.motan.registry.support.command;
 import com.weibo.api.motan.registry.NotifyListener;
 import com.weibo.api.motan.registry.support.FailbackRegistry;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
 import com.weibo.api.motan.util.LoggerUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class CommandFailbackRegistry extends FailbackRegistry {
@@ -47,7 +49,7 @@ public abstract class CommandFailbackRegistry extends FailbackRegistry {
         subscribeCommand(urlCopy, manager);
 
         List<URL> urls = doDiscover(urlCopy);
-        if (urls != null && urls.size() > 0) {
+        if (urls != null && !urls.isEmpty()) {
             this.notify(urlCopy, listener, urls);
         }
     }
@@ -72,7 +74,7 @@ public abstract class CommandFailbackRegistry extends FailbackRegistry {
         if (StringUtils.isNotEmpty(commandStr)) {
             rpcCommand = RpcCommandUtil.stringToCommand(commandStr);
         }
-        LoggerUtil.info("CommandFailbackRegistry discover command. commandStr: " + commandStr + ", rpccommand "
+        LoggerUtil.info("CommandFailbackRegistry discover command. commandStr: " + commandStr + ", rpc command "
                 + (rpcCommand == null ? "is null." : "is not null."));
 
         CommandServiceManager manager = getCommandServiceManager(urlCopy);
@@ -118,4 +120,19 @@ public abstract class CommandFailbackRegistry extends FailbackRegistry {
 
     protected abstract String discoverCommand(URL url);
 
+    @Override
+    public Map<String, Object> getRuntimeInfo() {
+        Map<String, Object> infos = super.getRuntimeInfo();
+        Map<String, Object> subscribeInfo = new HashMap<>();
+        commandManagerMap.forEach((key, value) -> {
+            Map<String, Object> temp = value.getRuntimeInfo();
+            if (!temp.isEmpty()) {
+                subscribeInfo.put(key.getIdentity(), temp);
+            }
+        });
+        if (!subscribeInfo.isEmpty()) {
+            infos.put(RuntimeInfoKeys.SUBSCRIBE_INFO_KEY, subscribeInfo);
+        }
+        return infos;
+    }
 }

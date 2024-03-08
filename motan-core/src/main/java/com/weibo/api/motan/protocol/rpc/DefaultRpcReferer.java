@@ -27,6 +27,8 @@ import com.weibo.api.motan.transport.EndpointFactory;
 import com.weibo.api.motan.transport.TransportException;
 import com.weibo.api.motan.util.LoggerUtil;
 
+import java.util.Map;
+
 /**
  * Created by zhanglei28 on 2017/9/1.
  */
@@ -57,26 +59,19 @@ public class DefaultRpcReferer<T> extends AbstractReferer<T> {
 
     @Override
     protected void decrActiveCount(Request request, Response response) {
-        if (response == null || !(response instanceof Future)) {
+        if (!(response instanceof Future)) {
             activeRefererCount.decrementAndGet();
             return;
         }
 
         Future future = (Future) response;
 
-        future.addListener(new FutureListener() {
-            @Override
-            public void operationComplete(Future future) throws Exception {
-                activeRefererCount.decrementAndGet();
-            }
-        });
+        future.addListener(future1 -> activeRefererCount.decrementAndGet());
     }
 
     @Override
     protected boolean doInit() {
-        boolean result = client.open();
-
-        return result;
+        return client.open();
     }
 
     @Override
@@ -87,6 +82,13 @@ public class DefaultRpcReferer<T> extends AbstractReferer<T> {
     @Override
     public void destroy() {
         endpointFactory.safeReleaseResource(client, url);
-        LoggerUtil.info("DefaultRpcReferer destory client: url={}" + url);
+        LoggerUtil.info("DefaultRpcReferer destroy client: url={}" + url);
+    }
+
+    @Override
+    public Map<String, Object> getRuntimeInfo() {
+        Map<String, Object> infos = super.getRuntimeInfo();
+        infos.putAll(client.getRuntimeInfo());
+        return infos;
     }
 }

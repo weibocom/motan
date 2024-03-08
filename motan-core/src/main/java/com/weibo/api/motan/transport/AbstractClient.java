@@ -16,8 +16,6 @@
 
 package com.weibo.api.motan.transport;
 
-import java.net.InetSocketAddress;
-
 import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.common.ChannelState;
 import com.weibo.api.motan.common.URLParamType;
@@ -28,10 +26,11 @@ import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
+import java.net.InetSocketAddress;
+
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-21
- * 
  */
 public abstract class AbstractClient implements Client {
 

@@ -16,13 +16,14 @@
 
 package com.weibo.api.motan.rpc;
 
+import com.weibo.api.motan.runtime.RuntimeInfo;
+
 /**
  * node manage interface
- * 
+ *
  * @author maijunsheng
- * 
  */
-public interface Node {
+public interface Node extends RuntimeInfo {
 
     void init();
 

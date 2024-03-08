@@ -20,16 +20,16 @@ import com.weibo.api.motan.core.extension.Spi;
 import com.weibo.api.motan.rpc.Caller;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.runtime.RuntimeInfo;
 
 /**
- * 
  * filter before transport.
  *
  * @author fishermen
  * @version V1.0 created at: 2013-5-16
  */
 @Spi
-public interface Filter {
+public interface Filter extends RuntimeInfo {
 
     Response filter(Caller<?> caller, Request request);
 }

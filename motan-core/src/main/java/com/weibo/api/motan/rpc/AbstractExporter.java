@@ -16,9 +16,14 @@
 
 package com.weibo.api.motan.rpc;
 
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * abstract exporter
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-5-21
  * AbstractExporter
@@ -42,9 +47,19 @@ public abstract class AbstractExporter<T> extends AbstractNode implements Export
 
     /**
      * update real listened port
-     * @param port
+     *
+     * @param port real listened port
      */
-    protected void updateRealServerPort(int port){
+    protected void updateRealServerPort(int port) {
         getUrl().setPort(port);
+    }
+
+    @Override
+    public Map<String, Object> getRuntimeInfo() {
+        Map<String, Object> infos = new HashMap<>();
+        infos.put(RuntimeInfoKeys.URL_KEY, url.toFullStr());
+        infos.put(RuntimeInfoKeys.STATE_KEY, init ? "init" : "unInit");
+        infos.put(RuntimeInfoKeys.PROVIDER_KEY, provider.getRuntimeInfo());
+        return infos;
     }
 }

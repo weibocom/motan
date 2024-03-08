@@ -16,32 +16,32 @@
 
 package com.weibo.api.motan.transport;
 
-import java.net.InetSocketAddress;
-
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.runtime.RuntimeInfo;
+
+import java.net.InetSocketAddress;
 
 /**
- * 
  * 类说明
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-21
  */
 
-public interface Channel {
+public interface Channel extends RuntimeInfo {
 
     /**
      * get local socket address.
-     * 
+     *
      * @return local address.
      */
     InetSocketAddress getLocalAddress();
 
     /**
      * get remote socket address
-     * 
+     *
      * @return
      */
     InetSocketAddress getRemoteAddress();
@@ -57,7 +57,7 @@ public interface Channel {
 
     /**
      * open the channel
-     * 
+     *
      * @return
      */
     boolean open();
@@ -74,20 +74,19 @@ public interface Channel {
 
     /**
      * is closed.
-     * 
+     *
      * @return closed
      */
     boolean isClosed();
 
     /**
      * the node available status
-     * 
+     *
      * @return
      */
     boolean isAvailable();
 
     /**
-     * 
      * @return
      */
     URL getUrl();

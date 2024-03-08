@@ -28,6 +28,7 @@ import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.proxy.ProxyFactory;
 import com.weibo.api.motan.registry.RegistryService;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.runtime.GlobalRuntime;
 import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.NetUtils;
@@ -66,7 +67,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
     // 点对点直连服务提供地址
     private String directUrl;
 
-    private AtomicBoolean initialized = new AtomicBoolean(false);
+    private final AtomicBoolean initialized = new AtomicBoolean(false);
 
     private T ref;
 
@@ -148,6 +149,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
 
             clusterSupports.add(clusterSupport);
             clusters.add(clusterSupport.getCluster());
+            GlobalRuntime.addCluster(clusterSupport.getCluster().getUrl().getIdentity(), clusterSupport.getCluster());
 
             if (proxy == null) {
                 proxy = getProxyType(refUrl);
@@ -178,7 +180,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
         LoggerUtil.info("create cluster for refer url :" + refUrl.toFullStr());
         List<URL> regUrls = new ArrayList<>();
 
-        // 如果用户指定directUrls 或者 injvm协议访问，则使用local registry
+        // 如果用户指定directUrls 或者 inJvm协议访问，则使用local registry
         if (StringUtils.isNotBlank(directUrl) || MotanConstants.PROTOCOL_INJVM.equals(refUrl.getProtocol())) {
             URL regUrl =
                     new URL(MotanConstants.REGISTRY_PROTOCOL_LOCAL, NetUtils.LOCALHOST, MotanConstants.DEFAULT_INT_VALUE,
@@ -222,6 +224,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
     public synchronized void destroy() {
         if (clusterSupports != null) {
             for (ClusterSupport<T> clusterSupport : clusterSupports) {
+                GlobalRuntime.removeCluster(clusterSupport.getCluster().getUrl().getIdentity());
                 clusterSupport.destroy();
             }
         }

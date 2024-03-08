@@ -20,6 +20,7 @@ import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.config.ServiceConfig;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.registry.RegistryFactory;
+import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.Client;
 import com.weibo.api.motan.transport.EndpointFactory;
 import com.weibo.api.motan.transport.Server;
@@ -51,6 +52,7 @@ public class BaseTest {
 
         final Server mockServer = mockery.mock(Server.class);
         final Client mockClient = mockery.mock(Client.class);
+        URL url = new URL("motan", "localhost", 8002, "testService");
         mockery.checking(new Expectations() {
             {
                 allowing(mockClient).open();
@@ -66,6 +68,8 @@ public class BaseTest {
                 will(returnValue(null));
                 allowing(mockServer).isAvailable();
                 will(returnValue(true));
+                allowing(mockServer).getUrl();
+                will(returnValue(url));
             }
         });
 
