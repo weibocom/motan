@@ -9,6 +9,7 @@ import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
 import com.weibo.api.motan.transport.AbstractServer;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.transport.TransportException;
@@ -22,6 +23,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -109,7 +111,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
         channelFuture.syncUninterruptibly();
         serverChannel = channelFuture.channel();
         setLocalAddress((InetSocketAddress) serverChannel.localAddress());
-        if (url.getPort() == 0){
+        if (url.getPort() == 0) {
             url.setPort(getLocalAddress().getPort());
         }
 
@@ -158,7 +160,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
             workerGroup.shutdownGracefully();
             workerGroup = null;
         }
-        // close all clients's channel
+        // close all client's channel
         if (channelManage != null) {
             channelManage.close();
         }
@@ -191,5 +193,14 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
                 url.getIdentity(), channelManage.getChannels().size(), standardThreadExecutor.getSubmittedTasksCount(),
                 standardThreadExecutor.getQueue().size(), standardThreadExecutor.getMaximumPoolSize(),
                 standardThreadExecutor.getMaxSubmittedTaskCount(), rejectCounter.getAndSet(0));
+    }
+
+    @Override
+    public Map<String, Object> getRuntimeInfo() {
+        Map<String, Object> infos = super.getRuntimeInfo();
+        infos.put(RuntimeInfoKeys.CONNECTION_COUNT_KEY, channelManage.getChannels().size());
+        infos.put(RuntimeInfoKeys.TASK_COUNT_KEY, standardThreadExecutor.getSubmittedTasksCount());
+        infos.putAll(messageHandler.getRuntimeInfo());
+        return infos;
     }
 }

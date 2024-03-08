@@ -21,6 +21,7 @@ import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.runtime.GlobalRuntime;
 import com.weibo.api.motan.transport.*;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
@@ -30,41 +31,40 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * 
  * abstract endpoint factory
- * 
+ *
  * <pre>
  * 		一些约定：
- * 
+ *
  * 		1） service :
  * 			1.1） not share channel :  某个service暴露服务的时候，不期望和别的service共享服务，明哲自保，比如你说：我很重要，我很重要。
- * 
+ *
  * 			1.2） share channel ： 某个service 暴露服务的时候，如果有某个模块，但是拆成10个接口，可以使用这种方式，不过有一些约束条件：接口的几个serviceConfig配置需要保持一致。
- * 				
+ *
  * 				不允许差异化的配置如下：
  * 					protocol, codec , serialize, maxContentLength , maxServerConnection , maxWorkerThread, workerQueueSize, heartbeatFactory
- * 				
+ *
  * 		2）心跳机制：
- * 
+ *
  * 			不同的protocol的心跳包格式可能不一样，无法进行强制，那么通过可扩展的方式，依赖heartbeatFactory进行heartbeat包的创建，
- * 			同时对于service的messageHandler进行wrap heartbeat包的处理。 
- * 
+ * 			同时对于service的messageHandler进行wrap heartbeat包的处理。
+ *
  * 			对于service来说，把心跳包当成普通的request处理，因为这种heartbeat才能够探测到整个service处理的关键路径的可用状况
- * 
+ *
  * </pre>
- * 
- * 
+ *
  * @author maijunsheng
  * @version 创建时间：2013-6-5
- * 
  */
 public abstract class AbstractEndpointFactory implements EndpointFactory {
 
-    /** 维持share channel 的service列表 **/
-    protected Map<String, Server> ipPort2ServerShareChannel = new HashMap<String, Server>();
-    protected ConcurrentMap<Server, Set<String>> server2UrlsShareChannel = new ConcurrentHashMap<Server, Set<String>>();
+    /**
+     * 维持share channel 的service列表
+     **/
+    protected final Map<String, Server> ipPort2ServerShareChannel = new HashMap<>();
+    protected ConcurrentMap<Server, Set<String>> server2UrlsShareChannel = new ConcurrentHashMap<>();
 
-    private EndpointManager heartbeatClientEndpointManager = null;
+    private EndpointManager heartbeatClientEndpointManager;
 
     public AbstractEndpointFactory() {
         heartbeatClientEndpointManager = new HeartbeatClientEndpointManager();
@@ -85,7 +85,7 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
             if (!shareChannel) { // 独享一个端口
                 LoggerUtil.info(this.getClass().getSimpleName() + " create no_share_channel server: url={}", url);
 
-                if (url.getPort() == 0){ // create new url for random port，the origin url port will be replaced in exporter
+                if (url.getPort() == 0) { // create new url for random port，the origin url port will be replaced in exporter
                     url = url.createCopy();
                 }
                 // 如果端口已经被使用了，使用该server bind 会有异常
@@ -116,7 +116,7 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
 
             ipPort2ServerShareChannel.put(ipPort, server);
             saveEndpoint2Urls(server2UrlsShareChannel, server, protocolKey);
-
+            GlobalRuntime.addServer(ipPort, server);
             return server;
         }
     }
@@ -134,15 +134,15 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
 
     @Override
     public void safeReleaseResource(Client client, URL url) {
-        destory(client);
+        destroy(client);
     }
 
     private <T extends Endpoint> void safeReleaseResource(T endpoint, URL url, Map<String, T> ipPort2Endpoint,
-            ConcurrentMap<T, Set<String>> endpoint2Urls) {
+                                                          ConcurrentMap<T, Set<String>> endpoint2Urls) {
         boolean shareChannel = url.getBooleanParameter(URLParamType.shareChannel.getName(), URLParamType.shareChannel.getBooleanValue());
 
         if (!shareChannel) {
-            destory(endpoint);
+            destroy(endpoint);
             return;
         }
 
@@ -151,7 +151,7 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
             String protocolKey = MotanFrameworkUtil.getProtocolKey(url);
 
             if (endpoint != ipPort2Endpoint.get(ipPort)) {
-                destory(endpoint);
+                destroy(endpoint);
                 return;
             }
 
@@ -159,7 +159,7 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
             urls.remove(protocolKey);
 
             if (urls.isEmpty()) {
-                destory(endpoint);
+                destroy(endpoint);
                 ipPort2Endpoint.remove(ipPort);
                 endpoint2Urls.remove(endpoint);
             }
@@ -170,7 +170,7 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
         Set<String> sets = map.get(endpoint);
 
         if (sets == null) {
-            sets = new HashSet<String>();
+            sets = new HashSet<>();
             sets.add(namespace);
             map.putIfAbsent(endpoint, sets); // 规避并发问题，因为有release逻辑存在，所以这里的sets预先add了namespace
             sets = map.get(endpoint);
@@ -196,12 +196,13 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
         return client;
     }
 
-    private <T extends Endpoint> void destory(T endpoint) {
+    private <T extends Endpoint> void destroy(T endpoint) {
         if (endpoint instanceof Client) {
             endpoint.close();
             heartbeatClientEndpointManager.removeEndpoint(endpoint);
-        } else {
+        } else { // as Server
             endpoint.close();
+            GlobalRuntime.removeServer(endpoint.getUrl().getServerPortStr());
         }
     }
 

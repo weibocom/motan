@@ -17,9 +17,9 @@
 package com.weibo.api.motan.util;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
- * 
  * Utils for collections.
  *
  * @author fishermen
@@ -31,6 +31,11 @@ public class CollectionUtil {
     @SuppressWarnings("rawtypes")
     public static boolean isEmpty(Collection collection) {
         return collection == null || collection.isEmpty();
+    }
+
+    @SuppressWarnings("rawtypes")
+    public static boolean isEmpty(Map map) {
+        return map == null || map.isEmpty();
     }
 
 }

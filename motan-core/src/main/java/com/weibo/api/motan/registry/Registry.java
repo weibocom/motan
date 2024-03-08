@@ -19,16 +19,16 @@ package com.weibo.api.motan.registry;
 import com.weibo.api.motan.core.extension.Scope;
 import com.weibo.api.motan.core.extension.Spi;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.runtime.RuntimeInfo;
 
 /**
- * 
  * Used to register and discover.
  *
  * @author fishermen
  * @version V1.0 created at: 2013-5-28
  */
 @Spi(scope = Scope.SINGLETON)
-public interface Registry extends RegistryService, DiscoveryService {
+public interface Registry extends RegistryService, DiscoveryService, RuntimeInfo {
 
     URL getUrl();
 }

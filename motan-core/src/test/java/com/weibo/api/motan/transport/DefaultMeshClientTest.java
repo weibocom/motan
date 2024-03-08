@@ -23,8 +23,11 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.ResponseFuture;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
 import com.weibo.api.motan.util.MotanClientUtil;
 import org.junit.Test;
+
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -77,6 +80,16 @@ public class DefaultMeshClientTest {
         ResponseFuture future = meshClient.asyncCall(request, String.class);
         assertNotNull(future);
         assertEquals("hello", future.getValue());
+    }
+
+    @Test
+    public void testRuntimeInfo() {
+        DefaultMeshClient meshClient = buildMockDefaultMeshClient();
+        meshClient.init();
+
+        Map<String, Object> info = meshClient.getRuntimeInfo();
+        assertEquals(meshClient.getUrl().toFullStr(), info.get(RuntimeInfoKeys.URL_KEY));
+        assertTrue(((Map<String, Object>) info.get(RuntimeInfoKeys.REFERERS_KEY)).containsKey(RuntimeInfoKeys.CURRENT_CALL_COUNT_KEY));
     }
 
     private DefaultMeshClient buildMockDefaultMeshClient() {

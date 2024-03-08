@@ -1,6 +1,7 @@
 package com.weibo.api.motan.admin;
 
 import com.weibo.api.motan.admin.handler.CommandListHandler;
+import com.weibo.api.motan.admin.handler.RuntimeInfoHandler;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.core.extension.SpiMeta;
@@ -43,10 +44,10 @@ public class AdminInitialization implements Initializable {
 
                 // build admin server url
                 URL adminUrl = new URL(MotanGlobalConfigUtil.getConfig(MotanConstants.ADMIN_PROTOCOL, DEFAULT_ADMIN_PROTOCOL), "127.0.0.1", port, "/",
-                        MotanGlobalConfigUtil.entrySet().stream().filter((entry) -> entry.getKey().startsWith("admin.")).collect(Collectors.toMap((entry) -> entry.getKey().substring("admin.".length()), Map.Entry::getValue)));
+                        MotanGlobalConfigUtil.getConfigs().entrySet().stream().filter((entry) -> entry.getKey().startsWith("admin.")).collect(Collectors.toMap((entry) -> entry.getKey().substring("admin.".length()), Map.Entry::getValue)));
 
                 // add default command handlers;
-                AdminUtil.addCommandHandler(new CommandListHandler());
+                addDefaultHandlers();
 
                 // add command handler extensions from config
                 addExtHandlers(MotanGlobalConfigUtil.getConfig(MotanConstants.ADMIN_EXT_HANDLERS));
@@ -93,6 +94,11 @@ public class AdminInitialization implements Initializable {
             }
         }
         return port;
+    }
+
+    private void addDefaultHandlers() {
+        AdminUtil.addCommandHandler(new CommandListHandler());
+        AdminUtil.addCommandHandler(new RuntimeInfoHandler());
     }
 
     private void addExtHandlers(String handlerString) {

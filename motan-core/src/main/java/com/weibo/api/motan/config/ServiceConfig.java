@@ -21,12 +21,11 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.config.annotation.ConfigDesc;
 import com.weibo.api.motan.config.handler.ConfigHandler;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
-import com.weibo.api.motan.exception.MotanErrorMsgConstant;
-import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.registry.RegistryService;
 import com.weibo.api.motan.rpc.Exporter;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.runtime.GlobalRuntime;
 import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.NetUtils;
@@ -44,7 +43,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ServiceConfig<T> extends AbstractServiceConfig {
 
     private static final long serialVersionUID = -3342374271064293224L;
-    private static ConcurrentHashSet<String> existingServices = new ConcurrentHashSet<>();
+    private static final ConcurrentHashSet<String> existingServices = new ConcurrentHashSet<>();
     // 具体到方法的配置
     protected List<MethodConfig> methods;
 
@@ -52,10 +51,10 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     private T ref;
 
     // service 对应的exporters，用于管理service服务的生命周期
-    private List<Exporter<T>> exporters = new CopyOnWriteArrayList<>();
+    private final List<Exporter<T>> exporters = new CopyOnWriteArrayList<>();
     private Class<T> interfaceClass;
     private BasicServiceInterfaceConfig basicService;
-    private AtomicBoolean exported = new AtomicBoolean(false);
+    private final AtomicBoolean exported = new AtomicBoolean(false);
 
     public static ConcurrentHashSet<String> getExistingServices() {
         return existingServices;
@@ -85,7 +84,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     }
 
     public boolean hasMethods() {
-        return this.methods != null && this.methods.size() > 0;
+        return this.methods != null && !this.methods.isEmpty();
     }
 
     public T getRef() {
@@ -113,7 +112,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         checkInterfaceAndMethods(interfaceClass, methods);
 
         loadRegistryUrls();
-        if (registryUrls == null || registryUrls.size() == 0) {
+        if (registryUrls == null || registryUrls.isEmpty()) {
             throw new IllegalStateException("Should set registry config for service:" + interfaceClass.getName());
         }
 
@@ -145,7 +144,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     private void doExport(ProtocolConfig protocolConfig, int port) {
         String protocolName = protocolConfig.getName();
-        if (protocolName == null || protocolName.length() == 0) {
+        if (protocolName == null || protocolName.isEmpty()) {
             protocolName = URLParamType.protocol.getValue();
         }
 
@@ -194,7 +193,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         LoggerUtil.info("export for service url :" + serviceUrl.toFullStr());
         List<URL> urls = new ArrayList<>();
 
-        // injvm 协议只支持注册到本地，其他协议可以注册到local、remote
+        // inJvm 协议只支持注册到本地，其他协议可以注册到local、remote
         if (MotanConstants.PROTOCOL_INJVM.equals(protocol)) {
             URL localRegistryUrl = null;
             for (URL ru : registryUrls) {
@@ -224,14 +223,18 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     private void afterExport() {
         exported.set(true);
         for (Exporter<T> ep : exporters) {
-            existingServices.add(ep.getProvider().getUrl().getIdentity());
+            String id = ep.getProvider().getUrl().getIdentity();
+            existingServices.add(id);
+            GlobalRuntime.addExporter(id, ep);
         }
     }
 
     private void afterUnexport() {
         exported.set(false);
         for (Exporter<T> ep : exporters) {
-            existingServices.remove(ep.getProvider().getUrl().getIdentity());
+            String id = ep.getProvider().getUrl().getIdentity();
+            existingServices.remove(id);
+            GlobalRuntime.removeExporter(id);
         }
         exporters.clear();
     }
@@ -255,10 +258,6 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     @ConfigDesc(excluded = true)
     public String getHost() {
         return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
     }
 
     public AtomicBoolean getExported() {

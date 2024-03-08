@@ -21,6 +21,7 @@ package com.weibo.api.motan.config;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.runtime.GlobalRuntime;
 import com.weibo.api.motan.transport.DefaultMeshClient;
 import com.weibo.api.motan.transport.MeshClient;
 import com.weibo.api.motan.util.LoggerUtil;
@@ -90,11 +91,13 @@ public class MeshClientConfig extends AbstractConfig {
             }
         }
         meshClient = defaultMeshClient;
+        GlobalRuntime.addMeshClient(meshClient.getUrl().getIdentity(), meshClient);
         initialized.set(true);
     }
 
     protected synchronized void destroy() throws Exception {
         if (meshClient != null) {
+            GlobalRuntime.removeMeshClient(meshClient.getUrl().getIdentity());
             meshClient.destroy();
             meshClient = null;
         }

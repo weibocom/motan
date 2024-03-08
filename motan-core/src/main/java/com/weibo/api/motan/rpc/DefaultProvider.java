@@ -21,10 +21,13 @@ import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanBizException;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
 import com.weibo.api.motan.util.ExceptionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author maijunsheng
@@ -126,5 +129,14 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
             }
         }
         return response;
+    }
+
+    @Override
+    public Map<String, Object> getRuntimeInfo() {
+        Map<String, Object> infos = new HashMap<>();
+        infos.put(RuntimeInfoKeys.SERVICE_KEY, clz.getName());
+        infos.put(RuntimeInfoKeys.IS_ASYNC_KEY, isAsync);
+        infos.put(RuntimeInfoKeys.IMPL_CLASS_KEY, proxyImpl.getClass().getName());
+        return infos;
     }
 }

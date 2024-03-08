@@ -23,9 +23,11 @@ import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.protocol.example.IWorld;
 import com.weibo.api.motan.protocol.example.IWorldAsync;
 import com.weibo.api.motan.protocol.example.MockWorld;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
 import com.weibo.api.motan.util.AsyncUtil;
 import junit.framework.TestCase;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -86,6 +88,21 @@ public class DefaultProviderTest extends TestCase {
             assertTrue(e instanceof RuntimeException);
         }
         assertEquals(1, asyncProxyImpl.stringCount.get());
+
+        // ===== get runtime info =====
+        // async implement
+        provider = new DefaultProvider(asyncProxyImpl, url, aClass); // use async implement class
+        Map<String, Object> info = provider.getRuntimeInfo();
+        assertEquals(asyncProxyImpl.getClass().getName(), info.get(RuntimeInfoKeys.IMPL_CLASS_KEY));
+        assertTrue((Boolean) info.get(RuntimeInfoKeys.IS_ASYNC_KEY));
+        assertEquals(aClass.getName(), info.get(RuntimeInfoKeys.SERVICE_KEY));
+
+        // sync implment
+        provider = new DefaultProvider(proxyImpl, url, aClass); // use async implement class
+        info = provider.getRuntimeInfo();
+        assertEquals(proxyImpl.getClass().getName(), info.get(RuntimeInfoKeys.IMPL_CLASS_KEY));
+        assertFalse((Boolean) info.get(RuntimeInfoKeys.IS_ASYNC_KEY));
+        assertEquals(aClass.getName(), info.get(RuntimeInfoKeys.SERVICE_KEY));
     }
 
     private DefaultRequest buildDefaultRequest(String method, String parametersDesc, Object[] arguments) {

@@ -8,6 +8,7 @@ import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
 import com.weibo.api.motan.transport.AbstractSharedPoolClient;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.SharedObjectFactory;
@@ -24,6 +25,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -402,5 +404,18 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
                 }
             }
         }
+    }
+
+    @Override
+    public Map<String, Object> getRuntimeInfo() {
+        Map<String, Object> infos = new HashMap<>();
+        infos.put(RuntimeInfoKeys.CODEC_KEY, codec.getClass().getSimpleName());
+        infos.put(RuntimeInfoKeys.FUSING_THRESHOLD_KEY, fusingThreshold);
+        infos.put(RuntimeInfoKeys.ERROR_COUNT_KEY, errorCount.get());
+        if (!isAvailable()) {
+            infos.put(RuntimeInfoKeys.STATE_KEY, state.name());
+            infos.put(RuntimeInfoKeys.FORCE_CLOSED_KEY, forceClosed);
+        }
+        return infos;
     }
 }

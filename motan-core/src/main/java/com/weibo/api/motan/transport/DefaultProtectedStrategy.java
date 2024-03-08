@@ -29,6 +29,7 @@ import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.StatisticCallback;
 import com.weibo.api.motan.util.StatsUtil;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -134,7 +135,7 @@ public class DefaultProtectedStrategy implements ProviderProtectedStrategy, Stat
             return true;
         }
 
-        // 不简单判断 requsetCount > (maxThread / 2) ，因为假如有2或者3个method对外提供，
+        // 不简单判断 requestCount > (maxThread / 2) ，因为假如有2或者3个method对外提供，
         // 但是只有一个接口很大调用量，而其他接口很空闲，那么这个时候允许单个method的极限到 maxThread * 3 / 4
         if (requestCounter > (maxThread / 2) && totalCounter > (maxThread * 3 / 4)) {
             return false;
@@ -163,5 +164,23 @@ public class DefaultProtectedStrategy implements ProviderProtectedStrategy, Stat
         } else {
             return null;
         }
+    }
+
+    @Override
+    public Map<String, Object> getRuntimeInfo() {
+        Map<String, Object> infos = new HashMap<>();
+        infos.put("totalCount", totalCounter.get());
+        infos.put("rejectCount", rejectCounter.get());
+        Map<String, Object> methodRequestCounts = new HashMap<>();
+        for (Map.Entry<String, AtomicInteger> entry : requestCounters.entrySet()) {
+            methodRequestCounts.put(entry.getKey(), entry.getValue().get());
+        }
+        infos.put("requestCounts", methodRequestCounts);
+        Map<String, Object> methodRejectCounts = new HashMap<>();
+        for (Map.Entry<String, AtomicInteger> entry : rejectCounters.entrySet()) {
+            methodRejectCounts.put(entry.getKey(), entry.getValue().get());
+        }
+        infos.put("rejectCounts", methodRejectCounts);
+        return infos;
     }
 }

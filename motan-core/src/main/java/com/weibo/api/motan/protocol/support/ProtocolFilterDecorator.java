@@ -25,6 +25,8 @@ import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.filter.Filter;
 import com.weibo.api.motan.filter.InitializableFilter;
 import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
+import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanGlobalConfigUtil;
 import com.weibo.api.motan.util.StringTools;
@@ -81,56 +83,61 @@ public class ProtocolFilterDecorator implements Protocol {
             if (f instanceof InitializableFilter) {
                 ((InitializableFilter) f).init(lastRef);
             }
-            final Referer<T> lf = lastRef;
+            final Referer<T> lr = lastRef;
             lastRef = new Referer<T>() {
                 @Override
                 public Response call(Request request) {
                     Activation activation = f.getClass().getAnnotation(Activation.class);
                     if (activation != null && !activation.retry() && request.getRetries() != 0) {
-                        return lf.call(request);
+                        return lr.call(request);
                     }
-                    return f.filter(lf, request);
+                    return f.filter(lr, request);
                 }
 
                 @Override
                 public String desc() {
-                    return lf.desc();
+                    return lr.desc();
                 }
 
                 @Override
                 public void destroy() {
-                    lf.destroy();
+                    lr.destroy();
                 }
 
                 @Override
                 public Class<T> getInterface() {
-                    return lf.getInterface();
+                    return lr.getInterface();
                 }
 
                 @Override
                 public URL getUrl() {
-                    return lf.getUrl();
+                    return lr.getUrl();
                 }
 
                 @Override
                 public void init() {
-                    lf.init();
+                    lr.init();
                 }
 
                 @Override
                 public boolean isAvailable() {
-                    return lf.isAvailable();
+                    return lr.isAvailable();
                 }
 
                 @Override
                 public int activeRefererCount() {
-                    return lf.activeRefererCount();
+                    return lr.activeRefererCount();
                 }
 
 
                 @Override
                 public URL getServiceUrl() {
-                    return lf.getServiceUrl();
+                    return lr.getServiceUrl();
+                }
+
+                @Override
+                public Map<String, Object> getRuntimeInfo() {
+                    return addFilterRuntimeInfo(lr.getRuntimeInfo(), f);
                 }
             };
         }
@@ -139,7 +146,7 @@ public class ProtocolFilterDecorator implements Protocol {
 
     private <T> Provider<T> decorateWithFilter(final Provider<T> provider, URL url) {
         List<Filter> filters = getFilters(url, MotanConstants.NODE_TYPE_SERVICE);
-        if (filters == null || filters.size() == 0) {
+        if (filters == null || filters.isEmpty()) {
             return provider;
         }
         Provider<T> lastProvider = provider;
@@ -194,9 +201,31 @@ public class ProtocolFilterDecorator implements Protocol {
                 public T getImpl() {
                     return provider.getImpl();
                 }
+
+                @Override
+                public Map<String, Object> getRuntimeInfo() {
+                    return addFilterRuntimeInfo(lp.getRuntimeInfo(), f);
+                }
             };
         }
         return lastProvider;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> addFilterRuntimeInfo(Map<String, Object> baseRuntimeInfo, Filter f) {
+        if (baseRuntimeInfo != null) {
+            Map<String, Object> filterRuntimeInfos = f.getRuntimeInfo();
+            // append filter runtime info to referer/provider runtime info
+            if (!CollectionUtil.isEmpty(filterRuntimeInfos)) {
+                Object filterInfos = baseRuntimeInfo.get(RuntimeInfoKeys.FILTER_KEY);
+                if (!(filterInfos instanceof Map)) {
+                    filterInfos = new HashMap<String, Object>();
+                    baseRuntimeInfo.put(RuntimeInfoKeys.FILTER_KEY, filterInfos);
+                }
+                ((Map<String, Object>) filterInfos).put(f.getClass().getSimpleName(), filterRuntimeInfos);
+            }
+        }
+        return baseRuntimeInfo;
     }
 
     /**
@@ -207,15 +236,15 @@ public class ProtocolFilterDecorator implements Protocol {
      * 3）如果filter配置中有'-'开头的filter name，表示disable某个filter，对应的filter不会装配
      * </pre>
      *
-     * @param url
-     * @param key
-     * @return
+     * @param url url
+     * @param key filter extension type.
+     * @return filter list
      */
     protected List<Filter> getFilters(URL url, String key) {
         // load default filters
         List<Filter> filters = new ArrayList<>();
         List<Filter> defaultFilters = ExtensionLoader.getExtensionLoader(Filter.class).getExtensions(key);
-        if (defaultFilters != null && defaultFilters.size() > 0) {
+        if (defaultFilters != null && !defaultFilters.isEmpty()) {
             filters.addAll(defaultFilters);
         }
 

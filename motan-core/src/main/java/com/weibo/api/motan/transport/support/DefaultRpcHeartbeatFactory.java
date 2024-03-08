@@ -27,10 +27,11 @@ import com.weibo.api.motan.transport.HeartbeatFactory;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.util.RequestIdGenerator;
 
+import java.util.Map;
+
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-14
- * 
  */
 @SpiMeta(name = "motan")
 public class DefaultRpcHeartbeatFactory implements HeartbeatFactory {
@@ -45,7 +46,7 @@ public class DefaultRpcHeartbeatFactory implements HeartbeatFactory {
         return new HeartMessageHandleWrapper(handler);
     }
 
-    public static Request getDefaultHeartbeatRequest(long requestId){
+    public static Request getDefaultHeartbeatRequest(long requestId) {
         HeartbeatRequest request = new HeartbeatRequest();
 
         request.setRequestId(requestId);
@@ -60,7 +61,7 @@ public class DefaultRpcHeartbeatFactory implements HeartbeatFactory {
         if (!(message instanceof Request)) {
             return false;
         }
-        if(message instanceof HeartbeatRequest){
+        if (message instanceof HeartbeatRequest) {
             return true;
         }
 
@@ -71,19 +72,19 @@ public class DefaultRpcHeartbeatFactory implements HeartbeatFactory {
                 && MotanConstants.HHEARTBEAT_PARAM.endsWith(request.getParamtersDesc());
     }
 
-    public static Response getDefaultHeartbeatResponse(long requestId){
+    public static Response getDefaultHeartbeatResponse(long requestId) {
         HeartbeatResponse response = new HeartbeatResponse();
         response.setRequestId(requestId);
         response.setValue("heartbeat");
         return response;
     }
 
-    public static boolean isHeartbeatResponse(Object message){
+    public static boolean isHeartbeatResponse(Object message) {
         return message instanceof HeartbeatResponse;
     }
 
 
-    private class HeartMessageHandleWrapper implements MessageHandler {
+    private static class HeartMessageHandleWrapper implements MessageHandler {
         private MessageHandler messageHandler;
 
         public HeartMessageHandleWrapper(MessageHandler messageHandler) {
@@ -93,16 +94,22 @@ public class DefaultRpcHeartbeatFactory implements HeartbeatFactory {
         @Override
         public Object handle(Channel channel, Object message) {
             if (isHeartbeatRequest(message)) {
-                Response response = getDefaultHeartbeatResponse(((Request)message).getRequestId());
+                Response response = getDefaultHeartbeatResponse(((Request) message).getRequestId());
                 response.setRpcProtocolVersion(((Request) message).getRpcProtocolVersion());
                 return response;
             }
             return messageHandler.handle(channel, message);
         }
 
-
+        @Override
+        public Map<String, Object> getRuntimeInfo() {
+            return messageHandler.getRuntimeInfo();
+        }
     }
 
-    static class HeartbeatResponse extends DefaultResponse{}
-    static class HeartbeatRequest extends DefaultRequest{}
+    static class HeartbeatResponse extends DefaultResponse {
+    }
+
+    static class HeartbeatRequest extends DefaultRequest {
+    }
 }

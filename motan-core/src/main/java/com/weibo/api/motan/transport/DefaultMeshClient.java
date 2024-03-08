@@ -26,6 +26,7 @@ import com.weibo.api.motan.protocol.rpc.DefaultRpcReferer;
 import com.weibo.api.motan.protocol.support.ProtocolFilterDecorator;
 import com.weibo.api.motan.protocol.v2motan.MotanV2Protocol;
 import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
 import com.weibo.api.motan.serialize.DeserializableObject;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
@@ -93,6 +94,7 @@ public class DefaultMeshClient implements MeshClient {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T call(Request request, Class<T> returnType) throws Exception {
         Response response = innerReferer.call(request);
         T result = null;
@@ -112,7 +114,7 @@ public class DefaultMeshClient implements MeshClient {
     }
 
     @Override
-    public ResponseFuture asyncCall(Request request, Class<?> returnType) throws Exception {
+    public ResponseFuture asyncCall(Request request, Class<?> returnType) {
         Response response = innerReferer.call(request);
         ResponseFuture result;
         if (response instanceof ResponseFuture) {
@@ -183,5 +185,13 @@ public class DefaultMeshClient implements MeshClient {
                 throw new MotanServiceException("DefaultMeshClient call Error: url=" + url.getUri(), exception);
             }
         }
+    }
+
+    @Override
+    public Map<String, Object> getRuntimeInfo() {
+        Map<String, Object> infos = new HashMap<>();
+        infos.put(RuntimeInfoKeys.URL_KEY, meshUrl.toFullStr());
+        infos.put(RuntimeInfoKeys.REFERERS_KEY, innerReferer.getRuntimeInfo());
+        return infos;
     }
 }

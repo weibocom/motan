@@ -16,20 +16,22 @@
 
 package com.weibo.api.motan.transport;
 
-import java.net.InetSocketAddress;
-import java.util.Collection;
-
 import com.weibo.api.motan.codec.Codec;
 import com.weibo.api.motan.common.ChannelState;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
+
+import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-5-21
- * 
  */
 public abstract class AbstractServer implements Server {
     protected InetSocketAddress localAddress;
@@ -41,7 +43,8 @@ public abstract class AbstractServer implements Server {
     protected volatile ChannelState state = ChannelState.UNINIT;
 
 
-    public AbstractServer() {}
+    public AbstractServer() {
+    }
 
     public AbstractServer(URL url) {
         this.url = url;
@@ -70,12 +73,12 @@ public abstract class AbstractServer implements Server {
 
     @Override
     public Collection<Channel> getChannels() {
-        throw new MotanFrameworkException(this.getClass().getName() + " getChannels() method unsupport " + url);
+        throw new MotanFrameworkException(this.getClass().getName() + " getChannels() method unSupport " + url);
     }
 
     @Override
     public Channel getChannel(InetSocketAddress remoteAddress) {
-        throw new MotanFrameworkException(this.getClass().getName() + " getChannel(InetSocketAddress) method unsupport " + url);
+        throw new MotanFrameworkException(this.getClass().getName() + " getChannel(InetSocketAddress) method unSupport " + url);
     }
 
     public void setUrl(URL url) {
@@ -86,4 +89,12 @@ public abstract class AbstractServer implements Server {
         this.codec = codec;
     }
 
+    @Override
+    public Map<String, Object> getRuntimeInfo() {
+        Map<String, Object> infos = new HashMap<>();
+        infos.put(RuntimeInfoKeys.URL_KEY, url.toFullStr());
+        infos.put(RuntimeInfoKeys.CODEC_KEY, codec.getClass().getSimpleName());
+        infos.put(RuntimeInfoKeys.STATE_KEY, state.name());
+        return infos;
+    }
 }
