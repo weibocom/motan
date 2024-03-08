@@ -21,6 +21,8 @@ package com.weibo.api.motan.exception;
  * @version 创建时间：2013-5-30
  */
 public class MotanErrorMsgConstant {
+    public static final String PROVIDER_NOT_EXIST_EXCEPTION_PREFIX = "provider not exist serviceKey=";
+
     // service error status 503
     public static final int SERVICE_DEFAULT_ERROR_CODE = 10001;
     public static final int SERVICE_REJECT_ERROR_CODE = 10002;
@@ -48,6 +50,8 @@ public class MotanErrorMsgConstant {
     public static final MotanErrorMsg SERVICE_DEFAULT_ERROR = new MotanErrorMsg(503, SERVICE_DEFAULT_ERROR_CODE, "service error");
     public static final MotanErrorMsg SERVICE_REJECT = new MotanErrorMsg(503, SERVICE_REJECT_ERROR_CODE, "service reject");
     public static final MotanErrorMsg SERVICE_UNFOUND = new MotanErrorMsg(404, SERVICE_UNFOUND_ERROR_CODE, "service unfound");
+    // server end provider not exist exception. client end will force close connection if encounter this exception.
+    public static final MotanErrorMsg PROVIDER_NOT_EXIST = new MotanErrorMsg(404, 404, PROVIDER_NOT_EXIST_EXCEPTION_PREFIX);
     public static final MotanErrorMsg SERVICE_TIMEOUT = new MotanErrorMsg(503, SERVICE_TIMEOUT_ERROR_CODE, "service request timeout");
     public static final MotanErrorMsg SERVICE_TASK_CANCEL = new MotanErrorMsg(503, SERVICE_TASK_CANCEL_ERROR_CODE, "service task cancel");
     public static final MotanErrorMsg SERVICE_REQUEST_LENGTH_OUT_OF_LIMIT = new MotanErrorMsg(403,
@@ -58,7 +62,9 @@ public class MotanErrorMsgConstant {
     public static final MotanErrorMsg FRAMEWORK_DEFAULT_ERROR = new MotanErrorMsg(503, FRAMEWORK_DEFAULT_ERROR_CODE,
             "framework default error");
 
-    /** service error end **/
+    /**
+     * service error end
+     **/
     public static final MotanErrorMsg FRAMEWORK_ENCODE_ERROR =
             new MotanErrorMsg(503, FRAMEWORK_ENCODE_ERROR_CODE, "framework encode error");
     public static final MotanErrorMsg FRAMEWORK_DECODE_ERROR =
@@ -71,7 +77,10 @@ public class MotanErrorMsgConstant {
      * biz error start
      **/
     public static final MotanErrorMsg BIZ_DEFAULT_EXCEPTION = new MotanErrorMsg(503, BIZ_DEFAULT_ERROR_CODE, "provider error");
-    /** framework error end **/
+
+    /**
+     * framework error end
+     **/
 
     private MotanErrorMsgConstant() {
     }

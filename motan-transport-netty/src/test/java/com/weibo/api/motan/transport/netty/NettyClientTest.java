@@ -16,20 +16,18 @@
 
 package com.weibo.api.motan.transport.netty;
 
-import com.weibo.api.motan.common.ChannelState;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.*;
-import com.weibo.api.motan.transport.Channel;
-import com.weibo.api.motan.transport.MessageHandler;
+import com.weibo.api.motan.transport.ProviderMessageRouter;
 import com.weibo.api.motan.transport.TransportException;
 import com.weibo.api.motan.transport.support.DefaultRpcHeartbeatFactory;
 import com.weibo.api.motan.util.RequestIdGenerator;
+import com.weibo.api.motan.util.StatsUtil;
 import junit.framework.Assert;
 import junit.framework.TestCase;
-import org.junit.After;
-import org.junit.Before;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,34 +43,29 @@ public class NettyClientTest extends TestCase {
     private DefaultRequest request;
     private URL url;
 
-    @Before
     public void setUp() {
-        Map<String, String> parameters = new HashMap<String, String>();
+        Map<String, String> parameters = new HashMap<>();
         parameters.put("requestTimeout", "500");
 
-        url = new URL("netty", "localhost", 18080, "com.weibo.api.motan.procotol.example.IHello", parameters);
+        url = new URL("netty", "localhost", 18080, "com.weibo.api.motan.protocol.example.IHello", parameters);
         url.addParameter(URLParamType.asyncInitConnection.getName(), "false");
         request = new DefaultRequest();
         request.setRequestId(RequestIdGenerator.getRequestId());
-        request.setInterfaceName("com.weibo.api.motan.procotol.example.IHello");
+        request.setInterfaceName("com.weibo.api.motan.protocol.example.IHello");
         request.setMethodName("hello");
         request.setParamtersDesc("void");
 
-        nettyServer = new NettyServer(url, new MessageHandler() {
-            @Override
-            public Object handle(Channel channel, Object message) {
-                Request request = (Request) message;
-                DefaultResponse response = new DefaultResponse();
-                response.setRequestId(request.getRequestId());
-                response.setValue("method: " + request.getMethodName() + " requestId: " + request.getRequestId());
-                return response;
-            }
+        nettyServer = new NettyServer(url, (channel, message) -> {
+            Request request = (Request) message;
+            DefaultResponse response = new DefaultResponse();
+            response.setRequestId(request.getRequestId());
+            response.setValue("method: " + request.getMethodName() + " requestId: " + request.getRequestId());
+            return response;
         });
 
         nettyServer.open();
     }
 
-    @After
     public void tearDown() {
         nettyClient.close();
         nettyServer.close();
@@ -129,8 +122,52 @@ public class NettyClientTest extends TestCase {
             assertFalse(nettyClient.isAvailable());
             nettyClient.resetErrorCount();
             assertTrue(nettyClient.isAvailable());
-        } catch (Exception e) {
         }
+    }
+
+    public void testForceClose() throws Exception {
+        nettyServer.close();
+        nettyServer = new NettyServer(url, new ProviderMessageRouter());
+        nettyServer.open();
+        NettyTestClient nettyClient = new NettyTestClient(url);
+        this.nettyClient = nettyClient;
+        nettyClient.open();
+        assertTrue(nettyClient.isAvailable());
+        assertFalse(nettyClient.forceClosed);
+
+        // provider not exist
+        request.setInterfaceName("unknownService");
+        int forceCloseTimes = url.getIntParameter(URLParamType.fusingThreshold.getName(), URLParamType.fusingThreshold.getIntValue()) / 2;
+        for (int i = 0; i < forceCloseTimes + 1; i++) {
+            try {
+                nettyClient.request(request);
+                fail();
+            } catch (MotanServiceException e) {
+                if (i < forceCloseTimes) {
+                    // check provide not exist exception
+                    assertTrue(nettyClient.isAvailable());
+                    assertEquals(e.getErrorCode(), MotanErrorMsgConstant.PROVIDER_NOT_EXIST.getErrorCode());
+                    assertTrue(e.getOriginMessage().contains(MotanErrorMsgConstant.PROVIDER_NOT_EXIST_EXCEPTION_PREFIX));
+                } else {
+                    assertTrue(e.getErrorCode() != MotanErrorMsgConstant.PROVIDER_NOT_EXIST.getErrorCode());
+                }
+            }
+        }
+
+        // check force close
+        assertFalse(nettyClient.isAvailable());
+        assertTrue(nettyClient.forceClosed);
+        assertTrue(nettyClient.isClosed());
+        nettyClient.heartbeat(null); // not process heartbeat when force closed
+        // check statistic
+        assertEquals(0, nettyClient.statisticCount);
+        assertTrue(nettyClient.statisticCallback().startsWith("type:MOTAN_FORCE_CLOSED_NODE_STAT"));
+        assertEquals(1, nettyClient.statisticCount);
+        StatsUtil.logStatisticCallback();
+        assertEquals(2, nettyClient.statisticCount);
+        nettyClient.close(); // nettyClient will be removed from StatisticCallbackMap
+        StatsUtil.logStatisticCallback();
+        assertEquals(2, nettyClient.statisticCount);
     }
 
     public void testLazyInit() throws TransportException {
@@ -180,7 +217,7 @@ public class NettyClientTest extends TestCase {
             nettyClient.request(request);
             fail();
         } catch (Exception e) {
-            assertTrue(e.getMessage().contains("NettyChannel is unavaliable"));
+            assertTrue(e.getMessage().contains("NettyChannel is unavailable"));
         }
 
         nettyServer.open();
@@ -192,6 +229,20 @@ public class NettyClientTest extends TestCase {
         } finally {
             nettyClient.close();
             nettyServer.close();
+        }
+    }
+
+    static class NettyTestClient extends NettyClient {
+        int statisticCount;
+
+        public NettyTestClient(URL url) {
+            super(url);
+        }
+
+        @Override
+        public String statisticCallback() {
+            statisticCount++;
+            return super.statisticCallback();
         }
     }
 }
