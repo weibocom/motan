@@ -73,6 +73,8 @@ public abstract class AbstractEndpointFactory implements EndpointFactory {
 
     @Override
     public Server createServer(URL url, MessageHandler messageHandler) {
+        // TODO messageHandler wrapper 增加MetaService相关。实现一个框架默认service机制，可以提供对应request的process。
+        // 其中一个机制时metaservice机制。可以支持动态添加service，类似admin，但是只能提供信息安全的查询service。
         messageHandler = getHeartbeatFactory(url).wrapMessageHandler(messageHandler);
 
         synchronized (ipPort2ServerShareChannel) {

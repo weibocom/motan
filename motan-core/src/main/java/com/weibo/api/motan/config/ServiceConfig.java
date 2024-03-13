@@ -165,7 +165,10 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         collectMethodConfigParams(map, this.getMethods());
 
         URL serviceUrl = new URL(protocolName, hostAddress, port, interfaceClass.getName(), map);
-
+        // add server side meta info to the url, so these meta info can be passed to the client side through the registration mechanism.
+        if (!GlobalRuntime.disableMetaRegister) {
+            GlobalRuntime.addMetaInfo(serviceUrl);
+        }
         String groupString = serviceUrl.getParameter(URLParamType.group.getName(), ""); // do not with default group value
         String additionalGroup = System.getenv(MotanConstants.ENV_ADDITIONAL_GROUP);
         if (StringUtils.isNotBlank(additionalGroup)) { // check additional groups
@@ -185,6 +188,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     }
 
     private void exportService(String hostAddress, String protocol, URL serviceUrl) {
+        // TODO 根据环境变量改变分组名。
         if (serviceExists(serviceUrl)) {
             LoggerUtil.warn(String.format("%s configService is malformed, for same service (%s) already exists ", interfaceClass.getName(),
                     serviceUrl.getIdentity()));

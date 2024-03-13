@@ -24,7 +24,6 @@ import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.proxy.CommonClient;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.ResponseFuture;
-import com.weibo.breeze.BreezeUtil;
 import com.weibo.breeze.message.GenericMessage;
 import com.weibo.breeze.serializer.CommonSerializer;
 import com.weibo.motan.demo.service.MotanDemoService;
@@ -74,7 +73,7 @@ public class Motan2RpcClient {
             try {
                 System.out.println(service.hello("motan" + i));
                 Thread.sleep(1000);
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

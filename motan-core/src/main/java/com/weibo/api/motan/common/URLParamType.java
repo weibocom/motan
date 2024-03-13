@@ -177,7 +177,11 @@ public enum URLParamType {
     proxyRegistryId("proxyRegistryId", ""), // mesh registry要代理的registry的bean id
     meshMPort("mport", 8002), //mesh管理端口
     needHealthCheck("needHealthCheck", true), //是否启用健康检测。如果非动态注册场景，不一定能进行自动降级，因此可以针对registry关闭
-    proxyRegistryUrlString("proxyRegistryUrlString", ""); //保存要代理的的registry具体信息
+    proxyRegistryUrlString("proxyRegistryUrlString", ""), //保存要代理的的registry具体信息
+
+    // meta info
+    dynamicMeta("dynamicMeta", true), // whether to enable dynamic meta
+    ;
 
 
     private String name;

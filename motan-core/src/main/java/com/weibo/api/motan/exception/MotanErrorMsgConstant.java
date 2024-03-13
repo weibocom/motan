@@ -47,6 +47,7 @@ public class MotanErrorMsgConstant {
      * service error start
      **/
 
+    public static final MotanErrorMsg SERVICE_NOT_SUPPORT_ERROR = new MotanErrorMsg(501, 501, "service not support");
     public static final MotanErrorMsg SERVICE_DEFAULT_ERROR = new MotanErrorMsg(503, SERVICE_DEFAULT_ERROR_CODE, "service error");
     public static final MotanErrorMsg SERVICE_REJECT = new MotanErrorMsg(503, SERVICE_REJECT_ERROR_CODE, "service reject");
     public static final MotanErrorMsg SERVICE_UNFOUND = new MotanErrorMsg(404, SERVICE_UNFOUND_ERROR_CODE, "service unfound");

@@ -32,6 +32,8 @@ public class RuntimeInfoKeys {
     public static final String SERVERS_KEY = "servers";
     public static final String FILTER_KEY = "filters";
     public static final String GLOBAL_CONFIG_KEY = "globalConfigs";
+    public static final String ENV_META_KEY = "env_meta";
+    public static final String DYNAMIC_META_KEY = "dynamic_meta";
 
     // common keys
     public static final String URL_KEY = "url";

@@ -65,6 +65,9 @@ public class URL {
         this.host = host;
         this.port = port;
         this.path = removeAsyncPath(path);
+        if (parameters == null) {
+            parameters = new HashMap<>();
+        }
         this.parameters = parameters;
     }
 
@@ -142,12 +145,7 @@ public class URL {
     }
 
     public URL createCopy() {
-        Map<String, String> params = new HashMap<>();
-        if (this.parameters != null) {
-            params.putAll(this.parameters);
-        }
-
-        return new URL(protocol, host, port, path, params);
+        return new URL(protocol, host, port, path, new HashMap<>(this.parameters));
     }
 
     public String getProtocol() {
@@ -402,12 +400,15 @@ public class URL {
         if (!version.equals(refVersion)) {
             return false;
         }
-        // check serialize
-        String serialize = getParameter(URLParamType.serialize.getName(), URLParamType.serialize.getValue());
-        String refSerialize = refUrl.getParameter(URLParamType.serialize.getName(), URLParamType.serialize.getValue());
-        if (!serialize.equals(refSerialize)) {
-            return false;
+        // check serialize when the server node is not motan2 protocol
+        if (!protocol.equals(MotanConstants.PROTOCOL_MOTAN2)) {
+            String serialize = getParameter(URLParamType.serialize.getName(), URLParamType.serialize.getValue());
+            String refSerialize = refUrl.getParameter(URLParamType.serialize.getName(), URLParamType.serialize.getValue());
+            if (!serialize.equals(refSerialize)) {
+                return false;
+            }
         }
+
         // 由于需要提供跨group访问rpc的能力，所以不再验证group是否一致。
         return true;
     }
