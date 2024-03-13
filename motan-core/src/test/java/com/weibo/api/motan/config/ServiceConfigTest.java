@@ -23,13 +23,11 @@ import com.weibo.api.motan.protocol.example.IWorld;
 import com.weibo.api.motan.rpc.Exporter;
 import com.weibo.api.motan.rpc.URL;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.weibo.api.motan.TestUtils.getModifiableEnvironment;
 import static com.weibo.api.motan.common.MotanConstants.ENV_ADDITIONAL_GROUP;
+import static com.weibo.api.motan.common.MotanConstants.ENV_RPC_REG_GROUP_SUFFIX;
 
 /**
  * Service config test
@@ -216,6 +214,63 @@ public class ServiceConfigTest extends BaseTestCase {
     private void reset() throws Exception {
         tearDown();
         setUp();
+    }
+
+    public void testAppendGroupSuffix() throws Exception {
+        String suffix = "-preview";
+        // === without environment ===
+        getModifiableEnvironment().remove(ENV_RPC_REG_GROUP_SUFFIX);
+        // single group
+
+        serviceConfig.setGroup("motan-test");
+        serviceConfig.export();
+        checkGroup(serviceConfig, Collections.singletonList("motan-test"));
+
+        // multi groups
+        reset();
+        serviceConfig.setGroup("motan-test,motan-test2");
+        serviceConfig.export();
+        checkGroup(serviceConfig, Arrays.asList("motan-test", "motan-test2"));
+
+        // === with suffix environment ===
+        getModifiableEnvironment().put(ENV_RPC_REG_GROUP_SUFFIX, suffix);
+        // inJvm protocol not append suffix
+        reset();
+        serviceConfig.setProtocol(mockProtocolConfig(MotanConstants.PROTOCOL_INJVM));
+        serviceConfig.export();
+        checkGroup(serviceConfig, Collections.singletonList(group)); // group from setup
+
+        // other protocol append suffix
+        resetMotan2Protocol();
+        serviceConfig.export();
+        checkGroup(serviceConfig, Collections.singletonList(group + suffix));
+
+        // multi groups
+        resetMotan2Protocol();
+        serviceConfig.setGroup("motan-test,motan-test2");
+        serviceConfig.export();
+        checkGroup(serviceConfig, Arrays.asList("motan-test" + suffix, "motan-test2" + suffix));
+
+        // group already with suffix
+        resetMotan2Protocol();
+        serviceConfig.setGroup("motan-test" + suffix + ",motan-test2" + suffix);
+        serviceConfig.export();
+        checkGroup(serviceConfig, Arrays.asList("motan-test" + suffix, "motan-test2" + suffix));
+
+        getModifiableEnvironment().remove(ENV_RPC_REG_GROUP_SUFFIX); // clear
+    }
+
+    private void resetMotan2Protocol() throws Exception {
+        reset();
+        serviceConfig.setProtocol(mockProtocolConfig(MotanConstants.PROTOCOL_MOTAN2));
+        serviceConfig.setExport(MotanConstants.PROTOCOL_MOTAN2 + ":" + 8010);
+    }
+
+    private void checkGroup(ServiceConfig<?> serviceConfig, List<String> groups) {
+        assertEquals(groups.size(), serviceConfig.getExporters().size());
+        for (Exporter<?> exporter : serviceConfig.getExporters()) {
+            assertTrue(groups.contains(exporter.getUrl().getGroup()));
+        }
     }
 
 }
