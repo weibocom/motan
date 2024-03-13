@@ -185,6 +185,13 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     }
 
     private void exportService(String hostAddress, String protocol, URL serviceUrl) {
+        // Check if there is a suffix that needs to be appended
+        String appendSuffix = System.getenv(MotanConstants.ENV_RPC_REG_GROUP_SUFFIX);
+        if (StringUtils.isNotBlank(appendSuffix) && !serviceUrl.getGroup().endsWith(appendSuffix)
+                && !MotanConstants.PROTOCOL_INJVM.equals(protocol)) {
+            // if origin group not end with appendSuffix, and not inJvm protocol, add it.
+            serviceUrl.addParameter(URLParamType.group.getName(), serviceUrl.getGroup() + appendSuffix);
+        }
         if (serviceExists(serviceUrl)) {
             LoggerUtil.warn(String.format("%s configService is malformed, for same service (%s) already exists ", interfaceClass.getName(),
                     serviceUrl.getIdentity()));
