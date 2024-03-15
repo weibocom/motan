@@ -166,7 +166,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
         URL serviceUrl = new URL(protocolName, hostAddress, port, interfaceClass.getName(), map);
         // add server side meta info to the url, so these meta info can be passed to the client side through the registration mechanism.
-        if (!GlobalRuntime.disableMetaRegister) {
+        if (serviceUrl.getBooleanParameter(URLParamType.registerMeta.getName(), URLParamType.registerMeta.getBooleanValue())) {
             GlobalRuntime.addMetaInfo(serviceUrl);
         }
         String groupString = serviceUrl.getParameter(URLParamType.group.getName(), ""); // do not with default group value

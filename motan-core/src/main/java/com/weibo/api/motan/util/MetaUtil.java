@@ -20,7 +20,9 @@ package com.weibo.api.motan.util;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Sets;
 import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.DefaultRequest;
@@ -35,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -50,6 +53,7 @@ public class MetaUtil {
     private static final int notSupportExpireSecond = 30; // not support expire second
     private static final Cache<String, Map<String, String>> metaCache;
     private static final Cache<String, Boolean> notSupportCache;
+    private static final Set<String> notSupportSerializer = Sets.newHashSet("protobuf", "grpc-pb", "grpc-pb-json");
 
     static {
         String expireSecond = MotanGlobalConfigUtil.getConfig(MotanConstants.META_CACHE_EXPIRE_SECOND_KEY);
@@ -87,7 +91,8 @@ public class MetaUtil {
     private static Map<String, String> getRemoteDynamicMeta(Referer<?> referer) throws IOException {
         String key = getCacheKey(referer.getUrl());
         // if not support meta service, throws the specified exception.
-        if (notSupportCache.getIfPresent(key) != null) {
+        if (notSupportCache.getIfPresent(key) != null
+                || !isSupport(referer.getUrl())) {
             throw new MotanServiceException(MotanErrorMsgConstant.SERVICE_NOT_SUPPORT_ERROR);
         }
         if (!referer.isAvailable()) {
@@ -112,6 +117,17 @@ public class MetaUtil {
             }
             throw e;
         }
+    }
+
+    private static boolean isSupport(URL url) {
+        // check dynamicMeta config, protocol and serializer
+        if (url.getBooleanParameter(URLParamType.dynamicMeta.getName(), URLParamType.dynamicMeta.getBooleanValue())
+                && !notSupportSerializer.contains(url.getParameter(URLParamType.serialize.getName(), ""))
+                && (MotanConstants.PROTOCOL_MOTAN.equals(url.getProtocol()) || MotanConstants.PROTOCOL_MOTAN2.equals(url.getProtocol()))) {
+            return true;
+        }
+        notSupportCache.put(getCacheKey(url), true);
+        return false;
     }
 
     private static String getCacheKey(URL url) {

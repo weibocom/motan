@@ -174,7 +174,6 @@ public class MotanConstants {
     public static final String ENV_MOTAN_ADMIN_TOKEN = "MOTAN_ADMIN_TOKEN";
     public static final String ENV_MOTAN_ADMIN_PORT = "MOTAN_ADMIN_PORT";
     public static final String ENV_MOTAN_ADMIN_EXT_HANDLERS = "MOTAN_ADMIN_EXT_HANDLERS";
-    public static final String ENV_MOTAN_DISABLE_META_REGISTER = "MOTAN_DISABLE_META_REGISTER"; // Whether to disable registration metadata function
 
     // ------------------ motan mesh default value -----------------
     public static final String MESH_CLIENT = "meshClient";

@@ -92,7 +92,8 @@
                 </xsd:attribute>
                 <xsd:attribute name="dynamic" type="xsd:string" use="optional">
                     <xsd:annotation>
-                        <xsd:documentation><![CDATA[ 注册中心是否动态订阅、注册能力，比如mesh代理类注册中心是否支持动态订阅和注册. ]]></xsd:documentation>
+                        <xsd:documentation>
+                            <![CDATA[ 注册中心是否动态订阅、注册能力，比如mesh代理类注册中心是否支持动态订阅和注册. ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
                 <xsd:attribute name="register" type="xsd:string" use="optional">
@@ -188,7 +189,8 @@
                 </xsd:attribute>
                 <xsd:attribute name="connections" type="xsd:string" use="optional">
                     <xsd:annotation>
-                        <xsd:documentation><![CDATA[ 连接数限制,0表示共享连接，否则为该服务独享连接数;默认共享. ]]></xsd:documentation>
+                        <xsd:documentation>
+                            <![CDATA[ 连接数限制,0表示共享连接，否则为该服务独享连接数;默认共享. ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
                 <xsd:attribute name="application" type="xsd:string" use="optional">
@@ -233,7 +235,8 @@
                 </xsd:attribute>
                 <xsd:attribute name="registry" type="xsd:string" use="optional">
                     <xsd:annotation>
-                        <xsd:documentation><![CDATA[ 注册中心的id列表，多个用“,”分隔，如果为空，则使用所有的配置中心. ]]></xsd:documentation>
+                        <xsd:documentation>
+                            <![CDATA[ 注册中心的id列表，多个用“,”分隔，如果为空，则使用所有的配置中心. ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
                 <xsd:attribute name="register" type="xsd:string" use="optional">
@@ -259,7 +262,8 @@
                 </xsd:attribute>
                 <xsd:attribute name="usegz" type="xsd:string" use="optional">
                     <xsd:annotation>
-                        <xsd:documentation><![CDATA[ 是否开启gzip压缩.只有compressMotan的codec才能支持 ]]></xsd:documentation>
+                        <xsd:documentation>
+                            <![CDATA[ 是否开启gzip压缩.只有compressMotan的codec才能支持 ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
                 <xsd:attribute name="mingzSize" type="xsd:string" use="optional">
@@ -539,7 +543,8 @@
             </xsd:attribute>
             <xsd:attribute name="argumentTypes" type="xsd:string" use="optional">
                 <xsd:annotation>
-                    <xsd:documentation><![CDATA[ 参数类型（逗号分隔）, 无参数用void. 如果方法无重载，则可不写 ]]></xsd:documentation>
+                    <xsd:documentation>
+                        <![CDATA[ 参数类型（逗号分隔）, 无参数用void. 如果方法无重载，则可不写 ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
             <xsd:attribute name="requestTimeout" type="xsd:string" use="optional">
@@ -570,7 +575,8 @@
                     <xsd:attribute name="id" type="xsd:ID"/>
                     <xsd:attribute name="export" type="xsd:string" use="optional">
                         <xsd:annotation>
-                            <xsd:documentation><![CDATA[ 服务暴露的方式，包含协议及端口号，多个协议端口用"," 分隔. ]]></xsd:documentation>
+                            <xsd:documentation>
+                                <![CDATA[ 服务暴露的方式，包含协议及端口号，多个协议端口用"," 分隔. ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
                     <xsd:attribute name="basicService" type="xsd:string" use="optional">
@@ -580,7 +586,8 @@
                     </xsd:attribute>
                     <xsd:attribute name="host" type="xsd:string" use="optional">
                         <xsd:annotation>
-                            <xsd:documentation><![CDATA[ 如果有多个ip，但只想暴露指定的某个ip，设置该参数 ]]></xsd:documentation>
+                            <xsd:documentation>
+                                <![CDATA[ 如果有多个ip，但只想暴露指定的某个ip，设置该参数 ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
                     <xsd:attribute name="interface" type="xsd:token">
@@ -620,6 +627,12 @@
                     <xsd:attribute name="extConfig" type="xsd:string" use="optional">
                         <xsd:annotation>
                             <xsd:documentation><![CDATA[ 扩展配置. ]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:attribute>
+                    <xsd:attribute name="registerMeta" type="xsd:string" use="optional">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <![CDATA[ 是否将静态元数据注册到注册中心，默认值为true ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
                 </xsd:extension>
@@ -678,7 +691,13 @@
                     </xsd:attribute>
                     <xsd:attribute name="meshClient" type="xsd:string" use="optional">
                         <xsd:annotation>
-                            <xsd:documentation><![CDATA[ 指定要使用的meshClient对应的bean id，如果要使用默认meshClient可以直接配置为default ]]></xsd:documentation>
+                            <xsd:documentation>
+                                <![CDATA[ 指定要使用的meshClient对应的bean id，如果要使用默认meshClient可以直接配置为default ]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:attribute>
+                    <xsd:attribute name="dynamicMeta" type="xsd:string" use="optional">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[ 是否获取远程动态元数据，默认值为true ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
                 </xsd:extension>
@@ -693,12 +712,20 @@
                     <xsd:attribute name="id" type="xsd:ID"/>
                     <xsd:attribute name="export" type="xsd:string" use="optional">
                         <xsd:annotation>
-                            <xsd:documentation><![CDATA[ 暴露的协议及端口，多个协议端口之间用","分隔 ]]></xsd:documentation>
+                            <xsd:documentation>
+                                <![CDATA[ 暴露的协议及端口，多个协议端口之间用","分隔 ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
                     <xsd:attribute name="host" type="xsd:string" use="optional">
                         <xsd:annotation>
-                            <xsd:documentation><![CDATA[ 如果有多个ip，但只想暴露指定的某个ip，设置该参数 ]]></xsd:documentation>
+                            <xsd:documentation>
+                                <![CDATA[ 如果有多个ip，但只想暴露指定的某个ip，设置该参数 ]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:attribute>
+                    <xsd:attribute name="registerMeta" type="xsd:string" use="optional">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <![CDATA[ 是否将静态元数据注册到注册中心，默认值为true ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
                 </xsd:extension>
@@ -743,7 +770,13 @@
                     </xsd:attribute>
                     <xsd:attribute name="meshClient" type="xsd:string" use="optional">
                         <xsd:annotation>
-                            <xsd:documentation><![CDATA[ 指定要使用的meshClient对应的bean id，如果要使用默认meshClient可以直接配置为default ]]></xsd:documentation>
+                            <xsd:documentation>
+                                <![CDATA[ 指定要使用的meshClient对应的bean id，如果要使用默认meshClient可以直接配置为default ]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:attribute>
+                    <xsd:attribute name="dynamicMeta" type="xsd:string" use="optional">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[ 是否获取远程动态元数据，默认值为true ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
                 </xsd:extension>
@@ -827,7 +860,8 @@
                     </xsd:attribute>
                     <xsd:attribute name="check" type="xsd:string" use="optional">
                         <xsd:annotation>
-                            <xsd:documentation><![CDATA[ 检查初始化状态，为true时如果初始化失败会抛出异常 ]]></xsd:documentation>
+                            <xsd:documentation>
+                                <![CDATA[ 检查初始化状态，为true时如果初始化失败会抛出异常 ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
                     <xsd:attribute name="accessLog" type="xsd:string" use="optional">

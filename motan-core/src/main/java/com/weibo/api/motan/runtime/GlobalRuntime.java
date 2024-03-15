@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2024/2/29.
  */
 public class GlobalRuntime {
-    public static final String defaultEnvMetaPrefix = "MEAT_";
+    public static final String defaultEnvMetaPrefix = "META_";
     // Check whether the default prefix is configured from the global configuration, if not, use the default prefix
     public static final String ENV_META_PREFIX = MotanGlobalConfigUtil.getConfig(MotanConstants.ENV_META_PREFIX_KEY, defaultEnvMetaPrefix);
     // all runtime registries
@@ -56,8 +56,6 @@ public class GlobalRuntime {
     private static final ConcurrentHashMap<String, Server> runtimeServers = new ConcurrentHashMap<>();
     private static final Map<String, String> envMeta;
     private static final ConcurrentHashMap<String, String> dynamicMeta = new ConcurrentHashMap<>();
-
-    public static final boolean disableMetaRegister = Boolean.parseBoolean(System.getenv(MotanConstants.ENV_MOTAN_DISABLE_META_REGISTER));
 
     static {
         envMeta = Collections.unmodifiableMap(initEnvMeta());

@@ -38,6 +38,7 @@ public abstract class AbstractRefererConfig extends AbstractInterfaceConfig {
 
     protected MeshClient meshClient;
     protected String meshClientString;
+    protected Boolean dynamicMeta;
 
     public MeshClient getMeshClient() {
         return meshClient;
@@ -93,5 +94,13 @@ public abstract class AbstractRefererConfig extends AbstractInterfaceConfig {
 
     public void setErrorRate(String errorRate) {
         this.errorRate = errorRate;
+    }
+
+    public Boolean getDynamicMeta() {
+        return dynamicMeta;
+    }
+
+    public void setDynamicMeta(Boolean dynamicMeta) {
+        this.dynamicMeta = dynamicMeta;
     }
 }
