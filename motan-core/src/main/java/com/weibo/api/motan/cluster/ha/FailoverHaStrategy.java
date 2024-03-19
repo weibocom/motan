@@ -24,7 +24,6 @@ import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.ExceptionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
 
@@ -40,38 +39,30 @@ import java.util.List;
 @SpiMeta(name = "failover")
 public class FailoverHaStrategy<T> extends AbstractHaStrategy<T> {
 
-    protected ThreadLocal<List<Referer<T>>> referersHolder = new ThreadLocal<List<Referer<T>>>() {
-        @Override
-        protected java.util.List<com.weibo.api.motan.rpc.Referer<T>> initialValue() {
-            return new ArrayList<Referer<T>>();
-        }
-    };
+    protected ThreadLocal<List<Referer<T>>> referersHolder = ThreadLocal.withInitial(ArrayList::new);
 
     @Override
     public Response call(Request request, LoadBalance<T> loadBalance) {
-
-        List<Referer<T>> referers = selectReferers(request, loadBalance);
-        if (referers.isEmpty()) {
-            throw new MotanServiceException(String.format("FailoverHaStrategy No referers for request:%s, loadbalance:%s", request,
-                    loadBalance));
+        if (loadBalance.canSelectMulti()) {
+            return callWithMultiReferer(request, loadBalance);
+        } else {
+            return callWithSingleReferer(request, loadBalance);
         }
-        URL refUrl = referers.get(0).getUrl();
-        // 先使用method的配置
-        int tryCount =
-                refUrl.getMethodParameter(request.getMethodName(), request.getParamtersDesc(), URLParamType.retries.getName(),
-                        URLParamType.retries.getIntValue());
-        // 如果有问题，则设置为不重试
-        if (tryCount < 0) {
-            tryCount = 0;
-        }
+    }
 
+    protected Response callWithSingleReferer(Request request, LoadBalance<T> loadBalance) {
+        int tryCount = getTryCount(request);
         for (int i = 0; i <= tryCount; i++) {
-            Referer<T> refer = referers.get(i % referers.size());
+            Referer<T> referer = loadBalance.select(request);
+            if (referer == null) {
+                throw new MotanServiceException(String.format("FailoverHaStrategy No referers for request:%s, load balance:%s", request,
+                        loadBalance));
+            }
             try {
                 request.setRetries(i);
-                return refer.call(request);
+                return referer.call(request);
             } catch (RuntimeException e) {
-                // 对于业务异常，直接抛出
+                // For business exceptions, throw them directly
                 if (ExceptionUtil.isBizException(e)) {
                     throw e;
                 } else if (i >= tryCount) {
@@ -80,8 +71,44 @@ public class FailoverHaStrategy<T> extends AbstractHaStrategy<T> {
                 LoggerUtil.warn(String.format("FailoverHaStrategy Call false for request:%s error=%s", request, e.getMessage()));
             }
         }
-
         throw new MotanFrameworkException("FailoverHaStrategy.call should not come here!");
+    }
+
+    // select multi referers at one time
+    protected Response callWithMultiReferer(Request request, LoadBalance<T> loadBalance) {
+        List<Referer<T>> referers = selectReferers(request, loadBalance);
+        if (referers.isEmpty()) {
+            throw new MotanServiceException(String.format("FailoverHaStrategy No referers for request:%s, loadbalance:%s", request,
+                    loadBalance));
+        }
+        int tryCount = getTryCount(request);
+        for (int i = 0; i <= tryCount; i++) {
+            Referer<T> refer = referers.get(i % referers.size());
+            try {
+                request.setRetries(i);
+                return refer.call(request);
+            } catch (RuntimeException e) {
+                // For business exceptions, throw them directly
+                if (ExceptionUtil.isBizException(e)) {
+                    throw e;
+                } else if (i >= tryCount) {
+                    throw e;
+                }
+                LoggerUtil.warn(String.format("FailoverHaStrategy Call false for request:%s error=%s", request, e.getMessage()));
+            }
+        }
+        throw new MotanFrameworkException("FailoverHaStrategy.call should not come here!");
+    }
+
+    protected int getTryCount(Request request) {
+        int tryCount =
+                url.getMethodParameter(request.getMethodName(), request.getParamtersDesc(), URLParamType.retries.getName(),
+                        URLParamType.retries.getIntValue());
+        // If it is a negative number, not retry
+        if (tryCount < 0) {
+            tryCount = 0;
+        }
+        return tryCount;
     }
 
     protected List<Referer<T>> selectReferers(Request request, LoadBalance<T> loadBalance) {

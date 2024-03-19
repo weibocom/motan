@@ -25,15 +25,13 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 
  * Round robin loadbalance.
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-6-13
  */
 @SpiMeta(name = "roundrobin")
 public class RoundRobinLoadBalance<T> extends AbstractLoadBalance<T> {
-
     private AtomicInteger idx = new AtomicInteger(0);
 
     @Override
@@ -67,5 +65,10 @@ public class RoundRobinLoadBalance<T> extends AbstractLoadBalance<T> {
     // get non-negative int
     private int getNextNonNegative() {
         return MathUtil.getNonNegative(idx.incrementAndGet());
+    }
+
+    @Override
+    public boolean canSelectMulti() {
+        return false; //Obtaining multiple referers may cause uneven requests
     }
 }

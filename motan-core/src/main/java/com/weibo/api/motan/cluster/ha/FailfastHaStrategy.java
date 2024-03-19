@@ -18,12 +18,12 @@ package com.weibo.api.motan.cluster.ha;
 
 import com.weibo.api.motan.cluster.LoadBalance;
 import com.weibo.api.motan.core.extension.SpiMeta;
+import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 
 /**
- * 
  * Fail fast ha strategy.
  *
  * @author fishermen
@@ -35,6 +35,10 @@ public class FailfastHaStrategy<T> extends AbstractHaStrategy<T> {
     @Override
     public Response call(Request request, LoadBalance<T> loadBalance) {
         Referer<T> refer = loadBalance.select(request);
+        if (refer == null) {
+            throw new MotanServiceException(String.format("FailfastHaStrategy No referers for request:%s, load balance:%s", request,
+                    loadBalance));
+        }
         return refer.call(request);
     }
 }

@@ -46,6 +46,9 @@ import java.util.concurrent.TimeUnit;
  * @date 2024/3/13.
  */
 public class MetaUtil {
+    public static final String defaultEnvMetaPrefix = "META_";
+    // Check whether the default prefix is configured from the global configuration, if not, use the default prefix
+    public static final String ENV_META_PREFIX = MotanGlobalConfigUtil.getConfig(MotanConstants.ENV_META_PREFIX_KEY, defaultEnvMetaPrefix);
     public static final String SERVICE_NAME = MetaService.class.getName();
     public static final String METHOD_NAME = "getDynamicMeta";
     private static final Class<?> RETURN_TYPE = Map.class;
@@ -66,7 +69,7 @@ public class MetaUtil {
             } catch (Exception ignore) {
             }
         }
-        // use guava cache
+        // init caches
         metaCache = CacheBuilder.newBuilder().expireAfterWrite(cacheExpireSecond, TimeUnit.SECONDS).build();
         notSupportCache = CacheBuilder.newBuilder().expireAfterWrite(notSupportExpireSecond, TimeUnit.SECONDS).build();
     }
@@ -88,7 +91,7 @@ public class MetaUtil {
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<String, String> getRemoteDynamicMeta(Referer<?> referer) throws IOException {
+    private static Map<String, String> getRemoteDynamicMeta(Referer<?> referer) throws MotanServiceException, IOException {
         String key = getCacheKey(referer.getUrl());
         // if not support meta service, throws the specified exception.
         if (notSupportCache.getIfPresent(key) != null
@@ -105,7 +108,6 @@ public class MetaUtil {
             }
             return (Map<String, String>) value;
         } catch (Exception e) {
-            LoggerUtil.warn("get remote dynamic meta fail!", e);
             if (e instanceof MotanServiceException) {
                 MotanServiceException mse = (MotanServiceException) e;
                 if (mse.getStatus() == MotanErrorMsgConstant.SERVICE_NOT_SUPPORT_ERROR.getStatus()
@@ -139,8 +141,8 @@ public class MetaUtil {
     public static Map<String, String> getRefererStaticMeta(Referer<?> referer) {
         Map<String, String> meta = new HashMap<>();
         referer.getUrl().getParameters().forEach((k, v) -> {
-            if (k.startsWith(GlobalRuntime.defaultEnvMetaPrefix)
-                    || k.startsWith(GlobalRuntime.ENV_META_PREFIX)) {
+            if (k.startsWith(defaultEnvMetaPrefix)
+                    || k.startsWith(ENV_META_PREFIX)) {
                 meta.put(k, v);
             }
         });
@@ -154,5 +156,19 @@ public class MetaUtil {
         request.setMethodName(METHOD_NAME);
         request.setAttachment(MotanConstants.FRAMEWORK_SERVICE, "y");
         return request;
+    }
+
+    // get meta value from meta map by keySuffix.
+    // Try the environment variable prefix search first, and then use the default prefix search.
+    // if not found, return null.
+    public static String getMetaValue(Map<String, String> meta, String keySuffix) {
+        String value = null;
+        if (meta != null) {
+            value = meta.get(ENV_META_PREFIX + keySuffix);
+            if (value == null) {
+                value = meta.get(defaultEnvMetaPrefix + keySuffix);
+            }
+        }
+        return value;
     }
 }

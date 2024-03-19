@@ -19,13 +19,12 @@
 package com.weibo.api.motan.runtime;
 
 import com.weibo.api.motan.cluster.Cluster;
-import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.rpc.Exporter;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.MeshClient;
 import com.weibo.api.motan.transport.Server;
-import com.weibo.api.motan.util.MotanGlobalConfigUtil;
+import com.weibo.api.motan.util.MetaUtil;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,9 +36,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2024/2/29.
  */
 public class GlobalRuntime {
-    public static final String defaultEnvMetaPrefix = "META_";
-    // Check whether the default prefix is configured from the global configuration, if not, use the default prefix
-    public static final String ENV_META_PREFIX = MotanGlobalConfigUtil.getConfig(MotanConstants.ENV_META_PREFIX_KEY, defaultEnvMetaPrefix);
     // all runtime registries
     private static final ConcurrentHashMap<String, Registry> runtimeRegistries = new ConcurrentHashMap<>();
 
@@ -64,7 +60,7 @@ public class GlobalRuntime {
     private static HashMap<String, String> initEnvMeta() {
         HashMap<String, String> metas = new HashMap<>();
         for (String key : System.getenv().keySet()) {
-            if (key.startsWith(ENV_META_PREFIX)) { // add all the env variables that start with the prefix to the envMeta
+            if (key.startsWith(MetaUtil.ENV_META_PREFIX)) { // add all the env variables that start with the prefix to the envMeta
                 metas.put(key, System.getenv(key));
             }
         }

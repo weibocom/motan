@@ -364,7 +364,7 @@ public class ClusterSupport<T> implements NotifyListener, StatisticCallback {
             return null;
         }
         for (Referer<T> r : referers) {
-            if (ObjectUtils.equals(url, r.getUrl()) || ObjectUtils.equals(url, r.getServiceUrl())) {
+            if (ObjectUtils.equals(url, r.getServiceUrl()) || ObjectUtils.equals(url, r.getUrl())) {
                 return r;
             }
         }

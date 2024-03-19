@@ -195,6 +195,8 @@ public class MotanConstants {
     public static final String ENV_META_PREFIX_KEY = "envMetaPrefix";
     public static final String SERVER_END_STRICT_CHECK_GROUP_KEY = "serverEndStrictCheckGroup";
     public static final String META_CACHE_EXPIRE_SECOND_KEY = "metaCacheExpireSecond";
+    public static final String WEIGHT_REFRESH_PERIOD_SECOND_KEY = "weightRefreshPeriodSecond";
+    public static final String WEIGHT_REFRESH_MAX_THREAD_KEY = "weightRefreshMaxThread";
 
     private MotanConstants() {
     }
