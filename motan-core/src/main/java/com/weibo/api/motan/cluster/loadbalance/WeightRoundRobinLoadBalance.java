@@ -21,11 +21,19 @@ package com.weibo.api.motan.cluster.loadbalance;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.util.CollectionUtil;
+import com.weibo.api.motan.util.MathUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * Adaptive Weighted Round Robin Load Balancing
+ * Use simple RoundRobin Load Balancing when all nodes have the same weight;
+ * WeightRing Load Balancing are used when size of nodes is small and the sum of weights is small.
+ * Otherwise, use SlidingWindowWeightedRoundRobin Load Balancing improved from Nginx SWRR.
+ *
  * @author zhanglei28
  * @date 2024/3/19.
  */
@@ -43,7 +51,7 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
         if (selector == null) {
             return null;
         }
-        return selector.select();
+        return selector.select(request);
     }
 
     @Override
@@ -53,47 +61,203 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
 
     @Override
     synchronized void notifyWeightChange() {
-        selector = new Selector<>(weightedRefererHolders);
+        List<WeightedRefererHolder<T>> tempHolders = weightedRefererHolders;
+        int[] weights = new int[tempHolders.size()];
+        boolean haveSameWeight = true;
+        int totalWeight = 0;
+        for (int i = 0; i < tempHolders.size(); i++) {
+            weights[i] = tempHolders.get(i).getWeight();
+            totalWeight += weights[i];
+            if (weights[i] != weights[0]) {
+                haveSameWeight = false;
+            }
+        }
+        // if all referers have the same weight, then use RoundRobinSelector
+        if (haveSameWeight) { // use RoundRobinLoadBalance
+            if (selector instanceof RoundRobinSelector) { // reuse the RoundRobinSelector
+                // refresh the RoundRobinSelector
+                ((RoundRobinSelector<T>) selector).refresh(tempHolders);
+                return;
+            }
+            // new RoundRobinLoadBalance
+            selector = new RoundRobinSelector<>(tempHolders);
+            return;
+        }
+
+        // find the GCD and divide the weights
+        int gcd = MathUtil.findGCD(weights);
+        if (gcd > 1) {
+            totalWeight = 0; // recalculate totalWeight
+            for (int i = 0; i < weights.length; i++) {
+                weights[i] /= gcd;
+                totalWeight += weights[i];
+            }
+        }
+
+        // Check whether it is suitable to use WeightedRingSelector
+        if (weights.length <= WeightedRingSelector.MAX_REFERER_SIZE
+                && totalWeight <= WeightedRingSelector.MAX_TOTAL_WEIGHT) {
+            selector = new WeightedRingSelector<>(tempHolders, totalWeight, weights);
+            return;
+        }
+        selector = new SlidingWindowWeightedRoundRobinSelector<>(tempHolders, weights);
     }
 
-    private static class Selector<T> {
-        private boolean sameWeightAll; // Whether all referers have the same weight
-        private int totalWeight; // Total weight of all referers
-        private int maxWeight; // Max weight of all referers
-        private int maxWeightIndex; // Index of the referer with max weight
+    private interface Selector<T> {
+        Referer<T> select(Request request);
+    }
+
+    private static class RoundRobinSelector<T> implements Selector<T> {
+        private List<WeightedRefererHolder<T>> holders;
+        private AtomicInteger idx = new AtomicInteger(0);
+
+        public RoundRobinSelector(List<WeightedRefererHolder<T>> holders) {
+            this.holders = holders;
+        }
+
+        @Override
+        public Referer<T> select(Request request) {
+            List<WeightedRefererHolder<T>> tempHolders = holders;
+            int index = MathUtil.getNonNegative(idx.incrementAndGet());
+            for (int i = 0; i < tempHolders.size(); i++) {
+                Referer<T> ref = tempHolders.get((i + index) % tempHolders.size()).referer;
+                if (ref.isAvailable()) {
+                    return ref;
+                }
+            }
+            return null;
+        }
+
+        public void refresh(List<WeightedRefererHolder<T>> holders) {
+            this.holders = holders;
+        }
+    }
+
+    private static class WeightedRingSelector<T> implements Selector<T> {
+        static final int MAX_REFERER_SIZE = 256;
+        static final int MAX_TOTAL_WEIGHT = 256 * 20; // The maximum space occupied by the weight ring。 default is 5KB
+        private final List<WeightedRefererHolder<T>> holders;
+
+        private final AtomicInteger index = new AtomicInteger(0);
+        private final int[] weights;
+        private final byte[] weightRing;
+
+        public WeightedRingSelector(List<WeightedRefererHolder<T>> holders, int totalWeight, int[] weights) {
+            this.holders = holders;
+            this.weightRing = new byte[totalWeight];
+            this.weights = weights;
+            initWeightRing();
+        }
+
+        private void initWeightRing() {
+            int ringIndex = 0;
+            for (int i = 0; i < weights.length; i++) {
+                for (int j = 0; j < weights[i]; j++) {
+                    weightRing[ringIndex++] = (byte) i;
+                }
+            }
+            if (ringIndex != weightRing.length) {
+                throw new IllegalStateException("ring index error");
+            }
+            CollectionUtil.shuffleByteArray(weightRing);
+        }
+
+        public Referer<T> select(Request request) {
+            int idx = MathUtil.getNonNegative(index.getAndIncrement());
+            for (int i = 0; i < weightRing.length; i++) {
+                int refererIndex = weightRing[(idx + i) % weightRing.length];
+                if (refererIndex < 0) { // The java byte range is -128~127
+                    refererIndex += 256;
+                }
+                Referer<T> referer = holders.get(refererIndex).getReferer();
+                if (referer.isAvailable()) {
+                    return referer;
+                }
+            }
+            return null;
+        }
+    }
+
+
+    /**
+     * SlidingWindowWeightedRoundRobinSelector
+     */
+    private static class SlidingWindowWeightedRoundRobinSelector<T> implements Selector<T> {
+        private static final int DEFAULT_WINDOW_SIZE = 50;
+        private final AtomicInteger index = new AtomicInteger(0);
+        private int windowSize;
 
         private final List<SelectorItem<T>> items;
 
-        public Selector(List<WeightedRefererHolder<T>> weightedRefererHolders) {
+        public SlidingWindowWeightedRoundRobinSelector(List<WeightedRefererHolder<T>> weightedRefererHolders, int[] weights) {
             items = new ArrayList<>(weightedRefererHolders.size());
-            init(weightedRefererHolders);
+            init(weightedRefererHolders, weights);
         }
 
-        private void init(List<WeightedRefererHolder<T>> weightedRefererHolders) {
-            // TODO 初始化工作
-            int lastWeight;
-            for (WeightedRefererHolder<T> holder : weightedRefererHolders) {
-                items.add(new SelectorItem<>(holder.referer, holder.getWeight()));
+        private void init(List<WeightedRefererHolder<T>> weightedRefererHolders, int[] weights) {
+            // calculate window size.
+            // The window size cannot be divided by the number of referers, which ensures that the starting position
+            // of the window will gradually change during sliding
+            windowSize = DEFAULT_WINDOW_SIZE;
+            while (weights.length % windowSize == 0) {
+                windowSize--;
+            }
 
+            for (int i = 0; i < weights.length; i++) {
+                items.add(new SelectorItem<>(weightedRefererHolders.get(i).referer, weights[i]));
             }
         }
 
-        Referer<T> select() {
-            if (sameWeightAll) { // TODO 退化成轮询
+        public Referer<T> select(Request request) {
+            int windowStartIndex = MathUtil.getNonNegative(index.getAndAdd(windowSize));
+            int totalWeight = 0;
+            int maxWeight = 0; // Max weight of current window referers
+            int maxWeightIndex = 0; // Index of the referer with max weight
 
+            // Use SWRR(https://github.com/nginx/nginx/commit/52327e0627f49dbda1e8db695e63a4b0af4448b1) to select referer from the current window.
+            // In order to reduce costs, do not limit concurrency in the entire selection process,
+            // and only use atomic updates for the current weight.
+            // Since concurrent threads will execute Select in different windows,
+            // the problem of instantaneous requests increase on one node due to concurrency will not be serious.
+            // And because the referers used on different client sides are shuffled,
+            // the impact of high instantaneous concurrent selection on the server side will be further reduced.
+            for (int i = 0; i < windowSize; i++) {
+                int idx = (windowStartIndex + i) % items.size();
+                SelectorItem<T> item = items.get(idx);
+                if (item.referer.isAvailable()) { // Only count available nodes
+                    int currentWeight = item.currentWeight.addAndGet(item.weight);
+                    totalWeight += item.weight;
+                    if (currentWeight > maxWeight) {
+                        maxWeight = currentWeight;
+                        maxWeightIndex = idx;
+                    }
+                }
             }
-            // TODO 是否需要同步？目前看是需要
+            if (maxWeight > 0) { // select max weight referer
+                SelectorItem<T> item = items.get(maxWeightIndex);
+                item.currentWeight.addAndGet(-totalWeight);
+                if (item.referer.isAvailable()) {
+                    return item.referer;
+                }
+            }
 
-            // 如果有无效节点，该如何处理？
-            // 应该在每次计算时把不可用节点排除。总值是否需要每次计算？如果每次排掉的话，应该动态计算总值。
+            // If no suitable node is selected or the node is unavailable,
+            // then select an available referer from a random index
+            int idx = maxWeightIndex != 0 ? maxWeightIndex : windowStartIndex;
+            for (int i = 1; i < items.size(); i++) {
+                SelectorItem<T> item = items.get((idx + i) % items.size());
+                if (item.referer.isAvailable()) {
+                    return item.referer;
+                }
+            }
             return null;
         }
     }
 
     private static class SelectorItem<T> {
         final Referer<T> referer;
-        int weight; // original weight
-        int currentWeight = 0;
+        int weight; // referer weight
+        AtomicInteger currentWeight = new AtomicInteger(0); // current weight
 
         public SelectorItem(Referer<T> referer, int weight) {
             this.referer = referer;
