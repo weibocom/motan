@@ -259,9 +259,9 @@ public class WeightRoundRobinLoadBalanceTest extends TestCase {
         // some nodes are unavailable
         testSWWRR(299, 67, 199, 199 * 0.4, 199 * 0.2, 11);
 
-//        testSWWRR(size,
-//                WeightRoundRobinLoadBalance.WeightedRingSelector.MAX_TOTAL_WEIGHT * 3 / size,
-//                57, 2, 2, size - 8);
+        testSWWRR(size,
+                WeightRoundRobinLoadBalance.WeightedRingSelector.MAX_TOTAL_WEIGHT * 3 / size,
+                57, 5, 5, size - 8);
     }
 
     private void testSWWRR(int size, int initialMaxWeight, int round, double expectMaxDelta, double expectAvgDelta, int unavailableSize) {
@@ -270,6 +270,9 @@ public class WeightRoundRobinLoadBalanceTest extends TestCase {
         assertTrue(weightRoundRobinLoadBalance.selector instanceof WeightRoundRobinLoadBalance.SlidingWindowWeightedRoundRobinSelector);
         int totalWeight = 0;
         for (Referer<?> referer : referers) {
+            if (!((MockDynamicReferer) referer).available) {
+                continue;
+            }
             totalWeight += ((MockDynamicReferer) referer).staticWeight;
         }
 
@@ -279,6 +282,7 @@ public class WeightRoundRobinLoadBalanceTest extends TestCase {
         double maxDelta = 0.0;
         double totalDelta = 0.0;
         int unavailableCount = 0;
+
         for (Referer<?> referer : referers) {
             if (!((MockDynamicReferer) referer).available) {
                 unavailableCount++;
@@ -290,15 +294,14 @@ public class WeightRoundRobinLoadBalanceTest extends TestCase {
                     maxDelta = delta;
                 }
                 totalDelta += delta;
-                boolean condition = Math.abs(ratio - round) <= expectMaxDelta;
-                if (!condition) {
+                if (delta > expectMaxDelta) {
                     System.out.println("count=" + mdr.count.get() + ", staticWeight=" + mdr.staticWeight + ", ratio=" + ratio + ", delta=" + delta);
                 }
-                assertTrue(condition); // check max delta
+                assertTrue(delta <= expectMaxDelta); // check max delta
             }
         }
         // avg delta
-        double avgDelta = (totalDelta / referers.size()) / round;
+        double avgDelta = (totalDelta / (referers.size() - unavailableSize)) / round;
         assertTrue(avgDelta - round < expectAvgDelta);
         System.out.println("maxDeltaPercent=" + maxDelta * 100 / round + "%, avgDeltaPercent=" + avgDelta * 100 + "%, maxDelta=" + maxDelta + ", avgDelta=" + totalDelta / referers.size());
 
