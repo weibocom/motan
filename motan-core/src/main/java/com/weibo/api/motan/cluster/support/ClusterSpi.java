@@ -61,7 +61,6 @@ public class ClusterSpi<T> implements Cluster<T> {
         if (loadBalance instanceof AbstractWeightedLoadBalance) {
             ((AbstractWeightedLoadBalance<?>) loadBalance).init(url);
         }
-        onRefresh(referers);
         available.set(true);
     }
 

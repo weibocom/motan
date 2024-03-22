@@ -21,7 +21,9 @@ package com.weibo.api.motan.cluster.loadbalance;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.CollectionUtil;
+import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MathUtil;
 
 import java.util.ArrayList;
@@ -32,14 +34,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Adaptive Weighted Round Robin Load Balancing
  * Use simple RoundRobin Load Balancing when all nodes have the same weight;
  * WeightRing Load Balancing are used when size of nodes is small and the sum of weights is small.
- * Otherwise, use SlidingWindowWeightedRoundRobin Load Balancing improved from Nginx SWRR.
+ * Otherwise, use SlidingWindowWeightedRoundRobin Load Balancing which is improved from Nginx SWRR.
  *
  * @author zhanglei28
  * @date 2024/3/19.
  */
 @SpiMeta(name = "wrr")
 public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<T> {
-    private volatile Selector<T> selector;
+    volatile Selector<T> selector;
 
     @Override
     public boolean canSelectMulti() {
@@ -81,6 +83,7 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
             }
             // new RoundRobinLoadBalance
             selector = new RoundRobinSelector<>(tempHolders);
+            LoggerUtil.info("WeightRoundRobinLoadBalance use RoundRobinSelector. url:" + getUrlLogInfo());
             return;
         }
 
@@ -98,16 +101,26 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
         if (weights.length <= WeightedRingSelector.MAX_REFERER_SIZE
                 && totalWeight <= WeightedRingSelector.MAX_TOTAL_WEIGHT) {
             selector = new WeightedRingSelector<>(tempHolders, totalWeight, weights);
+            LoggerUtil.info("WeightRoundRobinLoadBalance use WeightedRingSelector. url:" + getUrlLogInfo());
             return;
         }
         selector = new SlidingWindowWeightedRoundRobinSelector<>(tempHolders, weights);
+        LoggerUtil.info("WeightRoundRobinLoadBalance use SlidingWindowWeightedRoundRobinSelector. url:" + getUrlLogInfo());
     }
 
-    private interface Selector<T> {
+    private String getUrlLogInfo() {
+        URL url = clusterUrl;
+        if (url == null && !CollectionUtil.isEmpty(weightedRefererHolders)) {
+            url = weightedRefererHolders.get(0).referer.getUrl();
+        }
+        return url == null ? "" : url.toSimpleString();
+    }
+
+    interface Selector<T> {
         Referer<T> select(Request request);
     }
 
-    private static class RoundRobinSelector<T> implements Selector<T> {
+    static class RoundRobinSelector<T> implements Selector<T> {
         private List<WeightedRefererHolder<T>> holders;
         private AtomicInteger idx = new AtomicInteger(0);
 
@@ -133,9 +146,11 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
         }
     }
 
-    private static class WeightedRingSelector<T> implements Selector<T> {
+    static class WeightedRingSelector<T> implements Selector<T> {
         static final int MAX_REFERER_SIZE = 256;
+        //        static final int MAX_TOTAL_WEIGHT = 256 * 20; // The maximum space occupied by the weight ring。 default is 5KB
         static final int MAX_TOTAL_WEIGHT = 256 * 20; // The maximum space occupied by the weight ring。 default is 5KB
+        //        static final int MAX_TOTAL_WEIGHT = 10; // The maximum space occupied by the weight ring。 default is 5KB
         private final List<WeightedRefererHolder<T>> holders;
 
         private final AtomicInteger index = new AtomicInteger(0);
@@ -156,8 +171,8 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
                     weightRing[ringIndex++] = (byte) i;
                 }
             }
-            if (ringIndex != weightRing.length) {
-                throw new IllegalStateException("ring index error");
+            if (ringIndex != weightRing.length) { // should not happen. just log it.
+                LoggerUtil.error("WeightedRingSelector initWeightRing with wrong totalWeight. expect:" + weightRing.length + ", actual:" + ringIndex);
             }
             CollectionUtil.shuffleByteArray(weightRing);
         }
@@ -182,8 +197,8 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
     /**
      * SlidingWindowWeightedRoundRobinSelector
      */
-    private static class SlidingWindowWeightedRoundRobinSelector<T> implements Selector<T> {
-        private static final int DEFAULT_WINDOW_SIZE = 50;
+    static class SlidingWindowWeightedRoundRobinSelector<T> implements Selector<T> {
+        static final int DEFAULT_WINDOW_SIZE = 50;
         private final AtomicInteger index = new AtomicInteger(0);
         private int windowSize;
 
@@ -198,11 +213,10 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
             // calculate window size.
             // The window size cannot be divided by the number of referers, which ensures that the starting position
             // of the window will gradually change during sliding
-            windowSize = DEFAULT_WINDOW_SIZE;
-            while (weights.length % windowSize == 0) {
+            windowSize = Math.min(DEFAULT_WINDOW_SIZE, weights.length);
+            while (weights.length % windowSize == 0 && windowSize > 1) {
                 windowSize--;
             }
-
             for (int i = 0; i < weights.length; i++) {
                 items.add(new SelectorItem<>(weightedRefererHolders.get(i).referer, weights[i]));
             }

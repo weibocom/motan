@@ -27,9 +27,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 
  * loadbalance
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-22
  */
@@ -42,7 +41,7 @@ public abstract class AbstractLoadBalance<T> implements LoadBalance<T> {
     @Override
     public void onRefresh(List<Referer<T>> referers) {
         Collections.shuffle(referers);
-        // 只能引用替换，不能进行referers update。
+        // replaced only
         this.referers = referers;
     }
 

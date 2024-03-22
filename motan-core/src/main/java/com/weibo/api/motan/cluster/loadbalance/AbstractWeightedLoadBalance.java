@@ -40,13 +40,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class AbstractWeightedLoadBalance<T> extends AbstractLoadBalance<T> {
     // Save all LBs that need to refresh weights
-    private static final ConcurrentHashSet<AbstractWeightedLoadBalance<?>> dynamicWeightedLoadBalances = new ConcurrentHashSet<>();
+    static final ConcurrentHashSet<AbstractWeightedLoadBalance<?>> dynamicWeightedLoadBalances = new ConcurrentHashSet<>();
     private static final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(1);
     private static final ThreadPoolExecutor taskExecutor; // thread pool that performs referer refresh tasks
-    protected static final String WEIGHT_META_SUFFIX_KEY = "weight";
+    public static final String WEIGHT_META_SUFFIX_KEY = "WEIGHT";
+    public static final int MIN_WEIGHT = 1;
+    public static final int MAX_WEIGHT = 500; // protective restrictions
     protected static final int DEFAULT_WEIGHT = 10;
-    protected static final int MIN_WEIGHT = 1;
-    protected static final int MAX_WEIGHT = 500; // protective restrictions
     protected URL clusterUrl;
     protected boolean supportDynamicWeight = true; // Whether the current cluster supports dynamic weights
 
@@ -97,16 +97,20 @@ public abstract class AbstractWeightedLoadBalance<T> extends AbstractLoadBalance
         List<WeightedRefererHolder<T>> newHolders = new ArrayList<>();
         for (Referer<T> referer : referers) {
             WeightedRefererHolder<T> holder = null;
-            for (WeightedRefererHolder<T> refererHolder : weightedRefererHolders) {
-                if (refererHolder.getReferer() == referer) { // reuse same referer
-                    holder = refererHolder;
-                    break;
+            if (weightedRefererHolders != null) {
+                // Check whether referer can be reused
+                for (WeightedRefererHolder<T> refererHolder : weightedRefererHolders) {
+                    if (refererHolder.getReferer() == referer) { // reuse same referer object
+                        holder = refererHolder;
+                        break;
+                    }
                 }
             }
+
             if (holder == null) { // create new holder
                 int staticWeight = DEFAULT_WEIGHT;
                 try {
-                    staticWeight = getRefererWeight(referer, true, DEFAULT_WEIGHT);
+                    staticWeight = getRefererWeight(referer, false, DEFAULT_WEIGHT);
                 } catch (ExecutionException ignore) {
                 }
                 holder = new WeightedRefererHolder<>(referer, staticWeight);

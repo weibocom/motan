@@ -171,4 +171,9 @@ public class MetaUtil {
         }
         return value;
     }
+
+    public static void clearCache() {
+        metaCache.invalidateAll();
+        notSupportCache.invalidateAll();
+    }
 }
