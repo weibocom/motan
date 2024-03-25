@@ -43,10 +43,8 @@ public class MotanErrorMsgConstant {
     public static final int FRAMEWORK_REGISTER_ERROR_CODE = 20008;
     // biz exception
     public static final int BIZ_DEFAULT_ERROR_CODE = 30001;
-    /**
-     * service error start
-     **/
 
+    // service errors
     public static final MotanErrorMsg SERVICE_NOT_SUPPORT_ERROR = new MotanErrorMsg(501, 501, "service not support");
     public static final MotanErrorMsg SERVICE_DEFAULT_ERROR = new MotanErrorMsg(503, SERVICE_DEFAULT_ERROR_CODE, "service error");
     public static final MotanErrorMsg SERVICE_REJECT = new MotanErrorMsg(503, SERVICE_REJECT_ERROR_CODE, "service reject");
@@ -56,16 +54,11 @@ public class MotanErrorMsgConstant {
     public static final MotanErrorMsg SERVICE_TIMEOUT = new MotanErrorMsg(503, SERVICE_TIMEOUT_ERROR_CODE, "service request timeout");
     public static final MotanErrorMsg SERVICE_TASK_CANCEL = new MotanErrorMsg(503, SERVICE_TASK_CANCEL_ERROR_CODE, "service task cancel");
     public static final MotanErrorMsg SERVICE_REQUEST_LENGTH_OUT_OF_LIMIT = new MotanErrorMsg(403,
-            SERVICE_REQUEST_LENGTH_OUT_OF_LIMIT_ERROR_CODE, "servier requset data length over of limit");
-    /**
-     * framework error start
-     **/
+            SERVICE_REQUEST_LENGTH_OUT_OF_LIMIT_ERROR_CODE, "service request data length over of limit");
+
+    // framework errors
     public static final MotanErrorMsg FRAMEWORK_DEFAULT_ERROR = new MotanErrorMsg(503, FRAMEWORK_DEFAULT_ERROR_CODE,
             "framework default error");
-
-    /**
-     * service error end
-     **/
     public static final MotanErrorMsg FRAMEWORK_ENCODE_ERROR =
             new MotanErrorMsg(503, FRAMEWORK_ENCODE_ERROR_CODE, "framework encode error");
     public static final MotanErrorMsg FRAMEWORK_DECODE_ERROR =
@@ -74,16 +67,10 @@ public class MotanErrorMsgConstant {
     public static final MotanErrorMsg FRAMEWORK_EXPORT_ERROR =
             new MotanErrorMsg(503, FRAMEWORK_EXPORT_ERROR_CODE, "framework export error");
     public static final MotanErrorMsg FRAMEWORK_REFER_ERROR = new MotanErrorMsg(503, FRAMEWORK_REFER_ERROR_CODE, "framework refer error");
-    /**
-     * biz error start
-     **/
-    public static final MotanErrorMsg BIZ_DEFAULT_EXCEPTION = new MotanErrorMsg(503, BIZ_DEFAULT_ERROR_CODE, "provider error");
 
-    /**
-     * framework error end
-     **/
+    // biz errors
+    public static final MotanErrorMsg BIZ_DEFAULT_EXCEPTION = new MotanErrorMsg(503, BIZ_DEFAULT_ERROR_CODE, "provider error");
 
     private MotanErrorMsgConstant() {
     }
-    /** biz error end **/
 }

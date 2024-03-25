@@ -31,7 +31,7 @@ import java.lang.reflect.Method;
  */
 public class MetaServiceProvider implements Provider<MetaService> {
     // singleton
-    private static MetaServiceProvider instance = new MetaServiceProvider();    // singleton
+    private static final MetaServiceProvider instance = new MetaServiceProvider();
 
     private MetaServiceProvider() {
     }

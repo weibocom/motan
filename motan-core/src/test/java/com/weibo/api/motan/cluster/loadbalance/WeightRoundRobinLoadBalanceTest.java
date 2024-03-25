@@ -163,111 +163,98 @@ public class WeightRoundRobinLoadBalanceTest extends TestCase {
     }
 
     public void testRoundRobinSelector() {
-        int size = 20;
-        int nodeTimes = 10;
-        List<Referer<IHello>> referers = buildDynamicReferers(size, true, 8);
-        weightRoundRobinLoadBalance.onRefresh(referers);
-        assertTrue(weightRoundRobinLoadBalance.selector instanceof WeightRoundRobinLoadBalance.RoundRobinSelector);
-        for (int i = 0; i < size * nodeTimes; i++) {
-            weightRoundRobinLoadBalance.doSelect(null).call(null);
+        int round = 100;
 
-        }
-        for (Referer<?> referer : referers) {
-            assertEquals(nodeTimes, ((MockDynamicReferer) referer).count.get());
-        }
+        // small size
+        checkRR(20, 8, round, 1, 1, 0);
+
+        // large size
+        checkRR(500, 8, round, 1, 1, 0);
 
         // some nodes are unavailable
-        referers = buildDynamicReferers(size, true, 8, false, size / 2);
-        weightRoundRobinLoadBalance.onRefresh(referers);
-        assertTrue(weightRoundRobinLoadBalance.selector instanceof WeightRoundRobinLoadBalance.RoundRobinSelector);
+        double maxRatio = 0.4;
+        double avgRatio = 0.1;
+        round = 200;
+        checkRR(20, 8, round, round * maxRatio, round * avgRatio, 2);
+        checkRR(100, 8, round, round * maxRatio, round * avgRatio, 10);
 
-        for (int i = 0; i < size * nodeTimes; i++) {
-            weightRoundRobinLoadBalance.doSelect(null).call(null);
-        }
-        int zeroCount = 0;
-        for (Referer<?> referer : referers) {
-            if (((MockDynamicReferer) referer).count.get() == 0) {
-                zeroCount++;
-                continue;
-            }
-            assertTrue(((MockDynamicReferer) referer).count.get() >= nodeTimes);
-        }
-        assertEquals(size / 2, zeroCount);
+        maxRatio = 0.7;
+        checkRR(300, 8, round, round * maxRatio, round * avgRatio, 50);
     }
 
-    public void testWeightRingSelector() {
-        int size = 51;
-        List<Referer<IHello>> referers = buildDynamicReferers(size, false, 49, true, 0);
+    private void checkRR(int size, int initialMaxWeight, int round, double expectMaxDelta, double expectAvgDelta, int unavailableSize) {
+        List<Referer<IHello>> referers = buildDynamicReferers(size, true, initialMaxWeight, true, unavailableSize);
         weightRoundRobinLoadBalance.onRefresh(referers);
-        assertTrue(weightRoundRobinLoadBalance.selector instanceof WeightRoundRobinLoadBalance.WeightedRingSelector);
-        int totalWeight = 0;
-        for (Referer<?> referer : referers) {
-            totalWeight += ((MockDynamicReferer) referer).staticWeight;
-        }
-        int times = 3;
-        for (int i = 0; i < totalWeight * times; i++) {
-            weightRoundRobinLoadBalance.doSelect(null).call(null);
-        }
-        for (Referer<?> referer : referers) {
-            MockDynamicReferer mdr = (MockDynamicReferer) referer;
-            // delta < 2
-            assertTrue(Math.abs(mdr.count.get() - mdr.staticWeight * times) < 2);
-        }
+        assertTrue(weightRoundRobinLoadBalance.selector instanceof WeightRoundRobinLoadBalance.RoundRobinSelector);
+        processCheck("RR", referers, round, expectMaxDelta, expectAvgDelta, unavailableSize);
+    }
+
+
+    public void testWeightRingSelector() {
+        int round = 100;
+        // small size
+        checkWR(51, 49, round, 1, 1, 0);
+
+        // max node size of WR
+        checkWR(256, 15, round, 1, 1, 0);
 
         // some nodes are unavailable
-        referers = buildDynamicReferers(size, false, 49, true, size / 2);
+        double maxRatio = 0.4;
+        double avgRatio = 0.1;
+        checkWR(46, 75, round, round * maxRatio, round * avgRatio, 5);
+        checkWR(231, 31, round, round * maxRatio, round * avgRatio, 35);
+        maxRatio = 0.6;
+        checkWR(211, 31, round, round * maxRatio, round * avgRatio, 45);
+    }
+
+    private void checkWR(int size, int initialMaxWeight, int round, double expectMaxDelta, double expectAvgDelta, int unavailableSize) {
+        List<Referer<IHello>> referers = buildDynamicReferers(size, false, initialMaxWeight, true, unavailableSize);
         weightRoundRobinLoadBalance.onRefresh(referers);
         assertTrue(weightRoundRobinLoadBalance.selector instanceof WeightRoundRobinLoadBalance.WeightedRingSelector);
-        totalWeight = 0;
-        for (Referer<?> referer : referers) {
-            totalWeight += ((MockDynamicReferer) referer).staticWeight;
-        }
-        for (int i = 0; i < totalWeight * times; i++) {
-            weightRoundRobinLoadBalance.doSelect(null).call(null);
-        }
-        int zeroCount = 0;
-        for (Referer<?> referer : referers) {
-            MockDynamicReferer mdr = (MockDynamicReferer) referer;
-            if (mdr.available) {
-                assertTrue(mdr.count.get() > mdr.staticWeight * times - 1);
-            } else {
-                zeroCount++;
-            }
-        }
-        assertEquals(zeroCount, size / 2);
+        processCheck("WR", referers, round, expectMaxDelta, expectAvgDelta, unavailableSize);
     }
 
     public void testSlidingWindowWeightedRoundRobinSelector() {
-        // === greater than default window size ===
-        // sliding windows will reduce the accuracy of WRR, so the threshold should be appropriately increased.
-        // set max delta < 20%, avg delta < 10% for unit test
-        testSWWRR(270, 45, 199, 199 * 0.2, 199 * 0.1, 0);
-
+        int size;
+        int round = 100;
         // equals default window size，the accuracy is higher than sliding window.
-        // set max delta & avg delta < 2 for unit test
-        int size = WeightRoundRobinLoadBalance.SlidingWindowWeightedRoundRobinSelector.DEFAULT_WINDOW_SIZE;
-        testSWWRR(size,
+        size = WeightRoundRobinLoadBalance.SlidingWindowWeightedRoundRobinSelector.DEFAULT_WINDOW_SIZE;
+        checkSWWRR(size,
                 WeightRoundRobinLoadBalance.WeightedRingSelector.MAX_TOTAL_WEIGHT * 3 / size,
-                57, 2, 2, 0);
+                round, 2, 1, 0);
 
         // less than default window size
         size = WeightRoundRobinLoadBalance.SlidingWindowWeightedRoundRobinSelector.DEFAULT_WINDOW_SIZE - 9;
-        testSWWRR(size,
+        checkSWWRR(size,
                 WeightRoundRobinLoadBalance.WeightedRingSelector.MAX_TOTAL_WEIGHT * 3 / size,
-                57, 2, 2, 0);
+                round, 2, 1, 0);
+
+        // greater than default window size
+        // sliding windows will reduce the accuracy of WRR, so the threshold should be appropriately increased.
+        double maxRatio = 0.5;
+        double avgRatio = 0.1;
+        round = 200;
+        size = 270;
+        checkSWWRR(size, 45, round, round * maxRatio, round * avgRatio, 0);
+
 
         // some nodes are unavailable
-        testSWWRR(299, 67, 199, 199 * 0.4, 199 * 0.2, 11);
-
-        testSWWRR(size,
+        size = 260;
+        checkSWWRR(size,
                 WeightRoundRobinLoadBalance.WeightedRingSelector.MAX_TOTAL_WEIGHT * 3 / size,
-                57, 5, 5, size - 8);
+                round, round * maxRatio, round * avgRatio, 10);
+        size = 399;
+        checkSWWRR(size, 67, round, round * maxRatio, round * avgRatio, 40);
     }
 
-    private void testSWWRR(int size, int initialMaxWeight, int round, double expectMaxDelta, double expectAvgDelta, int unavailableSize) {
+    private void checkSWWRR(int size, int initialMaxWeight, int round, double expectMaxDelta, double expectAvgDelta, int unavailableSize) {
         List<Referer<IHello>> referers = buildDynamicReferers(size, false, initialMaxWeight, true, unavailableSize);
         weightRoundRobinLoadBalance.onRefresh(referers);
         assertTrue(weightRoundRobinLoadBalance.selector instanceof WeightRoundRobinLoadBalance.SlidingWindowWeightedRoundRobinSelector);
+        processCheck("SWWRR", referers, round, expectMaxDelta, expectAvgDelta, unavailableSize);
+    }
+
+    private void processCheck(String type, List<Referer<IHello>> referers, int round, double expectMaxDelta, double expectAvgDelta, int unavailableSize) {
         int totalWeight = 0;
         for (Referer<?> referer : referers) {
             if (!((MockDynamicReferer) referer).available) {
@@ -295,15 +282,15 @@ public class WeightRoundRobinLoadBalanceTest extends TestCase {
                 }
                 totalDelta += delta;
                 if (delta > expectMaxDelta) {
-                    System.out.println("count=" + mdr.count.get() + ", staticWeight=" + mdr.staticWeight + ", ratio=" + ratio + ", delta=" + delta);
+                    System.out.println(type + ": count=" + mdr.count.get() + ", staticWeight=" + mdr.staticWeight + ", ratio=" + ratio + ", delta=" + delta);
                 }
                 assertTrue(delta <= expectMaxDelta); // check max delta
             }
         }
         // avg delta
-        double avgDelta = (totalDelta / (referers.size() - unavailableSize)) / round;
+        double avgDelta = totalDelta / (referers.size() - unavailableSize);
         assertTrue(avgDelta - round < expectAvgDelta);
-        System.out.println("maxDeltaPercent=" + maxDelta * 100 / round + "%, avgDeltaPercent=" + avgDelta * 100 + "%, maxDelta=" + maxDelta + ", avgDelta=" + totalDelta / referers.size());
+        System.out.println(String.format("%s: avgDeltaPercent=%.2f%%, maxDeltaPercent=%.2f%%, avgDelta=%.2f, maxDelta=%.2f", type, avgDelta * 100 / round, maxDelta * 100 / round, avgDelta, maxDelta));
 
         if (unavailableSize > 0) {
             assertEquals(unavailableSize, unavailableCount);

@@ -76,7 +76,7 @@ public class MockDynamicReferer<T> extends MockReferer<T> {
         }
     }
 
-    public void clearStaticWeight(boolean isDynamic) {
+    public void clearWeight(boolean isDynamic) {
         if (isDynamic) {
             this.dynamicWeight = 0;
             dynamicMeta.remove(WEIGHT_KEY);

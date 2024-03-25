@@ -28,6 +28,7 @@ import com.weibo.api.motan.util.MathUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -121,8 +122,8 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
     }
 
     static class RoundRobinSelector<T> implements Selector<T> {
-        private List<WeightedRefererHolder<T>> holders;
-        private AtomicInteger idx = new AtomicInteger(0);
+        private volatile List<WeightedRefererHolder<T>> holders;
+        private final AtomicInteger idx = new AtomicInteger(0);
 
         public RoundRobinSelector(List<WeightedRefererHolder<T>> holders) {
             this.holders = holders;
@@ -131,9 +132,14 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
         @Override
         public Referer<T> select(Request request) {
             List<WeightedRefererHolder<T>> tempHolders = holders;
-            int index = MathUtil.getNonNegative(idx.incrementAndGet());
+            Referer<T> ref = tempHolders.get(MathUtil.getNonNegative(idx.incrementAndGet()) % tempHolders.size()).referer;
+            if (ref.isAvailable()) {
+                return ref;
+            }
+            // If the referer is not available, loop selection from random position.
+            int start = ThreadLocalRandom.current().nextInt(tempHolders.size());
             for (int i = 0; i < tempHolders.size(); i++) {
-                Referer<T> ref = tempHolders.get((i + index) % tempHolders.size()).referer;
+                ref = tempHolders.get((start + i) % tempHolders.size()).referer;
                 if (ref.isAvailable()) {
                     return ref;
                 }
@@ -148,12 +154,10 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
 
     static class WeightedRingSelector<T> implements Selector<T> {
         static final int MAX_REFERER_SIZE = 256;
-        //        static final int MAX_TOTAL_WEIGHT = 256 * 20; // The maximum space occupied by the weight ring。 default is 5KB
         static final int MAX_TOTAL_WEIGHT = 256 * 20; // The maximum space occupied by the weight ring。 default is 5KB
-        //        static final int MAX_TOTAL_WEIGHT = 10; // The maximum space occupied by the weight ring。 default is 5KB
         private final List<WeightedRefererHolder<T>> holders;
 
-        private final AtomicInteger index = new AtomicInteger(0);
+        private final AtomicInteger ringIndex = new AtomicInteger(0);
         private final int[] weights;
         private final byte[] weightRing;
 
@@ -178,18 +182,27 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
         }
 
         public Referer<T> select(Request request) {
-            int idx = MathUtil.getNonNegative(index.getAndIncrement());
+            Referer<T> ref = holders.get(getHolderIndex(MathUtil.getNonNegative(ringIndex.getAndIncrement()))).getReferer();
+            if (ref.isAvailable()) {
+                return ref;
+            }
+            // If the referer is not available, loop selection from random position.
+            int start = ThreadLocalRandom.current().nextInt(weightRing.length);
             for (int i = 0; i < weightRing.length; i++) {
-                int refererIndex = weightRing[(idx + i) % weightRing.length];
-                if (refererIndex < 0) { // The java byte range is -128~127
-                    refererIndex += 256;
-                }
-                Referer<T> referer = holders.get(refererIndex).getReferer();
+                Referer<T> referer = holders.get(getHolderIndex(start + i)).getReferer();
                 if (referer.isAvailable()) {
                     return referer;
                 }
             }
             return null;
+        }
+
+        private int getHolderIndex(int ringIndex) {
+            int holderIndex = weightRing[ringIndex % weightRing.length];
+            if (holderIndex < 0) { // The java byte range is -128~127
+                holderIndex += 256;
+            }
+            return holderIndex;
         }
     }
 
@@ -210,13 +223,16 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
         }
 
         private void init(List<WeightedRefererHolder<T>> weightedRefererHolders, int[] weights) {
-            // calculate window size.
-            // The window size cannot be divided by the number of referers, which ensures that the starting position
-            // of the window will gradually change during sliding
-            windowSize = Math.min(DEFAULT_WINDOW_SIZE, weights.length);
-            while (weights.length % windowSize == 0 && windowSize > 1) {
-                windowSize--;
+            windowSize = weights.length;
+            if (windowSize > DEFAULT_WINDOW_SIZE) { // The sliding window size needs to be calculated only when the number of referers is greater than DEFAULT_WINDOW_SIZE
+                windowSize = DEFAULT_WINDOW_SIZE;
+                // The window size cannot be divided by the number of referers, which ensures that the starting position
+                // of the window will gradually change during sliding
+                while (weights.length % windowSize == 0) {
+                    windowSize--;
+                }
             }
+
             for (int i = 0; i < weights.length; i++) {
                 items.add(new SelectorItem<>(weightedRefererHolders.get(i).referer, weights[i]));
             }
@@ -257,7 +273,7 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
 
             // If no suitable node is selected or the node is unavailable,
             // then select an available referer from a random index
-            int idx = maxWeightIndex != 0 ? maxWeightIndex : windowStartIndex;
+            int idx = windowStartIndex + ThreadLocalRandom.current().nextInt(windowSize);
             for (int i = 1; i < items.size(); i++) {
                 SelectorItem<T> item = items.get((idx + i) % items.size());
                 if (item.referer.isAvailable()) {

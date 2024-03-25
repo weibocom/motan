@@ -16,45 +16,43 @@
 
 package com.weibo.api.motan.transport;
 
-import com.weibo.api.motan.common.URLParamType;
-import junit.framework.TestCase;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.weibo.api.motan.TestConstants;
+import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.exception.MotanErrorMsgConstant;
+import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.mock.MockChannel;
-import com.weibo.api.motan.rpc.DefaultProvider;
-import com.weibo.api.motan.rpc.DefaultRequest;
-import com.weibo.api.motan.rpc.Provider;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.runtime.GlobalRuntime;
+import com.weibo.api.motan.util.MetaUtil;
 import com.weibo.api.motan.util.ReflectUtil;
+import com.weibo.api.motan.util.RequestIdGenerator;
+import junit.framework.TestCase;
+import org.junit.Assert;
+
+import java.util.Map;
 
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-18
- * 
  */
 public class ProviderMessageRouterTest extends TestCase {
     private static final int PUBLIC_METHOD_COUNT_ALL = 3;
     private static final int PUBLIC_METHOD_COUNT_B = 2;
 
-    @Test
     public void testPublicMethodCount() {
         Assert.assertEquals(ReflectUtil.getPublicMethod(A.class).size(), 1);
         Assert.assertEquals(ReflectUtil.getPublicMethod(B.class).size(), 2);
     }
 
-    @Test
     public void testCall() {
         ProviderMessageRouter providerMessageRouter = new ProviderMessageRouter();
 
         Provider<ProviderA> providerA =
-                new DefaultProvider<ProviderA>(new A(), new URL("injvm", "localhost", 0, ProviderA.class.getName()), ProviderA.class);
+                new DefaultProvider<>(new A(), new URL("injvm", "localhost", 0, ProviderA.class.getName()), ProviderA.class);
 
         Provider<ProviderB> providerB =
-                new DefaultProvider<ProviderB>(new B(), new URL("injvm", "localhost", 0, ProviderB.class.getName()), ProviderB.class);
+                new DefaultProvider<>(new B(), new URL("injvm", "localhost", 0, ProviderB.class.getName()), ProviderB.class);
 
         providerMessageRouter.addProvider(providerA);
         providerMessageRouter.addProvider(providerB);
@@ -89,11 +87,39 @@ public class ProviderMessageRouterTest extends TestCase {
         try {
             Response result = (Response) providerMessageRouter.handle(new MockChannel(TestConstants.EMPTY_URL), requestA);
             result.getValue();
-            Assert.assertTrue(false);
+            Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(true);
         }
+    }
 
+    @SuppressWarnings("unchecked")
+    public void testFrameworkProviders() {
+        // test meta service
+        GlobalRuntime.getDynamicMeta().clear();
+        ProviderMessageRouter providerMessageRouter = new ProviderMessageRouter();
+        Request request = MetaUtil.buildMetaServiceRequest();
+        Response response = (Response) providerMessageRouter.handle(new MockChannel(TestConstants.EMPTY_URL), request);
+        assertEquals(GlobalRuntime.getDynamicMeta(), response.getValue());
+        assertTrue(((Map<String, String>) response.getValue()).isEmpty());
+
+        GlobalRuntime.putDynamicMeta("xyz", "zyx");
+        response = (Response) providerMessageRouter.handle(new MockChannel(TestConstants.EMPTY_URL), request);
+        assertEquals(GlobalRuntime.getDynamicMeta(), response.getValue());
+        assertEquals("zyx", ((Map<String, String>) response.getValue()).get("xyz"));
+
+        // test unknown framework service
+        DefaultRequest request2 = new DefaultRequest();
+        request2.setRequestId(RequestIdGenerator.getRequestId());
+        request2.setInterfaceName("unknownService");
+        request2.setMethodName("unknownMethod");
+        request2.setAttachment(MotanConstants.FRAMEWORK_SERVICE, "y"); // a framework service request
+        try {
+            providerMessageRouter.handle(new MockChannel(TestConstants.EMPTY_URL), request2);
+            fail();
+        } catch (MotanServiceException mse) {
+            assertEquals(MotanErrorMsgConstant.SERVICE_NOT_SUPPORT_ERROR.getErrorCode(), mse.getErrorCode());
+        }
     }
 }
 

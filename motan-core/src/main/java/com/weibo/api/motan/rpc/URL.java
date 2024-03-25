@@ -408,7 +408,6 @@ public class URL {
                 return false;
             }
         }
-
         // 由于需要提供跨group访问rpc的能力，所以不再验证group是否一致。
         return true;
     }

@@ -21,7 +21,6 @@ package com.weibo.api.motan.runtime;
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.rpc.Exporter;
-import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.transport.MeshClient;
 import com.weibo.api.motan.transport.Server;
 import com.weibo.api.motan.util.MetaUtil;
@@ -54,17 +53,7 @@ public class GlobalRuntime {
     private static final ConcurrentHashMap<String, String> dynamicMeta = new ConcurrentHashMap<>();
 
     static {
-        envMeta = Collections.unmodifiableMap(initEnvMeta());
-    }
-
-    private static HashMap<String, String> initEnvMeta() {
-        HashMap<String, String> metas = new HashMap<>();
-        for (String key : System.getenv().keySet()) {
-            if (key.startsWith(MetaUtil.ENV_META_PREFIX)) { // add all the env variables that start with the prefix to the envMeta
-                metas.put(key, System.getenv(key));
-            }
-        }
-        return metas;
+        envMeta = Collections.unmodifiableMap(MetaUtil._getOriginMetaInfoFromEnv());
     }
 
     // add runtime registry
@@ -162,10 +151,5 @@ public class GlobalRuntime {
         currentMeta.putAll(envMeta);
         currentMeta.putAll(dynamicMeta);
         return currentMeta;
-    }
-
-    // only for server end to add meta info to url.
-    public static void addMetaInfo(URL url) {
-        url.getParameters().putAll(envMeta); // only add static meta
     }
 }

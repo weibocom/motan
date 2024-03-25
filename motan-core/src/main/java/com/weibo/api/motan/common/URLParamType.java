@@ -65,7 +65,7 @@ public enum URLParamType {
      **/
     maxServerConnection("maxServerConnection", 100000),
     /**
-     * pool conn manger stragy
+     * pool conn manger strategy
      **/
     poolLifo("poolLifo", true),
 
@@ -77,7 +77,7 @@ public enum URLParamType {
     asyncInitConnection("asyncInitConnection", true),
     fusingThreshold("fusingThreshold", 10),
 
-    /************************** SPI start ******************************/
+    // === SPI start ===
 
     /**
      * serialize
@@ -100,7 +100,7 @@ public enum URLParamType {
      **/
     switcherService("switcherService", "localSwitcherService"),
 
-    /************************** SPI end ******************************/
+    // === SPI end ===
 
     group("group", "default_rpc"),
     clientGroup("clientGroup", "default_rpc"),
@@ -149,7 +149,7 @@ public enum URLParamType {
     errorRate("errorRate", "0.01"),
     check("check", "true"),
     directUrl("directUrl", ""),
-    registrySessionTimeout("registrySessionTimeout", 1 * MotanConstants.MINUTE_MILLS),
+    registrySessionTimeout("registrySessionTimeout", MotanConstants.MINUTE_MILLS),
     slowThreshold("slowThreshold", 200),
 
     register("register", true),
@@ -185,8 +185,8 @@ public enum URLParamType {
     ;
 
 
-    private String name;
-    private String value;
+    private final String name;
+    private final String value;
     private long longValue;
     private int intValue;
     private boolean boolValue;

@@ -74,6 +74,18 @@ public class MetaUtil {
         notSupportCache = CacheBuilder.newBuilder().expireAfterWrite(notSupportExpireSecond, TimeUnit.SECONDS).build();
     }
 
+    // just for GlobalRuntime init envMeta and unit test.
+    // to get runtime meta info, use GlobalRuntime.getEnvMeta(), GlobalRuntime.getDynamicMeta(), GlobalRuntime.getMergedMeta()(equivalent to MetaUtil.getLocalMeta)
+    public static HashMap<String, String> _getOriginMetaInfoFromEnv() {
+        HashMap<String, String> metas = new HashMap<>();
+        for (String key : System.getenv().keySet()) {
+            if (key.startsWith(MetaUtil.ENV_META_PREFIX)) { // add all the env variables that start with the prefix to the envMeta
+                metas.put(key, System.getenv(key));
+            }
+        }
+        return metas;
+    }
+
     // get local meta information
     public static Map<String, String> getLocalMeta() {
         return GlobalRuntime.getMergedMeta();
@@ -84,10 +96,7 @@ public class MetaUtil {
     // it's a remote RPC call, an exception will be thrown if it fails.
     // if a SERVICE_NOT_SUPPORT_ERROR exception is thrown, should not call this method again.
     public static Map<String, String> getRefererDynamicMeta(Referer<?> referer) throws ExecutionException {
-        return metaCache.get(getCacheKey(referer.getUrl()), () -> {
-            Map<String, String> meta = getRemoteDynamicMeta(referer);
-            return meta;
-        });
+        return metaCache.get(getCacheKey(referer.getUrl()), () -> getRemoteDynamicMeta(referer));
     }
 
     @SuppressWarnings("unchecked")
@@ -170,6 +179,13 @@ public class MetaUtil {
             }
         }
         return value;
+    }
+
+    // only for server end to add meta info to url.
+    public static void addStaticMeta(URL url) {
+        if (url != null) {
+            url.getParameters().putAll(GlobalRuntime.getEnvMeta()); // only add static meta
+        }
     }
 
     public static void clearCache() {
