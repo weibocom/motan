@@ -117,10 +117,6 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
         return url == null ? "" : url.toSimpleString();
     }
 
-    interface Selector<T> {
-        Referer<T> select(Request request);
-    }
-
     static class RoundRobinSelector<T> implements Selector<T> {
         private volatile List<WeightedRefererHolder<T>> holders;
         private final AtomicInteger idx = new AtomicInteger(0);

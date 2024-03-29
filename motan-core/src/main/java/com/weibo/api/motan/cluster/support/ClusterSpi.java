@@ -19,7 +19,6 @@ package com.weibo.api.motan.cluster.support;
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.cluster.HaStrategy;
 import com.weibo.api.motan.cluster.LoadBalance;
-import com.weibo.api.motan.cluster.loadbalance.AbstractWeightedLoadBalance;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.exception.MotanAbstractException;
@@ -58,9 +57,6 @@ public class ClusterSpi<T> implements Cluster<T> {
 
     @Override
     public void init() {
-        if (loadBalance instanceof AbstractWeightedLoadBalance) {
-            ((AbstractWeightedLoadBalance<?>) loadBalance).init(url);
-        }
         available.set(true);
     }
 
@@ -69,7 +65,6 @@ public class ClusterSpi<T> implements Cluster<T> {
         if (referers == null || referers.isEmpty()) {
             return null;
         }
-
         return referers.get(0).getInterface();
     }
 
@@ -94,9 +89,7 @@ public class ClusterSpi<T> implements Cluster<T> {
     @Override
     public void destroy() {
         available.set(false);
-        if (loadBalance instanceof AbstractWeightedLoadBalance) {
-            ((AbstractWeightedLoadBalance<?>) loadBalance).closeRefreshTask();
-        }
+        loadBalance.destroy();
         for (Referer<T> referer : this.referers) {
             referer.destroy();
         }

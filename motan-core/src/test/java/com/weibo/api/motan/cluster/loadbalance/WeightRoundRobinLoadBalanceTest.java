@@ -49,7 +49,7 @@ public class WeightRoundRobinLoadBalanceTest extends TestCase {
     }
 
     public void tearDown() throws Exception {
-        weightRoundRobinLoadBalance.closeRefreshTask();
+        weightRoundRobinLoadBalance.destroy();
         weightRoundRobinLoadBalance = null;
     }
 
@@ -87,7 +87,7 @@ public class WeightRoundRobinLoadBalanceTest extends TestCase {
         assertTrue(weightRoundRobinLoadBalance.selector instanceof WeightRoundRobinLoadBalance.WeightedRingSelector);
 
         // test closeRefreshTask
-        weightRoundRobinLoadBalance.closeRefreshTask();
+        weightRoundRobinLoadBalance.destroy();
         assertTrue(AbstractWeightedLoadBalance.dynamicWeightedLoadBalances.isEmpty());
     }
 
@@ -302,11 +302,15 @@ public class WeightRoundRobinLoadBalanceTest extends TestCase {
         weightRoundRobinLoadBalance.refreshHoldersDynamicWeightTask(); // Manually trigger refresh tasks
     }
 
-    private List<Referer<IHello>> buildDynamicReferers(int size, boolean sameStaticWeight, int maxWeight) {
+    static List<Referer<IHello>> buildDynamicReferers(int size, boolean sameStaticWeight, int maxWeight) {
         return buildDynamicReferers(size, sameStaticWeight, maxWeight, false, 0);
     }
 
-    private List<Referer<IHello>> buildDynamicReferers(int size, boolean sameStaticWeight, int maxWeight, boolean adjust, int unavailableSize) {
+    static List<Referer<IHello>> buildDynamicReferers(int size, boolean sameStaticWeight, int maxWeight, boolean adjust, int unavailableSize) {
+        return buildDynamicReferers(size, sameStaticWeight, maxWeight, adjust, unavailableSize, null);
+    }
+
+    static List<Referer<IHello>> buildDynamicReferers(int size, boolean sameStaticWeight, int maxWeight, boolean adjust, int unavailableSize, String group) {
         List<Referer<IHello>> referers = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             int weight = sameStaticWeight ? maxWeight : (int) (Math.random() * maxWeight);
@@ -319,12 +323,15 @@ public class WeightRoundRobinLoadBalanceTest extends TestCase {
             if (i < unavailableSize) {
                 referer.available = false;
             }
+            if (group != null) {
+                referer.url.addParameter(URLParamType.group.getName(), group);
+            }
             referers.add(referer);
         }
         return referers;
     }
 
-    private int adjust(int w) {
+    private static int adjust(int w) {
         if (w < AbstractWeightedLoadBalance.MIN_WEIGHT) {
             return AbstractWeightedLoadBalance.MIN_WEIGHT;
         } else if (w > AbstractWeightedLoadBalance.MAX_WEIGHT) {

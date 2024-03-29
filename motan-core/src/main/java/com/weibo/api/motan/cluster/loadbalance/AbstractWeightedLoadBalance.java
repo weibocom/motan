@@ -47,7 +47,6 @@ public abstract class AbstractWeightedLoadBalance<T> extends AbstractLoadBalance
     public static final int MIN_WEIGHT = 1;
     public static final int MAX_WEIGHT = 500; // protective restrictions
     protected static final int DEFAULT_WEIGHT = 10;
-    protected URL clusterUrl;
     protected boolean supportDynamicWeight = true; // Whether the current cluster supports dynamic weights
 
     protected volatile List<WeightedRefererHolder<T>> weightedRefererHolders; // The currently effective WeightedRefererHolders
@@ -71,14 +70,15 @@ public abstract class AbstractWeightedLoadBalance<T> extends AbstractLoadBalance
         }
     }
 
-    public void closeRefreshTask() {
+    @Override
+    public void destroy() {
         if (supportDynamicWeight) {
             dynamicWeightedLoadBalances.remove(this);
         }
     }
 
     public void init(URL clusterUrl) {
-        this.clusterUrl = clusterUrl;
+        super.init(clusterUrl);
         supportDynamicWeight = clusterUrl.getBooleanParameter(URLParamType.dynamicMeta.getName(), URLParamType.dynamicMeta.getBooleanValue());
         if (supportDynamicWeight) {
             dynamicWeightedLoadBalances.add(this);

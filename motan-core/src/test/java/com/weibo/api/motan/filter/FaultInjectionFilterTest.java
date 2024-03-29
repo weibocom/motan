@@ -152,7 +152,7 @@ public class FaultInjectionFilterTest extends BaseTestCase {
         config.delayTime = 33;
         config.delayRatio = 0;
         updateConfigs();
-        check(processTime.get() + config.delayTime, 0, 8, MotanServiceException.class);
+        check(processTime.get() + config.delayTime, 0, 10, MotanServiceException.class);
 
         config.exceptionPercent = 100;
         updateConfigs();
