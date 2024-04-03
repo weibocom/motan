@@ -173,6 +173,7 @@ public class MotanConstants {
     public static final String ENV_MOTAN_ADMIN_TOKEN = "MOTAN_ADMIN_TOKEN";
     public static final String ENV_MOTAN_ADMIN_PORT = "MOTAN_ADMIN_PORT";
     public static final String ENV_MOTAN_ADMIN_EXT_HANDLERS = "MOTAN_ADMIN_EXT_HANDLERS";
+    public static final String ENV_RPC_REG_GROUP_SUFFIX = "RPC_REG_GROUP_SUFFIX"; // Group suffix automatically appended during RPC registration
 
     // ------------------ motan mesh default value -----------------
     public static final String MESH_CLIENT = "meshClient";
