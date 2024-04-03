@@ -24,6 +24,7 @@ import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
 import com.weibo.api.motan.transport.AbstractServer;
 import com.weibo.api.motan.transport.MessageHandler;
 import com.weibo.api.motan.transport.TransportException;
@@ -33,11 +34,11 @@ import com.weibo.api.motan.util.StatsUtil;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 /**
@@ -76,7 +77,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
 
     @Override
     public Response request(Request request) throws TransportException {
-        throw new MotanFrameworkException("NettyServer request(Request request) method unsupport: url: " + url);
+        throw new MotanFrameworkException("NettyServer request(Request request) method unSupport: url: " + url);
     }
 
     @Override
@@ -113,7 +114,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
         int workerQueueSize = url.getIntParameter(URLParamType.workerQueueSize.getName(),
                 URLParamType.workerQueueSize.getIntValue());
 
-        int minWorkerThread = 0, maxWorkerThread = 0;
+        int minWorkerThread, maxWorkerThread;
 
         if (shareChannel) {
             minWorkerThread = url.getIntParameter(URLParamType.minWorkerThread.getName(),
@@ -143,17 +144,14 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
         nettyChannelHandler = new NettyChannelHandler(NettyServer.this, messageHandler, standardThreadExecutor);
         StatsUtil.registryStatisticCallback(nettyChannelHandler);
 
-        bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
-            // FrameDecoder非线程安全，每个连接一个 Pipeline
-            @Override
-            public ChannelPipeline getPipeline() {
-                ChannelPipeline pipeline = Channels.pipeline();
-                pipeline.addLast("channel_manage", channelManage);
-                pipeline.addLast("decoder", new NettyDecoder(codec, NettyServer.this, maxContentLength));
-                pipeline.addLast("encoder", new NettyEncoder(codec, NettyServer.this));
-                pipeline.addLast("nettyChannelHandler", nettyChannelHandler);
-                return pipeline;
-            }
+        // FrameDecoder非线程安全，每个连接一个 Pipeline
+        bootstrap.setPipelineFactory(() -> {
+            ChannelPipeline pipeline = Channels.pipeline();
+            pipeline.addLast("channel_manage", channelManage);
+            pipeline.addLast("decoder", new NettyDecoder(codec, NettyServer.this, maxContentLength));
+            pipeline.addLast("encoder", new NettyEncoder(codec, NettyServer.this));
+            pipeline.addLast("nettyChannelHandler", nettyChannelHandler);
+            return pipeline;
         });
     }
 
@@ -188,7 +186,7 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
         if (serverChannel != null) {
             serverChannel.close();
         }
-        // close all clients's channel
+        // close all client's channel
         if (channelManage != null) {
             channelManage.close();
         }
@@ -242,5 +240,14 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
 
     public void setMessageHandler(MessageHandler messageHandler) {
         this.messageHandler = messageHandler;
+    }
+
+    @Override
+    public Map<String, Object> getRuntimeInfo() {
+        Map<String, Object> infos = super.getRuntimeInfo();
+        infos.put(RuntimeInfoKeys.CONNECTION_COUNT_KEY, channelManage.getChannels().size());
+        infos.put(RuntimeInfoKeys.TASK_COUNT_KEY, standardThreadExecutor.getSubmittedTasksCount());
+        infos.putAll(messageHandler.getRuntimeInfo());
+        return infos;
     }
 }

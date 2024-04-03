@@ -17,12 +17,13 @@
 package com.weibo.api.motan.transport;
 
 
+import com.weibo.api.motan.runtime.RuntimeInfo;
+
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-4
- * 
  */
-public interface MessageHandler {
+public interface MessageHandler extends RuntimeInfo {
 
     Object handle(Channel channel, Object message);
 

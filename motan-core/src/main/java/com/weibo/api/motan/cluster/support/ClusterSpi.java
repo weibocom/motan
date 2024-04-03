@@ -25,12 +25,15 @@ import com.weibo.api.motan.exception.MotanAbstractException;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
 import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.ExceptionUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -110,7 +113,7 @@ public class ClusterSpi<T> implements Cluster<T> {
 
     @Override
     public String toString() {
-        return "cluster: {" + "ha=" + haStrategy + ",loadbalance=" + loadBalance +
+        return "cluster: {" + "ha=" + haStrategy + ",loadBalance=" + loadBalance +
                 "referers=" + referers + "}";
 
     }
@@ -130,7 +133,7 @@ public class ClusterSpi<T> implements Cluster<T> {
             return;
         }
 
-        List<Referer<T>> delayDestroyReferers = new ArrayList<Referer<T>>();
+        List<Referer<T>> delayDestroyReferers = new ArrayList<>();
 
         for (Referer<T> referer : oldReferers) {
             if (referers.contains(referer)) {
@@ -189,13 +192,60 @@ public class ClusterSpi<T> implements Cluster<T> {
             if (cause instanceof MotanAbstractException) {
                 throw (MotanAbstractException) cause;
             } else {
-                MotanServiceException motanException =
-                        new MotanServiceException(String.format("ClusterSpi Call false for request: %s", request), cause);
-                throw motanException;
+                throw new MotanServiceException(String.format("ClusterSpi Call false for request: %s", request), cause);
             }
         }
 
         return MotanFrameworkUtil.buildErrorResponse(request, cause);
     }
 
+    @Override
+    public Map<String, Object> getRuntimeInfo() {
+        Map<String, Object> infos = new HashMap<>();
+        infos.put(RuntimeInfoKeys.URL_KEY, url.toFullStr());
+        infos.put(RuntimeInfoKeys.REFERER_SIZE_KEY, referers == null ? 0 : referers.size());
+        if (!CollectionUtil.isEmpty(referers)) {
+            // common infos
+            addCommonInfos(referers.get(0), infos, RuntimeInfoKeys.CODEC_KEY, RuntimeInfoKeys.FUSING_THRESHOLD_KEY);
+
+            // available referers
+            Map<String, Object> availableInfos = new HashMap<>();
+            Map<String, Object> unavailableInfos = new HashMap<>();
+            int i = 0;
+            for (Referer<?> referer : referers) {
+                if (referer.isAvailable()) {
+                    availableInfos.put(i + "-" + referer.getUrl().toTinyString(), removeCommonInfos(referer, RuntimeInfoKeys.CODEC_KEY, RuntimeInfoKeys.FUSING_THRESHOLD_KEY));
+                } else {
+                    unavailableInfos.put(i + "-" + referer.getUrl().toTinyString(), removeCommonInfos(referer, RuntimeInfoKeys.CODEC_KEY, RuntimeInfoKeys.FUSING_THRESHOLD_KEY));
+                }
+                i++;
+            }
+            Map<String, Object> refererInfos = new HashMap<>();
+            refererInfos.put(RuntimeInfoKeys.AVAILABLE_KEY, availableInfos);
+            refererInfos.put(RuntimeInfoKeys.UNAVAILABLE_KEY, unavailableInfos);
+            infos.put(RuntimeInfoKeys.REFERERS_KEY, refererInfos);
+        }
+        return infos;
+    }
+
+    private Map<String, Object> removeCommonInfos(Referer<?> referer, String... keys) {
+        Map<String, Object> refererInfos = referer.getRuntimeInfo();
+        if (!CollectionUtil.isEmpty(refererInfos)) {
+            for (String key : keys) {
+                refererInfos.remove(key);
+            }
+        }
+        return refererInfos;
+    }
+
+    private void addCommonInfos(Referer<?> referer, Map<String, Object> infos, String... keys) {
+        Map<String, Object> refererInfos = referer.getRuntimeInfo();
+        if (!CollectionUtil.isEmpty(refererInfos)) {
+            for (String key : keys) {
+                if (refererInfos.get(key) != null) {
+                    infos.put(key, refererInfos.get(key));
+                }
+            }
+        }
+    }
 }

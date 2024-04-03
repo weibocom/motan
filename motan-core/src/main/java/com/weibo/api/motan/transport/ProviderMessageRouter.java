@@ -24,7 +24,9 @@ import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.protocol.rpc.CompressRpcCodec;
 import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
 import com.weibo.api.motan.serialize.DeserializableObject;
+import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.ReflectUtil;
@@ -70,6 +72,7 @@ public class ProviderMessageRouter implements MessageHandler {
     }
 
     public ProviderMessageRouter(Provider<?> provider) {
+        this();
         addProvider(provider);
     }
 
@@ -169,4 +172,15 @@ public class ProviderMessageRouter implements MessageHandler {
         return methodCounter.get();
     }
 
+    @Override
+    public Map<String, Object> getRuntimeInfo() {
+        Map<String, Object> infos = new HashMap<>();
+        infos.put(RuntimeInfoKeys.PROVIDER_SIZE_KEY, providers.size());
+        infos.put(RuntimeInfoKeys.METHOD_COUNT_KEY, methodCounter.get());
+        Map<String, Object> strategyInfos = strategy.getRuntimeInfo();
+        if (!CollectionUtil.isEmpty(strategyInfos)) {
+            infos.put(RuntimeInfoKeys.PROTECT_STRATEGY_KEY, strategyInfos);
+        }
+        return infos;
+    }
 }

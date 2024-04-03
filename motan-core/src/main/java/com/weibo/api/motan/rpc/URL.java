@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <pre>
- * Desc a reffer or a service.
+ * Desc a referer or a service.
  * 所有获取URL的parameter时（即带参数的getXXX方法），都必须返回对象,避免不经意的修改引发错误，因为
  * 有些地方需要根据是否含这个参数来进行操作。
  *
@@ -57,7 +57,7 @@ public class URL {
     private volatile transient Map<String, Number> numbers;
 
     public URL(String protocol, String host, int port, String path) {
-        this(protocol, host, port, path, new HashMap<String, String>());
+        this(protocol, host, port, path, new HashMap<>());
     }
 
     public URL(String protocol, String host, int port, String path, Map<String, String> parameters) {
@@ -76,14 +76,14 @@ public class URL {
         String host = null;
         int port = 0;
         String path = null;
-        Map<String, String> parameters = new HashMap<String, String>();
-        int i = url.indexOf("?"); // seperator between body and parameters
+        Map<String, String> parameters = new HashMap<>();
+        int i = url.indexOf("?"); // separator between body and parameters
         if (i >= 0) {
-            String[] parts = url.substring(i + 1).split("\\&");
+            String[] parts = url.substring(i + 1).split("&");
 
             for (String part : parts) {
                 part = part.trim();
-                if (part.length() > 0) {
+                if (!part.isEmpty()) {
                     int j = part.indexOf('=');
                     if (j >= 0) {
                         parameters.put(StringTools.urlDecode(part.substring(0, j)), StringTools.urlDecode(part.substring(j + 1)));
@@ -120,7 +120,7 @@ public class URL {
             port = Integer.parseInt(url.substring(i + 1));
             url = url.substring(0, i);
         }
-        if (url.length() > 0) host = url;
+        if (!url.isEmpty()) host = url;
         return new URL(protocol, host, port, path, parameters);
     }
 
@@ -142,7 +142,7 @@ public class URL {
     }
 
     public URL createCopy() {
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         if (this.parameters != null) {
             params.putAll(this.parameters);
         }
@@ -216,7 +216,7 @@ public class URL {
 
     public String getMethodParameter(String methodName, String paramDesc, String name) {
         String value = getParameter(MotanConstants.METHOD_CONFIG_PREFIX + methodName + "(" + paramDesc + ")." + name);
-        if (value == null || value.length() == 0) {
+        if (value == null || value.isEmpty()) {
             return getParameter(name);
         }
         return value;
@@ -224,7 +224,7 @@ public class URL {
 
     public String getMethodParameter(String methodName, String paramDesc, String name, String defaultValue) {
         String value = getMethodParameter(methodName, paramDesc, name);
-        if (value == null || value.length() == 0) {
+        if (value == null || value.isEmpty()) {
             return defaultValue;
         }
         return value;
@@ -256,7 +256,7 @@ public class URL {
 
     public Boolean getBooleanParameter(String name, boolean defaultValue) {
         String value = getParameter(name);
-        if (value == null || value.length() == 0) {
+        if (value == null || value.isEmpty()) {
             return defaultValue;
         }
 
@@ -265,7 +265,7 @@ public class URL {
 
     public Boolean getMethodParameter(String methodName, String paramDesc, String name, boolean defaultValue) {
         String value = getMethodParameter(methodName, paramDesc, name);
-        if (value == null || value.length() == 0) {
+        if (value == null || value.isEmpty()) {
             return defaultValue;
         }
         return Boolean.parseBoolean(value);
@@ -277,7 +277,7 @@ public class URL {
             return n.intValue();
         }
         String value = parameters.get(name);
-        if (value == null || value.length() == 0) {
+        if (value == null || value.isEmpty()) {
             return defaultValue;
         }
         int i = Integer.parseInt(value);
@@ -292,7 +292,7 @@ public class URL {
             return n.intValue();
         }
         String value = getMethodParameter(methodName, paramDesc, name);
-        if (value == null || value.length() == 0) {
+        if (value == null || value.isEmpty()) {
             return defaultValue;
         }
         int i = Integer.parseInt(value);
@@ -306,7 +306,7 @@ public class URL {
             return n.longValue();
         }
         String value = parameters.get(name);
-        if (value == null || value.length() == 0) {
+        if (value == null || value.isEmpty()) {
             return defaultValue;
         }
         long l = Long.parseLong(value);
@@ -321,7 +321,7 @@ public class URL {
             return n.longValue();
         }
         String value = getMethodParameter(methodName, paramDesc, name);
-        if (value == null || value.length() == 0) {
+        if (value == null || value.isEmpty()) {
             return defaultValue;
         }
         long l = Long.parseLong(value);
@@ -335,7 +335,7 @@ public class URL {
             return n.floatValue();
         }
         String value = parameters.get(name);
-        if (value == null || value.length() == 0) {
+        if (value == null || value.isEmpty()) {
             return defaultValue;
         }
         float f = Float.parseFloat(value);
@@ -350,7 +350,7 @@ public class URL {
             return n.floatValue();
         }
         String value = getMethodParameter(methodName, paramDesc, name);
-        if (value == null || value.length() == 0) {
+        if (value == null || value.isEmpty()) {
             return defaultValue;
         }
         float f = Float.parseFloat(value);
@@ -373,8 +373,6 @@ public class URL {
 
     /**
      * 返回一个service or referer的identity,如果两个url的identity相同，则表示相同的一个service或者referer
-     *
-     * @return
      */
     public String getIdentity() {
         return protocol + MotanConstants.PROTOCOL_SEPARATOR + host + ":" + port +
@@ -385,9 +383,6 @@ public class URL {
 
     /**
      * check if this url can serve the refUrl.
-     *
-     * @param refUrl
-     * @return
      */
     public boolean canServe(URL refUrl) {
         if (refUrl == null || !this.getPath().equals(refUrl.getPath())) {
@@ -424,7 +419,7 @@ public class URL {
         for (Map.Entry<String, String> entry : parameters.entrySet()) {
             String name = entry.getKey();
             String value = entry.getValue();
-            if (URLParamType.refreshTimestamp.name().equals(name)){
+            if (URLParamType.refreshTimestamp.name().equals(name)) {
                 continue;
             }
             builder.append(StringTools.urlEncode(name)).append("=").append(StringTools.urlEncode(value)).append("&");
@@ -448,15 +443,17 @@ public class URL {
 
     /**
      * comma separated host:port pairs, e.g. "127.0.0.1:3000"
-     *
-     * @return
      */
     public String getServerPortStr() {
         return buildHostPortStr(host, port);
-
     }
 
-    public void clearCacheInfo(){
+    // format is :  host:port?group. for runtime info
+    public String toTinyString() {
+        return buildHostPortStr(host, port) + "?group=" + getGroup();
+    }
+
+    public void clearCacheInfo() {
         getNumbers().clear();
     }
 
@@ -474,7 +471,7 @@ public class URL {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof URL)) {
+        if (!(obj instanceof URL)) {
             return false;
         }
         URL ou = (URL) obj;
@@ -495,7 +492,7 @@ public class URL {
 
     private Map<String, Number> getNumbers() {
         if (numbers == null) { // 允许并发重复创建
-            numbers = new ConcurrentHashMap<String, Number>();
+            numbers = new ConcurrentHashMap<>();
         }
         return numbers;
     }
@@ -503,9 +500,6 @@ public class URL {
     /**
      * because async call in client path with Async suffix,we need
      * remove Async suffix in path for subscribe.
-     *
-     * @param path
-     * @return
      */
     private String removeAsyncPath(String path) {
         return MotanFrameworkUtil.removeAsyncSuffix(path);

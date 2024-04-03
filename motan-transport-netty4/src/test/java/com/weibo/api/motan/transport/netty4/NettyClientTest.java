@@ -17,13 +17,18 @@
 package com.weibo.api.motan.transport.netty4;
 
 
+import com.weibo.api.motan.codec.Codec;
+import com.weibo.api.motan.common.ChannelState;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.protocol.rpc.DefaultRpcCodec;
 import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.runtime.RuntimeInfoKeys;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.ProviderMessageRouter;
+import com.weibo.api.motan.transport.TransportException;
 import com.weibo.api.motan.transport.support.DefaultRpcHeartbeatFactory;
 import com.weibo.api.motan.util.RequestIdGenerator;
 import com.weibo.api.motan.util.StatsUtil;
@@ -35,6 +40,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.*;
 
@@ -155,10 +161,12 @@ public class NettyClientTest {
         }
     }
 
+    @SuppressWarnings("all")
     @Test
     public void testForceClose() throws Exception {
         nettyServer.close();
-        nettyServer = new NettyServer(url, new ProviderMessageRouter());
+        URL providerUrl = new URL("motan", "localhost", 0, Codec.class.getName()); // any interface just for test provider runtime info
+        nettyServer = new NettyServer(url, new ProviderMessageRouter(new DefaultProvider(new DefaultRpcCodec(), providerUrl, Codec.class)));
         nettyServer.open();
         NettyTestClient nettyClient = new NettyTestClient(url);
         this.nettyClient = nettyClient;
@@ -184,6 +192,17 @@ public class NettyClientTest {
                 }
             }
         }
+
+        // check runtime info
+        Map<String, Object> serverInfos = nettyServer.getRuntimeInfo();
+        Map<String, Object> clientInfos = nettyClient.getRuntimeInfo();
+        // check runtime info from ProviderMessageRouter and DefaultProtectedStrategy
+        assertTrue((Integer) serverInfos.get(RuntimeInfoKeys.PROVIDER_SIZE_KEY) > 0);
+        assertTrue((Integer) serverInfos.get(RuntimeInfoKeys.METHOD_COUNT_KEY) > 0);
+        assertFalse(((Map<String, Object>) serverInfos.get(RuntimeInfoKeys.PROTECT_STRATEGY_KEY)).isEmpty());
+        // check client force closed info
+        assertTrue((Boolean) clientInfos.get(RuntimeInfoKeys.FORCE_CLOSED_KEY));
+        assertTrue((Long) clientInfos.get(RuntimeInfoKeys.ERROR_COUNT_KEY) > (Integer) clientInfos.get(RuntimeInfoKeys.FUSING_THRESHOLD_KEY));
 
         // check force close
         assertFalse(nettyClient.isAvailable());
@@ -252,6 +271,47 @@ public class NettyClientTest {
         } catch (Exception e) {
             fail();
         }
+    }
+
+    @Test
+    public void testRuntimeInfo() throws Exception {
+        nettyClient = new NettyClient(url);
+        nettyClient.open();
+        final AtomicBoolean stop = new AtomicBoolean(false);
+        new Thread(() -> {
+            for (int i = 0; i < 100000; i++) {
+                try {
+                    nettyClient.request(request);
+                } catch (TransportException ignore) {
+                }
+                if (stop.get()) {
+                    break;
+                }
+            }
+        }).start();
+        Thread.sleep(3);
+        Map<String, Object> serverInfos = nettyServer.getRuntimeInfo();
+        Map<String, Object> clientInfos = nettyClient.getRuntimeInfo();
+        stop.set(true);
+        Thread.sleep(3);
+        String codec = DefaultRpcCodec.class.getSimpleName();
+        // check server runtime info
+        assertEquals(codec, serverInfos.get(RuntimeInfoKeys.CODEC_KEY));
+        assertTrue(serverInfos.containsKey(RuntimeInfoKeys.TASK_COUNT_KEY));
+        assertTrue((Integer) serverInfos.get(RuntimeInfoKeys.CONNECTION_COUNT_KEY) > 0);
+        assertEquals(ChannelState.ALIVE.name(), serverInfos.get(RuntimeInfoKeys.STATE_KEY));
+        assertEquals(nettyServer.getUrl().toFullStr(), serverInfos.get(RuntimeInfoKeys.URL_KEY));
+
+        // check client runtime info
+        assertEquals(codec, clientInfos.get(RuntimeInfoKeys.CODEC_KEY));
+        assertEquals(10, clientInfos.get(RuntimeInfoKeys.FUSING_THRESHOLD_KEY));
+        assertTrue(clientInfos.containsKey(RuntimeInfoKeys.ERROR_COUNT_KEY));
+
+        // check runtime info when client is closed
+        nettyClient.close();
+        clientInfos = nettyClient.getRuntimeInfo();
+        assertEquals(ChannelState.CLOSE.name(), clientInfos.get(RuntimeInfoKeys.STATE_KEY));
+        assertFalse((Boolean) clientInfos.get(RuntimeInfoKeys.FORCE_CLOSED_KEY));
     }
 
     static class NettyTestClient extends NettyClient {
