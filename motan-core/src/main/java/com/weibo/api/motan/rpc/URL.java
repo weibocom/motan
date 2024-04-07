@@ -387,7 +387,7 @@ public class URL {
             return false;
         }
 
-        if (!ObjectUtils.equals(protocol, refUrl.protocol)) {
+        if (!protocolCompatible(refUrl.protocol)) {
             return false;
         }
 
@@ -401,7 +401,7 @@ public class URL {
             return false;
         }
         // check serialize when the server node is not motan2 protocol
-        if (!protocol.equals(MotanConstants.PROTOCOL_MOTAN2)) {
+        if (protocol != null && !protocol.equals(MotanConstants.PROTOCOL_MOTAN2)) {
             String serialize = getParameter(URLParamType.serialize.getName(), URLParamType.serialize.getValue());
             String refSerialize = refUrl.getParameter(URLParamType.serialize.getName(), URLParamType.serialize.getValue());
             if (!serialize.equals(refSerialize)) {
@@ -410,6 +410,15 @@ public class URL {
         }
         // 由于需要提供跨group访问rpc的能力，所以不再验证group是否一致。
         return true;
+    }
+
+    private boolean protocolCompatible(String referProtocol) {
+        if (MotanConstants.PROTOCOL_MOTAN2.equals(protocol)
+                && MotanConstants.PROTOCOL_MOTAN.equals(referProtocol)) {
+            // motan2 server is compatible with motan protocol client
+            return true;
+        }
+        return ObjectUtils.equals(protocol, referProtocol);
     }
 
     public String toFullStr() {

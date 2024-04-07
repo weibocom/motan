@@ -16,12 +16,13 @@
 
 package com.weibo.api.motan.rpc;
 
-import java.lang.reflect.Method;
-
+import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.common.URLParamType;
 import junit.framework.TestCase;
 
+import java.lang.reflect.Method;
+
 /**
- * 
  * URL test
  *
  * @author fishermen
@@ -40,5 +41,20 @@ public class URLTest extends TestCase {
                 }
             }
         }
+    }
+
+    public void testProtocolCompatible() {
+        URL serverUrl = new URL(MotanConstants.PROTOCOL_MOTAN2, "127.0.0.1", 8002, "com.weibo.api.motan.protocol.example.IHello");
+        URL clientUrl = serverUrl.createCopy();
+        URL clientUrl2 = serverUrl.createCopy();
+        clientUrl2.setProtocol(MotanConstants.PROTOCOL_MOTAN);
+        serverUrl.addParameter(URLParamType.nodeType.getName(), MotanConstants.NODE_TYPE_SERVICE);
+
+        assertTrue(serverUrl.canServe(clientUrl));
+        assertTrue(serverUrl.canServe(clientUrl2)); // motan2 server can serve motan client
+
+        serverUrl.setProtocol(MotanConstants.PROTOCOL_MOTAN);
+        assertFalse(serverUrl.canServe(clientUrl)); // motan server can not serve motan2 client
+        assertTrue(serverUrl.canServe(clientUrl2));
     }
 }

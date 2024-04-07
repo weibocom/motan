@@ -180,7 +180,7 @@ public enum URLParamType {
     proxyRegistryUrlString("proxyRegistryUrlString", ""), //保存要代理的的registry具体信息
 
     // meta info
-    registerMeta("registerMeta", true), // whether to register meta info
+    registerMeta("registerMeta", false), // whether to register meta info
     dynamicMeta("dynamicMeta", true), // whether to enable dynamic meta
     ;
 
