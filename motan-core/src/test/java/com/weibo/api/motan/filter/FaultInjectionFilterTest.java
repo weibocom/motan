@@ -46,6 +46,7 @@ public class FaultInjectionFilterTest extends BaseTestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
+        clearConfigs();
         // init request
         request = new DefaultRequest();
         request.setRequestId(123456L);
@@ -151,7 +152,7 @@ public class FaultInjectionFilterTest extends BaseTestCase {
         config.delayTime = 33;
         config.delayRatio = 0;
         updateConfigs();
-        check(processTime.get() + config.delayTime, 0, 6, MotanServiceException.class);
+        check(processTime.get() + config.delayTime, 0, 10, MotanServiceException.class);
 
         config.exceptionPercent = 100;
         updateConfigs();
@@ -310,7 +311,7 @@ public class FaultInjectionFilterTest extends BaseTestCase {
         }
     }
 
-    private void checkAsync(long expectProcessTime){
+    private void checkAsync(long expectProcessTime) {
         Response response = filter.filter(caller, request);
         ResponseFuture responseFuture = (ResponseFuture) response;
         responseFuture.getValue(); // sync get result

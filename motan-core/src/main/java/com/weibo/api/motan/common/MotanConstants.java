@@ -164,6 +164,7 @@ public class MotanConstants {
     // ------------------ attachment constants -----------------
     public static final String ATT_PRINT_TRACE_LOG = "print_trace_log"; // 针对单请求是否打印（access）日志
     public static final String X_FORWARDED_FOR = "x-forwarded-for"; // 经过mesh代理的远端host
+    public static final String FRAMEWORK_SERVICE = "M_fws"; // motan framework service attachment key
 
     // ------------------ common env name -----------------
     public static final String ENV_ADDITIONAL_GROUP = "MOTAN_SERVICE_ADDITIONAL_GROUP"; //motan service 追加导出分组。例如可以自动追加云平台上的分组
@@ -190,6 +191,13 @@ public class MotanConstants {
     public static final String ADMIN_PROTOCOL = "admin.protocol";
     public static final String ADMIN_TOKEN = "admin.token";
     public static final String ADMIN_EXT_HANDLERS = "admin.extHandlers";
+
+    // ===== global config keys =====
+    public static final String ENV_META_PREFIX_KEY = "envMetaPrefix";
+    public static final String SERVER_END_STRICT_CHECK_GROUP_KEY = "serverEndStrictCheckGroup";
+    public static final String META_CACHE_EXPIRE_SECOND_KEY = "metaCacheExpireSecond";
+    public static final String WEIGHT_REFRESH_PERIOD_SECOND_KEY = "weightRefreshPeriodSecond";
+    public static final String WEIGHT_REFRESH_MAX_THREAD_KEY = "weightRefreshMaxThread";
 
     private MotanConstants() {
     }

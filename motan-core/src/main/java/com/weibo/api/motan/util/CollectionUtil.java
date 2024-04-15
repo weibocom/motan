@@ -18,6 +18,7 @@ package com.weibo.api.motan.util;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Utils for collections.
@@ -36,6 +37,17 @@ public class CollectionUtil {
     @SuppressWarnings("rawtypes")
     public static boolean isEmpty(Map map) {
         return map == null || map.isEmpty();
+    }
+
+    public static void shuffleByteArray(byte[] array) {
+        Random rnd = new Random();
+        for (int i = array.length - 1; i > 0; i--) {
+            int index = rnd.nextInt(i + 1);
+            // swap
+            byte b = array[index];
+            array[index] = array[i];
+            array[i] = b;
+        }
     }
 
 }

@@ -26,10 +26,7 @@ import com.weibo.api.motan.registry.RegistryService;
 import com.weibo.api.motan.rpc.Exporter;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.runtime.GlobalRuntime;
-import com.weibo.api.motan.util.ConcurrentHashSet;
-import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.NetUtils;
-import com.weibo.api.motan.util.StringTools;
+import com.weibo.api.motan.util.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -165,7 +162,10 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         collectMethodConfigParams(map, this.getMethods());
 
         URL serviceUrl = new URL(protocolName, hostAddress, port, interfaceClass.getName(), map);
-
+        // add server side meta info to the url, so these meta info can be passed to the client side through the registration mechanism.
+        if (serviceUrl.getBooleanParameter(URLParamType.registerMeta.getName(), URLParamType.registerMeta.getBooleanValue())) {
+            MetaUtil.addStaticMeta(serviceUrl);
+        }
         String groupString = serviceUrl.getParameter(URLParamType.group.getName(), ""); // do not with default group value
         String additionalGroup = System.getenv(MotanConstants.ENV_ADDITIONAL_GROUP);
         if (StringUtils.isNotBlank(additionalGroup)) { // check additional groups

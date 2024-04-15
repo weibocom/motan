@@ -38,6 +38,7 @@ public class MockReferer<T> implements Referer<T> {
     }
 
     public MockReferer(URL serviceUrl) {
+        this.url = serviceUrl;
         this.serviceUrl = serviceUrl;
     }
 
@@ -52,10 +53,12 @@ public class MockReferer<T> implements Referer<T> {
     }
 
     @Override
-    public void init() {}
+    public void init() {
+    }
 
     @Override
-    public void destroy() {}
+    public void destroy() {
+    }
 
     @Override
     public boolean isAvailable() {

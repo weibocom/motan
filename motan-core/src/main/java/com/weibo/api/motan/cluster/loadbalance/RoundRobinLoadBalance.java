@@ -25,47 +25,37 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 
  * Round robin loadbalance.
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-6-13
  */
 @SpiMeta(name = "roundrobin")
 public class RoundRobinLoadBalance<T> extends AbstractLoadBalance<T> {
-
-    private AtomicInteger idx = new AtomicInteger(0);
+    private final AtomicInteger idx = new AtomicInteger(0);
 
     @Override
     protected Referer<T> doSelect(Request request) {
         List<Referer<T>> referers = getReferers();
-
-        int index = getNextNonNegative();
-        for (int i = 0; i < referers.size(); i++) {
-            Referer<T> ref = referers.get((i + index) % referers.size());
-            if (ref.isAvailable()) {
-                return ref;
-            }
+        Referer<T> ref = referers.get(getNextNonNegative() % referers.size());
+        if (ref.isAvailable()) {
+            return ref;
         }
-        return null;
+        return selectFromRandomStart(referers);
     }
 
     @Override
     protected void doSelectToHolder(Request request, List<Referer<T>> refersHolder) {
-        List<Referer<T>> referers = getReferers();
-
-        int index = getNextNonNegative();
-        for (int i = 0, count = 0; i < referers.size() && count < MAX_REFERER_COUNT; i++) {
-            Referer<T> referer = referers.get((i + index) % referers.size());
-            if (referer.isAvailable()) {
-                refersHolder.add(referer);
-                count++;
-            }
-        }
+        addToSelectHolderFromStart(getReferers(), refersHolder, getNextNonNegative());
     }
 
     // get non-negative int
     private int getNextNonNegative() {
         return MathUtil.getNonNegative(idx.incrementAndGet());
+    }
+
+    @Override
+    public boolean canSelectMulti() {
+        return false; //Obtaining multiple referers may cause uneven requests
     }
 }

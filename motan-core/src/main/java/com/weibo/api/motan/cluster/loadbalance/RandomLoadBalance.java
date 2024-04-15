@@ -16,15 +16,14 @@
 
 package com.weibo.api.motan.cluster.loadbalance;
 
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
 
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
- * 
  * random load balance.
  *
  * @author fishermen
@@ -35,28 +34,12 @@ public class RandomLoadBalance<T> extends AbstractLoadBalance<T> {
 
     @Override
     protected Referer<T> doSelect(Request request) {
-        List<Referer<T>> referers = getReferers();
-
-        int idx = (int) (ThreadLocalRandom.current().nextDouble() * referers.size());
-        for (int i = 0; i < referers.size(); i++) {
-            Referer<T> ref = referers.get((i + idx) % referers.size());
-            if (ref.isAvailable()) {
-                return ref;
-            }
-        }
-        return null;
+        return selectFromRandomStart(getReferers());
     }
 
     @Override
     protected void doSelectToHolder(Request request, List<Referer<T>> refersHolder) {
         List<Referer<T>> referers = getReferers();
-
-        int idx = (int) (ThreadLocalRandom.current().nextDouble() * referers.size());
-        for (int i = 0; i < referers.size(); i++) {
-            Referer<T> referer = referers.get((i + idx) % referers.size());
-            if (referer.isAvailable()) {
-                refersHolder.add(referer);
-            }
-        }
+        addToSelectHolderFromStart(referers, refersHolder, ThreadLocalRandom.current().nextInt(referers.size()));
     }
 }

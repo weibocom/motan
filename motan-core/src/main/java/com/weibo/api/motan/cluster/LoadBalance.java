@@ -16,15 +16,15 @@
 
 package com.weibo.api.motan.cluster;
 
-import java.util.List;
-
 import com.weibo.api.motan.core.extension.Scope;
 import com.weibo.api.motan.core.extension.Spi;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.URL;
+
+import java.util.List;
 
 /**
- * 
  * Loadbalance for select referer
  *
  * @author fishermen
@@ -41,4 +41,14 @@ public interface LoadBalance<T> {
 
     void setWeightString(String weightString);
 
+    // Whether to support obtaining multiple referers at one time
+    default boolean canSelectMulti() {
+        return true;
+    }
+
+    default void init(URL clusterUrl) {
+    }
+
+    default void destroy() {
+    }
 }

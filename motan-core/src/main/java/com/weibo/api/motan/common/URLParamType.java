@@ -65,7 +65,7 @@ public enum URLParamType {
      **/
     maxServerConnection("maxServerConnection", 100000),
     /**
-     * pool conn manger stragy
+     * pool conn manger strategy
      **/
     poolLifo("poolLifo", true),
 
@@ -77,7 +77,7 @@ public enum URLParamType {
     asyncInitConnection("asyncInitConnection", true),
     fusingThreshold("fusingThreshold", 10),
 
-    /************************** SPI start ******************************/
+    // === SPI start ===
 
     /**
      * serialize
@@ -100,7 +100,7 @@ public enum URLParamType {
      **/
     switcherService("switcherService", "localSwitcherService"),
 
-    /************************** SPI end ******************************/
+    // === SPI end ===
 
     group("group", "default_rpc"),
     clientGroup("clientGroup", "default_rpc"),
@@ -149,7 +149,7 @@ public enum URLParamType {
     errorRate("errorRate", "0.01"),
     check("check", "true"),
     directUrl("directUrl", ""),
-    registrySessionTimeout("registrySessionTimeout", 1 * MotanConstants.MINUTE_MILLS),
+    registrySessionTimeout("registrySessionTimeout", MotanConstants.MINUTE_MILLS),
     slowThreshold("slowThreshold", 200),
 
     register("register", true),
@@ -177,11 +177,16 @@ public enum URLParamType {
     proxyRegistryId("proxyRegistryId", ""), // mesh registry要代理的registry的bean id
     meshMPort("mport", 8002), //mesh管理端口
     needHealthCheck("needHealthCheck", true), //是否启用健康检测。如果非动态注册场景，不一定能进行自动降级，因此可以针对registry关闭
-    proxyRegistryUrlString("proxyRegistryUrlString", ""); //保存要代理的的registry具体信息
+    proxyRegistryUrlString("proxyRegistryUrlString", ""), //保存要代理的的registry具体信息
+
+    // meta info
+    registerMeta("registerMeta", false), // whether to register meta info
+    dynamicMeta("dynamicMeta", true), // whether to enable dynamic meta
+    ;
 
 
-    private String name;
-    private String value;
+    private final String name;
+    private final String value;
     private long longValue;
     private int intValue;
     private boolean boolValue;

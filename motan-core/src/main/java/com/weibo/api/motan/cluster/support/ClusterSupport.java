@@ -20,6 +20,7 @@ import com.weibo.api.motan.closable.ShutDownHook;
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.cluster.HaStrategy;
 import com.weibo.api.motan.cluster.LoadBalance;
+import com.weibo.api.motan.cluster.loadbalance.GroupWeightLoadBalanceWrapper;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
@@ -364,7 +365,7 @@ public class ClusterSupport<T> implements NotifyListener, StatisticCallback {
             return null;
         }
         for (Referer<T> r : referers) {
-            if (ObjectUtils.equals(url, r.getUrl()) || ObjectUtils.equals(url, r.getServiceUrl())) {
+            if (ObjectUtils.equals(url, r.getServiceUrl()) || ObjectUtils.equals(url, r.getUrl())) {
                 return r;
             }
         }
@@ -424,10 +425,14 @@ public class ClusterSupport<T> implements NotifyListener, StatisticCallback {
         String haStrategyName = url.getParameter(URLParamType.haStrategy.getName(), URLParamType.haStrategy.getValue());
 
         cluster = ExtensionLoader.getExtensionLoader(Cluster.class).getExtension(clusterName);
+        // just check if load balance spi exists as early as possible.
         LoadBalance<T> loadBalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(loadbalanceName);
         HaStrategy<T> ha = ExtensionLoader.getExtensionLoader(HaStrategy.class).getExtension(haStrategyName);
         ha.setUrl(url);
-        cluster.setLoadBalance(loadBalance);
+        // Use GroupWeightLoadBalance uniformly to add group weight capabilities to specific LB
+        GroupWeightLoadBalanceWrapper groupWeightLoadBalance = new GroupWeightLoadBalanceWrapper<T>(loadbalanceName);
+        groupWeightLoadBalance.init(url);
+        cluster.setLoadBalance(groupWeightLoadBalance);
         cluster.setHaStrategy(ha);
         cluster.setUrl(url);
     }

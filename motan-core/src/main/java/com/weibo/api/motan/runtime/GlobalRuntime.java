@@ -23,7 +23,11 @@ import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.rpc.Exporter;
 import com.weibo.api.motan.transport.MeshClient;
 import com.weibo.api.motan.transport.Server;
+import com.weibo.api.motan.util.MetaUtil;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -45,6 +49,12 @@ public class GlobalRuntime {
 
     // all runtime servers
     private static final ConcurrentHashMap<String, Server> runtimeServers = new ConcurrentHashMap<>();
+    private static final Map<String, String> envMeta;
+    private static final ConcurrentHashMap<String, String> dynamicMeta = new ConcurrentHashMap<>();
+
+    static {
+        envMeta = Collections.unmodifiableMap(MetaUtil._getOriginMetaInfoFromEnv());
+    }
 
     // add runtime registry
     public static void addRegistry(String id, Registry registry) {
@@ -54,6 +64,10 @@ public class GlobalRuntime {
     // remove runtime registry
     public static Registry removeRegistry(String id) {
         return runtimeRegistries.remove(id);
+    }
+
+    public static Map<String, Registry> getRuntimeRegistries() {
+        return Collections.unmodifiableMap(runtimeRegistries);
     }
 
     // add runtime exporter
@@ -66,6 +80,10 @@ public class GlobalRuntime {
         return runtimeExporters.remove(id);
     }
 
+    public static Map<String, Exporter<?>> getRuntimeExporters() {
+        return Collections.unmodifiableMap(runtimeExporters);
+    }
+
     // add runtime cluster
     public static void addCluster(String id, Cluster<?> cluster) {
         runtimeClusters.put(id, cluster);
@@ -74,6 +92,10 @@ public class GlobalRuntime {
     // remove runtime cluster
     public static Cluster<?> removeCluster(String id) {
         return runtimeClusters.remove(id);
+    }
+
+    public static Map<String, Cluster<?>> getRuntimeClusters() {
+        return Collections.unmodifiableMap(runtimeClusters);
     }
 
     // add runtime mesh client
@@ -86,6 +108,10 @@ public class GlobalRuntime {
         return runtimeMeshClients.remove(id);
     }
 
+    public static Map<String, MeshClient> getRuntimeMeshClients() {
+        return Collections.unmodifiableMap(runtimeMeshClients);
+    }
+
     // add runtime server
     public static void addServer(String id, Server server) {
         runtimeServers.put(id, server);
@@ -96,23 +122,34 @@ public class GlobalRuntime {
         return runtimeServers.remove(id);
     }
 
-    public static ConcurrentHashMap<String, Registry> getRuntimeRegistries() {
-        return runtimeRegistries;
+    public static Map<String, Server> getRuntimeServers() {
+        return Collections.unmodifiableMap(runtimeServers);
     }
 
-    public static ConcurrentHashMap<String, Exporter<?>> getRuntimeExporters() {
-        return runtimeExporters;
+    // return unmodifiable map of envMeta
+    public static Map<String, String> getEnvMeta() {
+        return envMeta;
     }
 
-    public static ConcurrentHashMap<String, Cluster<?>> getRuntimeClusters() {
-        return runtimeClusters;
+    // put dynamicMeta
+    public static void putDynamicMeta(String key, String value) {
+        dynamicMeta.put(key, value);
     }
 
-    public static ConcurrentHashMap<String, MeshClient> getRuntimeMeshClients() {
-        return runtimeMeshClients;
+    // remove dynamicMeta
+    public static void removeDynamicMeta(String key) {
+        dynamicMeta.remove(key);
     }
 
-    public static ConcurrentHashMap<String, Server> getRuntimeServers() {
-        return runtimeServers;
+    public static Map<String, String> getDynamicMeta() {
+        return dynamicMeta;
+    }
+
+    // return a snapshot of current meta, which is a combination of envMeta and dynamicMeta
+    public static Map<String, String> getMergedMeta() {
+        Map<String, String> currentMeta = new HashMap<>();
+        currentMeta.putAll(envMeta);
+        currentMeta.putAll(dynamicMeta);
+        return currentMeta;
     }
 }

@@ -20,16 +20,17 @@ import com.weibo.api.motan.cluster.LoadBalance;
 import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * 
  * loadbalance
- * 
+ *
  * @author fishermen
  * @version V1.0 created at: 2013-5-22
  */
@@ -37,12 +38,24 @@ import java.util.List;
 public abstract class AbstractLoadBalance<T> implements LoadBalance<T> {
     public static final int MAX_REFERER_COUNT = 10;
 
+    protected URL clusterUrl;
     private List<Referer<T>> referers;
 
     @Override
+    public void init(URL clusterUrl) {
+        this.clusterUrl = clusterUrl;
+    }
+
+    @Override
     public void onRefresh(List<Referer<T>> referers) {
-        Collections.shuffle(referers);
-        // 只能引用替换，不能进行referers update。
+        onRefresh(referers, true);
+    }
+
+    protected void onRefresh(List<Referer<T>> referers, boolean shuffle) {
+        if (shuffle) {
+            Collections.shuffle(referers);
+        }
+        // replaced only
         this.referers = referers;
     }
 
@@ -90,6 +103,29 @@ public abstract class AbstractLoadBalance<T> implements LoadBalance<T> {
     protected List<Referer<T>> getReferers() {
         return referers;
     }
+
+    protected Referer<T> selectFromRandomStart(List<Referer<T>> referers) {
+        int index = ThreadLocalRandom.current().nextInt(referers.size());
+        Referer<T> ref;
+        for (int i = 0; i < referers.size(); i++) {
+            ref = referers.get((i + index) % referers.size());
+            if (ref.isAvailable()) {
+                return ref;
+            }
+        }
+        return null;
+    }
+
+    protected void addToSelectHolderFromStart(List<Referer<T>> referers, List<Referer<T>> refersHolder, int start) {
+        for (int i = 0, count = 0; i < referers.size() && count < MAX_REFERER_COUNT; i++) {
+            Referer<T> referer = referers.get((i + start) % referers.size());
+            if (referer.isAvailable()) {
+                refersHolder.add(referer);
+                count++;
+            }
+        }
+    }
+
 
     @Override
     public void setWeightString(String weightString) {

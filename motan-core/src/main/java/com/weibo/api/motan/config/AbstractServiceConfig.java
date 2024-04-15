@@ -17,7 +17,6 @@
 package com.weibo.api.motan.config;
 
 /**
- * 
  * Abstract service config.
  *
  * @author fishermen
@@ -34,8 +33,12 @@ public abstract class AbstractServiceConfig extends AbstractInterfaceConfig {
      **/
     protected String export;
 
-    /** 一般不用设置，由服务自己获取，但如果有多个ip，而只想用指定ip，则可以在此处指定 */
+    /**
+     * 一般不用设置，由服务自己获取，但如果有多个ip，而只想用指定ip，则可以在此处指定
+     */
     protected String host;
+
+    protected Boolean registerMeta;
 
     public String getExport() {
         return export;
@@ -53,6 +56,11 @@ public abstract class AbstractServiceConfig extends AbstractInterfaceConfig {
         this.host = host;
     }
 
+    public Boolean getRegisterMeta() {
+        return registerMeta;
+    }
 
-
+    public void setRegisterMeta(Boolean registerMeta) {
+        this.registerMeta = registerMeta;
+    }
 }

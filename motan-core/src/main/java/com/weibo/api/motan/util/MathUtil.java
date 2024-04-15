@@ -16,6 +16,8 @@
 
 package com.weibo.api.motan.util;
 
+import com.google.common.math.IntMath;
+
 /**
  * @author fishermen
  * @version V1.0 created at: 2013-6-20
@@ -27,6 +29,7 @@ public class MathUtil {
     /**
      * 针对int类型字符串进行解析，如果存在格式错误，则返回默认值（defaultValue）
      * Parse intStr, return defaultValue when numberFormatException occurs
+     *
      * @param intStr
      * @param defaultValue
      * @return
@@ -43,27 +46,32 @@ public class MathUtil {
     /**
      * 针对long类型字符串进行解析，如果存在格式错误，则返回默认值（defaultValue）
      * Parse longStr, return defaultValue when numberFormatException occurs
+     *
      * @param longStr
      * @param defaultValue
      * @return
      */
-    public static long parseLong(String longStr, long defaultValue){
+    public static long parseLong(String longStr, long defaultValue) {
         try {
             return Long.parseLong(longStr);
         } catch (NumberFormatException e) {
             return defaultValue;
         }
     }
-    
+
     /**
      * 通过二进制位操作将originValue转化为非负数:
-     *      0和正数返回本身
-     *      负数通过二进制首位取反转化为正数或0（Integer.MIN_VALUE将转换为0）
+     * 0和正数返回本身
+     * 负数通过二进制首位取反转化为正数或0（Integer.MIN_VALUE将转换为0）
      * return non-negative int value of originValue
+     *
      * @param originValue
      * @return positive int
      */
-    public static int getNonNegative(int originValue){
+    public static int getNonNegative(int originValue) {
+        if (originValue >= 0) {
+            return originValue;
+        }
         return 0x7fffffff & originValue;
     }
 
@@ -76,5 +84,16 @@ public class MathUtil {
      */
     public static int getNonNegativeRange24bit(int originValue) {
         return 0x00ffffff & originValue;
+    }
+
+    public static int findGCD(int[] arr) {
+        int result = arr[0];
+        for (int i = 1; i < arr.length; i++) {
+            result = IntMath.gcd(arr[i], result);
+            if (result == 1) {
+                return 1;
+            }
+        }
+        return result;
     }
 }

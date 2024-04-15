@@ -16,6 +16,7 @@
 
 package com.weibo.api.motan.transport;
 
+import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanBizException;
@@ -25,11 +26,9 @@ import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.protocol.rpc.CompressRpcCodec;
 import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.runtime.RuntimeInfoKeys;
+import com.weibo.api.motan.runtime.meta.MetaServiceProvider;
 import com.weibo.api.motan.serialize.DeserializableObject;
-import com.weibo.api.motan.util.CollectionUtil;
-import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.MotanFrameworkUtil;
-import com.weibo.api.motan.util.ReflectUtil;
+import com.weibo.api.motan.util.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -51,7 +50,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @version 创建时间：2013-6-4
  */
 public class ProviderMessageRouter implements MessageHandler {
+    private static final boolean STRICT_CHECK_GROUP = Boolean.parseBoolean(MotanGlobalConfigUtil.getConfig(MotanConstants.SERVER_END_STRICT_CHECK_GROUP_KEY, "false"));
     protected Map<String, Provider<?>> providers = new HashMap<>();
+    // framework-level general service providers
+    protected Map<String, Provider<?>> frameworkProviders = new HashMap<>();
 
     // 所有暴露出去的方法计数
     // 比如：messageRouter 里面涉及2个Service: ServiceA 有5个public method，ServiceB
@@ -63,17 +65,24 @@ public class ProviderMessageRouter implements MessageHandler {
     public ProviderMessageRouter() {
         strategy = ExtensionLoader.getExtensionLoader(ProviderProtectedStrategy.class).getExtension(URLParamType.providerProtectedStrategy.getValue());
         strategy.setMethodCounter(methodCounter);
+        initFrameworkServiceProvider();
     }
 
     public ProviderMessageRouter(URL url) {
         String providerProtectedStrategy = url.getParameter(URLParamType.providerProtectedStrategy.getName(), URLParamType.providerProtectedStrategy.getValue());
         strategy = ExtensionLoader.getExtensionLoader(ProviderProtectedStrategy.class).getExtension(providerProtectedStrategy);
         strategy.setMethodCounter(methodCounter);
+        initFrameworkServiceProvider();
     }
 
     public ProviderMessageRouter(Provider<?> provider) {
         this();
         addProvider(provider);
+    }
+
+    private void initFrameworkServiceProvider() {
+        // add MetaServiceProvider
+        frameworkProviders.put(MetaUtil.SERVICE_NAME, MetaServiceProvider.getInstance());
     }
 
     @Override
@@ -87,11 +96,22 @@ public class ProviderMessageRouter implements MessageHandler {
         }
 
         Request request = (Request) message;
+        // check whether request to the framework services.
+        if (request.getAttachments().containsKey(MotanConstants.FRAMEWORK_SERVICE)) {
+            if (frameworkProviders.containsKey(request.getInterfaceName())) {
+                //notice: framework provider should handle lazy deserialize params if params is required
+                return frameworkProviders.get(request.getInterfaceName()).call(request);
+            }
+            //throw specific exception to avoid triggering forced fusing on the client side。
+            throw new MotanServiceException(MotanErrorMsgConstant.SERVICE_NOT_SUPPORT_ERROR);
+        }
+
+        // biz services
         String serviceKey = MotanFrameworkUtil.getServiceKey(request);
         Provider<?> provider = providers.get(serviceKey);
 
-        // 兼容模式。TODO：可以增加是否启用兼容的配置项
-        if (provider == null) {
+        // compatibility mode will ignore group, find provider by interface name.
+        if (provider == null && !STRICT_CHECK_GROUP) {
             provider = providers.get(request.getInterfaceName());
         }
         if (provider == null) {
