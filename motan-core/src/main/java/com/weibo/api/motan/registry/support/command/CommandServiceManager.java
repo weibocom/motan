@@ -57,7 +57,7 @@ public class CommandServiceManager implements CommandListener, ServiceListener, 
     private volatile RpcCommand commandCache;
     private RpcCommand staticCommand;
     private Map<String, Integer> weights;
-    private final int recordInfoSize = 10;
+    private final int recordInfoSize = 5;
     private final CircularRecorder<String> commandRecorder = new CircularRecorder<>(recordInfoSize); // record last commands
     private final CircularRecorder<Object> notifyUrlsRecorder = new CircularRecorder<>(recordInfoSize); // record last notify urls
 
