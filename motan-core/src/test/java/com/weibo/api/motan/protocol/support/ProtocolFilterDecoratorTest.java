@@ -44,6 +44,8 @@ public class ProtocolFilterDecoratorTest {
     ProtocolFilterDecorator protocolFilterDecorator;
     Protocol protocol;
 
+    private int defaultFilterSize = 2;
+
     @Before
     public void setUp() throws Exception {
         protocol = new MockProtocol();
@@ -61,36 +63,36 @@ public class ProtocolFilterDecoratorTest {
         URL url = new URL("mock", "localhost", 7777, IWorld.class.getName());
         url.addParameter(URLParamType.filter.getName(), "statistic,switcher");
         List<Filter> filters = protocolFilterDecorator.getFilters(url, MotanConstants.NODE_TYPE_REFERER);
-        assertEquals(3, filters.size());
+        assertEquals(2 + defaultFilterSize, filters.size());
 
         // test disable referer filter
         url.addParameter(URLParamType.filter.getName(), "statistic,-access");
         filters = protocolFilterDecorator.getFilters(url, MotanConstants.NODE_TYPE_REFERER);
-        checkFilter(filters, 1, "statistic", "access");
+        checkFilter(filters, 1 + defaultFilterSize - 1, "statistic", "access");
 
         // test disable service filter
         url.addParameter(URLParamType.filter.getName(), "statistic,switcher,-access,-notExist");
         filters = protocolFilterDecorator.getFilters(url, MotanConstants.NODE_TYPE_SERVICE);
-        checkFilter(filters, 2, "switcher", "access");
+        checkFilter(filters, 2 + defaultFilterSize - 1, "switcher", "access");
 
         // test env global filters
         resetUrlFilter(url);
         getModifiableEnvironment().put(ENV_GLOBAL_FILTERS, "statistic,-access, switcher,,,"); // test add, remove, empty
         filters = protocolFilterDecorator.getFilters(url, MotanConstants.NODE_TYPE_SERVICE);
-        checkFilter(filters, 2, "switcher", "access");
+        checkFilter(filters, 2 + defaultFilterSize - 1, "switcher", "access");
 
         // test global config
         resetUrlFilter(url);
         MotanGlobalConfigUtil.putConfig(ENV_GLOBAL_FILTERS, "statistic,-access, switcher,,,"); // test add, remove, empty
         filters = protocolFilterDecorator.getFilters(url, MotanConstants.NODE_TYPE_SERVICE);
-        checkFilter(filters, 2, "switcher", "access");
+        checkFilter(filters, 2 + defaultFilterSize - 1, "switcher", "access");
 
         // filter and env and global config
         resetUrlFilter(url);
         url.addParameter(URLParamType.filter.getName(), "statistic");
         getModifiableEnvironment().put(ENV_GLOBAL_FILTERS, "switcher");
         MotanGlobalConfigUtil.putConfig(ENV_GLOBAL_FILTERS, ",-access,,,");
-        checkFilter(filters, 2, "switcher", "access");
+        checkFilter(filters, 2 + defaultFilterSize - 1, "switcher", "access");
     }
 
     private void resetUrlFilter(URL url) throws Exception {
@@ -98,7 +100,7 @@ public class ProtocolFilterDecoratorTest {
         getModifiableEnvironment().remove(ENV_GLOBAL_FILTERS);
         MotanGlobalConfigUtil.remove(ENV_GLOBAL_FILTERS);
         List<Filter> filters = protocolFilterDecorator.getFilters(url, MotanConstants.NODE_TYPE_SERVICE);
-        assertEquals(1, filters.size()); // default filters
+        assertEquals(defaultFilterSize, filters.size()); // default filters
     }
 
     private boolean checkFilter(List<Filter> filters, int size, String contains, String notContains) {

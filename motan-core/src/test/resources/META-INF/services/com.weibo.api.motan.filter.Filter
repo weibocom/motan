@@ -1,5 +1,5 @@
 #
-#  Copyright 2009-2016 Weibo, Inc.
+#  Copyright 2009-2024 Weibo, Inc.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -14,11 +14,4 @@
 #    limitations under the License.
 #
 
-com.weibo.api.motan.filter.AccessLogFilter
-com.weibo.api.motan.filter.ActiveLimitFilter
-com.weibo.api.motan.filter.AccessStatisticFilter
-com.weibo.api.motan.filter.SwitcherFilter
-com.weibo.api.motan.filter.ServiceMockFilter
-com.weibo.api.motan.filter.ThreadProtectedFilter
-com.weibo.api.motan.filter.FaultInjectionFilter
-com.weibo.api.motan.filter.GlobalDynamicFilter
+com.weibo.api.motan.filter.GlobalDynamicFilterTest$TestInnerFilter

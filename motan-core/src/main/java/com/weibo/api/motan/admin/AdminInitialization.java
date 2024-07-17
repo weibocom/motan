@@ -1,6 +1,7 @@
 package com.weibo.api.motan.admin;
 
 import com.weibo.api.motan.admin.handler.CommandListHandler;
+import com.weibo.api.motan.admin.handler.DynamicFilterHandler;
 import com.weibo.api.motan.admin.handler.MetaInfoHandler;
 import com.weibo.api.motan.admin.handler.RuntimeInfoHandler;
 import com.weibo.api.motan.common.MotanConstants;
@@ -101,6 +102,7 @@ public class AdminInitialization implements Initializable {
         AdminUtil.addCommandHandler(new CommandListHandler());
         AdminUtil.addCommandHandler(new RuntimeInfoHandler());
         AdminUtil.addCommandHandler(new MetaInfoHandler());
+        AdminUtil.addCommandHandler(new DynamicFilterHandler());
     }
 
     private void addExtHandlers(String handlerString) {
