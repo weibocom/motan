@@ -16,10 +16,7 @@
 
 package com.weibo.api.motan.mock;
 
-import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.rpc.Request;
-import com.weibo.api.motan.rpc.Response;
-import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.rpc.*;
 
 /**
  * @author maijunsheng
@@ -32,6 +29,7 @@ public class MockReferer<T> implements Referer<T> {
     public String desc = this.getClass().getSimpleName();
     public URL url = null;
     public URL serviceUrl = null;
+    public DefaultResponse response;
 
     public MockReferer() {
 
@@ -42,6 +40,12 @@ public class MockReferer<T> implements Referer<T> {
         this.serviceUrl = serviceUrl;
     }
 
+    public MockReferer(URL url, DefaultResponse response) {
+        this.url = url;
+        this.serviceUrl = url;
+        this.response = response;
+    }
+
     @Override
     public Class<T> getInterface() {
         return clz;
@@ -49,7 +53,7 @@ public class MockReferer<T> implements Referer<T> {
 
     @Override
     public Response call(Request request) {
-        return null;
+        return response;
     }
 
     @Override

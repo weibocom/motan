@@ -49,7 +49,7 @@ public class FaultInjectCommandHandler extends AbstractAdminCommandHandler {
             FaultInjectionFilter.FaultInjectionUtil.updateConfigs(configList);
         } else if (commands[1].equals(command)) {
             FaultInjectionFilter.FaultInjectionUtil.clearConfigs();
-        }else if (commands[2].equals(command)){
+        } else if (commands[2].equals(command)) {
             List<FaultInjectionFilter.FaultInjectionConfig> conf = FaultInjectionFilter.FaultInjectionUtil.getConfigs();
             result.put("data", JSON.parseArray(JSON.toJSONString(conf)));
         }
