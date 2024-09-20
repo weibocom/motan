@@ -117,9 +117,17 @@ public abstract class AbstractLoadBalance<T> implements LoadBalance<T> {
     }
 
     protected void addToSelectHolderFromStart(List<Referer<T>> referers, List<Referer<T>> refersHolder, int start) {
-        for (int i = 0, count = 0; i < referers.size() && count < MAX_REFERER_COUNT; i++) {
+        addToSelectHolderFromStart(referers, refersHolder, start, null);
+    }
+
+    private void addToSelectHolderFromStart(List<Referer<T>> referers, List<Referer<T>> refersHolder, int start, Referer<T> exclude) {
+        int maxSize = MAX_REFERER_COUNT;
+        if (exclude != null) {
+            maxSize--;
+        }
+        for (int i = 0, count = 0; i < referers.size() && count < maxSize; i++) {
             Referer<T> referer = referers.get((i + start) % referers.size());
-            if (referer.isAvailable()) {
+            if (referer.isAvailable() && referer != exclude) {
                 refersHolder.add(referer);
                 count++;
             }
@@ -134,5 +142,12 @@ public abstract class AbstractLoadBalance<T> implements LoadBalance<T> {
 
     protected abstract Referer<T> doSelect(Request request);
 
-    protected abstract void doSelectToHolder(Request request, List<Referer<T>> refersHolder);
+    protected void doSelectToHolder(Request request, List<Referer<T>> refersHolder) {
+        Referer<T> referer = doSelect(request);
+        if (referer != null) {
+            refersHolder.add(referer);
+        }
+        List<Referer<T>> referers = getReferers();
+        addToSelectHolderFromStart(referers, refersHolder, ThreadLocalRandom.current().nextInt(referers.size()), referer);
+    }
 }

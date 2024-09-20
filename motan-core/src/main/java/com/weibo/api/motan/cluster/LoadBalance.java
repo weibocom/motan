@@ -37,6 +37,7 @@ public interface LoadBalance<T> {
 
     Referer<T> select(Request request);
 
+    @Deprecated
     void selectToHolder(Request request, List<Referer<T>> refersHolder);
 
     void setWeightString(String weightString);

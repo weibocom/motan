@@ -58,11 +58,6 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
     }
 
     @Override
-    public void doSelectToHolder(Request request, List<Referer<T>> refersHolder) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     synchronized void notifyWeightChange() {
         List<WeightedRefererHolder<T>> tempHolders = weightedRefererHolders;
         int[] weights = new int[tempHolders.size()];
