@@ -21,6 +21,7 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.Activation;
 import com.weibo.api.motan.core.extension.SpiMeta;
 import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.switcher.Switcher;
 import com.weibo.api.motan.util.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -42,13 +43,20 @@ public class AccessLogFilter implements Filter {
 
     public static final String ACCESS_LOG_SWITCHER_NAME = "feature.motan.filter.accessLog";
     public static final String PRINT_TRACE_LOG_SWITCHER_NAME = "feature.motan.printTraceLog.enable";
+    private static Switcher ACCESS_LOG_SWITCHER = null;
+    private static Switcher PRINT_TRACE_LOG_SWITCHER = null;
     private String side;
     private Boolean accessLog;
 
     static {
         // init global switcher
-        MotanSwitcherUtil.initSwitcher(ACCESS_LOG_SWITCHER_NAME, false);
-        MotanSwitcherUtil.initSwitcher(PRINT_TRACE_LOG_SWITCHER_NAME, true);
+        if (MotanSwitcherUtil.canHoldSwitcher()) {
+            ACCESS_LOG_SWITCHER = MotanSwitcherUtil.getOrInitSwitcher(ACCESS_LOG_SWITCHER_NAME, false);
+            PRINT_TRACE_LOG_SWITCHER = MotanSwitcherUtil.getOrInitSwitcher(PRINT_TRACE_LOG_SWITCHER_NAME, true);
+        } else {
+            MotanSwitcherUtil.initSwitcher(ACCESS_LOG_SWITCHER_NAME, false);
+            MotanSwitcherUtil.initSwitcher(PRINT_TRACE_LOG_SWITCHER_NAME, true);
+        }
     }
 
     @Override
@@ -101,12 +109,12 @@ public class AccessLogFilter implements Filter {
 
     // 除了access log配置外，其他需要动态打印access的情况
     private boolean needLog(Request request) {
-        if (MotanSwitcherUtil.isOpen(ACCESS_LOG_SWITCHER_NAME)) {
+        if (MotanSwitcherUtil.isOpen(ACCESS_LOG_SWITCHER, ACCESS_LOG_SWITCHER_NAME)) {
             return true;
         }
 
         // check trace log
-        if (!MotanSwitcherUtil.isOpen(PRINT_TRACE_LOG_SWITCHER_NAME)) {
+        if (!MotanSwitcherUtil.isOpen(PRINT_TRACE_LOG_SWITCHER, PRINT_TRACE_LOG_SWITCHER_NAME)) {
             return false;
         }
         return "true".equalsIgnoreCase(request.getAttachments().get(MotanConstants.ATT_PRINT_TRACE_LOG));

@@ -41,6 +41,10 @@ public class NettyServerTest {
     public void tearDown() {
         if (nettyServer != null) {
             nettyServer.close();
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException ignore) {
+            }
         }
     }
 

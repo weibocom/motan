@@ -21,6 +21,7 @@ import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.switcher.Switcher;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
@@ -32,6 +33,15 @@ import java.util.Map;
  * @version 创建时间：2013-6-4
  */
 public class MotanFrameworkUtil {
+    private static Switcher MOTAN_TRACE_INFO_SW = null;
+
+    static {
+        if (MotanSwitcherUtil.canHoldSwitcher()) {
+            MOTAN_TRACE_INFO_SW = MotanSwitcherUtil.getOrInitSwitcher(MotanConstants.MOTAN_TRACE_INFO_SWITCHER, false);
+        } else {
+            MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_TRACE_INFO_SWITCHER, false);
+        }
+    }
 
     /**
      * 目前根据 group/interface/version 来唯一标示一个服务
@@ -316,7 +326,7 @@ public class MotanFrameworkUtil {
     }
 
     public static void logEvent(Request request, String event) {
-        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_TRACE_INFO_SWITCHER, false)) {
+        if (MotanSwitcherUtil.isOpen(MOTAN_TRACE_INFO_SW, MotanConstants.MOTAN_TRACE_INFO_SWITCHER)) {
             logEvent(request, event, System.currentTimeMillis());
         }
     }
@@ -334,13 +344,13 @@ public class MotanFrameworkUtil {
             context.setReceiveTime(time);
             return;
         }
-        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_TRACE_INFO_SWITCHER, false)) {
+        if (MotanSwitcherUtil.isOpen(MOTAN_TRACE_INFO_SW, MotanConstants.MOTAN_TRACE_INFO_SWITCHER)) {
             context.addTraceInfo(event, String.valueOf(time));
         }
     }
 
     public static void logEvent(Response response, String event) {
-        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_TRACE_INFO_SWITCHER, false)) {
+        if (MotanSwitcherUtil.isOpen(MOTAN_TRACE_INFO_SW, MotanConstants.MOTAN_TRACE_INFO_SWITCHER)) {
             logEvent(response, event, System.currentTimeMillis());
         }
     }
@@ -358,7 +368,7 @@ public class MotanFrameworkUtil {
             context.setReceiveTime(time);
             return;
         }
-        if (MotanSwitcherUtil.switcherIsOpenWithDefault(MotanConstants.MOTAN_TRACE_INFO_SWITCHER, false)) {
+        if (MotanSwitcherUtil.isOpen(MOTAN_TRACE_INFO_SW, MotanConstants.MOTAN_TRACE_INFO_SWITCHER)) {
             context.addTraceInfo(event, String.valueOf(time));
         }
     }

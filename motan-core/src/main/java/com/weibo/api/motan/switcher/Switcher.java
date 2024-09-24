@@ -19,15 +19,14 @@ package com.weibo.api.motan.switcher;
 /**
  * @author maijunsheng
  * @version 创建时间：2013-6-14
- * 
  */
 public class Switcher {
-    private boolean on = true;
+    private volatile boolean value;
     private String name; // 开关名
 
-    public Switcher(String name, boolean on) {
+    public Switcher(String name, boolean value) {
         this.name = name;
-        this.on = on;
+        this.value = value;
     }
 
     public String getName() {
@@ -36,24 +35,28 @@ public class Switcher {
 
     /**
      * isOn: true，服务可用; isOn: false, 服务不可用
-     * 
+     *
      * @return
      */
     public boolean isOn() {
-        return on;
+        return value;
     }
 
     /**
      * turn on switcher
      */
     public void onSwitcher() {
-        this.on = true;
+        this.value = true;
     }
 
     /**
      * turn off switcher
      */
     public void offSwitcher() {
-        this.on = false;
+        this.value = false;
+    }
+
+    public void setValue(boolean value) {
+        this.value = value;
     }
 }
