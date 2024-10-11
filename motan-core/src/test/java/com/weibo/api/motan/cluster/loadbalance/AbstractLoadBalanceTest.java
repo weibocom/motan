@@ -16,15 +16,19 @@
 
 package com.weibo.api.motan.cluster.loadbalance;
 
+import com.weibo.api.motan.BaseTestCase;
+import com.weibo.api.motan.cluster.LoadBalance;
+import com.weibo.api.motan.mock.MockReferer;
+import com.weibo.api.motan.protocol.example.IHello;
+import com.weibo.api.motan.rpc.DefaultRequest;
+import com.weibo.api.motan.rpc.Referer;
+import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.URL;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import com.weibo.api.motan.BaseTestCase;
-import com.weibo.api.motan.protocol.example.IHello;
-import com.weibo.api.motan.rpc.Referer;
-
 /**
- * 
  * Precreate referers.
  *
  * @author fishermen
@@ -39,10 +43,40 @@ public class AbstractLoadBalanceTest extends BaseTestCase {
     @SuppressWarnings("unchecked")
     public void setUp() throws Exception {
         super.setUp();
-        referers = new ArrayList<Referer<IHello>>();
+        referers = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             final Referer<IHello> ref = mockery.mock(Referer.class, "ref_" + i);
             referers.add(ref);
+        }
+    }
+
+    // TODO
+    public void testDefaultDoSelectToHolder() {
+        referers = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            referers.add(new MockReferer<>(new URL("motan", "localhost", i * 100 + i, "com.weibo.Hello")));
+        }
+
+        LoadBalance<IHello> lb = new AbstractLoadBalance<IHello>() {
+            @Override
+            protected Referer<IHello> doSelect(Request request) {
+                return getReferers().get(3);
+            }
+        };
+
+        lb.onRefresh(referers);
+        Request request = new DefaultRequest();
+        Referer<IHello> fixedOne = lb.select(request);
+        MockReferer<IHello> unavailableOne = (MockReferer<IHello>) referers.get(6);
+        unavailableOne.available = false;
+        for (int i = 0; i < 5; i++) { // repeat verification N times
+            List<Referer<IHello>> refererHolder = new ArrayList<>();
+            lb.selectToHolder(request, refererHolder);
+            assertSame(fixedOne, refererHolder.get(0)); // the first one is the fixed one
+            for (int j = 1; j < refererHolder.size(); j++) { // subsequent referers are not the first one
+                assertNotSame(fixedOne, refererHolder.get(j));
+                assertNotSame(unavailableOne, refererHolder.get(j));
+            }
         }
     }
 }

@@ -97,11 +97,6 @@ public class GroupWeightLoadBalanceWrapper<T> extends AbstractLoadBalance<T> {
     }
 
     @Override
-    protected void doSelectToHolder(Request request, List<Referer<T>> refersHolder) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void destroy() {
         if (selector != null) {
             selector.destroy();
