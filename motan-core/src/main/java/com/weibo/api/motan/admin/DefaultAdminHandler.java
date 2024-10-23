@@ -1,9 +1,11 @@
 package com.weibo.api.motan.admin;
 
+import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanAbstractException;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.util.LoggerUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Set;
@@ -17,7 +19,7 @@ public class DefaultAdminHandler implements AdminHandler {
     protected PermissionChecker permissionChecker;
     protected ConcurrentHashMap<String, AdminCommandHandler> routeHandlers = new ConcurrentHashMap<>();
 
-    public DefaultAdminHandler(){
+    public DefaultAdminHandler() {
         this(AdminUtil.getDefaultPermissionChecker());
     }
 
@@ -32,15 +34,19 @@ public class DefaultAdminHandler implements AdminHandler {
     public Response handle(Request request) {
         boolean pass = permissionChecker.check(request);
         if (!pass) {
+            LoggerUtil.warn("motan admin: command '" + request.getMethodName() + "' is not allowed. ip:" + request.getAttachment(URLParamType.host.getName()));
             return AdminUtil.notAllowed(request);
         }
+
         AdminCommandHandler handler = routeHandlers.get(request.getMethodName());
         if (handler == null) {
+            LoggerUtil.warn("motan admin: unknown command '" + request.getMethodName() + "'. ip:" + request.getAttachment(URLParamType.host.getName()));
             return AdminUtil.unknownCommand(request);
         }
         try {
+            LoggerUtil.info("motan admin: process command '" + request.getMethodName() + "'. ip:" + request.getAttachment(URLParamType.host.getName()));
             return handler.handle(request);
-        } catch (MotanAbstractException mae){
+        } catch (MotanAbstractException mae) {
             return AdminUtil.buildErrorResponse(request, mae.getOriginMessage());
         } catch (Throwable e) {
             return AdminUtil.buildErrorResponse(request, e.getMessage());
@@ -72,7 +78,7 @@ public class DefaultAdminHandler implements AdminHandler {
         return old;
     }
 
-    public Set<String> getCommandSet(){
+    public Set<String> getCommandSet() {
         return routeHandlers.keySet();
     }
 }
