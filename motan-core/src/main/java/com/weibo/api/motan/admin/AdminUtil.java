@@ -69,6 +69,7 @@ public class AdminUtil {
     public static String toJsonErrorMessage(String errMessage) {
         JSONObject errJson = new JSONObject();
         errJson.put("result", "fail");
+        errJson.put("from", "Motan Admin");
         errJson.put("error", errMessage == null ? "null" : errMessage);
         return errJson.toJSONString();
     }

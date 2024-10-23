@@ -23,8 +23,8 @@ public class DefaultPermissionChecker implements PermissionChecker {
     @Override
     public boolean check(Request request) {
         // check ip
-        String ip = request.getAttachments().get(URLParamType.host.getName());
-        if ("127.0.0.1".equals(ip) || "0:0:0:0:0:0:0:1".equals(ip)) {
+        String ip = request.getAttachment(URLParamType.host.getName());
+        if ("127.0.0.1".equals(ip) || "::1".equals(ip) || "0:0:0:0:0:0:0:1".equals(ip)) {
             return true;
         }
         if (MotanSwitcherUtil.isOpen(ADMIN_DISABLE_SWITCHER)) { // disable token validation and extended validation
@@ -43,10 +43,10 @@ public class DefaultPermissionChecker implements PermissionChecker {
         return false;
     }
 
-    protected String getToken(Request request){
-        String requestToken = request.getAttachments().get("Token");
-        if (requestToken == null){
-            requestToken = request.getAttachments().get("token");
+    protected String getToken(Request request) {
+        String requestToken = request.getAttachment("Token");
+        if (requestToken == null) {
+            requestToken = request.getAttachment("token");
         }
         return requestToken;
     }

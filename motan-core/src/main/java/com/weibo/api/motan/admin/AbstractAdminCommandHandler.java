@@ -33,6 +33,7 @@ public abstract class AbstractAdminCommandHandler implements AdminCommandHandler
     @Override
     public Response handle(Request request) {
         JSONObject result = new JSONObject();
+        result.put("from", "Motan Admin");
         result.put("result", "ok"); // default result.
         process(request.getMethodName(), AdminUtil.getParams(request), request.getAttachments(), result);
         return AdminUtil.buildResponse(request, result.toJSONString());
