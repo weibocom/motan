@@ -29,7 +29,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    
+
     <build>
         <plugins>
             <plugin>
@@ -54,7 +54,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
-                 <configuration>
+                <configuration>
                     <source>${java.source.jdk}</source>
                     <target>${java.source.jdk}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
@@ -71,6 +71,24 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.weibo</groupId>
+                <artifactId>breeze-maven-plugin</artifactId>
+                <version>0.1.4</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>schema</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <classes>
+                        <class>com.weibo.motan.demo.service.model.User</class>
+                    </classes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
