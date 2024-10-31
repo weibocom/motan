@@ -24,7 +24,6 @@ import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.ReflectUtil;
 import org.apache.commons.lang3.StringUtils;
 
-import java.net.InetAddress;
 import java.util.*;
 
 /**
@@ -470,21 +469,13 @@ public class AbstractInterfaceConfig extends AbstractConfig {
     }
 
     protected String getLocalHostAddress() {
-
-        String localAddress = null;
-
         Map<String, Integer> regHostPorts = new HashMap<String, Integer>();
         for (URL ru : registryUrls) {
             if (StringUtils.isNotBlank(ru.getHost()) && ru.getPort() > 0) {
                 regHostPorts.put(ru.getHost(), ru.getPort());
             }
         }
-
-        InetAddress address = NetUtils.getLocalAddress(regHostPorts);
-        if (address != null) {
-            localAddress = address.getHostAddress();
-        }
-
+        String localAddress = NetUtils.getLocalIpString(regHostPorts);
         if (NetUtils.isValidLocalHost(localAddress)) {
             return localAddress;
         }

@@ -501,7 +501,7 @@ public class CompressRpcCodec extends AbstractCodec {
             String sign = input.readUTF();
             MethodInfo mInfo = SIGN_METHOD_MAP.get(sign);
             if (mInfo == null) {
-                throw new MotanFrameworkException("decode error: invalid method sign: " + sign + ", serverIp: " + NetUtils.getLocalAddress().getHostAddress(),
+                throw new MotanFrameworkException("decode error: invalid method sign: " + sign + ", serverIp: " + NetUtils.getLocalIpString(),
                         MotanErrorMsgConstant.FRAMEWORK_DECODE_ERROR);
             }
             interfaceName = mInfo.getInterfaceName();

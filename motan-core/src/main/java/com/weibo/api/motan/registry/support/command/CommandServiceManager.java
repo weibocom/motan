@@ -170,8 +170,7 @@ public class CommandServiceManager implements CommandListener, ServiceListener, 
     }
 
     List<URL> discoverServiceWithCommand(Map<String, Integer> weights, RpcCommand rpcCommand) {
-        String localIP = NetUtils.getLocalAddress().getHostAddress();
-        return this.discoverServiceWithCommand(weights, rpcCommand, localIP);
+        return this.discoverServiceWithCommand(weights, rpcCommand, NetUtils.getLocalIpString());
     }
 
     List<URL> discoverServiceWithCommand(Map<String, Integer> weights, RpcCommand rpcCommand, String localIP) {

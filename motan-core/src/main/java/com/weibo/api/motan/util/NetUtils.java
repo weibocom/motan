@@ -17,6 +17,7 @@
 package com.weibo.api.motan.util;
 
 import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.exception.MotanFrameworkException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,41 +40,60 @@ public class NetUtils {
 
     public static final String LOCALHOST = "127.0.0.1";
 
-    public static final String ANYHOST = "0.0.0.0";
-
+    private static volatile String LOCAL_IP_STRING;
     private static volatile InetAddress LOCAL_ADDRESS = null;
 
     private static final Pattern LOCAL_IP_PATTERN = Pattern.compile("127(\\.\\d{1,3}){3}$");
 
-    private static final Pattern ADDRESS_PATTERN = Pattern.compile("^\\d{1,3}(\\.\\d{1,3}){3}\\:\\d{1,5}$");
-
-    private static final Pattern IP_PATTERN = Pattern.compile("\\d{1,3}(\\.\\d{1,3}){3,5}$");
+    private static final Pattern IP_PATTERN = Pattern.compile("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$");
 
     public static boolean isInvalidLocalHost(String host) {
-        return host == null || host.length() == 0 || host.equalsIgnoreCase("localhost") || host.equals("0.0.0.0")
-                || (LOCAL_IP_PATTERN.matcher(host).matches());
+        return host == null || host.isEmpty() || host.equalsIgnoreCase("localhost") || host.equals("0.0.0.0")
+                || (LOCAL_IP_PATTERN.matcher(host).matches()) || !IP_PATTERN.matcher(host).matches();
     }
 
     public static boolean isValidLocalHost(String host) {
         return !isInvalidLocalHost(host);
     }
 
+    public static String getLocalIpString() {
+        return getLocalIpString(null);
+    }
+
     /**
-     * {@link #getLocalAddress(Map)}
+     * Search strategy: first check cache --> IP specified in the environment variable --> IP from the hostname --> local IP from the connected socket --> get from the NetworkInterface
      *
-     * @return
+     * @return local ip string
      */
+    public static String getLocalIpString(Map<String, Integer> destHostPorts) {
+        if (LOCAL_IP_STRING != null) {
+            return LOCAL_IP_STRING;
+        }
+        if (StringUtils.isNotBlank(System.getenv(MotanConstants.ENV_MOTAN_LOCAL_IP))) {
+            // get local IP from env
+            String envIp = System.getenv(MotanConstants.ENV_MOTAN_LOCAL_IP).trim();
+            if (isValidLocalHost(envIp)) {
+                LOCAL_IP_STRING = envIp;
+                LoggerUtil.info("use env local IP:" + LOCAL_IP_STRING);
+                return LOCAL_IP_STRING;
+            }
+        }
+        LOCAL_IP_STRING = getLocalAddress(destHostPorts).getHostAddress();
+        return LOCAL_IP_STRING;
+    }
+
+    /**
+     * use getLocalIpString() instead
+     */
+    @Deprecated
     public static InetAddress getLocalAddress() {
         return getLocalAddress(null);
     }
 
     /**
-     * <pre>
-     * 查找策略：首先看是否已经查到ip --> 环境变量中指定的ip --> hostname对应的ip --> 根据连接目标端口得到的本地ip --> 轮询网卡
-     * </pre>
-     *
-     * @return local ip
+     * This method will be converted to a private method in subsequent versions. Please use getLocalIpString instead.
      */
+    @Deprecated
     public static InetAddress getLocalAddress(Map<String, Integer> destHostPorts) {
         if (LOCAL_ADDRESS != null) {
             return LOCAL_ADDRESS;
@@ -102,9 +122,11 @@ public class NetUtils {
 
         if (isValidAddress(localAddress)) {
             LOCAL_ADDRESS = localAddress;
+            LoggerUtil.info("use " + localAddress + " as local IP");
+            return localAddress;
         }
 
-        return localAddress;
+        throw new MotanFrameworkException("getLocalAddress fail, no valid local IP found");
     }
 
     private static InetAddress getLocalAddressByHostname() {
@@ -120,7 +142,7 @@ public class NetUtils {
     }
 
     private static InetAddress getLocalAddressBySocket(Map<String, Integer> destHostPorts) {
-        if (destHostPorts == null || destHostPorts.size() == 0) {
+        if (destHostPorts == null || destHostPorts.isEmpty()) {
             return null;
         }
 
@@ -176,14 +198,11 @@ public class NetUtils {
         return null;
     }
 
-    public static boolean isValidAddress(String address) {
-        return ADDRESS_PATTERN.matcher(address).matches();
-    }
-
     public static boolean isValidAddress(InetAddress address) {
-        if (address == null || address.isLoopbackAddress()) return false;
-        String name = address.getHostAddress();
-        return (name != null && !ANYHOST.equals(name) && !LOCALHOST.equals(name) && IP_PATTERN.matcher(name).matches());
+        if (address == null || address.isLoopbackAddress()) {
+            return false;
+        }
+        return isValidLocalHost(address.getHostAddress());
     }
 
     //return ip to avoid lookup dns
@@ -200,5 +219,10 @@ public class NetUtils {
         }
 
         return null;
+    }
+
+    // only for unit test
+    public static void clearCache() {
+        LOCAL_IP_STRING = null;
     }
 }

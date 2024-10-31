@@ -16,11 +16,6 @@
 
 package com.weibo.api.motan.filter;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.jmock.Expectations;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
@@ -33,10 +28,13 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.NetUtils;
+import org.jmock.Expectations;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
- * 
  * test
  *
  * @author fishermen
@@ -58,7 +56,7 @@ public class AccessStatisticFilterTest extends BaseTestCase {
         final Response response = mockery.mock(Response.class);
         final Caller<IHello> caller = mockery.mock(Caller.class);
         final URL url =
-                new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class.getName());
+                new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalIpString(), 0, RegistryService.class.getName());
         final Map<String, String> attachments = new HashMap<String, String>();
         attachments.put(URLParamType.host.getName(), URLParamType.host.getValue());
         attachments.put(URLParamType.application.getName(), URLParamType.application.getValue());

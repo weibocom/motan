@@ -14,39 +14,79 @@
  *    limitations under the License.
  */
 
-/**
- * 
- */
 package com.weibo.api.motan.util;
 
 import com.weibo.api.motan.BaseTestCase;
-import org.junit.Test;
+import com.weibo.api.motan.common.MotanConstants;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import static com.weibo.api.motan.TestUtils.getModifiableEnvironment;
 
 /**
  * @author bozheng
- * 
  */
 public class NetUtilsTest extends BaseTestCase {
+
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        getModifiableEnvironment().remove(MotanConstants.ENV_MOTAN_LOCAL_IP);
+    }
+
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
+        getModifiableEnvironment().remove(MotanConstants.ENV_MOTAN_LOCAL_IP);
     }
 
-    @Test
-    public void testGetLocalAddress() {
-        InetAddress address = NetUtils.getLocalAddress();
-        assertNotNull(address);
-        assertTrue(NetUtils.isValidAddress(address));
-        try {
-            if(NetUtils.isValidAddress(InetAddress.getLocalHost())){
-                assertEquals(InetAddress.getLocalHost(), address);
-            }
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
+    public void testIsValidLocalHost() {
+        String[] validIps = new String[]{
+                "192.168.0.1",
+                "10.0.0.0",
+                "172.16.0.1",
+                "255.255.255.255",
+                "10.185.10.10"
+        };
+        String[] invalidIps = new String[]{
+                null,
+                "localhost",
+                "127.0.0.1",
+                "0.0.0.0",
+                "256.255.255.1",
+                "192.168.0",
+                "192.168.0.1.2",
+                "256.0.0.1",
+                "192.168.0.256",
+                "192.168.0.-1",
+                "192.168.0.1.",
+                ".192.168.0.1",
+                "192.168.0.1a",
+                "192.168.0",
+                "192.168.0.",
+                "192.168",
+                "a.b.c.d",
+                "192.168.0.1:8080",
+                " 192.168.0.1 ",
+                "192. 168.0.1"
+        };
+        for (String ip : validIps) {
+            assertTrue(NetUtils.isValidLocalHost(ip));
         }
+        for (String ip : invalidIps) {
+            assertFalse(NetUtils.isValidLocalHost(ip));
+        }
+    }
+
+    public void testGetLocalIpString() throws Exception {
+        String ip = NetUtils.getLocalIpString();
+        assertNotNull(ip);
+        assertTrue(NetUtils.isValidLocalHost(ip));
+
+        // test use env ip
+        String expectIp = "255.255.255.255";
+        NetUtils.clearCache();
+        getModifiableEnvironment().put(MotanConstants.ENV_MOTAN_LOCAL_IP, expectIp);
+        ip = NetUtils.getLocalIpString();
+        assertEquals(expectIp, ip);
     }
 
 }

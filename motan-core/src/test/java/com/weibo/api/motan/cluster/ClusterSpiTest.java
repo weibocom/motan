@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 
  * cluster spi test.
  *
  * @author fishermen
@@ -118,7 +117,7 @@ public class ClusterSpiTest extends BaseTestCase {
 
         clusterSpi.setHaStrategy(new FailoverHaStrategy<IHello>());
         clusterSpi.setLoadBalance(new RandomLoadBalance<IHello>());
-        URL url = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class.getName());
+        URL url = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalIpString(), 0, RegistryService.class.getName());
         url.addParameter(URLParamType.throwException.getName(), String.valueOf(throwException));
         url.addParameter(URLParamType.retries.getName(), "2");
 
@@ -130,7 +129,7 @@ public class ClusterSpiTest extends BaseTestCase {
     private Request mockRequest() {
         final DefaultRequest request = new DefaultRequest();
         request.setMethodName(IHello.class.getMethods()[0].getName());
-        request.setArguments(new Object[] {});
+        request.setArguments(new Object[]{});
         request.setInterfaceName(IHello.class.getSimpleName());
         request.setParamtersDesc("void");
         return request;

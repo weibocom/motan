@@ -89,7 +89,7 @@ public class AccessLogFilterTest extends BaseTestCase {
     }
 
     private URL getDefaultUrl() {
-        return new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class.getName());
+        return new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalIpString(), 0, RegistryService.class.getName());
     }
 
     private Map<String, String> getDefaultAttachment() {
@@ -154,7 +154,7 @@ public class AccessLogFilterTest extends BaseTestCase {
     private void checkProcessWithTraceable(URL url, Map<String, String> attachments, boolean isProcess, boolean isServerEnd, boolean timeout) throws Exception {
         resetMockery();
         final DefaultRequest request = mockery.mock(DefaultRequest.class);
-        final DefaultResponse response = timeout ? null :new DefaultResponse();
+        final DefaultResponse response = timeout ? null : new DefaultResponse();
         final Caller<IHello> caller;
         if (isServerEnd) {
             caller = mockery.mock(Provider.class);
@@ -164,7 +164,7 @@ public class AccessLogFilterTest extends BaseTestCase {
         final LogService logService = mockery.mock(LogService.class);
         final TraceableContext requestTraceableContext = mockery.mock(TraceableContext.class, "requestTraceableContext");
         final TraceableContext responseTraceableContext = mockery.mock(TraceableContext.class, "responseTraceableContext");
-        if (!timeout){
+        if (!timeout) {
             Field field = DefaultResponse.class.getDeclaredField("traceableContext");
             field.setAccessible(true);
             field.set(response, responseTraceableContext);
@@ -200,7 +200,7 @@ public class AccessLogFilterTest extends BaseTestCase {
                         exactly(1).of(responseTraceableContext).getSendTime(); // response send time for server end
                         will(returnValue(15L));
                     } else {
-                        if (!timeout){
+                        if (!timeout) {
                             exactly(1).of(requestTraceableContext).getSendTime(); // request send time for client end
                             will(returnValue(10L));
                             exactly(1).of(responseTraceableContext).getReceiveTime(); // response receive time for client end
@@ -220,7 +220,7 @@ public class AccessLogFilterTest extends BaseTestCase {
             });
         }
         accessLogFilter.filter(caller, request);
-        if (!timeout){
+        if (!timeout) {
             response.onFinish();
         }
         if (isServerEnd) {

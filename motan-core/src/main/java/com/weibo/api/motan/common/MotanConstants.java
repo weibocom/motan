@@ -171,10 +171,12 @@ public class MotanConstants {
     public static final String ENV_GLOBAL_FILTERS = "MOTAN_GLOBAL_FILTERS"; // add global filters from env
     public static final String ENV_MESH_PROXY = "MOTAN_MESH_PROXY"; //使用mesh代理motan请求的环境变量名
     public static final String ENV_MOTAN_IP_PREFIX = "MOTAN_IP_PREFIX";
+    public static final String ENV_MOTAN_LOCAL_IP = "MOTAN_LOCAL_IP"; // specify the local IP address used in motan
     public static final String ENV_MOTAN_ADMIN_TOKEN = "MOTAN_ADMIN_TOKEN";
     public static final String ENV_MOTAN_ADMIN_PORT = "MOTAN_ADMIN_PORT";
     public static final String ENV_MOTAN_ADMIN_EXT_HANDLERS = "MOTAN_ADMIN_EXT_HANDLERS";
     public static final String ENV_RPC_REG_GROUP_SUFFIX = "RPC_REG_GROUP_SUFFIX"; // Group suffix automatically appended during RPC registration
+
 
     // ------------------ motan mesh default value -----------------
     public static final String MESH_CLIENT = "meshClient";

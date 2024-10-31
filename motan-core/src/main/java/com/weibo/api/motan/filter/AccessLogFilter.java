@@ -131,7 +131,7 @@ public class AccessLogFilter implements Filter {
         // application and module from local url
         append(builder, caller.getUrl().getParameter(URLParamType.application.getName()));
         append(builder, MotanFrameworkUtil.getModuleOrGroup(caller.getUrl().getParameters(), null));
-        append(builder, NetUtils.getLocalAddress().getHostAddress());
+        append(builder, NetUtils.getLocalIpString());
         append(builder, request.getInterfaceName());
         append(builder, request.getMethodName());
         append(builder, request.getParamtersDesc());

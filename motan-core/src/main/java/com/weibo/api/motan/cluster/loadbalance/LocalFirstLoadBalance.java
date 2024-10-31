@@ -22,7 +22,10 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.NetUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -67,7 +70,7 @@ public class LocalFirstLoadBalance<T> extends AbstractLoadBalance<T> {
     protected Referer<T> doSelect(Request request) {
         List<Referer<T>> referers = getReferers();
 
-        List<Referer<T>> localReferers = searchLocalReferer(referers, NetUtils.getLocalAddress().getHostAddress());
+        List<Referer<T>> localReferers = searchLocalReferer(referers, NetUtils.getLocalIpString());
 
         if (!localReferers.isEmpty()) {
             referers = localReferers;
@@ -99,7 +102,7 @@ public class LocalFirstLoadBalance<T> extends AbstractLoadBalance<T> {
     protected void doSelectToHolder(Request request, List<Referer<T>> refersHolder) {
         List<Referer<T>> referers = getReferers();
 
-        List<Referer<T>> localReferers = searchLocalReferer(referers, NetUtils.getLocalAddress().getHostAddress());
+        List<Referer<T>> localReferers = searchLocalReferer(referers, NetUtils.getLocalIpString());
 
         if (!localReferers.isEmpty()) {
             Collections.sort(localReferers, new LowActivePriorityComparator<T>());
