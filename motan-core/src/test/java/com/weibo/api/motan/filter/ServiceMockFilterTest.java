@@ -16,20 +16,22 @@
 
 package com.weibo.api.motan.filter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.protocol.example.IHello;
 import com.weibo.api.motan.protocol.example.IHelloMock;
 import com.weibo.api.motan.registry.RegistryService;
-import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.rpc.Caller;
+import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.NetUtils;
 import com.weibo.api.motan.util.StatsUtil;
-
 import org.jmock.Expectations;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ServiceMockFilterTest extends BaseTestCase {
     private ServiceMockFilter smfilter = new ServiceMockFilter();
@@ -42,7 +44,7 @@ public class ServiceMockFilterTest extends BaseTestCase {
     public void testCall() {
         final Request request = mockery.mock(Request.class);
         final Response response = mockery.mock(Response.class);
-        final URL url = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, IHello.class.getName());
+        final URL url = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalIpString(), 0, IHello.class.getName());
         url.addParameter(URLParamType.mock.getName(), "default");
 
         final Caller<IHello> caller = mockery.mock(Caller.class);
@@ -85,7 +87,7 @@ public class ServiceMockFilterTest extends BaseTestCase {
         final Request request = mockery.mock(Request.class);
         final Response response = mockery.mock(Response.class);
         final URL url =
-                new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class.getName());
+                new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalIpString(), 0, RegistryService.class.getName());
         url.addParameter(URLParamType.mock.getName(), "default");
         url.addParameter(URLParamType.mean.getName(), "1");
         url.addParameter(URLParamType.p90.getName(), "2");

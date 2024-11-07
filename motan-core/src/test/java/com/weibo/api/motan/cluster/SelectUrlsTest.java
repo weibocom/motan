@@ -41,8 +41,8 @@ public class SelectUrlsTest {
         return urls;
     }
 
-    private static URL mockRefUrl(){
-        URL refUrl = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, IHello.class.getName());
+    private static URL mockRefUrl() {
+        URL refUrl = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalIpString(), 0, IHello.class.getName());
         refUrl.addParameter(URLParamType.check.getName(), "false");
         refUrl.addParameter(URLParamType.maxConnectionPerGroup.getName(), String.valueOf(count * URLParamType.maxClientConnection.getIntValue()));
         return refUrl;
@@ -85,7 +85,7 @@ public class SelectUrlsTest {
         List<URL> addedUrls = new ArrayList<>(selectUrls);
         addedUrls.retainAll(urls.subList(split, notifyCount));
 
-        double p = (double)(notifyCount - split) / notifyCount;
+        double p = (double) (notifyCount - split) / notifyCount;
         //假设认定新加入的url都有p的可能性被选中，即每个url是否被选中独立服从0-1分布
         //进而，根据中心极限定理可知下式 近似 服从标准正态分布
         double z = (addedUrls.size() - p * count) / (Math.sqrt((notifyCount - split) * p * (1 - p)));
@@ -112,7 +112,7 @@ public class SelectUrlsTest {
     private List<URL> mockUrls(int size, String group) {
         List<URL> urls = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            URL url = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), i, IHello.class.getName());
+            URL url = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalIpString(), i, IHello.class.getName());
             url.addParameter(URLParamType.nodeType.getName(), MotanConstants.NODE_TYPE_SERVICE);
             url.addParameter(URLParamType.group.getName(), group);
             urls.add(url);

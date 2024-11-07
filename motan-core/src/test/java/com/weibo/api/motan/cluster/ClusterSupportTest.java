@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 
  * ClusterSupport test.
  *
  * @author fishermen
@@ -65,7 +64,7 @@ public class ClusterSupportTest {
     private static String regProtocol1 = "reg_1";
     private static String regProtocol2 = "reg_2";
     private static String maxConnectionPerGroup = "40"; //clusterSupport.selectNodeCount=4
-    private static String localAddress = NetUtils.getLocalAddress().getHostAddress();
+    private static String localAddress = NetUtils.getLocalIpString();
     private static Map<String, Referer<IHello>> portReferers = new HashMap<String, Referer<IHello>>();
     private static List<URL> serviceUrls1 = new ArrayList<URL>();
     private static Map<String, Boolean> availableMap = new HashMap<>();
@@ -95,8 +94,8 @@ public class ClusterSupportTest {
             serviceUrls1.add(url);
         }
 
-        final URL reg1Url = new URL("reg_protocol_1", NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class.getName());
-        final URL reg2Url = new URL("reg_protocol_2", NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class.getName());
+        final URL reg1Url = new URL("reg_protocol_1", NetUtils.getLocalIpString(), 0, RegistryService.class.getName());
+        final URL reg2Url = new URL("reg_protocol_2", NetUtils.getLocalIpString(), 0, RegistryService.class.getName());
 
         mockery.checking(new Expectations() {
             {
@@ -126,6 +125,7 @@ public class ClusterSupportTest {
                             description.appendText("returns ");
                             description.appendValue(availableMap.getOrDefault(refererUrl.toString(), true));
                         }
+
                         @Override
                         public Object invoke(Invocation invocation) throws Throwable {
                             return availableMap.getOrDefault(refererUrl.toString(), true);
@@ -224,16 +224,16 @@ public class ClusterSupportTest {
         return urls;
     }
 
-    private static URL mockRefUrl(){
+    private static URL mockRefUrl() {
         Map<String, String> params = new HashMap<>();
         params.put(URLParamType.maxConnectionPerGroup.getName(), maxConnectionPerGroup);
-        URL refUrl = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, IHello.class.getName(), params);
+        URL refUrl = new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalIpString(), 0, IHello.class.getName(), params);
         refUrl.addParameter(URLParamType.check.getName(), "false");
         return refUrl;
     }
 
     @Test
-    public void testRefreshReferers(){
+    public void testRefreshReferers() {
         MotanSwitcherUtil.setSwitcherValue("feature.motan.partial.server", true);
         List<URL> copy = new ArrayList<URL>();
         clusterSupport.notify(registries.get(regProtocol1).getUrl(), copy(copy, serviceUrls1.subList(0, 2)));
@@ -244,7 +244,7 @@ public class ClusterSupportTest {
 
         clusterSupport.notify(registries.get(regProtocol1).getUrl(), copy(copy, serviceUrls1.subList(0, 6)));
         Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 4);
-        Assert.assertEquals(getAvailableReferersCount(),4);
+        Assert.assertEquals(getAvailableReferersCount(), 4);
 
         Referer referer1 = clusterSupport.getCluster().getReferers().get(0);
         Referer referer2 = clusterSupport.getCluster().getReferers().get(1);
@@ -252,24 +252,24 @@ public class ClusterSupportTest {
         availableMap.put(referer1.getUrl().toString(), false);
         clusterSupport.refreshReferers();
         Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 4);
-        Assert.assertEquals(getAvailableReferersCount(),3);
+        Assert.assertEquals(getAvailableReferersCount(), 3);
         //设置2节点不可用，小于阈值，触发refresh
         availableMap.put(referer2.getUrl().toString(), false);
 
         clusterSupport.refreshReferers();
         Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 6);
-        Assert.assertEquals(getAvailableReferersCount(),4);
+        Assert.assertEquals(getAvailableReferersCount(), 4);
 
         //设置1节点恢复，未大于阈值，不触发refresh
         availableMap.put(referer2.getUrl().toString(), true);
         clusterSupport.refreshReferers();
         Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 6);
-        Assert.assertEquals(getAvailableReferersCount(),5);
+        Assert.assertEquals(getAvailableReferersCount(), 5);
         //设置0节点恢复，大于阈值，触发refresh
         availableMap.put(referer1.getUrl().toString(), true);
         clusterSupport.refreshReferers();
         Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 4);
-        Assert.assertEquals(getAvailableReferersCount(),4);
+        Assert.assertEquals(getAvailableReferersCount(), 4);
     }
 
     private int getAvailableReferersCount() {
@@ -281,6 +281,7 @@ public class ClusterSupportTest {
         }
         return result;
     }
+
     private static class ClusterSupportMask<T> extends ClusterSupport<T> {
         public ClusterSupportMask(Class<T> interfaceClass, List<URL> registryUrls, URL refUrl) {
             super(interfaceClass, registryUrls, refUrl);
@@ -297,7 +298,7 @@ public class ClusterSupportTest {
         }
 
         @Override
-        public void refreshReferers(){
+        public void refreshReferers() {
             super.refreshReferers();
         }
     }

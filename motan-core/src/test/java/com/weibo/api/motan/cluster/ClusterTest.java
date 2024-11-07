@@ -81,7 +81,7 @@ public class ClusterTest extends BaseTestCase {
             }
         });
 
-        cluster.setUrl(new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 0, RegistryService.class
+        cluster.setUrl(new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalIpString(), 0, RegistryService.class
                 .getName()));
         cluster.setHaStrategy(ha);
         cluster.setLoadBalance(lb);
@@ -96,7 +96,7 @@ public class ClusterTest extends BaseTestCase {
         mockery.checking(new Expectations() {
             {
                 allowing(any(Referer.class)).method("getUrl").withNoArguments();
-                will(returnValue(new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalAddress().getHostAddress(), 18080, Object.class
+                will(returnValue(new URL(MotanConstants.PROTOCOL_MOTAN, NetUtils.getLocalIpString(), 18080, Object.class
                         .getName())));
                 allowing(any(Referer.class)).method("isAvailable").withNoArguments();
                 will(returnValue(true));
