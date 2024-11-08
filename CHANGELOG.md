@@ -1,5 +1,23 @@
 # Change Log
 
+## [1.2.4](https://github.com/weibocom/motan/tree/1.2.4) (2024-11-08)
+
+[Full Changelog](https://github.com/weibocom/motan/compare/1.2.3...1.2.4)
+
+**Implemented enhancements:**
+
+- implement dynamic
+  filter [\#1066](https://github.com/weibocom/motan/pull/1066) ([Ray](https://github.com/rayzhang0603))
+- optimize switch usage [\#1070](https://github.com/weibocom/motan/pull/1070) ([Ray](https://github.com/rayzhang0603))
+- optimize management
+  port [\#1071](https://github.com/weibocom/motan/pull/1071) ([Ray](https://github.com/rayzhang0603))
+- optimize obtaining local
+  IP [\#1072](https://github.com/weibocom/motan/pull/1072) ([Ray](https://github.com/rayzhang0603))
+
+**Merged pull requests:**
+
+**Fixed bugs:**
+
 ## [1.2.3](https://github.com/weibocom/motan/tree/1.2.3) (2024-05-30)
 
 [Full Changelog](https://github.com/weibocom/motan/compare/1.2.2...1.2.3)
