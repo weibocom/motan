@@ -25,10 +25,11 @@
     <bean id="motanBenchmarkServiceImpl" class="com.weibo.motan.benchmark.BenchmarkServiceImpl"/>
 
     <!-- 注册中心配置 使用不同注册中心需要依赖对应的jar包。如果不使用注册中心，可以把check属性改为false，忽略注册失败。-->
-    <motan:registry regProtocol="local" name="localRegistry" check="false" />
+    <motan:registry regProtocol="local" name="localRegistry" check="false"/>
 
     <!-- 协议配置。为防止多个业务配置冲突，推荐使用id表示具体协议。-->
-    <motan:protocol id="benchmarkMotan" default="true" name="motan"
+    <!-- 可以配置codec="motan2"，取消对motan1协议的兼容 -->
+    <motan:protocol id="benchmarkMotan" default="true" name="motan2" codec="motan2"
                     requestTimeout="220" maxServerConnection="80000" maxContentLength="1048576"
                     maxWorkerThread="800" minWorkerThread="20"/>
 
