@@ -149,7 +149,7 @@ public class NettyServerTest {
     @Test
     public void testServerAsync() throws TransportException, InterruptedException {
         final AtomicInteger callbackCount = new AtomicInteger();
-        NettyServer nettyServer = new NettyServer(url, (channel, message) -> {
+        nettyServer = new NettyServer(url, (channel, message) -> {
             final Request request = (Request) message;
             Response response;
             if ("async".equals(request.getMethodName())) { // async result

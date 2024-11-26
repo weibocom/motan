@@ -26,13 +26,13 @@
     <motan:registry regProtocol="local" name="localRegistry" check="false"/>
 
     <!-- motan协议配置 -->
-    <motan:protocol default="true" name="motan" haStrategy="failfast"
+    <motan:protocol default="true" name="motan2" haStrategy="failfast"
                     loadbalance="roundrobin" maxClientConnection="10" minClientConnection="2"/>
 
     <!-- 通用referer基础配置 -->
     <motan:basicReferer requestTimeout="100" accessLog="false"
                         retries="2" group="motan-benchmark-rpc" module="motan-benchmark-rpc"
-                        application="myMotanBenchmark" protocol="motan" registry="localRegistry"
+                        application="myMotanBenchmark" protocol="motan2" registry="localRegistry"
                         id="motanClientBasicConfig" throwException="false" check="true"/>
 
     <!-- 具体referer配置。使用方通过beanid使用服务接口类 -->

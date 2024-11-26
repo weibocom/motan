@@ -63,7 +63,7 @@ public abstract class AbstractCodec implements Codec {
 
     public ObjectInput createInput(InputStream in) {
         try {
-            return new ObjectInputStream(in);
+            return new SafeObjectInputStream(in);
         } catch (Exception e) {
             throw new MotanFrameworkException(this.getClass().getSimpleName() + " createInput error", e,
                     MotanErrorMsgConstant.FRAMEWORK_DECODE_ERROR);
@@ -72,7 +72,7 @@ public abstract class AbstractCodec implements Codec {
 
     protected static synchronized void initAllSerialization() {
         if (serializations == null) {
-            serializations = new ConcurrentHashMap<Integer, String>();
+            serializations = new ConcurrentHashMap<>();
             try {
                 ExtensionLoader<Serialization> loader = ExtensionLoader.getExtensionLoader(Serialization.class);
                 List<Serialization> exts = loader.getExtensions(null);
@@ -84,7 +84,7 @@ public abstract class AbstractCodec implements Codec {
                     }
                 }
             } catch (Exception e) {
-                LoggerUtil.warn("init all serialzaion fail!", e);
+                LoggerUtil.warn("init all serialization fail!", e);
             }
         }
     }
@@ -102,6 +102,29 @@ public abstract class AbstractCodec implements Codec {
             throw new MotanServiceException("can not found serialization by number " + serializationNum + ", name: " + name);
         }
         return s;
+    }
+
+    private static class SafeObjectInputStream extends ObjectInputStream {
+
+        public SafeObjectInputStream(InputStream in) throws IOException {
+            super(in);
+        }
+
+        @Override
+        protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+            if ("[B".equals(desc.getName())) {
+                // only serialized binary data is supported
+                return super.resolveClass(desc);
+            }
+            // The motan protocol does not allow the transfer of any object class
+            throw new InvalidClassException("object classes are not allowed in motan protocol, only serialized binary data is supported.");
+        }
+
+        @Override
+        protected Class<?> resolveProxyClass(String[] interfaces) throws IOException {
+            // The motan protocol does not allow the transfer of any object class
+            throw new InvalidClassException("object classes are not allowed in motan protocol, only serialized binary data is supported.");
+        }
     }
 
 }
