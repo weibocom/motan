@@ -121,11 +121,11 @@ public class MeshRegistryTest {
 
         // 验证降级开关
         MotanSwitcherUtil.setSwitcherValue(MeshRegistry.MESH_REGISTRY_SWITCHER_NAME, false);
-        Thread.sleep(50l);
+        Thread.sleep(100l);
         assertEquals(notifyListener.urls, mockProxyRegistry.discover(subUrl));
 
         MotanSwitcherUtil.setSwitcherValue(MeshRegistry.MESH_REGISTRY_SWITCHER_NAME, true);
-        Thread.sleep(50l);
+        Thread.sleep(100l);
         assertEquals(notifyListener.urls.size(), copy);
 
         // health check
