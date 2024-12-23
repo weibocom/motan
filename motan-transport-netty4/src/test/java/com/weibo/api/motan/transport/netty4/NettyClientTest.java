@@ -39,6 +39,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -312,6 +313,34 @@ public class NettyClientTest {
         clientInfos = nettyClient.getRuntimeInfo();
         assertEquals(ChannelState.CLOSE.name(), clientInfos.get(RuntimeInfoKeys.STATE_KEY));
         assertFalse((Boolean) clientInfos.get(RuntimeInfoKeys.FORCE_CLOSED_KEY));
+    }
+
+    @Test
+    public void TestRemoveTimeoutRequest() throws InterruptedException {
+        int size = 10;
+        List<NettyClient> clients = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            clients.add(new NettyClient(url));
+            assertEquals(i + 1, NettyClient.getAllNettyClientSize()); // check alived NettyClient
+        }
+
+        NettyClient client = clients.get(0);
+        for (int i = 0; i < 10; i++) {
+            int timeout = 10;
+            if (i > 4) {
+                timeout = 2000;
+            }
+            ResponseFuture future = new DefaultResponseFuture(new DefaultRequest(), timeout, url);
+            client.registerCallback(10000 + i, future);
+        }
+
+        Thread.sleep(MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD + 10);
+        assertEquals(5, client.callbackMap.size()); // check if expired requests are deleted
+
+        for (int i = 0; i < size; i++) {
+            clients.get(i).close();
+            assertEquals(size - i - 1, NettyClient.getAllNettyClientSize()); // check alived NettyClient
+        }
     }
 
     static class NettyTestClient extends NettyClient {

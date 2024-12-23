@@ -213,6 +213,8 @@ public class NettyServerExample {
         }
         Thread.sleep(2);
         assertEquals(4, callbackCount.get());
+        nettyClient.close();
+        nettyServer.close();
     }
 
     private URL defaultUrl() {

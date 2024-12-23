@@ -13,6 +13,7 @@ import com.weibo.api.motan.transport.AbstractSharedPoolClient;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.SharedObjectFactory;
 import com.weibo.api.motan.transport.TransportException;
+import com.weibo.api.motan.util.ConcurrentHashSet;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.StatisticCallback;
@@ -39,12 +40,25 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
      * 回收过期任务
      */
     private static ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(1);
+    private static ConcurrentHashSet<NettyClient> allNettyClients = new ConcurrentHashSet<>(128);
+
+    static {
+        scheduledExecutor.scheduleWithFixedDelay(
+                () -> {
+                    // TODO: An additional thread pool can be used to perform the cleanup task if client number is very large. 
+                    for (NettyClient nettyClient : allNettyClients) {
+                        nettyClient.removeTimeoutResponse();
+                    }
+                },
+                MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD, MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD,
+                TimeUnit.MILLISECONDS);
+    }
+
     /**
      * 异步的request，需要注册callback future
      * 触发remove的操作有： 1) service的返回结果处理。 2) timeout thread cancel
      */
     protected ConcurrentMap<Long, ResponseFuture> callbackMap = new ConcurrentHashMap<>();
-    private ScheduledFuture<?> timeMonitorFuture;
     private Bootstrap bootstrap;
     private int fusingThreshold;
     // Whether force closed. For example encounter the 'provider not exist' exception
@@ -57,10 +71,7 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
     public NettyClient(URL url) {
         super(url);
         fusingThreshold = url.getIntParameter(URLParamType.fusingThreshold.getName(), URLParamType.fusingThreshold.getIntValue());
-        timeMonitorFuture = scheduledExecutor.scheduleWithFixedDelay(
-                new TimeoutMonitor("timeout_monitor_" + url.getHost() + "_" + url.getPort()),
-                MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD, MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD,
-                TimeUnit.MILLISECONDS);
+        allNettyClients.add(this); // Add to the client set, and the scheduled task will clean up the expired requests
     }
 
     public Bootstrap getBootstrap() {
@@ -229,8 +240,8 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
     }
 
     public void cleanup() {
-        // 取消定期的回收任务
-        timeMonitorFuture.cancel(true);
+        // remove from client set. note that once the cleanup method is executed, you should not reopen this client
+        allNettyClients.remove(this);
         // 清空callback
         callbackMap.clear();
         // 关闭client持有的channel
@@ -375,33 +386,19 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
         this.callbackMap.put(requestId, responseFuture);
     }
 
-    /**
-     * 回收超时任务
-     *
-     * @author maijunsheng
-     */
-    class TimeoutMonitor implements Runnable {
-        private String name;
+    public void removeTimeoutResponse() {
+        long currentTime = System.currentTimeMillis();
+        for (Map.Entry<Long, ResponseFuture> entry : callbackMap.entrySet()) {
+            try {
+                ResponseFuture future = entry.getValue();
 
-        public TimeoutMonitor(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public void run() {
-            long currentTime = System.currentTimeMillis();
-            for (Map.Entry<Long, ResponseFuture> entry : callbackMap.entrySet()) {
-                try {
-                    ResponseFuture future = entry.getValue();
-
-                    if (future.getCreateTime() + future.getTimeout() < currentTime) {
-                        // timeout: remove from callback list, and then cancel
-                        removeCallback(entry.getKey());
-                        future.cancel();
-                    }
-                } catch (Exception e) {
-                    LoggerUtil.error(name + " clear timeout future Error: uri=" + url.getUri() + " requestId=" + entry.getKey(), e);
+                if (future.getCreateTime() + future.getTimeout() < currentTime) {
+                    // timeout: remove from callback list, and then cancel
+                    removeCallback(entry.getKey());
+                    future.cancel();
                 }
+            } catch (Exception e) {
+                LoggerUtil.error("clear timeout future Error: uri=" + url.getUri() + " requestId=" + entry.getKey(), e);
             }
         }
     }
@@ -417,5 +414,9 @@ public class NettyClient extends AbstractSharedPoolClient implements StatisticCa
             infos.put(RuntimeInfoKeys.FORCE_CLOSED_KEY, forceClosed);
         }
         return infos;
+    }
+
+    public static int getAllNettyClientSize() {
+        return allNettyClients.size();
     }
 }
