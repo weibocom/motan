@@ -50,29 +50,32 @@ public class NettyEndpointFactoryTest extends TestCase {
         NettyEndpointFactory factory = new NettyEndpointFactory();
         MessageHandler handler = new ProviderMessageRouter();
 
-        URL url = new URL("motan", "localhost", 18080, "com.weibo.api.motan.procotol.example.IHello");
+        URL url1 = new URL("motan", "localhost", 18080, "com.weibo.api.motan.procotol.example.IHello");
+        Endpoint endpoint1 = createEndpoint(url1, handler, isServer, factory);
+        Assert.assertEquals(endpoint1.getUrl().getUri(), url1.getUri());
 
-        Endpoint endpoint = createEndpoint(url, handler, isServer, factory);
+        URL url2 = new URL("motan", "localhost", 18081, "com.weibo.api.motan.procotol.example.IHello");
+        Endpoint endpoint2 = createEndpoint(url2, handler, isServer, factory);
+        Assert.assertEquals(endpoint2.getUrl().getUri(), url2.getUri());
 
-        Assert.assertEquals(endpoint.getUrl().getUri(), url.getUri());
-
-        url = new URL("motan", "localhost", 18081, "com.weibo.api.motan.procotol.example.IHello");
-        endpoint = createEndpoint(url, handler, isServer, factory);
-        Assert.assertEquals(endpoint.getUrl().getUri(), url.getUri());
-
-        Assert.assertTrue(endpoint != createEndpoint(new URL("motan", "localhost", 18081, "com.weibo.api.motan.procotol.example.IHello"),
-                handler, isServer, factory));
+        URL url3 = new URL("motan", "localhost", 18081, "com.weibo.api.motan.procotol.example.IHello");
+        Endpoint endpoint3 = createEndpoint(url3, handler, isServer, factory);
+        Assert.assertEquals(endpoint3.getUrl().getUri(), url3.getUri());
+        Assert.assertTrue(endpoint2 != endpoint3);
 
         if (isServer) {
             Assert.assertEquals(factory.getShallServerChannels().size(), 0);
-        }
-
-        if (isServer) {
-            factory.safeReleaseResource((Server) endpoint, url);
+            factory.safeReleaseResource((Server) endpoint1, url1);
+            factory.safeReleaseResource((Server) endpoint2, url2);
+            factory.safeReleaseResource((Server) endpoint3, url3);
         } else {
             Assert.assertEquals(((HeartbeatClientEndpointManager) factory.getEndpointManager()).getClients().size(), 3);
-            factory.safeReleaseResource((Client) endpoint, url);
+            factory.safeReleaseResource((Client) endpoint1, url1);
             Assert.assertEquals(((HeartbeatClientEndpointManager) factory.getEndpointManager()).getClients().size(), 2);
+            factory.safeReleaseResource((Client) endpoint2, url2);
+            Assert.assertEquals(((HeartbeatClientEndpointManager) factory.getEndpointManager()).getClients().size(), 1);
+            factory.safeReleaseResource((Client) endpoint3, url3);
+            Assert.assertEquals(((HeartbeatClientEndpointManager) factory.getEndpointManager()).getClients().size(), 0);
         }
     }
 

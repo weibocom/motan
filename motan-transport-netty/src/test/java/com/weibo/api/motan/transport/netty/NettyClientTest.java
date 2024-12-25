@@ -33,7 +33,9 @@ import com.weibo.api.motan.util.StatsUtil;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -72,7 +74,9 @@ public class NettyClientTest extends TestCase {
     }
 
     public void tearDown() {
-        nettyClient.close();
+        if (nettyClient != null) {
+            nettyClient.close();
+        }
         nettyServer.close();
     }
 
@@ -115,6 +119,7 @@ public class NettyClientTest extends TestCase {
         } catch (MotanServiceException e) {
             assertTrue(true);
         }
+        nettyClient.close();
 
         // 模拟失败连接的次数大于或者等于设置的次数，client期望为不可用
         url.addParameter(URLParamType.fusingThreshold.getName(), "1");
@@ -288,6 +293,33 @@ public class NettyClientTest extends TestCase {
         clientInfos = nettyClient.getRuntimeInfo();
         assertEquals(ChannelState.CLOSE.name(), clientInfos.get(RuntimeInfoKeys.STATE_KEY));
         assertFalse((Boolean) clientInfos.get(RuntimeInfoKeys.FORCE_CLOSED_KEY));
+    }
+
+    public void testRemoveTimeoutRequest() throws InterruptedException {
+        int size = 10;
+        List<NettyClient> clients = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            clients.add(new NettyClient(url));
+            assertEquals(i + 1, NettyClient.getAllNettyClientSize()); // check alived NettyClient
+        }
+
+        NettyClient client = clients.get(0);
+        for (int i = 0; i < 10; i++) {
+            int timeout = 10;
+            if (i > 4) {
+                timeout = 2000;
+            }
+            ResponseFuture future = new DefaultResponseFuture(new DefaultRequest(), timeout, url);
+            client.registerCallback(i, future);
+        }
+
+        Thread.sleep(MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD + 10);
+        assertEquals(5, client.callbackMap.size()); // check if expired requests are deleted
+
+        for (int i = 0; i < size; i++) {
+            clients.get(i).close();
+            assertEquals(size - i - 1, NettyClient.getAllNettyClientSize()); // check alived NettyClient
+        }
     }
 
     static class NettyTestClient extends NettyClient {

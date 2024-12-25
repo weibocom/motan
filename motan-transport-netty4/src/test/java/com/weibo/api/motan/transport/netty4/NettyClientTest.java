@@ -331,7 +331,7 @@ public class NettyClientTest {
                 timeout = 2000;
             }
             ResponseFuture future = new DefaultResponseFuture(new DefaultRequest(), timeout, url);
-            client.registerCallback(10000 + i, future);
+            client.registerCallback(i, future);
         }
 
         Thread.sleep(MotanConstants.NETTY_TIMEOUT_TIMER_PERIOD + 10);
