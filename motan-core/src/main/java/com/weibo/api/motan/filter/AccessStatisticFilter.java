@@ -39,7 +39,6 @@ public class AccessStatisticFilter implements Filter {
     public Response filter(final Caller<?> caller, final Request request) {
         long start = System.currentTimeMillis();
         AccessStatus accessStatus = AccessStatus.NORMAL;
-        final long bizProcessTime;
         Response response = null;
 
         try {
@@ -54,7 +53,7 @@ public class AccessStatisticFilter implements Filter {
             return response;
         } finally {
             long end = System.currentTimeMillis();
-
+            final long bizProcessTime;
             if (response == null) {
                 accessStatus = AccessStatus.OTHER_EXCEPTION;
                 bizProcessTime = end - start;
