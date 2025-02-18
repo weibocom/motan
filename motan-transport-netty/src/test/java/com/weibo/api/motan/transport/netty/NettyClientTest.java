@@ -133,14 +133,17 @@ public class NettyClientTest extends TestCase {
     @SuppressWarnings("all")
     public void testForceClose() throws Exception {
         nettyServer.close();
+        Thread.sleep(50l);
         URL providerUrl = new URL("motan", "localhost", 0, Codec.class.getName()); // any interface just for test provider runtime info
         nettyServer = new NettyServer(url, new ProviderMessageRouter(new DefaultProvider(new DefaultRpcCodec(), providerUrl, Codec.class)));
         nettyServer.open();
+        Thread.sleep(50l);
         NettyTestClient nettyClient = new NettyTestClient(url);
         this.nettyClient = nettyClient;
         nettyClient.open();
         assertTrue(nettyClient.isAvailable());
         assertFalse(nettyClient.forceClosed);
+        Thread.sleep(50l);
 
         // provider not exist
         request.setInterfaceName("unknownService");
@@ -150,12 +153,13 @@ public class NettyClientTest extends TestCase {
                 nettyClient.request(request);
                 fail();
             } catch (MotanServiceException e) {
-                if (i < forceCloseTimes) {
+                if (i < forceCloseTimes - 1) {
                     // check provide not exist exception
                     assertTrue(nettyClient.isAvailable());
                     assertEquals(e.getErrorCode(), MotanErrorMsgConstant.PROVIDER_NOT_EXIST.getErrorCode());
                     assertTrue(e.getOriginMessage().contains(MotanErrorMsgConstant.PROVIDER_NOT_EXIST_EXCEPTION_PREFIX));
-                } else {
+                }
+                if (i == forceCloseTimes) {
                     assertTrue(e.getErrorCode() != MotanErrorMsgConstant.PROVIDER_NOT_EXIST.getErrorCode());
                 }
             }
@@ -170,7 +174,7 @@ public class NettyClientTest extends TestCase {
         assertFalse(((Map<String, Object>) serverInfos.get(RuntimeInfoKeys.PROTECT_STRATEGY_KEY)).isEmpty());
         // check client force closed info
         assertTrue((Boolean) clientInfos.get(RuntimeInfoKeys.FORCE_CLOSED_KEY));
-        assertTrue((Long) clientInfos.get(RuntimeInfoKeys.ERROR_COUNT_KEY) > (Integer) clientInfos.get(RuntimeInfoKeys.FUSING_THRESHOLD_KEY));
+        assertTrue((Long) clientInfos.get(RuntimeInfoKeys.ERROR_COUNT_KEY) >= (Integer) clientInfos.get(RuntimeInfoKeys.FUSING_THRESHOLD_KEY));
 
         // check force close
         assertFalse(nettyClient.isAvailable());

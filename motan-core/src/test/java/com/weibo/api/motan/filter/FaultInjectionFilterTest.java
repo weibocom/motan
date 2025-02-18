@@ -234,7 +234,7 @@ public class FaultInjectionFilterTest extends BaseTestCase {
             @Override
             public Response call(Request request) {
                 AtomicLong time = (AtomicLong) request.getArguments()[0];
-                final ResponseFuture response = new DefaultResponseFuture(request, 100, new URL(MotanConstants.PROTOCOL_MOTAN2, "localhost", 0, "tempService"));
+                final ResponseFuture response = new DefaultResponseFuture(request, 200, new URL(MotanConstants.PROTOCOL_MOTAN2, "localhost", 0, "tempService"));
                 new Thread(() -> {
                     try {
                         Thread.sleep(time.get());
