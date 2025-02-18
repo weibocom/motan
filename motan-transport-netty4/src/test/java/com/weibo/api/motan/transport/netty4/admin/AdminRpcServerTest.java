@@ -43,6 +43,8 @@ public class AdminRpcServerTest extends TestCase {
     public void testAdminRpcServer() throws Exception {
         final Request[] requests = new Request[1];
         URL url = new URL("motan2", "127.0.0.1", 0, "tempPath");
+        // 设置超时时间为1s
+        url.addParameter(URLParamType.requestTimeout.getName(), "1000");
         AdminRpcServer server = new AdminRpcServer(url, new DefaultAdminHandler() {
             @Override
             public Response handle(Request request) {

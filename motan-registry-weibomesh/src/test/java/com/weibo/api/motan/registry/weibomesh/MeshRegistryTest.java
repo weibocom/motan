@@ -57,6 +57,10 @@ public class MeshRegistryTest {
 
     @Before
     public void setUp() throws Exception {
+        //开关默认值
+        MotanSwitcherUtil.setSwitcherValue(MeshRegistry.MESH_REGISTRY_SWITCHER_NAME, true);
+        MotanSwitcherUtil.setSwitcherValue(MeshRegistry.MESH_REGISTRY_HEALTH_CHECK_SWITCHER_NAME, true);
+
         copy = 3; //默认副本数
         requestTimeout = 100;
         URL agentMockUrl = new URL("motan2", "localhost", 0, "testpath", new HashMap<>());
@@ -83,9 +87,7 @@ public class MeshRegistryTest {
         //因为测试流程原因，单测时需要手动触发健康检测
         registry.initHealthCheck();
 
-        //开关默认值
-        MotanSwitcherUtil.setSwitcherValue(MeshRegistry.MESH_REGISTRY_SWITCHER_NAME, true);
-        MotanSwitcherUtil.setSwitcherValue(MeshRegistry.MESH_REGISTRY_HEALTH_CHECK_SWITCHER_NAME, true);
+
     }
 
     @Test
@@ -120,12 +122,13 @@ public class MeshRegistryTest {
         assertEquals(notifyListener.urls.get(0).getGroup(), subUrl.getGroup());
 
         // 验证降级开关
+        Thread.sleep(50l); // 等待proxyRegistry的notify
         MotanSwitcherUtil.setSwitcherValue(MeshRegistry.MESH_REGISTRY_SWITCHER_NAME, false);
-        Thread.sleep(100l);
+        Thread.sleep(50l);
         assertEquals(notifyListener.urls, mockProxyRegistry.discover(subUrl));
 
         MotanSwitcherUtil.setSwitcherValue(MeshRegistry.MESH_REGISTRY_SWITCHER_NAME, true);
-        Thread.sleep(100l);
+        Thread.sleep(50l);
         assertEquals(notifyListener.urls.size(), copy);
 
         // health check
@@ -177,9 +180,12 @@ public class MeshRegistryTest {
         result = registry.doDiscover(subUrl);
         assertEquals(copy, result.size());
 
+        registry.setUseMesh(true); // 确保订阅节点（有backup节点）
         TestNotifyListener notifyListener = new TestNotifyListener();
         registry.doSubscribe(subUrl, notifyListener);
-        Thread.sleep(50l);
+        Thread.sleep(100L);
+
+        registry.setUseMesh(false);
         result = registry.doDiscover(subUrl);
         assertEquals(mockProxyRegistry.discover(subUrl), result);
     }

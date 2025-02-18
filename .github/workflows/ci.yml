@@ -1,0 +1,20 @@
+name: Workflow for Codecov
+on: [ push, pull_request ]
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up JDK 8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - name: Install dependencies
+        run: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+      - name: Run tests and collect coverage
+        run: mvn -B test
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

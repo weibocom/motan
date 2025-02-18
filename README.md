@@ -2,24 +2,28 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/weibocom/motan/blob/master/LICENSE)
 [![Maven Central](https://img.shields.io/maven-central/v/com.weibo/motan.svg?label=Maven%20Central)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.weibo%22%20AND%20motan)
-[![Build Status](https://img.shields.io/travis/weibocom/motan/master.svg?label=Build)](https://travis-ci.org/weibocom/motan)
+[![codecov](https://codecov.io/gh/weibocom/motan/graph/badge.svg?token=ngBqL0SPJS)](https://codecov.io/gh/weibocom/motan)
 [![OpenTracing-1.0 Badge](https://img.shields.io/badge/OpenTracing--1.0-enabled-blue.svg)](http://opentracing.io)
 [![Skywalking Tracing](https://img.shields.io/badge/Skywalking%20Tracing-enable-brightgreen.svg)](https://github.com/OpenSkywalking/skywalking)
 
 # Overview
 
-Motan is a cross-language remote procedure call(RPC) framework for rapid development of high performance distributed services.
+Motan is a cross-language remote procedure call(RPC) framework for rapid development of high performance distributed
+services.
 
 Related projects in Motan ecosystem:
 
 - [Motan-go](https://github.com/weibocom/motan-go) is golang implementation.
-- [Motan-PHP](https://github.com/weibocom/motan-php) is PHP client can interactive with Motan server directly or through Motan-go agent.
-- [Motan-openresty](https://github.com/weibocom/motan-openresty) is a Lua(Luajit) implementation based on [Openresty](http://openresty.org).
+- [Motan-PHP](https://github.com/weibocom/motan-php) is PHP client can interactive with Motan server directly or through
+  Motan-go agent.
+- [Motan-openresty](https://github.com/weibocom/motan-openresty) is a Lua(Luajit) implementation based
+  on [Openresty](http://openresty.org).
 
 # Features
 
 - Create distributed services without writing extra code.
-- Provides cluster support and integrate with popular service discovery services like [Consul][consul] or [Zookeeper][zookeeper].
+- Provides cluster support and integrate with popular service discovery services like [Consul][consul]
+  or [Zookeeper][zookeeper].
 - Supports advanced scheduling features like weighted load-balance, scheduling cross IDCs, etc.
 - Optimization for high load scenarios, provides high availability in production environment.
 - Supports both synchronous and asynchronous calls.
@@ -27,7 +31,8 @@ Related projects in Motan ecosystem:
 
 # Quick Start
 
-The quick start gives very basic example of running client and server on the same machine. For the detailed information about using and developing Motan, please jump to [Documents](#documents).
+The quick start gives very basic example of running client and server on the same machine. For the detailed information
+about using and developing Motan, please jump to [Documents](#documents).
 
 > The minimum requirements to run the quick start are:
 >
@@ -39,38 +44,39 @@ The quick start gives very basic example of running client and server on the sam
 1. Add dependencies to pom.
 
 ```xml
+
 <properties>
     <motan.version>1.1.12</motan.version> <!--use the latest version from maven central-->
 </properties>
 <dependencies>
-    <dependency>
-        <groupId>com.weibo</groupId>
-        <artifactId>motan-core</artifactId>
-        <version>${motan.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>com.weibo</groupId>
-        <artifactId>motan-transport-netty</artifactId>
-        <version>${motan.version}</version>
-    </dependency>
+<dependency>
+    <groupId>com.weibo</groupId>
+    <artifactId>motan-core</artifactId>
+    <version>${motan.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.weibo</groupId>
+    <artifactId>motan-transport-netty</artifactId>
+    <version>${motan.version}</version>
+</dependency>
 
-    <!-- dependencies below were only needed for spring-based features -->
-    <dependency>
-        <groupId>com.weibo</groupId>
-        <artifactId>motan-springsupport</artifactId>
-        <version>${motan.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-context</artifactId>
-        <version>4.2.4.RELEASE</version>
-    </dependency>
+<!-- dependencies below were only needed for spring-based features -->
+<dependency>
+    <groupId>com.weibo</groupId>
+    <artifactId>motan-springsupport</artifactId>
+    <version>${motan.version}</version>
+</dependency>
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-context</artifactId>
+    <version>4.2.4.RELEASE</version>
+</dependency>
 </dependencies>
 ```
 
 2. Create an interface for both service provider and consumer.
 
-    `src/main/java/quickstart/FooService.java`  
+   `src/main/java/quickstart/FooService.java`
 
     ```java
     package quickstart;
@@ -82,7 +88,7 @@ The quick start gives very basic example of running client and server on the sam
 
 3. Write an implementation, create and start RPC Server.
 
-    `src/main/java/quickstart/FooServiceImpl.java`  
+   `src/main/java/quickstart/FooServiceImpl.java`
 
     ```java
     package quickstart;
@@ -96,7 +102,7 @@ The quick start gives very basic example of running client and server on the sam
     }
     ```
 
-    `src/main/resources/motan_server.xml`
+   `src/main/resources/motan_server.xml`
 
     ```xml
     <?xml version="1.0" encoding="UTF-8"?>
@@ -113,7 +119,7 @@ The quick start gives very basic example of running client and server on the sam
     </beans>
     ```
 
-    `src/main/java/quickstart/Server.java`
+   `src/main/java/quickstart/Server.java`
 
     ```java
     package quickstart;
@@ -130,11 +136,11 @@ The quick start gives very basic example of running client and server on the sam
     }
     ```
 
-    Execute main function in Server will start a motan server listening on port 8002.
+   Execute main function in Server will start a motan server listening on port 8002.
 
 4. Create and start RPC Client.
 
-    `src/main/resources/motan_client.xml`
+   `src/main/resources/motan_client.xml`
 
     ```xml
     <?xml version="1.0" encoding="UTF-8"?>
@@ -149,7 +155,7 @@ The quick start gives very basic example of running client and server on the sam
     </beans>
     ```
 
-    `src/main/java/quickstart/Client.java`
+   `src/main/java/quickstart/Client.java`
 
     ```java
     package quickstart;
@@ -168,7 +174,7 @@ The quick start gives very basic example of running client and server on the sam
     }
     ```
 
-    Execute main function in Client will invoke the remote service and print response.
+   Execute main function in Client will invoke the remote service and print response.
 
 ## Asynchronous calls
 
@@ -184,7 +190,7 @@ The quick start gives very basic example of running client and server on the sam
     }
     ```
 
-2. Include the plugin into the POM file to set `target/generated-sources/annotations/` as source folder.  
+2. Include the plugin into the POM file to set `target/generated-sources/annotations/` as source folder.
 
     ```xml
     <plugin>
@@ -249,7 +255,6 @@ The quick start gives very basic example of running client and server on the sam
     }
     ```
 
-
 # Documents
 
 - [Wiki](https://github.com/weibocom/motan/wiki)
@@ -278,7 +283,8 @@ The quick start gives very basic example of running client and server on the sam
 - Di Tang([@tangdi](https://github.com/tangdi))
 - 肥佬大([@feilaoda](https://github.com/feilaoda))
 - 小马哥([@andot](https://github.com/andot))
-- wu-sheng([@wu-sheng](https://github.com/wu-sheng)) &nbsp;&nbsp;&nbsp; _Assist Motan to become the first Chinese RPC framework on [OpenTracing](http://opentracing.io) **Supported Frameworks List**_
+- wu-sheng([@wu-sheng](https://github.com/wu-sheng)) &nbsp;&nbsp;&nbsp; _Assist Motan to become the first Chinese RPC
+  framework on [OpenTracing](http://opentracing.io) **Supported Frameworks List**_
 - Jin Zhang([@lowzj](https://github.com/lowzj))
 - xiaoqing.yuanfang([@xiaoqing-yuanfang](https://github.com/xiaoqing-yuanfang))
 - 东方上人([@dongfangshangren](https://github.com/dongfangshangren))
@@ -292,6 +298,9 @@ The quick start gives very basic example of running client and server on the sam
 Motan is released under the [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).
 
 [maven]:https://maven.apache.org
+
 [gradle]:http://gradle.org
+
 [consul]:http://www.consul.io
+
 [zookeeper]:http://zookeeper.apache.org

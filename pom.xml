@@ -41,6 +41,7 @@
         <spring-framework.version>5.3.20</spring-framework.version>
         <slf4j_version>1.7.25</slf4j_version>
         <log4j2.version>2.17.1</log4j2.version>
+        <skip.jacoco>false</skip.jacoco>
     </properties>
 
     <name>Motan</name>
@@ -158,6 +159,32 @@
                     <target>${java.source.jdk}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skip.jacoco}</skip>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skip.jacoco}</skip>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
