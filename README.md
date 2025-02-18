@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/weibocom/motan/blob/master/LICENSE)
 [![Maven Central](https://img.shields.io/maven-central/v/com.weibo/motan.svg?label=Maven%20Central)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.weibo%22%20AND%20motan)
-[![codecov](https://codecov.io/gh/weibocom/motan/graph/badge.svg?token=ngBqL0SPJS)](https://codecov.io/gh/weibocom/motan)
+[![codecov](https://codecov.io/gh/weibocom/motan/branch/master/graph/badge.svg?token=ngBqL0SPJS)](https://codecov.io/gh/weibocom/motan)
 [![OpenTracing-1.0 Badge](https://img.shields.io/badge/OpenTracing--1.0-enabled-blue.svg)](http://opentracing.io)
 [![Skywalking Tracing](https://img.shields.io/badge/Skywalking%20Tracing-enable-brightgreen.svg)](https://github.com/OpenSkywalking/skywalking)
 
