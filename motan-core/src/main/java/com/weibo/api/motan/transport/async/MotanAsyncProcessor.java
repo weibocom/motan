@@ -58,18 +58,17 @@ public class MotanAsyncProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        if (roundEnv.processingOver()) {
-            return true;
-        }
-        for (Element elem : roundEnv.getElementsAnnotatedWith(MotanAsync.class)) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "MotanAsyncProcessor will process " + elem);
-            try {
-                writeAsyncClass(elem);
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "MotanAsyncProcessor done for " + elem);
-            } catch (Exception e) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,
-                        "MotanAsyncProcessor process " + elem + " fail. exception:" + e.getMessage());
-                e.printStackTrace();
+        if (!roundEnv.processingOver()) {
+            for (Element elem : roundEnv.getElementsAnnotatedWith(MotanAsync.class)) {
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "MotanAsyncProcessor will process " + elem);
+                try {
+                    writeAsyncClass(elem);
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "MotanAsyncProcessor done for " + elem);
+                } catch (Exception e) {
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,
+                            "MotanAsyncProcessor process " + elem + " fail. exception:" + e.getMessage());
+                    e.printStackTrace();
+                }
             }
         }
         return true;

@@ -16,6 +16,7 @@
 
 package com.weibo.api.motan.util;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.weibo.api.motan.exception.*;
 import org.apache.commons.lang3.StringUtils;
@@ -101,7 +102,7 @@ public class ExceptionUtil {
     public static MotanAbstractException fromMessage(String msg) {
         if (StringUtils.isNotBlank(msg)) {
             try {
-                JSONObject jsonObject = JSONObject.parseObject(msg);
+                JSONObject jsonObject = JSON.parseObject(msg);
                 int type = jsonObject.getIntValue("errtype");
                 int errcode = jsonObject.getIntValue("errcode");
                 String errmsg = jsonObject.getString("errmsg");

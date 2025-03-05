@@ -28,6 +28,7 @@ import java.util.Random;
  */
 
 public class CollectionUtil {
+    private static Random rnd = new Random();
 
     @SuppressWarnings("rawtypes")
     public static boolean isEmpty(Collection collection) {
@@ -40,7 +41,6 @@ public class CollectionUtil {
     }
 
     public static void shuffleByteArray(byte[] array) {
-        Random rnd = new Random();
         for (int i = array.length - 1; i > 0; i--) {
             int index = rnd.nextInt(i + 1);
             // swap

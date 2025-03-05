@@ -203,8 +203,6 @@ public class SimpleSerialization implements Serialization {
     private <T> T deserialize(GrowableByteBuffer buffer, Class<T> clz) throws IOException {
         byte type = buffer.get();
         switch (type) {
-            default:
-                break;
             case NULL:
                 return null;
             case STRING:
@@ -242,6 +240,7 @@ public class SimpleSerialization implements Serialization {
                 if (clz == byte.class || clz == Byte.class || clz == Object.class) {
                     return (T) readByte(buffer);
                 }
+                break;
             case INT16:
                 if (clz == short.class || clz == Short.class || clz == Object.class) {
                     return (T) readInt16(buffer);
@@ -282,6 +281,8 @@ public class SimpleSerialization implements Serialization {
                 } else if (clz.isAssignableFrom(HashSet.class)) {
                     return (T) readSet(buffer);
                 }
+                break;
+            default:
                 break;
         }
         throw new MotanServiceException("SimpleSerialization not support " + type + " with receiver type:" + clz);

@@ -44,7 +44,6 @@ import java.net.InetSocketAddress;
  */
 public class Netty4HttpServer extends AbstractServer implements StatisticCallback {
     private HttpMessageHandler httpMessageHandler;
-    private URL url;
     private Channel channel;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;

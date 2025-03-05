@@ -129,7 +129,7 @@ public class MotanBeanDefinitionParser implements BeanDefinitionParser {
                     || setter.getParameterTypes().length != 1) {
                 continue;
             }
-            String property = (name.substring(3, 4).toLowerCase() + name.substring(4)).replaceAll("_", "-");
+            String property = (name.substring(3, 4).toLowerCase() + name.substring(4)).replace("_", "-");
             props.add(property);
             if ("id".equals(property)) {
                 bd.getPropertyValues().addPropertyValue("id", id);
