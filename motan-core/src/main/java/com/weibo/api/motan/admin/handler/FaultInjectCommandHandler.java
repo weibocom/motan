@@ -1,7 +1,6 @@
 package com.weibo.api.motan.admin.handler;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.weibo.api.motan.admin.AbstractAdminCommandHandler;
 import com.weibo.api.motan.common.MotanConstants;
@@ -42,7 +41,7 @@ public class FaultInjectCommandHandler extends AbstractAdminCommandHandler {
     protected void process(String command, Map<String, String> params, Map<String, String> attachments, JSONObject result) {
         if (commands[0].equals(command)) {
             String configs = params.get("configs");
-            List<FaultInjectionFilter.FaultInjectionConfig> configList = JSONArray.parseArray(configs, FaultInjectionFilter.FaultInjectionConfig.class);
+            List<FaultInjectionFilter.FaultInjectionConfig> configList = JSON.parseArray(configs, FaultInjectionFilter.FaultInjectionConfig.class);
             if (configList == null) {
                 throw new MotanServiceException("param configs not correct");
             }

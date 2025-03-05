@@ -16,7 +16,7 @@
 
 package com.weibo.api.motan.registry.support.command;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.weibo.api.motan.util.LoggerUtil;
@@ -37,7 +37,7 @@ public class RpcCommandUtil {
      */
     public static RpcCommand stringToCommand(String commandString) {
         try {
-            RpcCommand rpcCommand = JSONObject.parseObject(commandString, RpcCommand.class);
+            RpcCommand rpcCommand = JSON.parseObject(commandString, RpcCommand.class);
             if (rpcCommand != null) {
                 rpcCommand.sort();
             }
@@ -58,7 +58,7 @@ public class RpcCommandUtil {
         if (command == null) {
             return null;
         }
-        return JSONObject.toJSONString(command);
+        return JSON.toJSONString(command);
     }
 
     private static PatternEvaluator evaluator = new PatternEvaluator();

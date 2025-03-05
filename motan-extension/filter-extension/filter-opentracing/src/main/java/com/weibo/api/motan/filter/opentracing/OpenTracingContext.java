@@ -47,7 +47,7 @@ public class OpenTracingContext {
         RpcContext.getContext().putAttribute(ACTIVE_SPAN, span);
     }
 
-    public void setTracerFactory(TracerFactory tracerFactory) {
+    public static void setTracerFactory(TracerFactory tracerFactory) {
         OpenTracingContext.tracerFactory = tracerFactory;
     }
 }

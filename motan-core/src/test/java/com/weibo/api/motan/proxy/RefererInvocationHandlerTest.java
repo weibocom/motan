@@ -87,12 +87,14 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
         //local method
         Method method = TestServiceImpl.class.getMethod("toString");
         assertTrue(handler.isLocalMethod(method));
+        String result = null;
         try {
-            String result = (String)handler.invoke(null, method, null);
-            assertEquals("{protocol:motan[motan://local:80/test?group=default_rpc, available:true]}", result);
+            result = (String)handler.invoke(null, method, null);
         } catch (Throwable e) {
-            assertTrue(false);
+            fail(e.getMessage());
         }
+        assertEquals("{protocol:motan[motan://local:80/test?group=default_rpc, available:true]}", result);
+
 
         method = TestServiceImpl.class.getMethod("hashCode");
         assertTrue(handler.isLocalMethod(method));

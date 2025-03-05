@@ -36,6 +36,7 @@
     <properties>
         <spring-boot.version>2.3.1.RELEASE</spring-boot.version>
         <skip.jacoco>true</skip.jacoco>
+        <sonar.skip>true</sonar.skip>
     </properties>
 
     <dependencies>

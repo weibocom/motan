@@ -44,7 +44,7 @@ public class DirectRegistry extends AbstractRegistry {
                 }
             } catch (Exception e) {
                 throw new MotanFrameworkException(
-                        String.format("parse direct url error, invalid direct registry address %s, address should be ip1:port1,ip2:port2 ..."));
+                        String.format("parse direct url error, invalid direct registry address %s, address should be ip1:port1,ip2:port2 ...", address));
             }
         } else {
             registerDirectUrl(url.getHost(), url.getPort());
