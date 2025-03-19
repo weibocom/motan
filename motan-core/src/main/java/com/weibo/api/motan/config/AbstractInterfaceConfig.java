@@ -134,7 +134,27 @@ public class AbstractInterfaceConfig extends AbstractConfig {
 
     protected Integer fusingThreshold;
 
-    private Integer connectTimeout;
+    protected Integer connectTimeout;
+
+    protected String sandboxGroups; // the group name of the sandbox
+
+    protected String backupGroups; // the group name of the backup
+
+    public String getSandboxGroups() {
+        return sandboxGroups;
+    }
+
+    public void setSandboxGroups(String sandboxGroups) {
+        this.sandboxGroups = sandboxGroups;
+    }
+
+    public String getBackupGroups() {
+        return backupGroups;
+    }
+
+    public void setBackupGroups(String backupGroups) {
+        this.backupGroups = backupGroups;
+    }
 
     public Integer getRetries() {
         return retries;

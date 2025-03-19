@@ -246,8 +246,8 @@ public class ClusterSupportTest {
         Assert.assertEquals(clusterSupport.getCluster().getReferers().size(), 4);
         Assert.assertEquals(getAvailableReferersCount(), 4);
 
-        Referer referer1 = clusterSupport.getCluster().getReferers().get(0);
-        Referer referer2 = clusterSupport.getCluster().getReferers().get(1);
+        Referer<?> referer1 = clusterSupport.getCluster().getReferers().get(0);
+        Referer<?> referer2 = clusterSupport.getCluster().getReferers().get(1);
         //设置1节点不可用，未小于阈值，不触发refresh
         availableMap.put(referer1.getUrl().toString(), false);
         clusterSupport.refreshReferers();

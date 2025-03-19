@@ -39,6 +39,7 @@ public abstract class AbstractRefererConfig extends AbstractInterfaceConfig {
     protected MeshClient meshClient;
     protected String meshClientString;
     protected Boolean dynamicMeta;
+    protected String clusterSelector;
 
     public MeshClient getMeshClient() {
         return meshClient;
@@ -102,5 +103,13 @@ public abstract class AbstractRefererConfig extends AbstractInterfaceConfig {
 
     public void setDynamicMeta(Boolean dynamicMeta) {
         this.dynamicMeta = dynamicMeta;
+    }
+
+    public String getClusterSelector() {
+        return clusterSelector;
+    }
+
+    public void setClusterSelector(String clusterSelector) {
+        this.clusterSelector = clusterSelector;
     }
 }

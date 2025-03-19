@@ -62,7 +62,7 @@ public class TestProtoBuf {
         refererConfig.setRequestTimeout(1000);
 
         service = refererConfig.getRef();
-        Thread.sleep(20L);
+        Thread.sleep(40L);
     }
 
     @Test

@@ -31,7 +31,7 @@ public class SpringBeanUtil {
     public static void addRegistryParamBean(RegistryConfig registryConfig, BeanFactory beanFactory) {
         if (registryConfig.getProxyRegistry() == null) {
             Map<String, String> addressParams = registryConfig.getAddressParams();
-            String proxyRegistryId = addressParams.get(URLParamType.proxyRegistryId);
+            String proxyRegistryId = addressParams.get(URLParamType.proxyRegistryId.getName());
             if (StringUtils.isNotBlank(proxyRegistryId)) {
                 String identity = registryConfig.getId() + "-" + registryConfig.getName();
                 RegistryConfig proxyRegistry = beanFactory.getBean(proxyRegistryId, RegistryConfig.class);

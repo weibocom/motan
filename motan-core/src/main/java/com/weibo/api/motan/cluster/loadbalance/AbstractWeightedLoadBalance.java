@@ -151,7 +151,7 @@ public abstract class AbstractWeightedLoadBalance<T> extends AbstractLoadBalance
 
     private boolean refreshDynamicWeight(List<WeightedRefererHolder<T>> holders, long taskTimeout) {
         final AtomicBoolean needNotify = new AtomicBoolean(false);
-        if (holders != null) {
+        if (!CollectionUtil.isEmpty(holders)) {
             CountDownLatch countDownLatch = new CountDownLatch(holders.size());
             for (WeightedRefererHolder<T> holder : holders) {
                 if (holder.supportDynamicWeight) {

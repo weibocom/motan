@@ -1,21 +1,6 @@
 package com.weibo.api.motan.transport.netty4;
 
-import com.weibo.api.motan.codec.Codec;
-import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.exception.MotanFrameworkException;
-import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.protocol.v2motan.MotanV2Codec;
-import com.weibo.api.motan.rpc.*;
-import com.weibo.api.motan.transport.Channel;
-import com.weibo.api.motan.transport.MessageHandler;
-import com.weibo.api.motan.util.RequestIdGenerator;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.embedded.EmbeddedChannel;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +8,22 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.weibo.api.motan.codec.Codec;
+import com.weibo.api.motan.protocol.v2motan.MotanV2Codec;
+import com.weibo.api.motan.rpc.DefaultResponse;
+import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.transport.Channel;
+import com.weibo.api.motan.transport.MessageHandler;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.embedded.EmbeddedChannel;
 
 /**
  * @author single-wolf root@mail.zhongm.in

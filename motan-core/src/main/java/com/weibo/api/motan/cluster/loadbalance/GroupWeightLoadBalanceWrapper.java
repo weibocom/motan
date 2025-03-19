@@ -58,7 +58,7 @@ public class GroupWeightLoadBalanceWrapper<T> extends AbstractLoadBalance<T> {
         Selector<T> oldSelector = null;
         boolean reuse = false;
         String selectorName;
-        if (StringUtils.isEmpty(weightString)) { // single group
+        if (StringUtils.isEmpty(weightString) || referers.isEmpty()) { // single group or no referers
             selectorName = "SingleGroupSelector";
             if (selector instanceof SingleGroupSelector) { // reuse
                 ((SingleGroupSelector<T>) selector).refresh(referers);

@@ -16,15 +16,14 @@
 
 package com.weibo.api.motan.proxy;
 
-import com.weibo.api.motan.cluster.Cluster;
-import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.DefaultRequest;
-import com.weibo.api.motan.rpc.Referer;
-import com.weibo.api.motan.util.MotanFrameworkUtil;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.List;
+
+import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.rpc.Caller;
+import com.weibo.api.motan.rpc.DefaultRequest;
+import com.weibo.api.motan.util.MotanFrameworkUtil;
 
 /**
  * @param <T>
@@ -32,9 +31,9 @@ import java.util.List;
  */
 public class RefererInvocationHandler<T> extends AbstractRefererHandler<T> implements InvocationHandler {
 
-    public RefererInvocationHandler(Class<T> clz, List<Cluster<T>> clusters) {
+    public RefererInvocationHandler(Class<T> clz, List<Caller<T>> callers) {
         this.clz = clz;
-        this.clusters = clusters;
+        this.callers = callers;
         init();
         interfaceName = MotanFrameworkUtil.removeAsyncSuffix(clz.getName());
     }
@@ -49,7 +48,7 @@ public class RefererInvocationHandler<T> extends AbstractRefererHandler<T> imple
                 return proxyEquals(args[0]);
             }
             if ("hashCode".equals(method.getName())) {
-                return this.clusters == null ? 0 : this.clusters.hashCode();
+                return this.callers == null ? 0 : this.callers.hashCode();
             }
             throw new MotanServiceException("can not invoke local method:" + method.getName());
         }
@@ -60,27 +59,24 @@ public class RefererInvocationHandler<T> extends AbstractRefererHandler<T> imple
 
     private String clustersToString() {
         StringBuilder sb = new StringBuilder();
-        for (Cluster<T> cluster : clusters) {
-            sb.append("{protocol:").append(cluster.getUrl().getProtocol());
-            List<Referer<T>> referers = cluster.getReferers();
-            if (referers != null) {
-                for (Referer<T> refer : referers) {
-                    sb.append("[").append(refer.getUrl().toSimpleString()).append(", available:").append(refer.isAvailable()).append("]");
-                }
-            }
-            sb.append("}");
+        for (Caller<T> caller : callers) {
+            sb.append("{protocol:").append(caller.getUrl().getProtocol()).append(",");
+            sb.append(caller.toString()).append("}").append(",");
+        }
+        if (!callers.isEmpty()) {
+            sb.deleteCharAt(sb.length() - 1);
         }
         return sb.toString();
     }
 
     private boolean proxyEquals(Object o) {
-        if (o == null || this.clusters == null) {
+        if (o == null || this.callers == null) {
             return false;
         }
         if (o instanceof List) {
-            return this.clusters == o;
+            return this.callers == o;
         } else {
-            return o.equals(this.clusters);
+            return o.equals(this.callers);
         }
     }
 }

@@ -1,19 +1,19 @@
 package com.weibo.api.motan.proxy;
 
-import com.weibo.api.motan.cluster.Cluster;
+import java.util.List;
+
+import com.weibo.api.motan.rpc.Caller;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.util.MotanClientUtil;
-
-import java.util.List;
 
 /**
  * @author sunnights
  */
 public class RefererCommonHandler<T> extends AbstractRefererHandler<T> implements CommonHandler {
 
-    public RefererCommonHandler(String interfaceName, List<Cluster<T>> clusters) {
+    public RefererCommonHandler(String interfaceName, List<Caller<T>> callers) {
         this.interfaceName = interfaceName;
-        this.clusters = clusters;
+        this.callers = callers;
         init();
     }
 

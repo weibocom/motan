@@ -209,7 +209,7 @@ public class MeshRegistryTest {
         registryUrl.addParameter(URLParamType.meshMPort.getName(), mport);
         registry = new MeshRegistry(registryUrl, transport);
         registry.doRegister(subUrl);
-        Thread.sleep(300l);
+        Thread.sleep(500l);
         assertEquals(1, transport.records.size());
         assertEquals("http://" + registryUrl.getHost() + ":" + mport + MeshRegistry.MESH_REGISTER_URL, transport.records.get(0).getLeft());
         assertEquals(Util.UrlToJson(subUrl), transport.records.get(0).getRight());

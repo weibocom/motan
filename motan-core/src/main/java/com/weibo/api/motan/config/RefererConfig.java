@@ -16,7 +16,20 @@
 
 package com.weibo.api.motan.config;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.weibo.api.motan.cluster.Cluster;
+import com.weibo.api.motan.cluster.group.ClusterGroup;
+import com.weibo.api.motan.cluster.group.DefaultClusterGroup;
 import com.weibo.api.motan.cluster.support.ClusterSupport;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
@@ -27,16 +40,15 @@ import com.weibo.api.motan.exception.MotanErrorMsgConstant;
 import com.weibo.api.motan.exception.MotanFrameworkException;
 import com.weibo.api.motan.proxy.ProxyFactory;
 import com.weibo.api.motan.registry.RegistryService;
+import com.weibo.api.motan.rpc.Caller;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.runtime.GlobalRuntime;
 import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MotanGlobalConfigUtil;
 import com.weibo.api.motan.util.NetUtils;
+import com.weibo.api.motan.util.StringTools;
 import com.weibo.api.motan.util.UrlUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Referer config.
@@ -48,6 +60,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RefererConfig<T> extends AbstractRefererConfig {
 
     private static final long serialVersionUID = -2299754608229467887L;
+
+    private static final String MASTER_CLUSTER_KEY = "master-";
+    private static final String SANDBOX_CLUSTER_KEY = "sandbox-";
+    private static final String BACKUP_CLUSTER_KEY = "backup-";
+    private static final String NONE_SANDBOX_STRING = "none";
+    private static final String SUFFIX_STRING = "suffix:";
+    public static String DEFAULT_SANDBOX_GROUPS = MotanGlobalConfigUtil.getConfig("DEFAULT_SANDBOX_GROUPS", ""); // 可以通过设置全局配置修改默认值
+
 
     private Class<T> interfaceClass;
 
@@ -73,7 +93,8 @@ public class RefererConfig<T> extends AbstractRefererConfig {
 
     private BasicRefererInterfaceConfig basicReferer;
 
-    private List<ClusterSupport<T>> clusterSupports;
+    private Map<String, ClusterSupport<T>> clusterSupports;
+    private List<Caller<T>> clusterGroups;
 
     public List<MethodConfig> getMethods() {
         return methods;
@@ -125,11 +146,9 @@ public class RefererConfig<T> extends AbstractRefererConfig {
             throw new MotanFrameworkException(String.format("%s RefererConfig is malformed, for protocol not set correctly!",
                     interfaceClass.getName()));
         }
-
-        clusterSupports = new ArrayList<>(protocols.size());
-        List<Cluster<T>> clusters = new ArrayList<>(protocols.size());
+        clusterSupports = new HashMap<>();
+        clusterGroups = new ArrayList<>();
         String proxy = null;
-
         ConfigHandler configHandler = ExtensionLoader.getExtensionLoader(ConfigHandler.class).getExtension(MotanConstants.DEFAULT_VALUE);
 
         loadRegistryUrls();
@@ -145,18 +164,14 @@ public class RefererConfig<T> extends AbstractRefererConfig {
 
             String path = StringUtils.isBlank(serviceInterface) ? interfaceClass.getName() : serviceInterface;
             URL refUrl = new URL(protocol.getName(), localIp, MotanConstants.DEFAULT_INT_VALUE, path, params);
-            ClusterSupport<T> clusterSupport = createClusterSupport(refUrl, configHandler);
-
-            clusterSupports.add(clusterSupport);
-            clusters.add(clusterSupport.getCluster());
-            GlobalRuntime.addCluster(clusterSupport.getCluster().getUrl().getIdentity(), clusterSupport.getCluster());
-
+            ClusterGroup<T> clusterGroup = createClusterGroup(configHandler, refUrl);
+            clusterGroups.add(clusterGroup);
             if (proxy == null) {
                 proxy = getProxyType(refUrl);
             }
         }
 
-        ref = configHandler.refer(interfaceClass, clusters, proxy);
+        ref = configHandler.refer(interfaceClass, clusterGroups, proxy);
     }
 
     private void initMeshClientRef() {
@@ -174,6 +189,73 @@ public class RefererConfig<T> extends AbstractRefererConfig {
     private String getProxyType(URL refUrl) {
         String defaultProxy = StringUtils.isBlank(serviceInterface) ? URLParamType.proxy.getValue() : MotanConstants.PROXY_COMMON;
         return refUrl.getParameter(URLParamType.proxy.getName(), defaultProxy);
+    }
+
+    private ClusterGroup<T> createClusterGroup(ConfigHandler configHandler, URL refUrl) {
+        // create master cluster
+        Cluster<T> masterCluster = createInnerCluster(configHandler, refUrl, MASTER_CLUSTER_KEY);
+        DefaultClusterGroup<T> clusterGroup = new DefaultClusterGroup<T>(masterCluster);
+        // try to create sandbox, backup clusters if not injvm protocol
+        if (!MotanConstants.PROTOCOL_INJVM.equals(refUrl.getProtocol())) {
+            try {
+                String sandboxGroups = refUrl.getParameter(URLParamType.sandboxGroups.getName(), DEFAULT_SANDBOX_GROUPS);
+                // set sandbox clusters
+                if (StringUtils.isNotBlank(sandboxGroups) && !NONE_SANDBOX_STRING.equals(sandboxGroups)) {
+                    clusterGroup.setSandboxClusters(createMultiClusters(refUrl, configHandler,
+                            sandboxGroups, SANDBOX_CLUSTER_KEY, false, true));
+                    LoggerUtil.info("init sandbox clusters success. master cluster url:" + refUrl.toSimpleString() + ", sandbox groups:" + sandboxGroups);
+                }
+                // set backup clusters
+                if (StringUtils.isNotBlank(refUrl.getParameter(URLParamType.backupGroups.getName()))) {
+                    clusterGroup.setBackupClusters(createMultiClusters(refUrl, configHandler,
+                            refUrl.getParameter(URLParamType.backupGroups.getName()), BACKUP_CLUSTER_KEY, true, false));
+                    LoggerUtil.info("init backup clusters success. master cluster url:" + refUrl.toSimpleString() + ", backup groups:" + refUrl.getParameter(URLParamType.backupGroups.getName()));
+                }
+            } catch (Exception e) {
+                // notice: inner cluster initialization failure will not affect the main initialization of ClusterGroup.
+                LoggerUtil.error("init cluster inner group fail. master cluster url:" + refUrl.toFullStr(), e);
+            }
+        }
+        clusterGroup.init();
+        return clusterGroup;
+    }
+
+    private List<Cluster<T>> createMultiClusters(URL baseUrl, ConfigHandler configHandler, String groupString,
+            String prefixKey, boolean lazyInit, boolean emptyNodeNotify) {
+        String baseGroup = baseUrl.getGroup();
+        List<Cluster<T>> clusters = new ArrayList<>();
+        Set<String> groupNames = StringTools.splitSet(groupString, MotanConstants.COMMA_SEPARATOR);
+        for (String groupName : groupNames) {
+            if (groupName.startsWith(SUFFIX_STRING)) {
+                groupName = baseGroup + groupName.substring(SUFFIX_STRING.length());
+            }
+            if (!baseGroup.equals(groupName)) { // not master group, then create new cluster
+                URL groupUrl = baseUrl.createCopy();
+                groupUrl.addParameter(URLParamType.group.getName(), groupName);
+                groupUrl.addParameter(URLParamType.check.getName(), "false");
+                if (lazyInit) {
+                    groupUrl.addParameter(URLParamType.lazyInit.getName(), "true");
+                }
+                if (emptyNodeNotify) {
+                    groupUrl.addParameter(URLParamType.clusterEmptyNodeNotify.getName(), "true");
+                }
+                Cluster<T> cluster = createInnerCluster(configHandler, groupUrl, prefixKey);
+                clusters.add(cluster);
+            }
+        }
+        if (clusters.isEmpty()) {
+            return null;
+        }
+        return clusters;
+    }
+
+    private Cluster<T> createInnerCluster(ConfigHandler configHandler, URL url, String prefixKey){
+        ClusterSupport<T> clusterSupport = createClusterSupport(url, configHandler);
+        Cluster<T> cluster = clusterSupport.getCluster();
+        String key = prefixKey + cluster.getUrl().getIdentity();
+        clusterSupports.put(key, clusterSupport);
+        GlobalRuntime.addCluster(key, cluster);
+        return cluster;
     }
 
     private ClusterSupport<T> createClusterSupport(URL refUrl, ConfigHandler configHandler) {
@@ -223,9 +305,22 @@ public class RefererConfig<T> extends AbstractRefererConfig {
 
     public synchronized void destroy() {
         if (clusterSupports != null) {
-            for (ClusterSupport<T> clusterSupport : clusterSupports) {
-                GlobalRuntime.removeCluster(clusterSupport.getCluster().getUrl().getIdentity());
-                clusterSupport.destroy();
+            for (Entry<String, ClusterSupport<T>> entry : clusterSupports.entrySet()) {
+                try {
+                    GlobalRuntime.removeCluster(entry.getKey());
+                    entry.getValue().destroy();
+                } catch (Exception e) {
+                    LoggerUtil.error("destroy cluster error. key: " + entry.getKey() + ", url:" + entry.getValue().getUrl().toFullStr(), e);
+                }
+            }
+        }
+        if (clusterGroups != null) {
+            for(Caller<T> clusterGroup : clusterGroups) {
+                try {
+                    clusterGroup.destroy();
+                } catch (Exception e) {
+                    LoggerUtil.error("destroy cluster group error. url:" + clusterGroup.getUrl().toFullStr(), e);
+                }
             }
         }
         // Mesh client will not be destroyed with the referer。Its life cycle is consistent with the spring context
@@ -261,7 +356,8 @@ public class RefererConfig<T> extends AbstractRefererConfig {
         this.basicReferer = basicReferer;
     }
 
-    public List<ClusterSupport<T>> getClusterSupports() {
+    // only for test
+    public Map<String, ClusterSupport<T>> getClusterSupports() {
         return clusterSupports;
     }
 

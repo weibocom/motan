@@ -1,60 +1,73 @@
 package com.weibo.api.motan.proxy;
 
-import com.weibo.api.motan.cluster.Cluster;
-import com.weibo.api.motan.common.MotanConstants;
-import com.weibo.api.motan.common.URLParamType;
-import com.weibo.api.motan.core.extension.ExtensionLoader;
-import com.weibo.api.motan.exception.MotanErrorMsgConstant;
-import com.weibo.api.motan.exception.MotanFrameworkException;
-import com.weibo.api.motan.exception.MotanServiceException;
-import com.weibo.api.motan.rpc.*;
-import com.weibo.api.motan.serialize.DeserializableObject;
-import com.weibo.api.motan.switcher.Switcher;
-import com.weibo.api.motan.switcher.SwitcherService;
-import com.weibo.api.motan.util.*;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.weibo.api.motan.common.MotanConstants;
+import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.exception.MotanErrorMsgConstant;
+import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.exception.MotanServiceException;
+import com.weibo.api.motan.rpc.Caller;
+import com.weibo.api.motan.rpc.DefaultRequest;
+import com.weibo.api.motan.rpc.DefaultResponseFuture;
+import com.weibo.api.motan.rpc.Request;
+import com.weibo.api.motan.rpc.Response;
+import com.weibo.api.motan.rpc.ResponseFuture;
+import com.weibo.api.motan.rpc.RpcContext;
+import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.serialize.DeserializableObject;
+import com.weibo.api.motan.switcher.Switcher;
+import com.weibo.api.motan.switcher.SwitcherService;
+import com.weibo.api.motan.util.ExceptionUtil;
+import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MotanFrameworkUtil;
+import com.weibo.api.motan.util.MotanSwitcherUtil;
+import com.weibo.api.motan.util.ReflectUtil;
+import com.weibo.api.motan.util.RequestIdGenerator;
+
 /**
  * @author sunnights
  */
 public class AbstractRefererHandler<T> {
-    protected List<Cluster<T>> clusters;
+    protected List<Caller<T>> callers;
     protected Class<T> clz;
     protected SwitcherService switcherService = null;
     protected String interfaceName;
+    protected URL url;
+    protected boolean isSingleCluster = false;
 
     void init() {
         // clusters 不应该为空
-        String switchName = this.clusters.get(0).getUrl().getParameter(URLParamType.switcherService.getName(), URLParamType.switcherService.getValue());
-        switcherService = ExtensionLoader.getExtensionLoader(SwitcherService.class).getExtension(switchName);
+        url = callers.get(0).getUrl();
+        isSingleCluster = callers.size() == 1;
     }
 
     Object invokeRequest(Request request, Class<?> returnType, boolean async) throws Throwable {
         fillWithContext(request, async);
+        request.setAttachment(URLParamType.version.getName(), url.getVersion());
+        request.setAttachment(URLParamType.clientGroup.getName(), url.getGroup());
+        // 带上client的application和module
+        request.setAttachment(URLParamType.application.getName(), url.getApplication());
+        request.setAttachment(URLParamType.module.getName(), url.getModule());
+        if (isSingleCluster) { // fast path
+            return call(callers.get(0), url, request, returnType, async);
+        }
 
         // 当 referer配置多个protocol的时候，比如A,B,C，
         // 那么正常情况下只会使用A，如果A被开关降级，那么就会使用B，B也被降级，那么会使用C
-        for (Cluster<T> cluster : clusters) {
-            String protocolSwitcher = MotanConstants.PROTOCOL_SWITCHER_PREFIX + cluster.getUrl().getProtocol();
-
-            Switcher switcher = switcherService.getSwitcher(protocolSwitcher);
-
+        for (Caller<T> caller : callers) {
+            String protocolSwitcher = MotanConstants.PROTOCOL_SWITCHER_PREFIX + caller.getUrl().getProtocol();
+            Switcher switcher = MotanSwitcherUtil.getSwitcher(protocolSwitcher);
             if (switcher != null && !switcher.isOn()) {
                 continue;
             }
-
-            request.setAttachment(URLParamType.version.getName(), cluster.getUrl().getVersion());
-            request.setAttachment(URLParamType.clientGroup.getName(), cluster.getUrl().getGroup());
-            // 带上client的application和module
-            request.setAttachment(URLParamType.application.getName(), cluster.getUrl().getApplication());
-            request.setAttachment(URLParamType.module.getName(), cluster.getUrl().getModule());
-            return call(cluster, cluster.getUrl(), request, returnType, async);
+            return call(caller, caller.getUrl(), request, returnType, async);
         }
         throw new MotanServiceException("Referer call Error: cluster not exist, interface=" + interfaceName + " " + MotanFrameworkUtil.toString(request), MotanErrorMsgConstant.SERVICE_UNFOUND, false);
     }

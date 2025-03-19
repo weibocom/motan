@@ -51,11 +51,11 @@ public class ClusterSupport<T> implements NotifyListener, StatisticCallback {
 
     private static ConcurrentHashMap<String, Protocol> protocols = new ConcurrentHashMap<>();
     private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-    private static Set<ClusterSupport> refreshSet = new HashSet<>();
+    private static Set<ClusterSupport<?>> refreshSet = new HashSet<>();
 
     static {
         executorService.scheduleAtFixedRate(() -> {
-            for (ClusterSupport clusterSupport : refreshSet) {
+            for (ClusterSupport<?> clusterSupport : refreshSet) {
                 clusterSupport.refreshReferers();
             }
         }, MotanConstants.REFRESH_PERIOD, MotanConstants.REFRESH_PERIOD, TimeUnit.SECONDS);
@@ -127,6 +127,7 @@ public class ClusterSupport<T> implements NotifyListener, StatisticCallback {
     }
 
     public void destroy() {
+        refreshSet.remove(this);
         URL subscribeUrl = toSubscribeUrl(url);
         for (URL ru : registryUrls) {
             try {
@@ -341,7 +342,7 @@ public class ClusterSupport<T> implements NotifyListener, StatisticCallback {
 
     private void onRegistryEmpty(URL excludeRegistryUrl) {
         boolean noMoreOtherRefers = registryReferers.size() == 1 && registryReferers.containsKey(excludeRegistryUrl);
-        if (noMoreOtherRefers) {
+        if (noMoreOtherRefers && !url.getBooleanParameter(URLParamType.clusterEmptyNodeNotify.getName(), false)) {
             LoggerUtil.warn(String.format("Ignore notify for no more referers in this cluster, registry: %s, cluster=%s",
                     excludeRegistryUrl, getUrl()));
         } else {
@@ -430,7 +431,7 @@ public class ClusterSupport<T> implements NotifyListener, StatisticCallback {
         HaStrategy<T> ha = ExtensionLoader.getExtensionLoader(HaStrategy.class).getExtension(haStrategyName);
         ha.setUrl(url);
         // Use GroupWeightLoadBalance uniformly to add group weight capabilities to specific LB
-        GroupWeightLoadBalanceWrapper groupWeightLoadBalance = new GroupWeightLoadBalanceWrapper<T>(loadbalanceName);
+        GroupWeightLoadBalanceWrapper<T> groupWeightLoadBalance = new GroupWeightLoadBalanceWrapper<T>(loadbalanceName);
         groupWeightLoadBalance.init(url);
         cluster.setLoadBalance(groupWeightLoadBalance);
         cluster.setHaStrategy(ha);
@@ -441,7 +442,7 @@ public class ClusterSupport<T> implements NotifyListener, StatisticCallback {
     public String statisticCallback() {
         if (cluster != null && !CollectionUtil.isEmpty(cluster.getReferers())) {
             int unavailable = 0;
-            for (Referer referer : cluster.getReferers()) {
+            for (Referer<?> referer : cluster.getReferers()) {
                 if (!referer.isAvailable()) {
                     unavailable++;
                 }

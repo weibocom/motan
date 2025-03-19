@@ -237,7 +237,9 @@ public class NettyClientTest {
         assertFalse(nettyClient.isAvailable());
 
         nettyServer.open();
-        nettyClient.heartbeat(new DefaultRpcHeartbeatFactory().createRequest());
+        for (int i = 0; i < 3; i++) {
+            nettyClient.heartbeat(new DefaultRpcHeartbeatFactory().createRequest());
+        }
 
         Thread.sleep(100L);
         for (Channel channel : nettyClient.getChannels()) {

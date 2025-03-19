@@ -16,7 +16,9 @@
 
 package com.weibo.api.motan.config.handler;
 
-import com.weibo.api.motan.cluster.Cluster;
+import java.util.Collection;
+import java.util.List;
+
 import com.weibo.api.motan.cluster.support.ClusterSupport;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
@@ -29,15 +31,15 @@ import com.weibo.api.motan.protocol.support.ProtocolFilterDecorator;
 import com.weibo.api.motan.proxy.ProxyFactory;
 import com.weibo.api.motan.registry.Registry;
 import com.weibo.api.motan.registry.RegistryFactory;
-import com.weibo.api.motan.rpc.*;
+import com.weibo.api.motan.rpc.Caller;
+import com.weibo.api.motan.rpc.DefaultProvider;
+import com.weibo.api.motan.rpc.Exporter;
+import com.weibo.api.motan.rpc.Protocol;
+import com.weibo.api.motan.rpc.Provider;
+import com.weibo.api.motan.rpc.ProviderFactory;
+import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MeshProxyUtil;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -59,9 +61,9 @@ public class SimpleConfigHandler implements ConfigHandler {
     }
 
     @Override
-    public <T> T refer(Class<T> interfaceClass, List<Cluster<T>> clusters, String proxyType) {
+    public <T> T refer(Class<T> interfaceClass, List<Caller<T>> callers, String proxyType) {
         ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getExtension(proxyType);
-        return proxyFactory.getProxy(interfaceClass, clusters);
+        return proxyFactory.getProxy(interfaceClass, callers);
     }
 
     @Override

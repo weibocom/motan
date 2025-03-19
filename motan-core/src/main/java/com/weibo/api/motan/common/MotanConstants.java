@@ -90,8 +90,8 @@ public class MotanConstants {
     public static final int NETTY_EXECUTOR_MAX_SIZE = 800;
     // netty thread idle time: 1 mintue
     public static final int NETTY_THREAD_KEEPALIVE_TIME = 60 * 1000;
-    // netty client max concurrent request TODO 2W is suitable?
-    public static final int NETTY_CLIENT_MAX_REQUEST = 20000;
+    // netty client max concurrent request
+    public static final int NETTY_CLIENT_MAX_REQUEST = 50000;
     // share channel max worker thread
     public static final int NETTY_SHARECHANNEL_MAX_WORKDER = 800;
     // share channel min worker thread
@@ -165,6 +165,7 @@ public class MotanConstants {
     public static final String ATT_PRINT_TRACE_LOG = "print_trace_log"; // 针对单请求是否打印（access）日志
     public static final String X_FORWARDED_FOR = "x-forwarded-for"; // 经过mesh代理的远端host
     public static final String FRAMEWORK_SERVICE = "M_fws"; // motan framework service attachment key
+    public static final String ROUTE_GROUP_KEY = "motan-route-group"; // 请求中控制分组流量的key
 
     // ------------------ common env name -----------------
     public static final String ENV_ADDITIONAL_GROUP = "MOTAN_SERVICE_ADDITIONAL_GROUP"; //motan service 追加导出分组。例如可以自动追加云平台上的分组
@@ -176,7 +177,7 @@ public class MotanConstants {
     public static final String ENV_MOTAN_ADMIN_PORT = "MOTAN_ADMIN_PORT";
     public static final String ENV_MOTAN_ADMIN_EXT_HANDLERS = "MOTAN_ADMIN_EXT_HANDLERS";
     public static final String ENV_RPC_REG_GROUP_SUFFIX = "RPC_REG_GROUP_SUFFIX"; // Group suffix automatically appended during RPC registration
-
+    public static final String ENV_MOTAN_CHANGE_REG_GROUPS = "MOTAN_CHANGE_REG_GROUPS"; // Change registed groups of service by service name.
 
     // ------------------ motan mesh default value -----------------
     public static final String MESH_CLIENT = "meshClient";

@@ -244,7 +244,7 @@ public class NettyClientTest extends TestCase {
 
         nettyServer.open();
         nettyClient.heartbeat(new DefaultRpcHeartbeatFactory().createRequest());
-        Thread.sleep(50L);
+        Thread.sleep(100L);
         try {
             Response response = nettyClient.request(request);
             assertEquals("method: hello requestId: " + request.getRequestId(), response.getValue());

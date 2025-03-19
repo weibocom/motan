@@ -123,6 +123,9 @@ public class WeightRoundRobinLoadBalance<T> extends AbstractWeightedLoadBalance<
         @Override
         public Referer<T> select(Request request) {
             List<WeightedRefererHolder<T>> tempHolders = holders;
+            if (CollectionUtil.isEmpty(tempHolders)) {
+                return null;
+            }
             Referer<T> ref = tempHolders.get(MathUtil.getNonNegative(idx.incrementAndGet()) % tempHolders.size()).referer;
             if (ref.isAvailable()) {
                 return ref;
