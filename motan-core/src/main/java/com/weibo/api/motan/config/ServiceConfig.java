@@ -188,15 +188,30 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             groupString = StringUtils.isBlank(groupString) ? additionalGroup : groupString + "," + additionalGroup;
             serviceUrl.addParameter(URLParamType.group.getName(), groupString);
         }
-        // change groups by env map
-        if (!initEnv.get()) {
-            initChangeGroupEnv();
-        }
-        String changeGroups = getChangeGroupFromEnv(serviceUrl.getPath());
-        if (changeGroups != null) {
-            groupString = changeGroups;
+
+        String serverMode = System.getenv(MotanConstants.ENV_MOTAN_SERVER_MODE);
+        // change service group in sandbox mode.
+        if (MotanConstants.MOTAN_SERVER_MODE_SANDBOX.equals(serverMode)) {
+            LoggerUtil.info("motan server start in sandbox mode.");
+            // change groups by env map
+            if (!initEnv.get()) {
+                initChangeGroupEnv();
+            }
+            // First get the sandbox group name from the environment variable
+            String changeGroups = getChangeGroupFromEnv(serviceUrl.getPath());
+            if (changeGroups == null) {
+                // if not found, get the sandbox group name from the url parameter
+                changeGroups = serviceUrl.getParameter(URLParamType.sandboxGroups.getName(), "");
+            }
+            if (StringUtils.isBlank(changeGroups)) {
+                // The sandbox group name must be specified in sandbox mode
+                LoggerUtil.error("can not find sandbox group name in sandbox mode. service url:" + serviceUrl.toSimpleString());
+                throw new MotanServiceException("can not find sandbox group name in sandbox mode. service url:" + serviceUrl.toSimpleString());
+            }
+            groupString = changeGroups.replace(MotanConstants.SUFFIX_STRING, serviceUrl.getGroup());
             serviceUrl.addParameter(URLParamType.group.getName(), groupString);
-            LoggerUtil.info("change group from env, serviceUrl:" + serviceUrl.toSimpleString() + ", change to groups:" + groupString);
+            LoggerUtil.info("change register group in sandbox mode, serviceUrl:" + serviceUrl.toSimpleString()
+                        + ", change to groups:" + groupString);
         }
 
         // check multi group.

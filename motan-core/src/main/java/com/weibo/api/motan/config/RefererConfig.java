@@ -65,7 +65,6 @@ public class RefererConfig<T> extends AbstractRefererConfig {
     private static final String SANDBOX_CLUSTER_KEY = "sandbox-";
     private static final String BACKUP_CLUSTER_KEY = "backup-";
     private static final String NONE_SANDBOX_STRING = "none";
-    private static final String SUFFIX_STRING = "suffix:";
     public static String DEFAULT_SANDBOX_GROUPS = MotanGlobalConfigUtil.getConfig("DEFAULT_SANDBOX_GROUPS", ""); // 可以通过设置全局配置修改默认值
 
 
@@ -226,8 +225,8 @@ public class RefererConfig<T> extends AbstractRefererConfig {
         List<Cluster<T>> clusters = new ArrayList<>();
         Set<String> groupNames = StringTools.splitSet(groupString, MotanConstants.COMMA_SEPARATOR);
         for (String groupName : groupNames) {
-            if (groupName.startsWith(SUFFIX_STRING)) {
-                groupName = baseGroup + groupName.substring(SUFFIX_STRING.length());
+            if (groupName.startsWith(MotanConstants.SUFFIX_STRING)) {
+                groupName = baseGroup + groupName.substring(MotanConstants.SUFFIX_STRING.length());
             }
             if (!baseGroup.equals(groupName)) { // not master group, then create new cluster
                 URL groupUrl = baseUrl.createCopy();

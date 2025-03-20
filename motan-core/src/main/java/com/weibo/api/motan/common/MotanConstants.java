@@ -77,6 +77,7 @@ public class MotanConstants {
     public static final String REQUEST_REMOTE_ADDR = "requestRemoteAddress";
     public static final String CONTENT_LENGTH = "Content-Length";
     public static final String DISABLE_FILTER_PREFIX = "-";
+    public static final String SUFFIX_STRING = "suffix:";
 
     /**
      * netty channel constants start
@@ -178,6 +179,10 @@ public class MotanConstants {
     public static final String ENV_MOTAN_ADMIN_EXT_HANDLERS = "MOTAN_ADMIN_EXT_HANDLERS";
     public static final String ENV_RPC_REG_GROUP_SUFFIX = "RPC_REG_GROUP_SUFFIX"; // Group suffix automatically appended during RPC registration
     public static final String ENV_MOTAN_CHANGE_REG_GROUPS = "MOTAN_CHANGE_REG_GROUPS"; // Change registed groups of service by service name.
+    public static final String ENV_MOTAN_SERVER_MODE = "MOTAN_SERVER_MODE"; // Set the startup mode of motan server.
+
+    // ------------------ motan server mode -----------------
+    public static final String MOTAN_SERVER_MODE_SANDBOX = "sandbox";
 
     // ------------------ motan mesh default value -----------------
     public static final String MESH_CLIENT = "meshClient";
