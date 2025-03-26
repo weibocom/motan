@@ -17,13 +17,13 @@ import com.weibo.api.motan.util.MotanSwitcherUtil;
 
 public class DefaultClusterGroup<T> implements ClusterGroup<T> {
     public static final String BACKUP_CLUSTER_SWITCHER_NAME = "feature.motan.backup.cluster.enable";
-    private static final String NO_REFERER_EXCEPTION_MESSAGE = "No available referers";
-    private static Switcher BACKUP_CLUSTER_SWITCHER = null;
+    protected static final String NO_REFERER_EXCEPTION_MESSAGE = "No available referers";
+    protected static Switcher BACKUP_CLUSTER_SWITCHER = null;
     protected ClusterSelector<T> selector;
     protected Cluster<T> masterCluster;
     protected List<Cluster<T>> backupClusters;
     protected List<Cluster<T>> sandboxClusters;
-    private AtomicInteger backupIndex;
+    protected AtomicInteger backupIndex;
 
     static {
         if (MotanSwitcherUtil.canHoldSwitcher()) {

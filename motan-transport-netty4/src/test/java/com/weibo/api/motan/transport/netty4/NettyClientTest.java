@@ -226,6 +226,7 @@ public class NettyClientTest {
     @Test
     public void testClient() throws InterruptedException {
         nettyServer.close();
+        Thread.sleep(30L);
 
         NettyTestClient nettyClient = new NettyTestClient(url);
         this.nettyClient = nettyClient;

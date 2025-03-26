@@ -61,10 +61,10 @@ public class RefererConfig<T> extends AbstractRefererConfig {
 
     private static final long serialVersionUID = -2299754608229467887L;
 
-    private static final String MASTER_CLUSTER_KEY = "master-";
-    private static final String SANDBOX_CLUSTER_KEY = "sandbox-";
-    private static final String BACKUP_CLUSTER_KEY = "backup-";
-    private static final String NONE_SANDBOX_STRING = "none";
+    protected static final String MASTER_CLUSTER_KEY = "master-";
+    protected static final String SANDBOX_CLUSTER_KEY = "sandbox-";
+    protected static final String BACKUP_CLUSTER_KEY = "backup-";
+    protected static final String NONE_SANDBOX_STRING = "none";
     public static String DEFAULT_SANDBOX_GROUPS = MotanGlobalConfigUtil.getConfig("DEFAULT_SANDBOX_GROUPS", ""); // 可以通过设置全局配置修改默认值
 
 
@@ -312,6 +312,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
                     LoggerUtil.error("destroy cluster error. key: " + entry.getKey() + ", url:" + entry.getValue().getUrl().toFullStr(), e);
                 }
             }
+            clusterSupports.clear();
         }
         if (clusterGroups != null) {
             for(Caller<T> clusterGroup : clusterGroups) {
@@ -321,6 +322,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
                     LoggerUtil.error("destroy cluster group error. url:" + clusterGroup.getUrl().toFullStr(), e);
                 }
             }
+            clusterGroups.clear();
         }
         // Mesh client will not be destroyed with the referer。Its life cycle is consistent with the spring context
         ref = null;

@@ -260,6 +260,12 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         return null;
     }
 
+    // only for test
+    protected static void clearChangeGroupFromEnv() {
+        serviceGroupMapFromEnv.clear();
+        initEnv.set(false);
+    }
+
     private void exportService(String hostAddress, String protocol, URL serviceUrl) {
         // Check if there is a suffix that needs to be appended
         String appendSuffix = System.getenv(MotanConstants.ENV_RPC_REG_GROUP_SUFFIX);

@@ -64,6 +64,7 @@ public class NettyServerTest {
         });
         nettyServer.open();
         Assert.assertEquals(0, nettyServer.channelManage.getChannels().size());
+        Thread.sleep(10);
 
         NettyClient nettyClient = new NettyClient(url);
         nettyClient.open();
@@ -113,6 +114,7 @@ public class NettyServerTest {
             return response;
         });
         nettyServer.open();
+        Thread.sleep(10);
 
         DefaultRequest request = new DefaultRequest();
         request.setRequestId(RequestIdGenerator.getRequestId());
@@ -183,6 +185,7 @@ public class NettyServerTest {
             return response;
         });
         nettyServer.open();
+        Thread.sleep(10);
 
         NettyClient nettyClient = new NettyClient(url);
         nettyClient.open();
@@ -196,7 +199,7 @@ public class NettyServerTest {
         // sync success
         Response response = nettyClient.request(request);
         assertEquals("success", response.getValue());
-        Thread.sleep(10);
+        Thread.sleep(20);
         assertEquals(1, callbackCount.get());
 
         // sync exception

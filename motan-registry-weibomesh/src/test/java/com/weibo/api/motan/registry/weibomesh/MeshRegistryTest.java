@@ -86,8 +86,7 @@ public class MeshRegistryTest {
         registry.setProxyRegistry(mockProxyRegistry);
         //因为测试流程原因，单测时需要手动触发健康检测
         registry.initHealthCheck();
-
-
+        Util.UrlToJson(agentMockUrl); // warmup
     }
 
     @Test
@@ -204,12 +203,12 @@ public class MeshRegistryTest {
     @Test
     public void testDynamic() throws Exception {
         String mport = "8888";
-        MockMeshTransport transport = new MockMeshTransport();
+        final MockMeshTransport transport = new MockMeshTransport();
         registryUrl.addParameter(URLParamType.dynamic.getName(), "true");
         registryUrl.addParameter(URLParamType.meshMPort.getName(), mport);
         registry = new MeshRegistry(registryUrl, transport);
         registry.doRegister(subUrl);
-        Thread.sleep(500l);
+        Thread.sleep(100l);
         assertEquals(1, transport.records.size());
         assertEquals("http://" + registryUrl.getHost() + ":" + mport + MeshRegistry.MESH_REGISTER_URL, transport.records.get(0).getLeft());
         assertEquals(Util.UrlToJson(subUrl), transport.records.get(0).getRight());
