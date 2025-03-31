@@ -207,6 +207,9 @@ public class ClusterSupport<T> implements NotifyListener, StatisticCallback {
                 // careful u: serverURL, refererURL的配置会被serverURL的配置覆盖
                 URL refererURL = u.createCopy();
                 mergeClientConfigs(refererURL);
+                // notice that:
+                // refererURL is client side url with client side group. this group used to count client side metrics.
+                // u is the original server url with original server group. this group used to control group traffic by group weight.
                 referer = protocol.refer(interfaceClass, refererURL, u);
             }
             if (referer != null) {

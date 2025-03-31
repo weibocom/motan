@@ -1,8 +1,5 @@
 package com.weibo.api.motan.cluster.group;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
@@ -14,6 +11,9 @@ import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.switcher.Switcher;
 import com.weibo.api.motan.util.MathUtil;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DefaultClusterGroup<T> implements ClusterGroup<T> {
     public static final String BACKUP_CLUSTER_SWITCHER_NAME = "feature.motan.backup.cluster.enable";
@@ -66,7 +66,7 @@ public class DefaultClusterGroup<T> implements ClusterGroup<T> {
         if (sandboxClusters != null) {
             selector = ExtensionLoader.getExtensionLoader(ClusterSelector.class)
                     .getExtension(masterCluster.getUrl().getParameter(URLParamType.clusterSelector.getName(),
-                            URLParamType.clusterSelector.getValue()));
+                            DEFAULT_CLUSTER_SELECTOR));
             selector.init(this);
         }
         // The index counter is initialized only when backup clusters exists.

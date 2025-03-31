@@ -18,6 +18,7 @@
 
 package com.weibo.api.motan.cluster.loadbalance;
 
+import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.mock.MockDynamicReferer;
 import com.weibo.api.motan.protocol.example.IHello;
 import com.weibo.api.motan.rpc.DefaultRequest;
@@ -36,6 +37,8 @@ import static com.weibo.api.motan.cluster.loadbalance.WeightRoundRobinLoadBalanc
  * @date 2024/3/28.
  */
 public class GroupWeightLoadBalanceTest extends TestCase {
+
+    String refererGroup = "default-group";
 
     public void testSelect() {
         // Test using different internal LB
@@ -70,6 +73,22 @@ public class GroupWeightLoadBalanceTest extends TestCase {
                 double delta = Math.abs(expectGroupRound - dynamicReferer.count.get() / (double) dynamicReferer.staticWeight) / expectGroupRound;
                 assertTrue(delta < 0.2);
             }
+        }
+    }
+
+    public void testEmptyGroupReferers() {
+        GroupWeightLoadBalanceWrapper<IHello> gwlb = new GroupWeightLoadBalanceWrapper<>("roundrobin");
+        gwlb.init(new URL("mock", "localhost", 0, "testService"));
+        String weightString = "group1:3,group2:2,group3:1";
+        List<TestItem> testItems = buildTestItems(weightString, 8, false, 20, 0);
+        // remove one group referers
+        testItems.get(0).referers.clear();
+        int round = 10;
+        try {
+            checkGroupWeight(gwlb, weightString, testItems, round);
+            fail();
+        } catch (MotanServiceException e) {
+            assertTrue(e.getMessage().contains("group is empty"));
         }
     }
 
@@ -151,7 +170,7 @@ public class GroupWeightLoadBalanceTest extends TestCase {
         List<TestItem> testItems = new ArrayList<>(groupsAndWeights.length);
         for (String groupsAndWeight : groupsAndWeights) {
             String[] gw = groupsAndWeight.split(":");
-            testItems.add(new TestItem(buildDynamicReferers(refererSize, sameStaticWeight, maxWeight, true, unavailable, gw[0]),
+            testItems.add(new TestItem(buildDynamicReferers(refererSize, sameStaticWeight, maxWeight, true, unavailable, refererGroup, gw[0]),
                     Integer.parseInt(gw[1]), gw[0]));
         }
         return testItems;
