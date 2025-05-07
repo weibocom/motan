@@ -48,12 +48,12 @@ public class DefaultClusterSelectorTest extends BaseTestCase {
                 will(returnValue(null));
                 oneOf(clusterGroup).getMasterCluster();
                 will(returnValue(masterCluster));
-            }
+            }    
         });
 
         selector.init(clusterGroup);
         assertSame(clusterGroup, selector.clusterGroup);
-        assertNull(selector.routeGroups);
+        assertNull(selector.defaultSandboxCluster);
 
         Cluster<?> cluster = selector.select(request);
         assertSame(masterCluster, cluster);
@@ -73,7 +73,7 @@ public class DefaultClusterSelectorTest extends BaseTestCase {
 
         selector.init(clusterGroup);
         assertSame(clusterGroup, selector.clusterGroup);
-        assertNull(selector.routeGroups);
+        assertNull(selector.defaultSandboxCluster);
 
         Cluster<?> cluster = selector.select(request);
         assertSame(masterCluster, cluster);
@@ -120,12 +120,8 @@ public class DefaultClusterSelectorTest extends BaseTestCase {
 
         selector.init(clusterGroup);
         assertSame(clusterGroup, selector.clusterGroup);
-        assertNotNull(selector.routeGroups);
-        assertEquals(4, selector.routeGroups.size());
-        assertSame(sandboxCluster, selector.routeGroups.get(DefaultClusterSelector.DEFAULT_ROUTE_GROUP_SANDBOX));
-        assertSame(sandboxCluster, selector.routeGroups.get("testGroup"));
-        assertSame(sandboxCluster2, selector.routeGroups.get("testGroup2"));
-        assertSame(sandboxCluster3, selector.routeGroups.get("testGroup3"));
+        assertNotNull(selector.defaultSandboxCluster);
+        assertSame(sandboxCluster, selector.defaultSandboxCluster);
 
         DefaultRequest defaultRequest = new DefaultRequest();
         // without route group
@@ -139,20 +135,35 @@ public class DefaultClusterSelectorTest extends BaseTestCase {
         assertSame(sandboxCluster, selected);
 
         // with specific sandbox group
+        // Test URL group matching
+        final URL clusterGroupUrl = new URL("motan", "localhost", 8001, "testService");
+        clusterGroupUrl.addParameter("group", "testGroup");
+        
+        mockery.checking(new Expectations() {
+            {
+                allowing(clusterGroup).getUrl();
+                will(returnValue(clusterGroupUrl));
+            }
+        });
+        
         defaultRequest.setAttachment(MotanConstants.ROUTE_GROUP_KEY, "testGroup");
         selected = selector.select(defaultRequest);
         assertSame(sandboxCluster, selected);
-        defaultRequest.setAttachment(MotanConstants.ROUTE_GROUP_KEY, "testGroup2");
+        
+        // Test comma-separated group list
+        defaultRequest.setAttachment(MotanConstants.ROUTE_GROUP_KEY, "otherGroup,testGroup,anotherGroup,  ,,");
         selected = selector.select(defaultRequest);
-        assertSame(sandboxCluster2, selected);
-
-        // with empty referers cluster
-        defaultRequest.setAttachment(MotanConstants.ROUTE_GROUP_KEY, "testGroup3");
+        assertSame(sandboxCluster, selected);
+        
+        // Test cluster with empty references
+        referers.clear();
+        
         selected = selector.select(defaultRequest);
         assertSame(masterCluster, selected);
 
         // with invalid route group
-        defaultRequest.setAttachment(MotanConstants.ROUTE_GROUP_KEY, "invalidGroup");
+        referers.add(referer); // referers not empty
+        defaultRequest.setAttachment(MotanConstants.ROUTE_GROUP_KEY, ",, ,invalidGroup");
         selected = selector.select(defaultRequest);
         assertSame(masterCluster, selected);
     }

@@ -1,8 +1,6 @@
 package com.weibo.api.motan.cluster.group;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.common.MotanConstants;
@@ -15,19 +13,28 @@ import com.weibo.api.motan.util.CollectionUtil;
 public class DefaultClusterSelector<T> implements ClusterSelector<T>{
     public static final String DEFAULT_ROUTE_GROUP_SANDBOX = "sandbox";
     protected ClusterGroup<T> clusterGroup;
-    protected Map<String, Cluster<T>> routeGroups; // routable cluster groups. 
+    protected Cluster<T> defaultSandboxCluster; // Default sandbox cluster
 
     @Override
     public Cluster<T> select(Request request) {
-        if (routeGroups != null) {
-            // Request-specified route group
+        if (defaultSandboxCluster != null && !CollectionUtil.isEmpty(defaultSandboxCluster.getReferers())) {
+            // Check the route group of the request
             String routeGroup = request.getAttachment(MotanConstants.ROUTE_GROUP_KEY);
             if (routeGroup != null) {
-                Cluster<T> cluster = routeGroups.get(routeGroup.trim());
-                if (cluster != null && !CollectionUtil.isEmpty(cluster.getReferers())) {
-                    // If the cluster has referer, the cluster should be returned.
-                    // If all referers in the cluster are unavailable, an exception should be triggered to make the business aware.
-                    return cluster;
+                routeGroup = routeGroup.trim();
+                // If the route group is sandbox, directly return the default sandbox cluster
+                if (DEFAULT_ROUTE_GROUP_SANDBOX.equals(routeGroup)) {
+                    return defaultSandboxCluster;
+                }
+                
+                // Check the comma-separated group list
+                String[] routeGroupList = routeGroup.split(",");
+                String ownGroup = clusterGroup.getUrl().getGroup();
+                for (String group : routeGroupList) {
+                    group = group.trim();
+                    if (group.equals(ownGroup)) {
+                        return defaultSandboxCluster;
+                    }
                 }
             }
         }
@@ -42,16 +49,10 @@ public class DefaultClusterSelector<T> implements ClusterSelector<T>{
         this.clusterGroup = clusterGroup;
         List<Cluster<T>> sandboxClusters = clusterGroup.getSandboxClusters();
         if (!CollectionUtil.isEmpty(sandboxClusters)) {
-            if (routeGroups == null) {
-                routeGroups = new HashMap<>();
-            }
-            routeGroups.put(DEFAULT_ROUTE_GROUP_SANDBOX, sandboxClusters.get(0)); // The first cluster is the default sandbox cluster
-            for (Cluster<T> cluster : sandboxClusters) {
-                routeGroups.put(cluster.getUrl().getGroup(), cluster);
-            }
+            // Only save the first sandbox cluster as the default sandbox cluster
+            this.defaultSandboxCluster = sandboxClusters.get(0);
         }
     }
-
     @Override
     public void destroy() {
     }
