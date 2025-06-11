@@ -17,6 +17,7 @@
 package com.weibo.api.motan.config;
 
 import com.weibo.api.motan.BaseTestCase;
+import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.mock.MockClient;
@@ -24,12 +25,14 @@ import com.weibo.api.motan.protocol.example.IWorld;
 import com.weibo.api.motan.protocol.example.MockWorld;
 import com.weibo.api.motan.rpc.RpcContext;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.runtime.GlobalRuntime;
 import com.weibo.api.motan.transport.DefaultMeshClient;
 import com.weibo.api.motan.transport.MeshClient;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * refererConfig unit test.
@@ -173,6 +176,96 @@ public class RefererConfigTest extends BaseTestCase {
         // destroy
         refererConfig.destroy();
         assertFalse(refererConfig.getInitialized().get());
+    }
+
+    @Test
+    public void testClusterGroup() {
+        refererConfig.setSandboxGroups("sandbox1, sandbox2,,,,sandbox1");
+        refererConfig.setBackupGroups("backup1,,backup2,backup1" + "," + group); // With repeated groups、 master group
+        refererConfig.setRegistry(createRemoteRegistryConfig("direct", "direct", "127.0.0.1:4567", 0));
+
+        // injvm protocol not process sandbox groups and backup groups
+        IWorld ref = refererConfig.getRef();
+        assertNotNull(ref);
+        assertEquals(1, refererConfig.getClusterSupports().size());
+        refererConfig.destroy();
+
+        // multi sandbox groups and backup groups
+        refererConfig.setProtocol(mockProtocolConfig("motan2"));
+        ref = refererConfig.getRef();
+        assertNotNull(ref);
+        assertEquals(5, refererConfig.getClusterSupports().size());
+        assertEquals(5, GlobalRuntime.getRuntimeClusters().size());
+        for (Entry<String, Cluster<?>> entry : GlobalRuntime.getRuntimeClusters().entrySet()) {
+            assertEquals(entry.getValue(), refererConfig.getClusterSupports().get(entry.getKey()).getCluster());
+        }
+
+        // destroy
+        refererConfig.destroy();
+        assertFalse(refererConfig.getInitialized().get());
+        assertEquals(0, refererConfig.getClusterSupports().size());
+        assertEquals(0, GlobalRuntime.getRuntimeClusters().size());
+    }
+
+    @Test
+    public void testGroupSuffix() {
+        refererConfig.setSandboxGroups("suffix:-sandbox1");
+        refererConfig.setBackupGroups("suffix:-backup1");
+        refererConfig.setRegistry(createRemoteRegistryConfig("direct", "direct", "127.0.0.1:4567", 0));
+        refererConfig.setProtocol(mockProtocolConfig("motan2"));
+        IWorld ref = refererConfig.getRef();
+        assertNotNull(ref);
+        assertEquals(3, refererConfig.getClusterSupports().size());
+
+        for (Entry<String, Cluster<?>> entry : GlobalRuntime.getRuntimeClusters().entrySet()) {
+            if (entry.getKey().contains(RefererConfig.MASTER_CLUSTER_KEY)) {
+                assertEquals(RefererConfig.MASTER_CLUSTER_KEY + entry.getValue().getUrl().getIdentity(),
+                        entry.getKey());
+            } else if (entry.getKey().contains(RefererConfig.SANDBOX_CLUSTER_KEY)) {
+                assertEquals(RefererConfig.SANDBOX_CLUSTER_KEY + entry.getValue().getUrl().getIdentity(),
+                        entry.getKey());
+                assertEquals(group + "-sandbox1", entry.getValue().getUrl().getGroup());
+            } else if (entry.getKey().contains(RefererConfig.BACKUP_CLUSTER_KEY)) {
+                assertEquals(RefererConfig.BACKUP_CLUSTER_KEY + entry.getValue().getUrl().getIdentity(),
+                        entry.getKey());
+                assertEquals(group + "-backup1", entry.getValue().getUrl().getGroup());
+            } else {
+                fail();
+            }
+        }
+        refererConfig.destroy();
+    }
+
+    @Test
+    public void testDefaultSandboxGroup() {
+        // test default sandbox group
+        RefererConfig.DEFAULT_SANDBOX_GROUPS = "default-sandbox";
+        refererConfig.setRegistry(createRemoteRegistryConfig("direct", "direct", "127.0.0.1:4567", 0));
+        refererConfig.setProtocol(mockProtocolConfig("motan2"));
+        IWorld ref = refererConfig.getRef();
+        assertNotNull(ref);
+        assertEquals(2, refererConfig.getClusterSupports().size());
+        boolean contains = false;
+        for (String key : refererConfig.getClusterSupports().keySet()) {
+            if (key.startsWith(RefererConfig.SANDBOX_CLUSTER_KEY)) {
+                assertEquals(RefererConfig.DEFAULT_SANDBOX_GROUPS,
+                        refererConfig.getClusterSupports().get(key).getUrl().getGroup());
+                contains = true;
+            }
+        }
+        assertTrue(contains);
+        refererConfig.destroy();
+
+        // test "none" sandbox group
+        refererConfig.setSandboxGroups(RefererConfig.NONE_SANDBOX_STRING); // will over write default sandbox group, so no sandbox cluster
+        ref = refererConfig.getRef();
+        assertNotNull(ref);
+        assertEquals(1, refererConfig.getClusterSupports().size());
+        for (String key : refererConfig.getClusterSupports().keySet()) {
+            assertTrue(key.startsWith(RefererConfig.MASTER_CLUSTER_KEY));
+        }
+        refererConfig.destroy();
+        RefererConfig.DEFAULT_SANDBOX_GROUPS = "";
     }
 
 }

@@ -21,6 +21,7 @@ import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.URL;
+import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 
@@ -52,7 +53,7 @@ public abstract class AbstractLoadBalance<T> implements LoadBalance<T> {
     }
 
     protected void onRefresh(List<Referer<T>> referers, boolean shuffle) {
-        if (shuffle) {
+        if (shuffle && !referers.isEmpty()) {
             Collections.shuffle(referers);
         }
         // replaced only
@@ -62,7 +63,7 @@ public abstract class AbstractLoadBalance<T> implements LoadBalance<T> {
     @Override
     public Referer<T> select(Request request) {
         List<Referer<T>> referers = this.referers;
-        if (referers == null) {
+        if (CollectionUtil.isEmpty(referers)) {
             throw new MotanServiceException(this.getClass().getSimpleName() + " No available referers for call request:" + request);
         }
         Referer<T> ref = null;
@@ -82,8 +83,7 @@ public abstract class AbstractLoadBalance<T> implements LoadBalance<T> {
     @Override
     public void selectToHolder(Request request, List<Referer<T>> refersHolder) {
         List<Referer<T>> referers = this.referers;
-
-        if (referers == null) {
+        if (CollectionUtil.isEmpty(referers)) {
             throw new MotanServiceException(this.getClass().getSimpleName() + " No available referers for call : referers_size= 0 "
                     + MotanFrameworkUtil.toString(request));
         }
@@ -105,10 +105,14 @@ public abstract class AbstractLoadBalance<T> implements LoadBalance<T> {
     }
 
     protected Referer<T> selectFromRandomStart(List<Referer<T>> referers) {
-        int index = ThreadLocalRandom.current().nextInt(referers.size());
+        int size = referers.size();
+        if (size == 0) {
+            return null;
+        }
+        int index = ThreadLocalRandom.current().nextInt(size);
         Referer<T> ref;
-        for (int i = 0; i < referers.size(); i++) {
-            ref = referers.get((i + index) % referers.size());
+        for (int i = 0; i < size; i++) {
+            ref = referers.get((i + index) % size);
             if (ref.isAvailable()) {
                 return ref;
             }
@@ -121,12 +125,16 @@ public abstract class AbstractLoadBalance<T> implements LoadBalance<T> {
     }
 
     private void addToSelectHolderFromStart(List<Referer<T>> referers, List<Referer<T>> refersHolder, int start, Referer<T> exclude) {
+        int size = referers.size();
+        if (size == 0) {
+            return;
+        }
         int maxSize = MAX_REFERER_COUNT;
         if (exclude != null) {
             maxSize--;
         }
-        for (int i = 0, count = 0; i < referers.size() && count < maxSize; i++) {
-            Referer<T> referer = referers.get((i + start) % referers.size());
+        for (int i = 0, count = 0; i < size && count < maxSize; i++) {
+            Referer<T> referer = referers.get((i + start) % size);
             if (referer.isAvailable() && referer != exclude) {
                 refersHolder.add(referer);
                 count++;

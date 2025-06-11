@@ -16,6 +16,20 @@
 
 package com.weibo.api.motan.config;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.config.annotation.ConfigDesc;
@@ -26,12 +40,11 @@ import com.weibo.api.motan.registry.RegistryService;
 import com.weibo.api.motan.rpc.Exporter;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.runtime.GlobalRuntime;
-import com.weibo.api.motan.util.*;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.weibo.api.motan.util.ConcurrentHashSet;
+import com.weibo.api.motan.util.LoggerUtil;
+import com.weibo.api.motan.util.MetaUtil;
+import com.weibo.api.motan.util.NetUtils;
+import com.weibo.api.motan.util.StringTools;
 
 /**
  * @author fishermen
@@ -41,6 +54,9 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     private static final long serialVersionUID = -3342374271064293224L;
     private static final ConcurrentHashSet<String> existingServices = new ConcurrentHashSet<>();
+    private static final AtomicBoolean initEnv = new AtomicBoolean(false);
+    private static final Map<Pattern, String> serviceGroupMapFromEnv = new HashMap<>();
+
     // 具体到方法的配置
     protected List<MethodConfig> methods;
 
@@ -172,6 +188,32 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             groupString = StringUtils.isBlank(groupString) ? additionalGroup : groupString + "," + additionalGroup;
             serviceUrl.addParameter(URLParamType.group.getName(), groupString);
         }
+
+        String serverMode = System.getenv(MotanConstants.ENV_MOTAN_SERVER_MODE);
+        // change service group in sandbox mode.
+        if (MotanConstants.MOTAN_SERVER_MODE_SANDBOX.equals(serverMode)) {
+            LoggerUtil.info("motan server start in sandbox mode.");
+            // change groups by env map
+            if (!initEnv.get()) {
+                initChangeGroupEnv();
+            }
+            // First get the sandbox group name from the environment variable
+            String changeGroups = getChangeGroupFromEnv(serviceUrl.getPath());
+            if (changeGroups == null) {
+                // if not found, get the sandbox group name from the url parameter
+                changeGroups = serviceUrl.getParameter(URLParamType.sandboxGroups.getName(), "");
+            }
+            if (StringUtils.isBlank(changeGroups)) {
+                // The sandbox group name must be specified in sandbox mode
+                LoggerUtil.error("can not find sandbox group name in sandbox mode. service url:" + serviceUrl.toSimpleString());
+                throw new MotanServiceException("can not find sandbox group name in sandbox mode. service url:" + serviceUrl.toSimpleString());
+            }
+            groupString = changeGroups.replace(MotanConstants.SUFFIX_STRING, serviceUrl.getGroup());
+            serviceUrl.addParameter(URLParamType.group.getName(), groupString);
+            LoggerUtil.info("change register group in sandbox mode, serviceUrl:" + serviceUrl.toSimpleString()
+                        + ", change to groups:" + groupString);
+        }
+
         // check multi group.
         if (groupString.contains(MotanConstants.COMMA_SEPARATOR)) {
             for (String group : StringTools.splitSet(groupString, MotanConstants.COMMA_SEPARATOR)) {
@@ -182,6 +224,46 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         } else {
             exportService(hostAddress, protocolName, serviceUrl);
         }
+    }
+
+    private synchronized void initChangeGroupEnv(){
+       if (!initEnv.get()) {
+        // init ENV_MOTAN_CHANGE_REG_GROUPS
+        String changeGroups = System.getenv(MotanConstants.ENV_MOTAN_CHANGE_REG_GROUPS);
+        if (StringUtils.isNotBlank(changeGroups)) {
+            LoggerUtil.info("init env " + MotanConstants.ENV_MOTAN_CHANGE_REG_GROUPS + ", value:" + changeGroups);
+            try {
+                JSONArray configs = JSON.parseArray(changeGroups);
+                for (Object config : configs) {
+                    JSONObject configJson = (JSONObject) config;
+                    String group = configJson.getString("group");
+                    String service = configJson.getString("service");
+                    if (StringUtils.isNotBlank(group) && StringUtils.isNotBlank(service)) {
+                        serviceGroupMapFromEnv.put(Pattern.compile(service), group);
+                        LoggerUtil.info(String.format("add change group env, service:%s, group:%s", service, group));
+                    }
+                }
+            } catch (Exception e) {
+                LoggerUtil.error("parse env " + MotanConstants.ENV_MOTAN_CHANGE_REG_GROUPS + " fail, value:" + changeGroups, e);
+            }
+        }
+        initEnv.set(true);
+       }
+    }
+
+    private String getChangeGroupFromEnv(String service) {
+        for (Map.Entry<Pattern, String> entry : serviceGroupMapFromEnv.entrySet()) {
+            if (entry.getKey().matcher(service).matches()) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    // only for test
+    protected static void clearChangeGroupFromEnv() {
+        serviceGroupMapFromEnv.clear();
+        initEnv.set(false);
     }
 
     private void exportService(String hostAddress, String protocol, URL serviceUrl) {

@@ -16,9 +16,12 @@
 
 package com.weibo.api.motan.config;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
+import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.protocol.example.IWorld;
 import com.weibo.api.motan.rpc.Exporter;
 import com.weibo.api.motan.rpc.URL;
@@ -271,6 +274,67 @@ public class ServiceConfigTest extends BaseTestCase {
         for (Exporter<?> exporter : serviceConfig.getExporters()) {
             assertTrue(groups.contains(exporter.getUrl().getGroup()));
         }
+    }
+
+    public void testSandboxMode() throws Exception {
+        // 沙箱模式
+        JSONArray serviceGroups = new JSONArray();
+        JSONObject serviceGroup1 = new JSONObject();
+        serviceGroup1.put("group", "sandbox1, sandbox2");
+        serviceGroup1.put("service", "com.weibo.api.motan.protocol.*"); // matched by regular expressions
+        serviceGroups.add(serviceGroup1);
+        JSONObject serviceGroup2 = new JSONObject();
+        serviceGroup2.put("group", "sandbox-nomatch");
+        serviceGroup2.put("service", "com.weibo.api.motan.other.NotMatchService"); // will not match
+        serviceGroups.add(serviceGroup2);
+
+        getModifiableEnvironment().put(MotanConstants.ENV_MOTAN_SERVER_MODE, "sandbox");
+        getModifiableEnvironment().put(MotanConstants.ENV_MOTAN_CHANGE_REG_GROUPS, serviceGroups.toJSONString());
+        serviceConfig.export();
+        assertEquals(2, serviceConfig.getExporters().size());
+        assertEquals("sandbox1", serviceConfig.getExporters().get(0).getUrl().getGroup());
+        assertEquals("sandbox2", serviceConfig.getExporters().get(1).getUrl().getGroup());
+
+        clearSandboxEnv();
+    }
+
+    public void testSandboxModeException() throws Exception {
+        JSONArray serviceGroups = new JSONArray();
+        JSONObject serviceGroup1 = new JSONObject();
+        serviceGroup1.put("group", "sandbox1");
+        serviceGroup1.put("service", "com.weibo.api.motan.other.NotMatchService");
+        serviceGroups.add(serviceGroup1);
+        getModifiableEnvironment().put(MotanConstants.ENV_MOTAN_CHANGE_REG_GROUPS, serviceGroups.toJSONString());
+
+        // MOTAN_CHANGE_REG_GROUPS will be ignored when server mode is not sandbox
+        serviceConfig.export();
+        assertEquals(1, serviceConfig.getExporters().size());
+        reset();
+
+        getModifiableEnvironment().put(MotanConstants.ENV_MOTAN_SERVER_MODE, "sandbox");
+        try {
+            serviceConfig.export();
+            fail();
+        } catch (MotanServiceException e) {
+            assertTrue(e.getOriginMessage().contains("can not find sandbox group name in sandbox mode"));
+        }
+
+        clearSandboxEnv();
+    }
+
+    public void testSandboxGroup() throws Exception {
+        getModifiableEnvironment().put(MotanConstants.ENV_MOTAN_SERVER_MODE, "sandbox");
+        serviceConfig.setSandboxGroups("suffix:-sandbox"); // change to suffix group name
+        serviceConfig.export();
+        assertEquals(1, serviceConfig.getExporters().size());
+        assertEquals(serviceConfig.getGroup() + "-sandbox", serviceConfig.getExporters().get(0).getUrl().getGroup());
+        clearSandboxEnv();
+    }
+
+    private void clearSandboxEnv() throws Exception {
+        ServiceConfig.clearChangeGroupFromEnv();
+        getModifiableEnvironment().remove(MotanConstants.ENV_MOTAN_SERVER_MODE);
+        getModifiableEnvironment().remove(MotanConstants.ENV_MOTAN_CHANGE_REG_GROUPS);
     }
 
 }

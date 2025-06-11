@@ -42,22 +42,21 @@ public class ConsistentHashLoadBalance<T> extends AbstractLoadBalance<T> {
     @Override
     public void onRefresh(List<Referer<T>> referers) {
         super.onRefresh(referers);
-
-        List<Referer<T>> copyReferers = new ArrayList<Referer<T>>(referers);
         List<Referer<T>> tempRefers = new ArrayList<Referer<T>>();
-        for (int i = 0; i < MotanConstants.DEFAULT_CONSISTENT_HASH_BASE_LOOP; i++) {
-            Collections.shuffle(copyReferers);
-            for (Referer<T> ref : copyReferers) {
-                tempRefers.add(ref);
+        if (!referers.isEmpty()) {
+            List<Referer<T>> copyReferers = new ArrayList<Referer<T>>(referers);
+            for (int i = 0; i < MotanConstants.DEFAULT_CONSISTENT_HASH_BASE_LOOP; i++) {
+                Collections.shuffle(copyReferers);
+                for (Referer<T> ref : copyReferers) {
+                    tempRefers.add(ref);
+                }
             }
         }
-
         consistentHashReferers = tempRefers;
     }
 
     @Override
     protected Referer<T> doSelect(Request request) {
-
         int hash = getHash(request);
         Referer<T> ref;
         for (int i = 0; i < getReferers().size(); i++) {
@@ -72,7 +71,6 @@ public class ConsistentHashLoadBalance<T> extends AbstractLoadBalance<T> {
     @Override
     protected void doSelectToHolder(Request request, List<Referer<T>> refersHolder) {
         List<Referer<T>> referers = getReferers();
-
         int hash = getHash(request);
         for (int i = 0; i < referers.size(); i++) {
             Referer<T> ref = consistentHashReferers.get((hash + i) % consistentHashReferers.size());

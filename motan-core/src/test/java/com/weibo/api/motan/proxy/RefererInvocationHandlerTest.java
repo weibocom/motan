@@ -18,6 +18,7 @@ package com.weibo.api.motan.proxy;
 
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.cluster.Cluster;
+import com.weibo.api.motan.cluster.group.DefaultClusterGroup;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.common.URLParamType;
 import com.weibo.api.motan.exception.MotanBizException;
@@ -81,9 +82,14 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
                 will(returnValue(referers));
             }
         });
-        List<Cluster> clusters = new ArrayList<>();
+        List<Cluster> clusters = new ArrayList<Cluster>();
         clusters.add(cluster);
-        RefererInvocationHandler handler = new RefererInvocationHandler(TestService.class, clusters);
+        List<Caller> callers = new ArrayList<>();
+        DefaultClusterGroup defaultClusterGroup = new DefaultClusterGroup<>(cluster);
+        defaultClusterGroup.setSandboxClusters(clusters);
+        defaultClusterGroup.setBackupClusters(clusters);
+        callers.add(defaultClusterGroup);
+        RefererInvocationHandler handler = new RefererInvocationHandler(TestService.class, callers);
         //local method
         Method method = TestServiceImpl.class.getMethod("toString");
         assertTrue(handler.isLocalMethod(method));
@@ -93,8 +99,7 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
         } catch (Throwable e) {
             fail(e.getMessage());
         }
-        assertEquals("{protocol:motan[motan://local:80/test?group=default_rpc, available:true]}", result);
-
+        assertEquals("{protocol:motan,DefaultClusterGroup {masterCluster=[{motan://local:80/test?group=default_rpc, available:true}], backupClusters=[[{motan://local:80/test?group=default_rpc, available:true}]], sandboxClusters=[[{motan://local:80/test?group=default_rpc, available:true}]]}}", result);
 
         method = TestServiceImpl.class.getMethod("hashCode");
         assertTrue(handler.isLocalMethod(method));
@@ -104,8 +109,6 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
         assertFalse(handler.isLocalMethod(method));
         method = TestServiceImpl.class.getMethod("equals", Object.class);
         assertFalse(handler.isLocalMethod(method));
-
-
     }
 
     @Test

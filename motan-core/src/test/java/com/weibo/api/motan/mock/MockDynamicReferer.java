@@ -47,7 +47,7 @@ public class MockDynamicReferer<T> extends MockReferer<T> {
 
     public MockDynamicReferer(URL url, int id) {
         this.url = url;
-        this.serviceUrl = url;
+        this.serviceUrl = url.createCopy();
         this.id = id;
     }
 

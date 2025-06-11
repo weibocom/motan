@@ -64,6 +64,7 @@ public class NettyServerTest {
         });
         nettyServer.open();
         Assert.assertEquals(0, nettyServer.channelManage.getChannels().size());
+        Thread.sleep(10);
 
         NettyClient nettyClient = new NettyClient(url);
         nettyClient.open();
@@ -113,6 +114,7 @@ public class NettyServerTest {
             return response;
         });
         nettyServer.open();
+        Thread.sleep(10);
 
         DefaultRequest request = new DefaultRequest();
         request.setRequestId(RequestIdGenerator.getRequestId());
@@ -183,6 +185,7 @@ public class NettyServerTest {
             return response;
         });
         nettyServer.open();
+        Thread.sleep(10);
 
         NettyClient nettyClient = new NettyClient(url);
         nettyClient.open();
@@ -196,7 +199,7 @@ public class NettyServerTest {
         // sync success
         Response response = nettyClient.request(request);
         assertEquals("success", response.getValue());
-        Thread.sleep(2);
+        Thread.sleep(20);
         assertEquals(1, callbackCount.get());
 
         // sync exception
@@ -208,7 +211,7 @@ public class NettyServerTest {
             assertTrue(e instanceof MotanBizException);
             assertEquals("fail", e.getCause().getMessage());
         }
-        Thread.sleep(2);
+        Thread.sleep(10);
         assertEquals(2, callbackCount.get());
 
         // async success
@@ -217,7 +220,7 @@ public class NettyServerTest {
         request.setArguments(new Object[]{"success", 0}); // not sleep
         response = nettyClient.request(request);
         assertEquals("success", response.getValue());
-        Thread.sleep(2);
+        Thread.sleep(10);
         assertEquals(3, callbackCount.get());
 
         // async exception
@@ -229,7 +232,7 @@ public class NettyServerTest {
             assertTrue(e instanceof MotanBizException);
             assertEquals("fail", e.getCause().getMessage());
         }
-        Thread.sleep(2);
+        Thread.sleep(10);
         assertEquals(4, callbackCount.get());
     }
 

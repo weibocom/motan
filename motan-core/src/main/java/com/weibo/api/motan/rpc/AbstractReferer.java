@@ -42,6 +42,11 @@ public abstract class AbstractReferer<T> extends AbstractNode implements Referer
         this.serviceUrl = url;
     }
 
+    /**
+     * @param clz        the interface class of the service
+     * @param url        the URL after merging the client-side configuration
+     * @param serviceUrl the original server side URL
+     */
     public AbstractReferer(Class<T> clz, URL url, URL serviceUrl) {
         super(url);
         this.clz = clz;

@@ -226,6 +226,7 @@ public class NettyClientTest {
     @Test
     public void testClient() throws InterruptedException {
         nettyServer.close();
+        Thread.sleep(30L);
 
         NettyTestClient nettyClient = new NettyTestClient(url);
         this.nettyClient = nettyClient;
@@ -237,7 +238,9 @@ public class NettyClientTest {
         assertFalse(nettyClient.isAvailable());
 
         nettyServer.open();
-        nettyClient.heartbeat(new DefaultRpcHeartbeatFactory().createRequest());
+        for (int i = 0; i < 3; i++) {
+            nettyClient.heartbeat(new DefaultRpcHeartbeatFactory().createRequest());
+        }
 
         Thread.sleep(100L);
         for (Channel channel : nettyClient.getChannels()) {

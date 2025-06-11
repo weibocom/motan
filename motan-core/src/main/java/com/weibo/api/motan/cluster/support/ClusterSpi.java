@@ -119,7 +119,7 @@ public class ClusterSpi<T> implements Cluster<T> {
 
     @Override
     public synchronized void onRefresh(List<Referer<T>> referers) {
-        if (CollectionUtil.isEmpty(referers)) {
+        if (CollectionUtil.isEmpty(referers) && !url.getBooleanParameter(URLParamType.clusterEmptyNodeNotify.getName(), false)) {
             return;
         }
 
@@ -147,12 +147,8 @@ public class ClusterSpi<T> implements Cluster<T> {
         }
     }
 
-    public AtomicBoolean getAvailable() {
-        return available;
-    }
-
-    public void setAvailable(AtomicBoolean available) {
-        this.available = available;
+    public void setAvailable(boolean available) {
+        this.available.set(available);
     }
 
     public HaStrategy<T> getHaStrategy() {

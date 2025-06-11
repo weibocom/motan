@@ -21,6 +21,7 @@ package com.weibo.api.motan.cluster.loadbalance;
 import com.weibo.api.motan.cluster.LoadBalance;
 import com.weibo.api.motan.core.extension.ExtensionLoader;
 import com.weibo.api.motan.exception.MotanFrameworkException;
+import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.URL;
@@ -58,7 +59,7 @@ public class GroupWeightLoadBalanceWrapper<T> extends AbstractLoadBalance<T> {
         Selector<T> oldSelector = null;
         boolean reuse = false;
         String selectorName;
-        if (StringUtils.isEmpty(weightString)) { // single group
+        if (StringUtils.isEmpty(weightString) || referers.isEmpty()) { // single group or no referers
             selectorName = "SingleGroupSelector";
             if (selector instanceof SingleGroupSelector) { // reuse
                 ((SingleGroupSelector<T>) selector).refresh(referers);
@@ -179,6 +180,7 @@ public class GroupWeightLoadBalanceWrapper<T> extends AbstractLoadBalance<T> {
 
         // depend on referers and weightString
         private void reBuildInnerSelector() {
+            LoggerUtil.info("MultiGroupSelector rebuild, url:" + clusterUrl.toSimpleString());
             Map<String, List<Referer<T>>> groupReferers = getGroupReferers(referers);
             // CommandServiceManager ensures that there will be no duplicate groups in the weightString
             // and no abnormal weight value.
@@ -235,6 +237,10 @@ public class GroupWeightLoadBalanceWrapper<T> extends AbstractLoadBalance<T> {
         }
 
         private LoadBalance<T> reuseOrCreateLB(String group, List<Referer<T>> groupReferers) {
+            if (groupReferers == null || groupReferers.isEmpty()) {
+                LoggerUtil.error("GroupWeightLoadBalanceWrapper: the weight group has no referers! group: " + group + ", url:" + clusterUrl.toSimpleString());
+                throw new MotanServiceException("GroupWeightLoadBalanceWrapper: group is empty");
+            }
             LoadBalance<T> loadBalance = null;
             if (innerSelector != null) { // Reuse LB by group name
                 loadBalance = innerSelector.lbMap.remove(group);
@@ -250,7 +256,8 @@ public class GroupWeightLoadBalanceWrapper<T> extends AbstractLoadBalance<T> {
         private Map<String, List<Referer<T>>> getGroupReferers(List<Referer<T>> referers) {
             Map<String, List<Referer<T>>> result = new HashMap<>();
             for (Referer<T> referer : referers) {
-                result.computeIfAbsent(referer.getUrl().getGroup(), k -> new ArrayList<>()).add(referer);
+                // must use the serviceUrl to get group，the serviceUrl is the server-end url with original server group info.
+                result.computeIfAbsent(referer.getServiceUrl().getGroup(), k -> new ArrayList<>()).add(referer);
             }
             return result;
         }

@@ -307,10 +307,10 @@ public class WeightRoundRobinLoadBalanceTest extends TestCase {
     }
 
     static List<Referer<IHello>> buildDynamicReferers(int size, boolean sameStaticWeight, int maxWeight, boolean adjust, int unavailableSize) {
-        return buildDynamicReferers(size, sameStaticWeight, maxWeight, adjust, unavailableSize, null);
+        return buildDynamicReferers(size, sameStaticWeight, maxWeight, adjust, unavailableSize, null, null);
     }
 
-    static List<Referer<IHello>> buildDynamicReferers(int size, boolean sameStaticWeight, int maxWeight, boolean adjust, int unavailableSize, String group) {
+    static List<Referer<IHello>> buildDynamicReferers(int size, boolean sameStaticWeight, int maxWeight, boolean adjust, int unavailableSize, String refererGroup, String serverGroup) {
         List<Referer<IHello>> referers = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             int weight = sameStaticWeight ? maxWeight : (int) (Math.random() * maxWeight);
@@ -323,8 +323,11 @@ public class WeightRoundRobinLoadBalanceTest extends TestCase {
             if (i < unavailableSize) {
                 referer.available = false;
             }
-            if (group != null) {
-                referer.url.addParameter(URLParamType.group.getName(), group);
+            if (refererGroup != null) {
+                referer.url.addParameter(URLParamType.group.getName(), refererGroup);
+            }
+            if (serverGroup != null) {
+                referer.serviceUrl.addParameter(URLParamType.group.getName(), serverGroup);
             }
             referers.add(referer);
         }

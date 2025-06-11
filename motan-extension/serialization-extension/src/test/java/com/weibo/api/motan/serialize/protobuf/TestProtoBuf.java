@@ -53,6 +53,7 @@ public class TestProtoBuf {
         serviceConfig.setRegistry(registryConfig);
         serviceConfig.setShareChannel(true);
         serviceConfig.export();
+        Thread.sleep(60L);
 
         refererConfig = new RefererConfig<>();
         refererConfig.setDirectUrl("127.0.0.1:18002");
@@ -60,9 +61,9 @@ public class TestProtoBuf {
         refererConfig.setInterface(HelloService.class);
         // 设置超时时间为1秒
         refererConfig.setRequestTimeout(1000);
-
+        refererConfig.setAsyncInitConnection(false);
         service = refererConfig.getRef();
-        Thread.sleep(20L);
+        
     }
 
     @Test
