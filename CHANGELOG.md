@@ -1,5 +1,20 @@
 # Change Log
 
+## [1.2.5](https://github.com/weibocom/motan/tree/1.2.5) (2025-06-11)
+
+[Full Changelog](https://github.com/weibocom/motan/compare/1.2.4...1.2.5)
+
+**Implemented enhancements:**
+
+- Supports force specifying motan2 codec (no longer compatible with motan1
+  protocol) [\#1074](https://github.com/weibocom/motan/pull/1074) ([Ray](https://github.com/rayzhang0603))
+- Implement sandbox and backup group
+  capabilities [\#1077](https://github.com/weibocom/motan/pull/1077) ([Ray](https://github.com/rayzhang0603))
+
+**Merged pull requests:**
+
+**Fixed bugs:**
+
 ## [1.2.4](https://github.com/weibocom/motan/tree/1.2.4) (2024-11-08)
 
 [Full Changelog](https://github.com/weibocom/motan/compare/1.2.3...1.2.4)
