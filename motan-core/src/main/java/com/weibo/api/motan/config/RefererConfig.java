@@ -16,17 +16,6 @@
 
 package com.weibo.api.motan.config;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.cluster.group.ClusterGroup;
 import com.weibo.api.motan.cluster.group.DefaultClusterGroup;
@@ -43,12 +32,12 @@ import com.weibo.api.motan.registry.RegistryService;
 import com.weibo.api.motan.rpc.Caller;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.runtime.GlobalRuntime;
-import com.weibo.api.motan.util.CollectionUtil;
-import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.MotanGlobalConfigUtil;
-import com.weibo.api.motan.util.NetUtils;
-import com.weibo.api.motan.util.StringTools;
-import com.weibo.api.motan.util.UrlUtils;
+import com.weibo.api.motan.util.*;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Referer config.
@@ -58,6 +47,14 @@ import com.weibo.api.motan.util.UrlUtils;
  */
 
 public class RefererConfig<T> extends AbstractRefererConfig {
+    private static final ConcurrentHashSet<String> NONE_SANDBOX_PROTOCOL_SET = new ConcurrentHashSet<>(); // The set of protocols that do not support sandbox grouping.
+
+    static {
+        NONE_SANDBOX_PROTOCOL_SET.add(MotanConstants.PROTOCOL_INJVM);
+        NONE_SANDBOX_PROTOCOL_SET.add("memcache");
+        NONE_SANDBOX_PROTOCOL_SET.add("memcacheq");
+        NONE_SANDBOX_PROTOCOL_SET.add("redis");
+    }
 
     private static final long serialVersionUID = -2299754608229467887L;
 
@@ -195,7 +192,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
         Cluster<T> masterCluster = createInnerCluster(configHandler, refUrl, MASTER_CLUSTER_KEY);
         DefaultClusterGroup<T> clusterGroup = new DefaultClusterGroup<T>(masterCluster);
         // try to create sandbox, backup clusters if not injvm protocol
-        if (!MotanConstants.PROTOCOL_INJVM.equals(refUrl.getProtocol())) {
+        if (!NONE_SANDBOX_PROTOCOL_SET.contains(refUrl.getProtocol())) {
             try {
                 String sandboxGroups = refUrl.getParameter(URLParamType.sandboxGroups.getName(), DEFAULT_SANDBOX_GROUPS);
                 // set sandbox clusters
@@ -220,7 +217,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
     }
 
     private List<Cluster<T>> createMultiClusters(URL baseUrl, ConfigHandler configHandler, String groupString,
-            String prefixKey, boolean lazyInit, boolean emptyNodeNotify) {
+                                                 String prefixKey, boolean lazyInit, boolean emptyNodeNotify) {
         String baseGroup = baseUrl.getGroup();
         List<Cluster<T>> clusters = new ArrayList<>();
         Set<String> groupNames = StringTools.splitSet(groupString, MotanConstants.COMMA_SEPARATOR);
@@ -248,7 +245,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
         return clusters;
     }
 
-    private Cluster<T> createInnerCluster(ConfigHandler configHandler, URL url, String prefixKey){
+    private Cluster<T> createInnerCluster(ConfigHandler configHandler, URL url, String prefixKey) {
         ClusterSupport<T> clusterSupport = createClusterSupport(url, configHandler);
         Cluster<T> cluster = clusterSupport.getCluster();
         String key = prefixKey + cluster.getUrl().getIdentity();
@@ -315,7 +312,7 @@ public class RefererConfig<T> extends AbstractRefererConfig {
             clusterSupports.clear();
         }
         if (clusterGroups != null) {
-            for(Caller<T> clusterGroup : clusterGroups) {
+            for (Caller<T> clusterGroup : clusterGroups) {
                 try {
                     clusterGroup.destroy();
                 } catch (Exception e) {
