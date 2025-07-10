@@ -11,6 +11,7 @@ import com.weibo.api.motan.protocol.rpc.RpcProtocolVersion;
 import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
+import com.weibo.api.motan.util.CollectionUtil;
 import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MotanFrameworkUtil;
 import com.weibo.api.motan.util.NetUtils;
@@ -21,6 +22,7 @@ import io.netty.channel.ChannelHandlerContext;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.Map;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -167,6 +169,13 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         response.setSerializeNumber(request.getSerializeNumber());
         response.setRpcProtocolVersion(request.getRpcProtocolVersion());
         response.setRequestId(request.getRequestId());
+        // set rpc context attachments to response
+        Map<String, String> attachments = RpcContext.getContext().getRpcAttachments();
+        if (!CollectionUtil.isEmpty(attachments)) {
+            for (Map.Entry<String, String> entry : attachments.entrySet()) {
+                response.setAttachment(entry.getKey(), entry.getValue());
+            }
+        }
         response.setProcessTime(System.currentTimeMillis() - processStartTime);
         sendResponse(ctx, response, true);
     }

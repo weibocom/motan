@@ -195,7 +195,7 @@ public class NettyClient extends AbstractPoolClient implements StatisticCallback
         if (async || !(response instanceof ResponseFuture)) {
             return response;
         }
-
+        RpcContext.getContext().setResponse(response);
         return new DefaultResponse(response);
     }
 
