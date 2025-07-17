@@ -86,6 +86,7 @@ public class NettyClientTest extends TestCase {
 
         Assert.assertNotNull(result);
         Assert.assertEquals("method: " + request.getMethodName() + " requestId: " + request.getRequestId(), result);
+        org.junit.Assert.assertNotNull(RpcContext.getContext().getResponse());
     }
 
     public void testAsync() throws TransportException {

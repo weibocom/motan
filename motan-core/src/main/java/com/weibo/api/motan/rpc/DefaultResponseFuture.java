@@ -84,6 +84,7 @@ public class DefaultResponseFuture implements ResponseFuture, Callbackable, Trac
     public void onFailure(Response response) {
         this.exception = response.getException();
         this.processTime = response.getProcessTime();
+        this.attachments = response.getAttachments();
 
         done();
     }
