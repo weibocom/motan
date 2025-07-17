@@ -9,6 +9,7 @@ import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.Response;
 import com.weibo.api.motan.rpc.URL;
 import com.weibo.api.motan.switcher.Switcher;
+import com.weibo.api.motan.util.LoggerUtil;
 import com.weibo.api.motan.util.MathUtil;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
 
@@ -23,6 +24,7 @@ public class DefaultClusterGroup<T> implements ClusterGroup<T> {
     protected Cluster<T> masterCluster;
     protected List<Cluster<T>> backupClusters;
     protected List<Cluster<T>> sandboxClusters;
+    protected List<Cluster<T>> greyClusters;
     protected AtomicInteger backupIndex;
 
     static {
@@ -41,11 +43,17 @@ public class DefaultClusterGroup<T> implements ClusterGroup<T> {
     public Response call(Request request) {
         Cluster<T> cluster = masterCluster;
         if (selector != null) {
-            cluster = selector.select(request);
+            try {
+                cluster = selector.select(request);
+            } catch (Exception e) {
+                LoggerUtil.warn("ClusterSelector select error, url:" + masterCluster.getUrl().toSimpleString(), e);
+            }
             if (cluster == null) {
-                throw new MotanServiceException("The ClusterSelector did not find an available Cluster");
+                cluster = masterCluster;
+                LoggerUtil.warn("ClusterSelector select null cluster, use master cluster instead. url:" + masterCluster.getUrl().toSimpleString());
             }
         }
+
         try {
             return cluster.call(request);
         } catch (MotanServiceException e) {
@@ -63,7 +71,7 @@ public class DefaultClusterGroup<T> implements ClusterGroup<T> {
     @SuppressWarnings("unchecked")
     public void init() {
         // If there are no routable clusters, no selector is created.
-        if (sandboxClusters != null) {
+        if (sandboxClusters != null || greyClusters != null) {
             selector = ExtensionLoader.getExtensionLoader(ClusterSelector.class)
                     .getExtension(masterCluster.getUrl().getParameter(URLParamType.clusterSelector.getName(),
                             DEFAULT_CLUSTER_SELECTOR));
@@ -127,10 +135,19 @@ public class DefaultClusterGroup<T> implements ClusterGroup<T> {
     }
 
     @Override
+    public List<Cluster<T>> getGreyClusters() {
+        return greyClusters;
+    }
+
+    public void setGreyClusters(List<Cluster<T>> greyClusters) {
+        this.greyClusters = greyClusters;
+    }
+
+    @Override
     public String toString() {
         return "DefaultClusterGroup {masterCluster=" + clusterToString(masterCluster) + ", backupClusters="
                 + clustersToString(backupClusters)
-                + ", sandboxClusters=" + clustersToString(sandboxClusters) + "}";
+                + ", sandboxClusters=" + clustersToString(sandboxClusters) + ", greyClusters=" + clustersToString(greyClusters) + "}";
     }
 
     private String clustersToString(List<Cluster<T>> clusters) {

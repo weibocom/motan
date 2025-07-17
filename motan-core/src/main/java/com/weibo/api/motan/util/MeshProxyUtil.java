@@ -64,7 +64,7 @@ public class MeshProxyUtil {
      * @return 如果配置了环境变量则进行代理，否则原样返回
      */
     public static List<URL> processMeshProxy(List<URL> originRegistryUrls, URL serviceUrl, boolean isServerEnd) {
-        if (initChecked && needProcess(serviceUrl, isServerEnd)) {
+        if (needProcess(serviceUrl, isServerEnd)) {
             try {
                 List<URL> newRegistryUrls = new ArrayList<>(originRegistryUrls.size());
                 for (URL url : originRegistryUrls) {
@@ -88,7 +88,10 @@ public class MeshProxyUtil {
         return originRegistryUrls;
     }
 
-    private static boolean needProcess(URL serviceUrl, boolean isServerEnd) {
+    public static boolean needProcess(URL serviceUrl, boolean isServerEnd) {
+        if (!initChecked) {
+            return false;
+        }
         // check proxy mode
         String mode = proxyConfig.get(MODE_KEY);
         if (StringUtils.isBlank(mode)) {// 必须显示指定，不考虑提供默认值

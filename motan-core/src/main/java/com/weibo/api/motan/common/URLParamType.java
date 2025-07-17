@@ -184,6 +184,7 @@ public enum URLParamType {
     dynamicMeta("dynamicMeta", true), // whether to enable dynamic meta
     clusterSelector("clusterSelector", "default"), // cluster selector for ClusterGroup
     sandboxGroups("sandboxGroups", ""),
+    greyGroups("greyGroups", ""),
     backupGroups("backupGroups", ""),
     clusterEmptyNodeNotify("clusterEmptyNodeNotify", false), // whether to enable empty node notify to cluster
     ;

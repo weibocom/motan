@@ -14,4 +14,6 @@ public interface ClusterGroup<T> extends Caller<T> {
     List<Cluster<T>> getSandboxClusters();
 
     List<Cluster<T>> getBackupClusters();
+
+    List<Cluster<T>> getGreyClusters();
 } 

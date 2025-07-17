@@ -1,10 +1,5 @@
 package com.weibo.api.motan.cluster.group;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jmock.Expectations;
-
 import com.weibo.api.motan.BaseTestCase;
 import com.weibo.api.motan.cluster.Cluster;
 import com.weibo.api.motan.common.MotanConstants;
@@ -13,12 +8,17 @@ import com.weibo.api.motan.rpc.DefaultRequest;
 import com.weibo.api.motan.rpc.Referer;
 import com.weibo.api.motan.rpc.Request;
 import com.weibo.api.motan.rpc.URL;
+import org.jmock.Expectations;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DefaultClusterSelectorTest extends BaseTestCase {
     private DefaultClusterSelector<Object> selector;
     private ClusterGroup<Object> clusterGroup;
     private Cluster<Object> masterCluster;
     private Cluster<Object> sandboxCluster;
+    private Cluster<Object> greyCluster;
     private Request request;
 
     @Override
@@ -29,6 +29,7 @@ public class DefaultClusterSelectorTest extends BaseTestCase {
         clusterGroup = mockery.mock(ClusterGroup.class);
         masterCluster = mockery.mock(Cluster.class, "masterCluster");
         sandboxCluster = mockery.mock(Cluster.class, "sandboxCluster");
+        greyCluster = mockery.mock(Cluster.class, "greyCluster");
         request = mockery.mock(Request.class);
     }
 
@@ -48,12 +49,17 @@ public class DefaultClusterSelectorTest extends BaseTestCase {
                 will(returnValue(null));
                 oneOf(clusterGroup).getMasterCluster();
                 will(returnValue(masterCluster));
-            }    
+                oneOf(clusterGroup).getGreyClusters();
+                will(returnValue(null));
+                oneOf(request).getAttachment(MotanConstants.ROUTE_GROUP_KEY);
+                will(returnValue(DefaultClusterSelector.DEFAULT_ROUTE_GROUP_SANDBOX));
+            }
         });
 
         selector.init(clusterGroup);
         assertSame(clusterGroup, selector.clusterGroup);
         assertNull(selector.defaultSandboxCluster);
+        assertNull(selector.defaultGreyCluster);
 
         Cluster<?> cluster = selector.select(request);
         assertSame(masterCluster, cluster);
@@ -63,6 +69,8 @@ public class DefaultClusterSelectorTest extends BaseTestCase {
         mockery.checking(new Expectations() {
             {
                 oneOf(clusterGroup).getSandboxClusters();
+                will(returnValue(new ArrayList<>()));
+                oneOf(clusterGroup).getGreyClusters();
                 will(returnValue(new ArrayList<>()));
                 oneOf(clusterGroup).getMasterCluster();
                 will(returnValue(masterCluster));
@@ -74,6 +82,7 @@ public class DefaultClusterSelectorTest extends BaseTestCase {
         selector.init(clusterGroup);
         assertSame(clusterGroup, selector.clusterGroup);
         assertNull(selector.defaultSandboxCluster);
+        assertNull(selector.defaultGreyCluster);
 
         Cluster<?> cluster = selector.select(request);
         assertSame(masterCluster, cluster);
@@ -83,19 +92,14 @@ public class DefaultClusterSelectorTest extends BaseTestCase {
     public void testInitWithSandboxClusters() {
         final List<Cluster<Object>> sandboxClusters = new ArrayList<>();
         sandboxClusters.add(sandboxCluster);
-        Cluster<Object> sandboxCluster2 = mockery.mock(Cluster.class, "sandboxCluster2");
-        sandboxClusters.add(sandboxCluster2);
-        Cluster<Object> sandboxCluster3 = mockery.mock(Cluster.class, "sandboxCluster3");
-        sandboxClusters.add(sandboxCluster3);
         final URL sandboxUrl = new URL("motan", "localhost", 8001, "testService");
         sandboxUrl.addParameter("group", "testGroup");
-        final URL sandboxUrl2 = new URL("motan", "localhost", 8001, "testService");
-        sandboxUrl2.addParameter("group", "testGroup2");
-        final URL sandboxUrl3 = new URL("motan", "localhost", 8001, "testService");
-        sandboxUrl3.addParameter("group", "testGroup3");
         List<Referer<Object>> referers = new ArrayList<>();
         Referer<Object> referer = mockery.mock(Referer.class, "referer");
         referers.add(referer);
+
+        final List<Cluster<Object>> greyClusters = new ArrayList<>();
+        greyClusters.add(greyCluster);
 
         mockery.checking(new Expectations() {
             {
@@ -103,18 +107,16 @@ public class DefaultClusterSelectorTest extends BaseTestCase {
                 will(returnValue(masterCluster));
                 oneOf(clusterGroup).getSandboxClusters();
                 will(returnValue(sandboxClusters));
-                oneOf(sandboxCluster).getUrl();
+                oneOf(clusterGroup).getGreyClusters();
+                will(returnValue(greyClusters));
+                allowing(sandboxCluster).getUrl();
                 will(returnValue(sandboxUrl));
-                oneOf(sandboxCluster2).getUrl();
-                will(returnValue(sandboxUrl2));
-                oneOf(sandboxCluster3).getUrl();
-                will(returnValue(sandboxUrl3));
                 allowing(sandboxCluster).getReferers();
                 will(returnValue(referers));
-                allowing(sandboxCluster2).getReferers();
+                allowing(greyCluster).getUrl();
+                will(returnValue(sandboxUrl));
+                allowing(greyCluster).getReferers();
                 will(returnValue(referers));
-                allowing(sandboxCluster3).getReferers();
-                will(returnValue(new ArrayList<>())); // empty referers
             }
         });
 
@@ -122,6 +124,7 @@ public class DefaultClusterSelectorTest extends BaseTestCase {
         assertSame(clusterGroup, selector.clusterGroup);
         assertNotNull(selector.defaultSandboxCluster);
         assertSame(sandboxCluster, selector.defaultSandboxCluster);
+        assertSame(greyCluster, selector.defaultGreyCluster);
 
         DefaultRequest defaultRequest = new DefaultRequest();
         // without route group
@@ -138,26 +141,26 @@ public class DefaultClusterSelectorTest extends BaseTestCase {
         // Test URL group matching
         final URL clusterGroupUrl = new URL("motan", "localhost", 8001, "testService");
         clusterGroupUrl.addParameter("group", "testGroup");
-        
+
         mockery.checking(new Expectations() {
             {
-                allowing(clusterGroup).getUrl();
+                allowing(sandboxCluster).getUrl();
                 will(returnValue(clusterGroupUrl));
             }
         });
-        
+
         defaultRequest.setAttachment(MotanConstants.ROUTE_GROUP_KEY, "testGroup");
         selected = selector.select(defaultRequest);
         assertSame(sandboxCluster, selected);
-        
+
         // Test comma-separated group list
         defaultRequest.setAttachment(MotanConstants.ROUTE_GROUP_KEY, "otherGroup,testGroup,anotherGroup,  ,,");
         selected = selector.select(defaultRequest);
         assertSame(sandboxCluster, selected);
-        
+
         // Test cluster with empty references
         referers.clear();
-        
+
         selected = selector.select(defaultRequest);
         assertSame(masterCluster, selected);
 

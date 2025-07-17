@@ -323,6 +323,11 @@
                         <xsd:documentation><![CDATA[ 沙箱环境使用的分组名 ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
+                <xsd:attribute name="greyGroups" type="xsd:string" use="optional">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[ 灰度环境使用的分组名 ]]></xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
                 <xsd:attribute name="backupGroups" type="xsd:string" use="optional">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[ 主分组异常时使用的后备分组名 ]]></xsd:documentation>
