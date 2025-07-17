@@ -24,12 +24,10 @@ import com.weibo.api.motan.exception.MotanServiceException;
 import com.weibo.api.motan.rpc.*;
 import com.weibo.api.motan.transport.Channel;
 import com.weibo.api.motan.transport.MessageHandler;
-import com.weibo.api.motan.util.LoggerUtil;
-import com.weibo.api.motan.util.MotanFrameworkUtil;
-import com.weibo.api.motan.util.NetUtils;
-import com.weibo.api.motan.util.StatisticCallback;
+import com.weibo.api.motan.util.*;
 import org.jboss.netty.channel.*;
 
+import java.util.Map;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -148,6 +146,13 @@ public class NettyChannelHandler extends SimpleChannelHandler implements Statist
         response.setSerializeNumber(request.getSerializeNumber());
         response.setRpcProtocolVersion(request.getRpcProtocolVersion());
         response.setRequestId(request.getRequestId());
+        // set rpc context attachments to response
+        Map<String, String> attachments = RpcContext.getContext().getRpcAttachments();
+        if (!CollectionUtil.isEmpty(attachments)) {
+            for (Map.Entry<String, String> entry : attachments.entrySet()) {
+                response.setAttachment(entry.getKey(), entry.getValue());
+            }
+        }
         response.setProcessTime(System.currentTimeMillis() - processStartTime);
         ChannelFuture channelFuture = null;
         if (ctx.getChannel().isConnected()) {

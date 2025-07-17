@@ -102,6 +102,7 @@ public class NettyClientTest {
 
             Assert.assertNotNull(result);
             Assert.assertEquals("method: " + request.getMethodName() + " requestId: " + request.getRequestId(), result);
+            Assert.assertNotNull(RpcContext.getContext().getResponse());
         } catch (Exception e) {
             fail();
         }
