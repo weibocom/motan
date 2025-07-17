@@ -50,31 +50,6 @@ public class DefaultClusterSelector<T> implements ClusterSelector<T> {
         return clusterGroup.getMasterCluster();
     }
 
-    private boolean isMatch(Request request, Cluster<T> cluster, String defaultValue) {
-        if (cluster != null && !CollectionUtil.isEmpty(cluster.getReferers())) {
-            // Check the route group of the request
-            String routeGroup = request.getAttachment(MotanConstants.ROUTE_GROUP_KEY);
-            if (routeGroup != null) {
-                routeGroup = routeGroup.trim();
-                // If the route group is default value, such as "sandbox", return true
-                if (defaultValue != null && defaultValue.equals(routeGroup)) {
-                    return true;
-                }
-
-                // Check the comma-separated group list
-                String[] routeGroupList = routeGroup.split(",");
-                String targetGroup = cluster.getUrl().getGroup();
-                for (String group : routeGroupList) {
-                    group = group.trim();
-                    if (group.equals(targetGroup)) { // if the route group is the same as the target group, return true
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
     @Override
     public void init(ClusterGroup<T> clusterGroup) {
         if (clusterGroup == null) {

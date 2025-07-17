@@ -47,8 +47,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 
 public class RefererConfig<T> extends AbstractRefererConfig {
-    private static final ConcurrentHashSet<String> NONE_EXTRA_GROUP_PROTOCOL_SET = new ConcurrentHashSet<>(); // The set of protocols that do not support sandbox grouping.
-    private static final ConcurrentHashSet<String> NONE_EXTRA_GROUP_REGISTRY_SET = new ConcurrentHashSet<>(); // The set of protocols that do not support sandbox grouping.
+    private static final ConcurrentHashSet<String> NONE_EXTRA_GROUP_PROTOCOL_SET = new ConcurrentHashSet<>(); // The set of protocols that do not support sandbox/grey grouping.
+    private static final ConcurrentHashSet<String> NONE_EXTRA_GROUP_REGISTRY_SET = new ConcurrentHashSet<>(); // The set of registries that do not support sandbox/grey grouping.
 
     static {
         NONE_EXTRA_GROUP_PROTOCOL_SET.add(MotanConstants.PROTOCOL_INJVM);
