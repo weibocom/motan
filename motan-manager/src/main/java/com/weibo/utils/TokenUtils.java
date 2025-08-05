@@ -80,6 +80,6 @@ public class TokenUtils {
         long expires = Long.parseLong(parts[1]);
         String signature = parts[2];
 
-        return expires >= System.currentTimeMillis() && signature.equals(TokenUtils.computeSignature(userDetails, expires));
+        return expires >= System.currentTimeMillis() && constantTimeEquals(signature, TokenUtils.computeSignature(userDetails, expires));
     }
 }
