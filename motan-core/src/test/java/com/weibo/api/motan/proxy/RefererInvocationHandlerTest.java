@@ -64,7 +64,7 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
-    public void testLocalMehtod() throws Exception{
+    public void testLocalMehtod() throws Exception {
         final Cluster cluster = mockery.mock(Cluster.class);
         final URL u = new URL("motan", "local", 80, "test");
         final List<Referer> referers = new ArrayList<Referer>();
@@ -95,11 +95,11 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
         assertTrue(handler.isLocalMethod(method));
         String result = null;
         try {
-            result = (String)handler.invoke(null, method, null);
+            result = (String) handler.invoke(null, method, null);
         } catch (Throwable e) {
             fail(e.getMessage());
         }
-        assertEquals("{protocol:motan,DefaultClusterGroup {masterCluster=[{motan://local:80/test?group=default_rpc, available:true}], backupClusters=[[{motan://local:80/test?group=default_rpc, available:true}]], sandboxClusters=[[{motan://local:80/test?group=default_rpc, available:true}]]}}", result);
+        assertEquals("{protocol:motan,DefaultClusterGroup {masterCluster=[{motan://local:80/test?group=default_rpc, available:true}], backupClusters=[[{motan://local:80/test?group=default_rpc, available:true}]], sandboxClusters=[[{motan://local:80/test?group=default_rpc, available:true}]], greyClusters=null}}", result);
 
         method = TestServiceImpl.class.getMethod("hashCode");
         assertTrue(handler.isLocalMethod(method));
@@ -134,7 +134,7 @@ public class RefererInvocationHandlerTest extends BaseTestCase {
         RefererInvocationHandler handler = new RefererInvocationHandler(String.class, clus);
         Method method;
         try {
-            method = TestService.class.getMethod("helloAsync", new Class<?>[] {});
+            method = TestService.class.getMethod("helloAsync", new Class<?>[]{});
             ResponseFuture res = (ResponseFuture) handler.invoke(null, method, null);
             assertEquals(response, res);
             assertTrue((Boolean) RpcContext.getContext().getAttribute(MotanConstants.ASYNC_SUFFIX));

@@ -182,7 +182,8 @@ public class RefererConfigTest extends BaseTestCase {
     public void testClusterGroup() {
         refererConfig.setSandboxGroups("sandbox1, sandbox2,,,,sandbox1");
         refererConfig.setBackupGroups("backup1,,backup2,backup1" + "," + group); // With repeated groups、 master group
-        refererConfig.setRegistry(createRemoteRegistryConfig("direct", "direct", "127.0.0.1:4567", 0));
+        refererConfig.setGreyGroups("grey1, grey-group2");
+        refererConfig.setRegistry(createRemoteRegistryConfig("mock", "mock", "127.0.0.1:4567", 0));
 
         // injvm protocol not process sandbox groups and backup groups
         IWorld ref = refererConfig.getRef();
@@ -194,8 +195,8 @@ public class RefererConfigTest extends BaseTestCase {
         refererConfig.setProtocol(mockProtocolConfig("motan2"));
         ref = refererConfig.getRef();
         assertNotNull(ref);
-        assertEquals(5, refererConfig.getClusterSupports().size());
-        assertEquals(5, GlobalRuntime.getRuntimeClusters().size());
+        assertEquals(7, refererConfig.getClusterSupports().size());
+        assertEquals(7, GlobalRuntime.getRuntimeClusters().size());
         for (Entry<String, Cluster<?>> entry : GlobalRuntime.getRuntimeClusters().entrySet()) {
             assertEquals(entry.getValue(), refererConfig.getClusterSupports().get(entry.getKey()).getCluster());
         }
@@ -211,7 +212,7 @@ public class RefererConfigTest extends BaseTestCase {
     public void testGroupSuffix() {
         refererConfig.setSandboxGroups("suffix:-sandbox1");
         refererConfig.setBackupGroups("suffix:-backup1");
-        refererConfig.setRegistry(createRemoteRegistryConfig("direct", "direct", "127.0.0.1:4567", 0));
+        refererConfig.setRegistry(createRemoteRegistryConfig("mock", "mock", "127.0.0.1:4567", 0));
         refererConfig.setProtocol(mockProtocolConfig("motan2"));
         IWorld ref = refererConfig.getRef();
         assertNotNull(ref);
@@ -240,7 +241,7 @@ public class RefererConfigTest extends BaseTestCase {
     public void testDefaultSandboxGroup() {
         // test default sandbox group
         RefererConfig.DEFAULT_SANDBOX_GROUPS = "default-sandbox";
-        refererConfig.setRegistry(createRemoteRegistryConfig("direct", "direct", "127.0.0.1:4567", 0));
+        refererConfig.setRegistry(createRemoteRegistryConfig("mock", "mock", "127.0.0.1:4567", 0));
         refererConfig.setProtocol(mockProtocolConfig("motan2"));
         IWorld ref = refererConfig.getRef();
         assertNotNull(ref);
@@ -257,7 +258,7 @@ public class RefererConfigTest extends BaseTestCase {
         refererConfig.destroy();
 
         // test "none" sandbox group
-        refererConfig.setSandboxGroups(RefererConfig.NONE_SANDBOX_STRING); // will over write default sandbox group, so no sandbox cluster
+        refererConfig.setSandboxGroups(RefererConfig.NONE_GROUP_STRING); // will over write default sandbox group, so no sandbox cluster
         ref = refererConfig.getRef();
         assertNotNull(ref);
         assertEquals(1, refererConfig.getClusterSupports().size());

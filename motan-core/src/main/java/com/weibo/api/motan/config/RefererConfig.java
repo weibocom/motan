@@ -47,22 +47,29 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 
 public class RefererConfig<T> extends AbstractRefererConfig {
-    private static final ConcurrentHashSet<String> NONE_SANDBOX_PROTOCOL_SET = new ConcurrentHashSet<>(); // The set of protocols that do not support sandbox grouping.
+    private static final ConcurrentHashSet<String> NONE_EXTRA_GROUP_PROTOCOL_SET = new ConcurrentHashSet<>(); // The set of protocols that do not support sandbox/grey grouping.
+    private static final ConcurrentHashSet<String> NONE_EXTRA_GROUP_REGISTRY_SET = new ConcurrentHashSet<>(); // The set of registries that do not support sandbox/grey grouping.
 
     static {
-        NONE_SANDBOX_PROTOCOL_SET.add(MotanConstants.PROTOCOL_INJVM);
-        NONE_SANDBOX_PROTOCOL_SET.add("memcache");
-        NONE_SANDBOX_PROTOCOL_SET.add("memcacheq");
-        NONE_SANDBOX_PROTOCOL_SET.add("redis");
+        NONE_EXTRA_GROUP_PROTOCOL_SET.add(MotanConstants.PROTOCOL_INJVM);
+        NONE_EXTRA_GROUP_PROTOCOL_SET.add("memcache");
+        NONE_EXTRA_GROUP_PROTOCOL_SET.add("memcacheq");
+        NONE_EXTRA_GROUP_PROTOCOL_SET.add("redis");
+
+        NONE_EXTRA_GROUP_REGISTRY_SET.add("direct");
+        NONE_EXTRA_GROUP_REGISTRY_SET.add("local");
+        NONE_EXTRA_GROUP_REGISTRY_SET.add("weibomesh");
     }
 
     private static final long serialVersionUID = -2299754608229467887L;
 
     protected static final String MASTER_CLUSTER_KEY = "master-";
     protected static final String SANDBOX_CLUSTER_KEY = "sandbox-";
+    protected static final String GREY_CLUSTER_KEY = "grey-";
     protected static final String BACKUP_CLUSTER_KEY = "backup-";
-    protected static final String NONE_SANDBOX_STRING = "none";
+    protected static final String NONE_GROUP_STRING = "none";
     public static String DEFAULT_SANDBOX_GROUPS = MotanGlobalConfigUtil.getConfig("DEFAULT_SANDBOX_GROUPS", ""); // 可以通过设置全局配置修改默认值
+    public static String DEFAULT_GREY_GROUPS = MotanGlobalConfigUtil.getConfig("DEFAULT_GREY_GROUPS", ""); // 可以通过设置全局配置修改默认值
 
 
     private Class<T> interfaceClass;
@@ -191,15 +198,22 @@ public class RefererConfig<T> extends AbstractRefererConfig {
         // create master cluster
         Cluster<T> masterCluster = createInnerCluster(configHandler, refUrl, MASTER_CLUSTER_KEY);
         DefaultClusterGroup<T> clusterGroup = new DefaultClusterGroup<T>(masterCluster);
-        // try to create sandbox, backup clusters if not injvm protocol
-        if (!NONE_SANDBOX_PROTOCOL_SET.contains(refUrl.getProtocol())) {
+        // try to create sandbox, grey, backup clusters if needed
+        if (needProcessExtraGroup(refUrl)) {
             try {
                 String sandboxGroups = refUrl.getParameter(URLParamType.sandboxGroups.getName(), DEFAULT_SANDBOX_GROUPS);
                 // set sandbox clusters
-                if (StringUtils.isNotBlank(sandboxGroups) && !NONE_SANDBOX_STRING.equals(sandboxGroups)) {
+                if (StringUtils.isNotBlank(sandboxGroups) && !NONE_GROUP_STRING.equals(sandboxGroups)) {
                     clusterGroup.setSandboxClusters(createMultiClusters(refUrl, configHandler,
                             sandboxGroups, SANDBOX_CLUSTER_KEY, false, true));
                     LoggerUtil.info("init sandbox clusters success. master cluster url:" + refUrl.toSimpleString() + ", sandbox groups:" + sandboxGroups);
+                }
+                // set grey clusters
+                String greyGroups = refUrl.getParameter(URLParamType.greyGroups.getName(), DEFAULT_GREY_GROUPS);
+                if (StringUtils.isNotBlank(greyGroups) && !NONE_GROUP_STRING.equals(greyGroups)) {
+                    clusterGroup.setGreyClusters(createMultiClusters(refUrl, configHandler,
+                            greyGroups, GREY_CLUSTER_KEY, false, true));
+                    LoggerUtil.info("init grey clusters success. master cluster url:" + refUrl.toSimpleString() + ", grey groups:" + greyGroups);
                 }
                 // set backup clusters
                 if (StringUtils.isNotBlank(refUrl.getParameter(URLParamType.backupGroups.getName()))) {
@@ -214,6 +228,35 @@ public class RefererConfig<T> extends AbstractRefererConfig {
         }
         clusterGroup.init();
         return clusterGroup;
+    }
+
+    // Determine whether extra groups such as sandbox or grey group need to be processed.
+    private boolean needProcessExtraGroup(URL refUrl) {
+        // Special protocols such as injvm will not be processed.
+        if (NONE_EXTRA_GROUP_PROTOCOL_SET.contains(refUrl.getProtocol())) {
+            LoggerUtil.info("do not process extra groups due to protocol rules. url:" + refUrl.toSimpleString());
+            return false;
+        }
+        // use directUrl not be processed.
+        if (StringUtils.isNotBlank(directUrl)) {
+            LoggerUtil.info("do not process extra groups due to directUrl rules. url:" + refUrl.toSimpleString());
+            return false;
+        }
+        // will be proxied by mesh
+        if (MeshProxyUtil.needProcess(refUrl, false)) {
+            LoggerUtil.info("do not process extra groups due to mesh proxy rules. url:" + refUrl.toSimpleString());
+            return false;
+        }
+        // Special registry such as direct will not be processed.
+        if (registryUrls != null) {
+            for (URL url : registryUrls) {
+                if (NONE_EXTRA_GROUP_REGISTRY_SET.contains(url.getProtocol())) {
+                    LoggerUtil.info("do not process extra groups due to registry rules. url:" + refUrl.toSimpleString());
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private List<Cluster<T>> createMultiClusters(URL baseUrl, ConfigHandler configHandler, String groupString,

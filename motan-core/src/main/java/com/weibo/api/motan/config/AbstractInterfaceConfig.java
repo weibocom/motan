@@ -139,6 +139,15 @@ public class AbstractInterfaceConfig extends AbstractConfig {
     protected String sandboxGroups; // the group name of the sandbox
 
     protected String backupGroups; // the group name of the backup
+    protected String greyGroups; // the group name of the grey
+
+    public String getGreyGroups() {
+        return greyGroups;
+    }
+
+    public void setGreyGroups(String greyGroups) {
+        this.greyGroups = greyGroups;
+    }
 
     public String getSandboxGroups() {
         return sandboxGroups;
