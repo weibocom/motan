@@ -1,5 +1,19 @@
 # Change Log
 
+## [1.2.6](https://github.com/weibocom/motan/tree/1.2.6) (2025-06-11)
+
+[Full Changelog](https://github.com/weibocom/motan/compare/1.2.5...1.2.6)
+
+**Implemented enhancements:**
+
+- Support grey cluster [\#1082](https://github.com/weibocom/motan/pull/1082) ([Ray](https://github.com/rayzhang0603))
+- Support setting attachments on server
+  side [\#1081](https://github.com/weibocom/motan/pull/1081) ([Ray](https://github.com/rayzhang0603))
+
+**Merged pull requests:**
+
+**Fixed bugs:**
+
 ## [1.2.5](https://github.com/weibocom/motan/tree/1.2.5) (2025-06-11)
 
 [Full Changelog](https://github.com/weibocom/motan/compare/1.2.4...1.2.5)

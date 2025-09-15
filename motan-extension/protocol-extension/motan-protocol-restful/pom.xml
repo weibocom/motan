@@ -22,9 +22,10 @@
     <parent>
         <groupId>com.weibo</groupId>
         <artifactId>protocol-extension</artifactId>
-        <version>1.2.6-SNAPSHOT</version>
+        <version>1.2.6</version>
     </parent>
     <artifactId>motan-protocol-restful</artifactId>
+    <name>motan-protocol-restful</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <resteasy.version>3.14.0.Final</resteasy.version>

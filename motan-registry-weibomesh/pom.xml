@@ -23,10 +23,10 @@
     <parent>
         <artifactId>motan</artifactId>
         <groupId>com.weibo</groupId>
-        <version>1.2.6-SNAPSHOT</version>
+        <version>1.2.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
+    <name>motan-registry-weibomesh</name>
     <artifactId>motan-registry-weibomesh</artifactId>
     <dependencies>
         <dependency>
