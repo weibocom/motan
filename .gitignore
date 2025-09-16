@@ -4,6 +4,8 @@
 */*/logs/
 */target/
 bin/
+package.sh
+motan-package/
 
 # maven ignore
 target/
